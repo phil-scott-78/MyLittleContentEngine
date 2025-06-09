@@ -7,7 +7,6 @@
     <LangVersion>Latest</LangVersion>
     
     <!-- NuGet Package Properties -->
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>MyLittleContentEngine</PackageId>
     <Title>My Little Content Engine</Title>
     <Description>A powerful content engine for building static sites with Blazor and ASP.NET Core</Description>

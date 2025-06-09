@@ -7,7 +7,6 @@
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
     
     <!-- NuGet Package Properties -->
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageId>MyLittleContentEngine.UI</PackageId>
     <Title>My Little Content Engine - UI Components</Title>
     <Description>Blazor UI components for My Little Content Engine providing pre-built components for content sites</Description>

@@ -1,11 +1,7 @@
 ---
 title: "Creating Your First Site"
 description: "Build a complete content site from scratch using MyLittleContentEngine"
-order: 1
-tags:
-  - tutorial
-  - getting-started
-  - setup
+order: 1001
 ---
 
 In this tutorial, you'll create your first content site using MyLittleContentEngine. By the end, you'll have a working Blazor application that can serve markdown content and generate static HTML files.
@@ -28,19 +24,21 @@ Before starting, ensure you have:
 
 ## Step 1: Create a New Blazor Project
 
-Start by creating a new Blazor Server project:
+Start by creating a new empty Blazor Server project:
 
 ```bash
-dotnet new blazor-server -n MyFirstContentSite
+dotnet new blazorserver-empty -n MyFirstContentSite
 cd MyFirstContentSite
 ```
 
 ## Step 2: Add MyLittleContentEngine
 
-Add the NuGet package reference to your project:
+Add the NuGet package references to your project:
 
 ```bash
 dotnet add package MyLittleContentEngine
+dotnet add package MyLittleContentEngine.UI
+dotnet add package MyLittleContentEngine.MonorailCss
 ```
 
 ## Step 3: Create Your Front Matter Model

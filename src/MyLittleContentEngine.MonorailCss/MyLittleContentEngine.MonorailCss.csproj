@@ -6,7 +6,6 @@
         <Nullable>enable</Nullable>
         
         <!-- NuGet Package Properties -->
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageId>MyLittleContentEngine.MonorailCss</PackageId>
         <Title>My Little Content Engine - MonorailCSS Integration</Title>
         <Description>MonorailCSS integration for My Little Content Engine providing utility-first CSS framework support</Description>
