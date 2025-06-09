@@ -1,21 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
     <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
     
-    <!-- NuGet Package Properties -->
+    <!-- Project-specific NuGet Package Properties -->
     <PackageId>MyLittleContentEngine.UI</PackageId>
     <Title>My Little Content Engine - UI Components</Title>
     <Description>Blazor UI components for My Little Content Engine providing pre-built components for content sites</Description>
-    <Authors>MyLittleContentEngine Contributors</Authors>
     <PackageTags>blazor;ui-components;razor-components;content-engine</PackageTags>
-    <PackageProjectUrl>https://github.com/phil-scott-78/MyLittleContentEngine</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/phil-scott-78/MyLittleContentEngine</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,10 +16,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.0" />
-    <PackageReference Include="MinVer" Version="6.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>

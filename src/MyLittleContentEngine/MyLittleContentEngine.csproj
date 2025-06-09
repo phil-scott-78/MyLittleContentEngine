@@ -1,25 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <LangVersion>Latest</LangVersion>
-    
-    <!-- NuGet Package Properties -->
+    <!-- Project-specific NuGet Package Properties -->
     <PackageId>MyLittleContentEngine</PackageId>
     <Title>My Little Content Engine</Title>
     <Description>A powerful content engine for building static sites with Blazor and ASP.NET Core</Description>
-    <Authors>MyLittleContentEngine Contributors</Authors>
     <PackageTags>blazor;static-site;content-engine;markdown;asp-net-core</PackageTags>
-    <PackageProjectUrl>https://github.com/phil-scott-78/MyLittleContentEngine</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/phil-scott-78/MyLittleContentEngine</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
-  <ItemGroup>
-    <InternalsVisibleTo Include="$(AssemblyName).Tests" />
-  </ItemGroup>
   <ItemGroup>
     <Content Update="@(Content)">
       <Visible Condition="'%(NuGetItemType)' == 'Content'">false</Visible>
@@ -40,6 +28,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="System.Formats.Asn1" Version="9.0.5" />
 
     <PackageReference Include="System.ServiceModel.Syndication" Version="9.0.3" />
 
@@ -55,10 +44,6 @@
     <PackageReference Include="TextMateSharp.Grammars" Version="1.0.69" />
 
     <PackageReference Include="YamlDotNet" Version="16.3.0" />
-    <PackageReference Include="MinVer" Version="6.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
