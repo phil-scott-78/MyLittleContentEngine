@@ -37,12 +37,20 @@ public record ConnectedDotNetSolution
     public required string SolutionPath { get; init; }
 
     /// <summary>
-    /// Gets or sets the path to the directory containing the projects
-    /// that will be used for syntax highlighting.
+    /// Gets or sets the project names to include for syntax highlighting.
     /// </summary>
     /// <remarks>
-    /// The path can be absolute or relative to the application's execution directory.
-    /// This directory should contain the C# projects referenced in code examples.
+    /// Project names are matched case-insensitively. If specified, only these projects
+    /// will be used for highlighting. Cannot be used together with ExcludedProjects.
     /// </remarks>
-    public required string ProjectsPath { get; init; }
+    public string[] IncludedProjects { get; init; } = [];
+
+    /// <summary>
+    /// Gets or sets the project names to exclude from syntax highlighting.
+    /// </summary>
+    /// <remarks>
+    /// Project names are matched case-insensitively. If specified, all projects except
+    /// these will be used for highlighting. Cannot be used together with IncludedProjects.
+    /// </remarks>
+    public string[] ExcludedProjects { get; init; } = [];
 }

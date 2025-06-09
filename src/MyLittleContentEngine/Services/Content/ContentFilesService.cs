@@ -46,7 +46,7 @@ public class ContentFilesService<TFrontMatter>
 
             return _pathUtilities.GetFilesInDirectory(
                 absoluteContentPath,
-                _engineContentOptions.PostFilePattern);
+                _engineContentOptions.PostFilePattern, !_engineContentOptions.ExcludeSubfolders);
         }
         catch (DirectoryNotFoundException ex)
         {

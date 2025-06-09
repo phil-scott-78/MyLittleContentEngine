@@ -69,6 +69,11 @@ public class ContentEngineContentOptions<TFrontMatter> : IContentOptions
     public string BasePageUrl { get; init; } = "blog";
 
     /// <summary>
+    /// Gets or sets a value indicating whether to exclude subfolders when searching for content files.
+    /// </summary>
+    public bool ExcludeSubfolders { get; init; } = false;
+
+    /// <summary>
     /// Gets or sets a hook to process markdown content before it is rendered as HTML.
     /// </summary>
     /// <remarks>
@@ -76,24 +81,6 @@ public class ContentEngineContentOptions<TFrontMatter> : IContentOptions
     /// and returns the processed Markdown string.
     /// </remarks>
     public Func<IServiceProvider, string, string> PreProcessMarkdown { get; init; } = (_, s) => s;
-
-    /// <summary>
-    /// Gets or sets a hook to process the front matter and HTML after Markdown parsing but before passing to Razor.
-    /// </summary>
-    /// <remarks>
-    /// This function takes an IServiceProvider, the parsed front matter, and the HTML content,
-    /// and returns a tuple containing potentially modified versions of both.
-    /// </remarks>
-    public Func<IServiceProvider, TFrontMatter, string, (TFrontMatter, string)> PostProcessHtml { get; init; } =
-        (_, frontMatter, html) => (frontMatter, html);
-
-    /// <summary>
-    /// Gets a list of routes to exclude from static content generation.
-    /// </summary>
-    /// <remarks>
-    /// Routes specified here will not be included in the generated static output.
-    /// </remarks>
-    public ImmutableList<string> ExcludedMapRoutes { get; init; } = [];
 
     /// <summary>
     /// Gets or sets the options related to tag functionality.

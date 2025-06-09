@@ -15,7 +15,9 @@
       "Bash(rg:*)",
       "Bash(timeout:*)",
       "Bash(git reset:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)"
     ]
   },
   "model": "sonnet",

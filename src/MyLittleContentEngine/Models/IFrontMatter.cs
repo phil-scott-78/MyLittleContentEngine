@@ -1,4 +1,4 @@
-namespace MyLittleContentEngine.Models;
+﻿namespace MyLittleContentEngine.Models;
 
 /// <summary>
 ///     Interface for front matter. FrontMatter is the metadata of a Markdown content page.
@@ -6,25 +6,27 @@ namespace MyLittleContentEngine.Models;
 public interface IFrontMatter
 {
     /// <summary>
-    /// If true, the content page will not be generated.
-    /// </summary>
-    bool IsDraft => false;
-
-    /// <summary>
     /// The title of the content page.
     /// </summary>
     public string Title { get; init; }
 
     /// <summary>
-    /// Converts the FrontMatter into structured metadata for RSS and SiteMap generation
-    /// </summary>
-    /// <returns></returns>
-    public Metadata AsMetadata();
-    
-    /// <summary>
     /// Tags for the content.
     /// </summary>
     string[] Tags { get; init; }
+    
+    /// <summary>
+    /// If true, the content page will not be generated.
+    /// </summary>
+    bool IsDraft { get; init; }
 
+    /// <summary>
+    /// Currently unused, but maybe one day we can support xref links.
+    /// </summary>
     string? Uid { get; init; }
+    
+    /// <summary>
+    /// Converts the FrontMatter into structured metadata for RSS and SiteMap generation.
+    /// </summary>
+    public Metadata AsMetadata();
 }

@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO.Abstractions;
 using System.Reflection;
@@ -7,7 +6,6 @@ using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.MSBuild;
 using Microsoft.CodeAnalysis.Text;
@@ -36,6 +34,7 @@ public class RoslynExampleCoordinator : IDisposable
     private readonly LazyAndForgetful<ConcurrentDictionary<string, CachedCompiledXmlDocId>> _roslynCache;
     private readonly HashSet<string> _pendingChanges = new(StringComparer.OrdinalIgnoreCase);
     private readonly Lock _changeLock = new();
+    private readonly ConnectedDotNetSolution _connectedSolution;
     private volatile bool _isRebuilding;
     private bool _disposed;
 
@@ -52,7 +51,15 @@ public class RoslynExampleCoordinator : IDisposable
     {
         _logger = logger;
         Debug.Assert(options.ConnectedSolution != null);
-   
+        _connectedSolution = options.ConnectedSolution;
+
+        // Validate project filter options
+        if (_connectedSolution is { IncludedProjects.Length: > 0, ExcludedProjects.Length: > 0 })
+        {
+            throw new InvalidOperationException(
+                "Cannot specify both IncludedProjects and ExcludedProjects. Use one or the other, or neither for all projects.");
+        }
+
         _assemblyLoaderService = assemblyLoaderService;
         _fileSystem = fileSystem;
         _codeExecutionService = codeExecutionService;
@@ -98,7 +105,7 @@ public class RoslynExampleCoordinator : IDisposable
                 {
                     _logger.LogTrace("Populating XmlDocId cache");
                     var solution = _workspace.CurrentSolution.ProjectIds.Count == 0
-                        ? await _workspace.OpenSolutionAsync(options.ConnectedSolution.SolutionPath)
+                        ? await _workspace.OpenSolutionAsync(_connectedSolution.SolutionPath)
                         : await ApplyPendingChangesToSolutionAsync(_workspace.CurrentSolution);
                     _logger.LogTrace("Solution loaded for XmlDocId cache");
                     var result = await GetAllTypesAndMethodsInSolutionAsync(solution);
@@ -118,6 +125,7 @@ public class RoslynExampleCoordinator : IDisposable
         _logger.LogTrace("Getting compilation for {project}", project.FilePath);
 
         var compilation = await project.GetCompilationAsync();
+
         if (compilation == null)
         {
             _logger.LogWarning("Compilation is null for {project}", project.FilePath);
@@ -177,7 +185,7 @@ public class RoslynExampleCoordinator : IDisposable
             return await CodeFragmentExtractor.ExtractCodeFragmentAsync(id.Document, id.TextSpan, id.SourceText,
                 bodyOnly);
         }
-        
+
         _logger.LogWarning("Failed to find {sanitizedXmlDocId}", xmlDocId);
         return "Code not found for specified documentation ID.";
     }
@@ -282,20 +290,15 @@ public class RoslynExampleCoordinator : IDisposable
         _logger.LogTrace("GetAllTypesAndMethodsInSolutionAsync started");
         var result = new ConcurrentDictionary<string, CachedCompiledXmlDocId>();
 
-        await Parallel.ForEachAsync(solution.Projects, async (project, ctx) =>
+        var filteredProjects = FilterProjects(solution.Projects, _connectedSolution).ToArray();
+        _logger.LogTrace("Processing {ProjectCount} projects after filtering", filteredProjects.Length);
+
+        await Parallel.ForEachAsync(filteredProjects, async (project, ctx) =>
         {
-            var withoutAnalyzers = project.WithAnalyzerReferences(ImmutableArray<AnalyzerReference>.Empty);
-
             _logger.LogTrace("Getting types and methods {project}", project.FilePath);
-            if (project.FilePath?.Contains("blog-projects") != true)
-            {
-                _logger.LogTrace("Skipping {project}", project.FilePath);
-                return;
-            }
+            var assembly = await GetProjectAssembly(project);
 
-            var assembly = await GetProjectAssembly(withoutAnalyzers);
-
-            await foreach (var item in ProcessProjectDocumentsAsync(withoutAnalyzers).WithCancellation(ctx))
+            await foreach (var item in ProcessProjectDocumentsAsync(project).WithCancellation(ctx))
             {
                 _logger.LogTrace("Adding XmlDocId {xmlDocId} for project {project}", item.xmlDocId,
                     project.FilePath);
@@ -306,6 +309,30 @@ public class RoslynExampleCoordinator : IDisposable
         sw.Stop();
         _logger.LogTrace("Rebuilt roslyn cache in {elapsed}", sw.Elapsed);
         return result;
+    }
+
+    private static IEnumerable<Project> FilterProjects(
+        IEnumerable<Project> projects,
+        ConnectedDotNetSolution solution)
+    {
+        var projectList = projects.ToList();
+
+        // If neither included nor excluded is specified, return all projects
+        if (solution.IncludedProjects.Length == 0 && solution.ExcludedProjects.Length == 0)
+        {
+            return projectList;
+        }
+
+        // If included projects are specified, return only those
+        if (solution.IncludedProjects.Length > 0)
+        {
+            var includedSet = new HashSet<string>(solution.IncludedProjects, StringComparer.OrdinalIgnoreCase);
+            return projectList.Where(p => includedSet.Contains(p.Name));
+        }
+
+        // If excluded projects are specified, return all except those
+        var excludedSet = new HashSet<string>(solution.ExcludedProjects, StringComparer.OrdinalIgnoreCase);
+        return projectList.Where(p => !excludedSet.Contains(p.Name));
     }
 
     private async

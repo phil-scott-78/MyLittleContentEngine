@@ -1,7 +1,9 @@
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.IO.Abstractions;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.Extensions.Logging;
 
@@ -48,7 +50,6 @@ public class AssemblyLoaderService(ILogger<AssemblyLoaderService> logger, IFileS
         {
             throw new Exception($"Could not get compilation for {project.FilePath}");
         }
-        // compilation = compilation.AddReferences(MetadataReference.CreateFromFile(typeof(object).Assembly.Location));
 
         var options = compilation.Options
             .WithOptimizationLevel(OptimizationLevel.Release)
@@ -57,25 +58,6 @@ public class AssemblyLoaderService(ILogger<AssemblyLoaderService> logger, IFileS
         compilation = compilation.WithOptions(options);
 
         _logger.LogDebug("--- Compilation Details for Project: {ProjectFilePath} ---", project.FilePath);
-
-        var initialDiagnostics = compilation.GetDiagnostics();
-        if (initialDiagnostics.Any())
-        {
-            _logger.LogDebug("Initial diagnostics from compilation object (before Emit):");
-            foreach (var diag in initialDiagnostics.OrderBy(d => d.Severity))
-            {
-                var logLevel = diag.Severity switch
-                {
-                    DiagnosticSeverity.Error => LogLevel.Debug,
-                    _ => LogLevel.Trace
-                };
-                _logger.Log(logLevel, "  Diagnostic ({Severity}) {Id}: {Message} @ {Location}", diag.Severity, diag.Id, diag.GetMessage(), diag.Location.ToString());
-            }
-        }
-        else
-        {
-            _logger.LogDebug("No initial diagnostics from compilation object (before Emit).");
-        }
 
         await using var ms = new MemoryStream();
         var emitResult = compilation.Emit(peStream: ms, options: emitOptions);

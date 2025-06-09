@@ -1,0 +1,72 @@
+@page "/{*fileName:nonfile}"
+
+@using MyLittleContentEngine.Models
+@using MyLittleContentEngine.Services.Content
+@using MyLittleContentEngine
+@inject ContentEngineOptions ContentEngineOptions
+@inject MarkdownContentService<DocsFrontMatter> DocsMarkdownContentService
+
+@if (_post == null || _postContent == null)
+{
+    <PageTitle>@ContentEngineOptions.SiteTitle</PageTitle>
+    <div class="flex justify-center items-center h-64">
+        <p class="text-neutral-500">Not found</p>
+    </div>
+    return;
+}
+
+<PageTitle>@ContentEngineOptions.SiteTitle - @_post.FrontMatter.Title</PageTitle>
+
+<div class="flex">
+    <!-- Content Column -->
+    <div class="flex-1 min-w-0">
+        <article class="p-8 max-w-4xl">
+            <header>
+                <h1 class="text-2xl"> @_post.FrontMatter.Title</h1>
+            </header>
+
+            <div class="prose prose-neutral dark:prose-invert max-w-none">
+                @((MarkupString)_postContent)
+            </div>
+        </article>
+    </div>
+    
+    <!-- Outline Column -->
+    <div class="w-64 flex-shrink-0">
+        <aside class="sticky top-0 h-screen overflow-y-auto p-6">
+                @if (_outline != null && _post != null)
+                {
+                    <OutlineNavigation 
+                        Outline="@_outline" 
+                        BaseUrl="@_post.NavigateUrl" />
+                }
+        </aside>
+    </div>
+</div>
+
+@code {
+    private MarkdownContentPage<DocsFrontMatter>? _post;
+    private string? _postContent;
+    private OutlineEntry[]? _outline;
+
+    [Parameter] public required string FileName { get; init; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var fileName = FileName;
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            fileName = "index";
+        }
+
+        var page = await DocsMarkdownContentService.GetRenderedContentPageByUrlOrDefault(fileName);
+        if (page == null)
+        {
+            return;
+        }
+
+        _outline = page.Value.Page.Outline;
+        _post = page.Value.Page;
+        _postContent = page.Value.HtmlContent;
+    }
+}

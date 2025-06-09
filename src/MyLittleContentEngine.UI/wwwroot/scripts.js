@@ -79,7 +79,7 @@ class OutlineManager {
     }
 
     setupOutline() {
-        this.outlineLinks = Array.from(document.querySelectorAll('aside ul li a'));
+        this.outlineLinks = Array.from(document.querySelectorAll('[data-role="page-outline"] ul li a'));
 
         // Initialize all links and build section map
         this.outlineLinks.forEach(link => {

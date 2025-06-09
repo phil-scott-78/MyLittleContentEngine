@@ -31,7 +31,11 @@ else
 <SectionContent SectionName="sidebar">
     @if (IsLoaded)
     {
-        <OutlineNavigation Outline="@_outline" BaseUrl="@_post.NavigateUrl" />
+        <OutlineNavigation
+            TitleColorClass="text-accent-700 dark:text-accent-400"
+            TitleStructureClass="font-display uppercase text-xs"
+            Outline="@_outline" 
+            BaseUrl="@_post.NavigateUrl" />
     }
 </SectionContent>
 
@@ -44,8 +48,6 @@ else
     [MemberNotNull(nameof(_outline))]
     [MemberNotNull(nameof(_post))]
     bool IsLoaded { get; set; }
-
-
 
     [Parameter] public required string FileName { get; init; } = string.Empty;
 

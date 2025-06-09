@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.IO.Abstractions;
 using System.Text;
 using System.Web;
 using Microsoft.Extensions.Logging;
@@ -16,23 +17,28 @@ public class RoslynHighlighterService : IDisposable
     private readonly RoslynExampleCoordinator? _documentProcessor;
     private readonly ConcurrentDictionary<int, string> _cache;
     private readonly IContentEngineFileWatcher _fileWatcher;
+    private readonly IFileSystem _fileSystem;
+    private readonly string? _solutionDirectory;
     private bool _disposed;
 
     /// <summary>
     /// Provides functionality for syntax highlighting of code using Roslyn.
     /// </summary>
     public RoslynHighlighterService(RoslynHighlighterOptions options, ILogger<RoslynHighlighterService> logger,
-        IContentEngineFileWatcher fileWatcher, RoslynExampleCoordinator? documentProcessor = null)
+        IContentEngineFileWatcher fileWatcher, IFileSystem fileSystem, RoslynExampleCoordinator? documentProcessor = null)
     {
         _logger = logger;
         _highlighter = new SyntaxHighlighter();
         _cache = new ConcurrentDictionary<int, string>();
         _fileWatcher = fileWatcher;
+        _fileSystem = fileSystem;
         _documentProcessor = documentProcessor;
 
         if (options.ConnectedSolution != null)
         {
-            _fileWatcher.AddPathWatch(options.ConnectedSolution.ProjectsPath, "*.cs", OnFileChanged);
+            _solutionDirectory = fileSystem.Path.GetDirectoryName(options.ConnectedSolution.SolutionPath) 
+                       ?? throw new InvalidOperationException("Could not determine solution directory");
+            _fileWatcher.AddPathWatch(_solutionDirectory, "*.cs", OnFileChanged);
         }
     }
 
@@ -86,6 +92,49 @@ public class RoslynHighlighterService : IDisposable
         var highlightExample = _cache.GetOrAdd(codeContent.GetHashCode(), _ =>
             _highlighter.Highlight(HttpUtility.HtmlDecode(codeContent), language));
         return $"<pre><code>{highlightExample}</code></pre>";
+    }
+
+    /// <summary>
+    /// Retrieves the full content of a file using a path relative to the solution root.
+    /// </summary>
+    /// <param name="relativePath">The path relative to the solution root directory</param>
+    /// <returns>The full content of the file</returns>
+    /// <exception cref="InvalidOperationException">Thrown when no connected solution is configured</exception>
+    /// <exception cref="FileNotFoundException">Thrown when the file does not exist</exception>
+    public async Task<string> GetFileContentAsync(string relativePath)
+    {
+        if (_solutionDirectory == null)
+        {
+            throw new InvalidOperationException(
+                "File content retrieval is only supported when ConnectedSolution is configured");
+        }
+
+        if (string.IsNullOrWhiteSpace(relativePath))
+        {
+            throw new ArgumentException("Relative path cannot be null or empty", nameof(relativePath));
+        }
+
+        // Normalize the path separators and remove any leading separators
+        var normalizedPath = relativePath.Replace('\\', '/').TrimStart('/', '\\');
+        var fullPath = _fileSystem.Path.Combine(_solutionDirectory, normalizedPath);
+
+        // Ensure the resolved path is still within the solution directory (security check)
+        var resolvedPath = _fileSystem.Path.GetFullPath(fullPath);
+        var solutionPath = _fileSystem.Path.GetFullPath(_solutionDirectory);
+        
+        if (!resolvedPath.StartsWith(solutionPath, StringComparison.OrdinalIgnoreCase))
+        {
+            throw new UnauthorizedAccessException(
+                $"Access to files outside the solution directory is not allowed. Requested: {relativePath}");
+        }
+
+        if (!_fileSystem.File.Exists(resolvedPath))
+        {
+            throw new FileNotFoundException($"File not found: {relativePath}", resolvedPath);
+        }
+
+        _logger.LogDebug("Reading file content from: {FilePath}", resolvedPath);
+        return await _fileSystem.File.ReadAllTextAsync(resolvedPath);
     }
 
     /// <inheritdoc />

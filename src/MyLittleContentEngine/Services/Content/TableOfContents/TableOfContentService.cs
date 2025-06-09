@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 
 namespace MyLittleContentEngine.Services.Content.TableOfContents;
@@ -11,31 +12,54 @@ public class TableOfContentEntry
     public required bool IsSelected { get; init; }
 }
 
+// Internal tree node class
+internal class TreeNode
+{
+    public string Segment { get; init; } = "";
+
+    public Dictionary<string, TreeNode> Children { get; } = new(StringComparer.OrdinalIgnoreCase);
+
+    public bool HasPage { get; set; }
+    public bool IsIndex { get; set; }
+    public string? Title { get; set; }
+    public string? Url { get; set; }
+    public int Order { get; set; }
+}
+
 public class TableOfContentService(
     ContentEngineOptions options,
     IEnumerable<IContentService> contentServices)
 {
-    // Internal tree node class
-    class TreeNode
-    {
-        public string Segment { get; init; } = "";
-
-        public Dictionary<string, TreeNode> Children { get; } = new(StringComparer.OrdinalIgnoreCase);
-
-        public bool HasPage { get; set; }
-        public bool IsIndex { get; set; }
-        public string? Title { get; set; }
-        public string? Url { get; set; }
-        public int Order { get; set; }
-    }
+    private readonly ConcurrentDictionary<Type, IContentService> _contentServices =
+        new(contentServices.ToDictionary(service => service.GetType(), service => service));
 
     public async Task<ImmutableList<TableOfContentEntry>> GetNavigationTocAsync(string currentUrl)
     {
         var baseUrl = options.BaseUrl.TrimEnd('/');
+        var services = _contentServices.Values;
 
+        return await GetTableOfContentEntries(currentUrl, services, baseUrl);
+    }
+
+    public async Task<ImmutableList<TableOfContentEntry>> GetNavigationTocAsync<T>(string currentUrl)
+        where T : IContentService
+    {
+        if (!_contentServices.TryGetValue(typeof(T), out var contentService))
+        {
+            throw new InvalidOperationException($"Content service of type {typeof(T).Name} is not registered.");
+        }
+
+        var baseUrl = options.BaseUrl.TrimEnd('/');
+        return await GetTableOfContentEntries(currentUrl, [contentService], baseUrl);
+    }
+
+    private async Task<ImmutableList<TableOfContentEntry>> GetTableOfContentEntries(string currentUrl,
+        ICollection<IContentService> services, string baseUrl)
+    {
         // Collect all pages (Title, Url, Order)
         var pageTitlesWithOrder = new List<(string PageTitle, string Url, int Order)>();
-        foreach (var contentService in contentServices)
+
+        foreach (var contentService in services)
         {
             var pages = await contentService.GetPagesToGenerateAsync();
             foreach (var page in pages)
@@ -194,7 +218,6 @@ public class TableOfContentService(
             .Replace("-", " ")
             .Replace(dashReplacement, "-")
             .ToApaTitleCase();
-        
     }
 
     // Recursive helper: build a list of TOC entries from a given tree node's children

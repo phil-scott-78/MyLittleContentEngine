@@ -2,9 +2,9 @@
 
 @if (Outline != null && Outline.Length > 1)
 {
-    <div class="@ContainerClass">
-        <h2 class="@TitleClass">@Title</h2>
-        <ul class="@ListClass">
+    <div data-role="page-outline" class="@ContainerStructureClass @ContainerColorClass">
+        <h2 class="@TitleStructureClass @TitleColorClass">@Title</h2>
+        <ul class="@ListStructureClass @ListColorClass">
             @foreach (var entry in Outline)
             {
                 @OutlineLink(entry, "pl-4")
@@ -25,15 +25,20 @@
 @code {
     [Parameter] public OutlineEntry[]? Outline { get; set; }
     [Parameter] public string Title { get; set; } = "On This Page";
-    [Parameter] public string ContainerClass { get; set; } = "hidden lg:block";
-    [Parameter] public string TitleClass { get; set; } = "text-xs uppercase tracking-wide font-bold text-primary-500 dark:text-primary-500";
-    [Parameter] public string ListClass { get; set; } = "list-none text-sm mt-6 text-neutral-900 dark:text-neutral-400";
+    [Parameter] public string ContainerStructureClass { get; set; } = "hidden lg:block";
+    [Parameter] public string ContainerColorClass { get; set; } = "";
+    [Parameter] public string TitleStructureClass { get; set; } = "font-bold";
+    [Parameter] public string TitleColorClass { get; set; } = "text-base-500 dark:text-base-500";
+    [Parameter] public string ListStructureClass { get; set; } = "list-none text-sm mt-6";
+    [Parameter] public string ListColorClass { get; set; } = "text-neutral-900 dark:text-neutral-400";
+    [Parameter] public string OutlineLinkColorClass { get; set; } = "border-neutral-200 dark:border-neutral-700 hover:text-primary-900 dark:hover:text-neutral-50/90 aria-selected:text-primary-800 aria-selected:border-accent-700 dark:aria-selected:text-primary-400 aria-selected:border-accent-400";
+    [Parameter] public string OutlineLinkStructureClass { get; set; } = "text-sm border-l-2 pt-2 ";
     [Parameter] public string BaseUrl { get; set; } = "";
 
     private RenderFragment OutlineLink(OutlineEntry entry, string padding) =>
         @<li class="flex">
             <a
-                class="@padding transition-all border-neutral-200 hover:text-primary-900 dark:hover:text-neutral-50/90 dark:border-neutral-700 border-l-2 pt-2 aria-selected:text-primary-800 aria-selected:border-accent-700 dark:aria-selected:text-primary-400 aria-selected:border-accent-400"
+                class="@padding @OutlineLinkStructureClass @OutlineLinkColorClass"
                 href="@(BaseUrl)#@entry.Id">@entry.Title</a>
         </li>;
 }

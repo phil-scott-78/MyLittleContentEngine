@@ -1,4 +1,4 @@
-using MonorailCss;
+﻿using MonorailCss;
 using MyLittleContentEngine;
 using MyLittleContentEngine.Docs;
 using MyLittleContentEngine.Docs.Components;
@@ -27,18 +27,23 @@ builder.Services.AddContentEngineService(() => new ContentEngineOptions
 builder.Services.AddContentEngineStaticContentService(() => new ContentEngineContentOptions<DocsFrontMatter>()
 {
     ContentPath = "Content",
-    BasePageUrl = string.Empty
+    BasePageUrl = string.Empty,
+    ExcludeSubfolders = false
 });
 
 builder.Services.AddMonorailCss(new MonorailCssOptions
 {
-    PrimaryHue = () => 220,
+    PrimaryHue = () => 240,
     BaseColorName = () => ColorNames.Neutral,
 });
 builder.Services.AddRoslynService(() => new RoslynHighlighterOptions()
 {
     CodeHighlightRenderOptionsFactory = () => CodeHighlightRenderOptions.MonorailMono,
     TabbedCodeBlockRenderOptionsFactory = () => TabbedCodeBlockRenderOptions.MonorailMono,
+    ConnectedSolution = new ConnectedDotNetSolution()
+    {
+        SolutionPath = "../../MyLittleContentEngine.sln",
+    }
 });
 
 var app = builder.Build();

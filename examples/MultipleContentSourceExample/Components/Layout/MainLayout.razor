@@ -1,0 +1,29 @@
+﻿@using System.Collections.Immutable
+@using MyLittleContentEngine.Services.Content.TableOfContents
+@inherits LayoutComponentBase
+@inject TableOfContentService TableOfContentService
+@inject NavigationManager NavigationManager
+
+<div>
+    Hi!
+    <div class="max-w-4xl mx-auto p-4">
+        <div class="flex flex-row gap-x-8">
+            <aside class="w-40">
+                <TableOfContentsNavigation TableOfContents="@_toc"/>
+            </aside>
+            <main class="flex-1 w-full">
+                @Body
+            </main>
+        </div>
+    </div>
+</div>
+
+@code{
+    private ImmutableList<TableOfContentEntry>? _toc;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _toc = await TableOfContentService.GetNavigationTocAsync(NavigationManager.ToAbsoluteUri(NavigationManager.Uri).AbsolutePath);
+        await base.OnInitializedAsync();
+    }
+}

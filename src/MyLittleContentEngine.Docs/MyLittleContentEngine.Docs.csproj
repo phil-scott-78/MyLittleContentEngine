@@ -9,8 +9,16 @@
     <ItemGroup>
         <PackageReference Include="System.Formats.Asn1" Version="9.0.5" />
     </ItemGroup>
+
     <ItemGroup>
         <Watch Include="Content\**\*.*" />
+        <Watch Include="..\..\**\*.cs" />
+        <!--
+         ignore obj and bin folders in sample files, assemblyinfo.cs gets generated dynamically
+         and we don't want that to force a refresh.
+         -->
+        <Content Update="..\..\**\obj\**\*" Watch="false" />
+        <Content Update="..\..\**\bin\**\*" Watch="false" />
     </ItemGroup>
     <ItemGroup>
         <ProjectReference Include="..\MyLittleContentEngine.MonorailCss\MyLittleContentEngine.MonorailCss.csproj" />

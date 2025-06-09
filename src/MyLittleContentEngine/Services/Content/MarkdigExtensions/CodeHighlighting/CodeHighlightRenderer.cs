@@ -101,6 +101,20 @@ internal sealed class CodeHighlightRenderer(
                     var newCode = RunSync(async () => await roslynHighlighter.GetCodeOutputAsync(code, arg));
                     WriteCode(renderer, codeBlock, newLanguage, newCode,  roslynHighlighter);
                 }
+                else if (languageId.Contains(":path"))
+                {
+                    var newLanguage = languageId[..languageId.IndexOf(":path", StringComparison.Ordinal)];
+                    try
+                    {
+                        var fileContent = RunSync(async () => await roslynHighlighter.GetFileContentAsync(code.Trim()));
+                        WriteCode(renderer, codeBlock, newLanguage, fileContent, roslynHighlighter);
+                    }
+                    catch (Exception ex)
+                    {
+                        // If file reading fails, display an error message
+                        renderer.Write($"<pre><code>Error loading file '{code.Trim()}': {ex.Message}</code></pre>");
+                    }
+                }
                 else
                 {
                     renderer.Write(TextMateHighlighter.Highlight(code, languageId));

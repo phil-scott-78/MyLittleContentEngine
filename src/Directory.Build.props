@@ -4,6 +4,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <LangVersion>Latest</LangVersion>
+    <NuGetAuditLevel>critical </NuGetAuditLevel>
     
     <!-- Common NuGet Package Properties -->
     <Authors>Phil Scott</Authors>
@@ -12,16 +13,16 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>    
   </PropertyGroup>
-
   <ItemGroup>
     <InternalsVisibleTo Include="$(AssemblyName).Tests" />
   </ItemGroup>
 
   <!-- Common package references for all projects -->
-  <ItemGroup>
-    <PackageReference Include="MinVer" Version="6.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
-  </ItemGroup>
+<ItemGroup>
+  <!-- This PackageReference will be included ONLY when not running under 'dotnet watch' -->
+  <PackageReference Include="MinVer" Version="6.0.0"  Condition="'$(DotNetWatchBuild)'=='true'">
+    <PrivateAssets>all</PrivateAssets>
+    <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+  </PackageReference>
+</ItemGroup>
 </Project>

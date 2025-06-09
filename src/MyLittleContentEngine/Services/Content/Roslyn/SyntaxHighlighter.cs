@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Net;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Text;
@@ -101,13 +102,14 @@ internal class SyntaxHighlighter : IDisposable
             var cssClass = ClassificationTypeToHighlightJsClass(range.ClassificationType);
             if (string.IsNullOrWhiteSpace(cssClass))
             {
-                sb.Append(range.Text);
+                
+                sb.Append(WebUtility.HtmlEncode(range.Text));
             }
             else
             {
                 // Include the highlight.js CSS class and roslyn classification
                 sb.Append($"""
-                           <span class="hljs-{cssClass} roslyn-{range.ClassificationType.Replace(" ", "-")}">{range.Text}</span>
+                           <span class="hljs-{cssClass} roslyn-{range.ClassificationType.Replace(" ", "-")}">{WebUtility.HtmlEncode(range.Text)}</span>
                            """);
             }
         }
