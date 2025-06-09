@@ -1,0 +1,33 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        
+        <!-- NuGet Package Properties -->
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageId>MyLittleContentEngine.MonorailCss</PackageId>
+        <Title>My Little Content Engine - MonorailCSS Integration</Title>
+        <Description>MonorailCSS integration for My Little Content Engine providing utility-first CSS framework support</Description>
+        <Authors>MyLittleContentEngine Contributors</Authors>
+        <PackageTags>blazor;monorail-css;css;utility-first;asp-net-core</PackageTags>
+        <PackageProjectUrl>https://github.com/phil-scott-78/MyLittleContentEngine</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/phil-scott-78/MyLittleContentEngine</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    </PropertyGroup>
+    <ItemGroup>
+        <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    </ItemGroup>
+    <ItemGroup>
+      <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
+      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.5" />
+      <PackageReference Include="MonorailCss" Version="0.0.2-preview.0.3.1.69" />
+      <PackageReference Include="MinVer" Version="6.0.0">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      </PackageReference>
+    </ItemGroup>
+
+</Project>

@@ -1,0 +1,9 @@
+<div class="space-y-2 pt-6 pb-8 md:space-y-5">
+    <h1 class="font-sans font-extrabold text-5xl md:text-6xl leading-9 sm:leading-10 md:leading-14 tracking-tight text-primary-800 dark:text-neutral-100 ">@Title</h1>
+    <p class="prose prose-invert text-md sm:text-lg md:text-xl leading-7 text-neutral-900 dark:text-primary-100 md:font-light">@ChildContent</p>
+</div>
+
+@code {
+    [Parameter] public required string Title { get; init; }
+    [Parameter] public required RenderFragment ChildContent { get; init; }
+}

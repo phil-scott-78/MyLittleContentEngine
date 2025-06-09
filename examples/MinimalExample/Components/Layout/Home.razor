@@ -1,0 +1,33 @@
+@page "/"
+@using System.Collections.Immutable
+@using MyLittleContentEngine
+@using MyLittleContentEngine.Models
+@using MyLittleContentEngine.Services.Content
+@inject ContentEngineOptions ContentEngineOptions
+@inject MarkdownContentService<BlogFrontMatter> MarkdownContentService
+
+@if (_pages == null)
+{
+    <p>Loading...</p>
+    return;
+}
+
+<h1 class="text-4xl font-bold pb-4">Welcome @ContentEngineOptions.SiteTitle!</h1>
+
+<ul class="list-disc pl-6 space-y-2">
+    @foreach (var p in _pages.OrderByDescending(i => i.FrontMatter.Date))
+    {
+        <li><a href="@p.NavigateUrl">@p.FrontMatter.Title</a></li>
+    }
+</ul>
+
+@code {
+    private ImmutableList<MarkdownContentPage<BlogFrontMatter>>? _pages;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _pages = await MarkdownContentService.GetAllContentPagesAsync();
+        await base.OnInitializedAsync();
+    }
+
+}
