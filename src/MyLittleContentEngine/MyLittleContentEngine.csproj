@@ -9,11 +9,6 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
   <ItemGroup>
-    <Content Update="@(Content)">
-      <Visible Condition="'%(NuGetItemType)' == 'Content'">false</Visible>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2024.3.0" />
     <PackageReference Include="Markdig" Version="0.41.1" />
     <PackageReference Include="Microsoft.Build.Locator" Version="1.9.1" />
