@@ -4,9 +4,9 @@ namespace MultipleContentSourceExample;
 
 public class ContentFrontMatter : IFrontMatter
 {
-    public string Title { get; init; }
+    public string Title { get; init; } = "Untitled";
     public int Order { get; init; }
-    public string[] Tags { get; init; }
+    public string[] Tags { get; init; } = [];
     public bool IsDraft { get; init; }
     public string? Uid { get; init; }
     public Metadata AsMetadata()

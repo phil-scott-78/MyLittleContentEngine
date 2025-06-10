@@ -30,27 +30,11 @@ public class TableOfContentServiceTests
                 new Metadata { Title = p.title, Order = p.order })).ToImmutableList();
         }
 
-        public Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync()
-        {
-            return Task.FromResult(_pages);
-        }
+        public Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync() => Task.FromResult(_pages);
 
-        public Task<ImmutableList<ContentToCopy>> GetContentToCopyAsync()
-        {
-            return Task.FromResult(ImmutableList<ContentToCopy>.Empty);
-        }
+        public Task<ImmutableList<ContentToCopy>> GetContentToCopyAsync() => Task.FromResult(ImmutableList<ContentToCopy>.Empty);
 
-        public Task<ImmutableList<CrossReference>> GetCrossReferencesAsync()
-        {
-            return Task.FromResult(ImmutableList<CrossReference>.Empty);
-        }
-
-        public void Dispose()
-        {
-            // Nothing to dispose for this test implementation
-        }
-
-        public string GetSourceId() => Guid.NewGuid().ToString();
+        public Task<ImmutableList<CrossReference>> GetCrossReferencesAsync() => Task.FromResult(ImmutableList<CrossReference>.Empty);
     }
 
     [Fact]

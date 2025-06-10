@@ -20,7 +20,7 @@
   <!-- Common package references for all projects -->
 <ItemGroup>
   <!-- This PackageReference will be included ONLY when not running under 'dotnet watch' -->
-  <PackageReference Include="MinVer" Version="6.0.0"  Condition="'$(DotNetWatchBuild)'=='true'">
+  <PackageReference Include="MinVer" Version="6.0.0" Condition="'$(DotNetWatchBuild)'!='true'">
     <PrivateAssets>all</PrivateAssets>
     <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
   </PackageReference>
