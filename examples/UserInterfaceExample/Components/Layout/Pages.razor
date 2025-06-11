@@ -34,12 +34,12 @@
     <!-- Outline Column -->
     <div class="w-64 flex-shrink-0">
         <aside class="sticky top-0 h-screen overflow-y-auto p-6">
-                @if (_outline != null && _post != null)
-                {
-                    <OutlineNavigation 
-                        Outline="@_outline" 
-                        BaseUrl="@_post.NavigateUrl" />
-                }
+            @if (_outline != null && _post != null)
+            {
+                <OutlineNavigation 
+                    Outline="@_outline" 
+                    BaseUrl="@_post.NavigateUrl" />
+            }
         </aside>
     </div>
 </div>

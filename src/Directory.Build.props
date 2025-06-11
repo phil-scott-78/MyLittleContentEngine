@@ -1,28 +1,36 @@
 <Project>
-  <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <LangVersion>Latest</LangVersion>
-    <NuGetAuditLevel>critical </NuGetAuditLevel>
-    
-    <!-- Common NuGet Package Properties -->
-    <Authors>Phil Scott</Authors>
-    <PackageProjectUrl>https://github.com/phil-scott-78/MyLittleContentEngine</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/phil-scott-78/MyLittleContentEngine</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageLicenseExpression>MIT</PackageLicenseExpression>    
-  </PropertyGroup>
-  <ItemGroup>
-    <InternalsVisibleTo Include="$(AssemblyName).Tests" />
-  </ItemGroup>
+    <PropertyGroup>
+        <TargetFramework>net9.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>Latest</LangVersion>
+        <NuGetAuditLevel>critical</NuGetAuditLevel>
 
-  <!-- Common package references for all projects -->
-<ItemGroup>
-  <!-- This PackageReference will be included ONLY when not running under 'dotnet watch' -->
-  <PackageReference Include="MinVer" Version="6.0.0" Condition="'$(DotNetWatchBuild)'!='true'">
-    <PrivateAssets>all</PrivateAssets>
-    <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-  </PackageReference>
-</ItemGroup>
+        <!-- Common NuGet Package Properties -->
+        <Authors>Phil Scott</Authors>
+        <PackageProjectUrl>https://github.com/phil-scott-78/MyLittleContentEngine</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/phil-scott-78/MyLittleContentEngine</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    </PropertyGroup>
+    <ItemGroup>
+        <InternalsVisibleTo Include="$(AssemblyName).Tests"/>
+    </ItemGroup>
+    <PropertyGroup>
+        <MinVerVerbosity>detailed</MinVerVerbosity>
+    </PropertyGroup>
+    <!-- Common package references for all projects -->
+    <ItemGroup Condition="'$(Configuration)'=='Release'">
+        <!--
+         if minver is installed, hot reload will not work, so we need to disable it. however, there really isn't a good
+         way to determine if we are running under dotnet watch. the first build there are no properties set.
+         
+         so instead we'll just hope no one is running dotnet watch under release configuration, and only enable it
+         when we are publishing.         
+         -->
+        <PackageReference Include="MinVer" Version="6.0.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
 </Project>

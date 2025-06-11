@@ -2,6 +2,9 @@
 [msbuild]
 project = "MyLittleContentEngine.sln"
 build_debug = true
+[msbuild.properties]
+DotNetReleaser = "true"
+verbosity="d"
 [test]
 run_tests_for_debug = true
 [nuget]
