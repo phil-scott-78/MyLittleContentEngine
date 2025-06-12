@@ -43,6 +43,11 @@ internal static class LinkRewriter
     /// <returns>The rewritten URL</returns>
     public static string RewriteUrl(string url, string baseUrl)
     {
+        if (string.IsNullOrWhiteSpace(baseUrl))
+        {
+            return url;
+        }
+
         // Skip rewriting certain types of URLs
         if (IsExternalUrl(url) || IsAnchorLink(url))
         {
@@ -110,6 +115,8 @@ internal static class LinkRewriter
 
         // Combine the remaining base segments with the relative segments
         var resultSegments = baseSegments.Concat(relativeSegments);
-        return string.Join("/", resultSegments);
+        return baseUrl.StartsWith('/') 
+            ? "/" + string.Join("/", resultSegments)
+            : string.Join("/", resultSegments);
     }
 }

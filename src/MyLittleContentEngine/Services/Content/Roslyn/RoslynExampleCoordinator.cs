@@ -21,10 +21,24 @@ internal record CachedCompiledXmlDocId(
     ISymbol Symbol,
     Assembly Assembly);
 
+public interface IRoslynExampleCoordinator : IDisposable
+{
+    Task<string> GetCodeFragmentAsync(string xmlDocId, bool bodyOnly);
+    Task<string> GetCodeResultAsync(string xmlDocId, string? attachmentName = null);
+
+    /// <summary>
+    /// Gets all symbols from the workspace for API documentation generation
+    /// </summary>
+    /// <returns>A dictionary of XmlDocId to symbol information</returns>
+    Task<IReadOnlyDictionary<string, (ISymbol Symbol, Document Document, Assembly Assembly)>> GetAllSymbolsAsync();
+
+    void InvalidateFile(string filePath);
+}
+
 /// <summary>
 /// Coordinates loading of example assemblies and providing their source code and output.
 /// </summary>
-public class RoslynExampleCoordinator : IDisposable
+internal class RoslynExampleCoordinator : IDisposable, IRoslynExampleCoordinator
 {
     private readonly ILogger _logger;
     private readonly MSBuildWorkspace _workspace;
@@ -160,7 +174,7 @@ public class RoslynExampleCoordinator : IDisposable
 
     internal bool IsRebuilding => _isRebuilding;
 
-    internal void InvalidateFile(string filePath)
+    public void InvalidateFile(string filePath)
     {
         if (_isRebuilding)
         {
@@ -174,7 +188,7 @@ public class RoslynExampleCoordinator : IDisposable
         _roslynCache.Refresh();
     }
 
-    internal async Task<string> GetCodeFragmentAsync(string xmlDocId, bool bodyOnly)
+    public async Task<string> GetCodeFragmentAsync(string xmlDocId, bool bodyOnly)
     {
         _logger.LogTrace("Getting code fragment for {xmlDocId}", xmlDocId);
 
@@ -190,7 +204,7 @@ public class RoslynExampleCoordinator : IDisposable
         return "Code not found for specified documentation ID.";
     }
 
-    internal async Task<string> GetCodeResultAsync(string xmlDocId, string? attachmentName = null)
+    public async Task<string> GetCodeResultAsync(string xmlDocId, string? attachmentName = null)
     {
         var data = await _roslynCache.Value;
         if (!data.TryGetValue(xmlDocId, out var id))
@@ -215,6 +229,19 @@ public class RoslynExampleCoordinator : IDisposable
 
         var result = _codeExecutionService.ExecuteMethod(id.Assembly, (IMethodSymbol) id.Symbol);
         return result[attachmentName ?? string.Empty];
+    }
+
+    /// <summary>
+    /// Gets all symbols from the workspace for API documentation generation
+    /// </summary>
+    /// <returns>A dictionary of XmlDocId to symbol information</returns>
+    public async Task<IReadOnlyDictionary<string, (ISymbol Symbol, Document Document, Assembly Assembly)>> GetAllSymbolsAsync()
+    {
+        var data = await _roslynCache.Value;
+        return data.ToDictionary(
+            kvp => kvp.Key,
+            kvp => (kvp.Value.Symbol, kvp.Value.Document, kvp.Value.Assembly)
+        );
     }
 
     private async Task<Solution> ApplyPendingChangesToSolutionAsync(Solution solution)
@@ -365,6 +392,27 @@ public class RoslynExampleCoordinator : IDisposable
                     document.FilePath);
                 yield return method;
             }
+
+            foreach (var property in ProcessPropertyDeclarationsAsync(document, rootSyntaxNode, semanticModel, sourceText))
+            {
+                _logger.LogTrace("Yielding property XmlDocId {xmlDocId} in {document}", property.xmlDocId,
+                    document.FilePath);
+                yield return property;
+            }
+
+            foreach (var field in ProcessFieldDeclarationsAsync(document, rootSyntaxNode, semanticModel, sourceText))
+            {
+                _logger.LogTrace("Yielding field XmlDocId {xmlDocId} in {document}", field.xmlDocId,
+                    document.FilePath);
+                yield return field;
+            }
+
+            foreach (var eventItem in ProcessEventDeclarationsAsync(document, rootSyntaxNode, semanticModel, sourceText))
+            {
+                _logger.LogTrace("Yielding event XmlDocId {xmlDocId} in {document}", eventItem.xmlDocId,
+                    document.FilePath);
+                yield return eventItem;
+            }
         }
 
         _logger.LogTrace("ProcessProjectDocumentsAsync finished for {project}", project.FilePath);
@@ -412,6 +460,92 @@ public class RoslynExampleCoordinator : IDisposable
 
             // Add to the dictionary if not already present
             yield return (xmlDocId, methodSymbol, document, textSpan, sourceText);
+        }
+    }
+
+    private static IEnumerable<(string xmlDocId, ISymbol symbol, Document document, TextSpan textSpan, SourceText sourceText)>
+        ProcessPropertyDeclarationsAsync(Document document, SyntaxNode rootSyntaxNode,
+            SemanticModel semanticModel, SourceText sourceText)
+    {
+        // Get all property declarations
+        var propertyDeclarations = rootSyntaxNode.DescendantNodes()
+            .OfType<PropertyDeclarationSyntax>();
+
+        foreach (var propertyDeclaration in propertyDeclarations)
+        {
+            var propertySymbol = semanticModel.GetDeclaredSymbol(propertyDeclaration);
+            if (propertySymbol == null) continue;
+
+            var xmlDocId = propertySymbol.GetDocumentationCommentId();
+            if (string.IsNullOrEmpty(xmlDocId)) continue;
+
+            var textSpan = CreateExtendedTextSpan(propertyDeclaration);
+            yield return (xmlDocId, propertySymbol, document, textSpan, sourceText);
+        }
+    }
+
+    private static IEnumerable<(string xmlDocId, ISymbol symbol, Document document, TextSpan textSpan, SourceText sourceText)>
+        ProcessFieldDeclarationsAsync(Document document, SyntaxNode rootSyntaxNode,
+            SemanticModel semanticModel, SourceText sourceText)
+    {
+        // Get all field declarations
+        var fieldDeclarations = rootSyntaxNode.DescendantNodes()
+            .OfType<FieldDeclarationSyntax>();
+
+        foreach (var fieldDeclaration in fieldDeclarations)
+        {
+            // A field declaration can have multiple variables
+            foreach (var variable in fieldDeclaration.Declaration.Variables)
+            {
+                var fieldSymbol = semanticModel.GetDeclaredSymbol(variable);
+                if (fieldSymbol == null) continue;
+
+                var xmlDocId = fieldSymbol.GetDocumentationCommentId();
+                if (string.IsNullOrEmpty(xmlDocId)) continue;
+
+                var textSpan = CreateExtendedTextSpan(fieldDeclaration);
+                yield return (xmlDocId, fieldSymbol, document, textSpan, sourceText);
+            }
+        }
+    }
+
+    private static IEnumerable<(string xmlDocId, ISymbol symbol, Document document, TextSpan textSpan, SourceText sourceText)>
+        ProcessEventDeclarationsAsync(Document document, SyntaxNode rootSyntaxNode,
+            SemanticModel semanticModel, SourceText sourceText)
+    {
+        // Get all event declarations
+        var eventDeclarations = rootSyntaxNode.DescendantNodes()
+            .OfType<EventDeclarationSyntax>();
+
+        foreach (var eventDeclaration in eventDeclarations)
+        {
+            var eventSymbol = semanticModel.GetDeclaredSymbol(eventDeclaration);
+            if (eventSymbol == null) continue;
+
+            var xmlDocId = eventSymbol.GetDocumentationCommentId();
+            if (string.IsNullOrEmpty(xmlDocId)) continue;
+
+            var textSpan = CreateExtendedTextSpan(eventDeclaration);
+            yield return (xmlDocId, eventSymbol, document, textSpan, sourceText);
+        }
+
+        // Also handle event field declarations
+        var eventFieldDeclarations = rootSyntaxNode.DescendantNodes()
+            .OfType<EventFieldDeclarationSyntax>();
+
+        foreach (var eventFieldDeclaration in eventFieldDeclarations)
+        {
+            foreach (var variable in eventFieldDeclaration.Declaration.Variables)
+            {
+                var eventSymbol = semanticModel.GetDeclaredSymbol(variable);
+                if (eventSymbol == null) continue;
+
+                var xmlDocId = eventSymbol.GetDocumentationCommentId();
+                if (string.IsNullOrEmpty(xmlDocId)) continue;
+
+                var textSpan = CreateExtendedTextSpan(eventFieldDeclaration);
+                yield return (xmlDocId, eventSymbol, document, textSpan, sourceText);
+            }
         }
     }
 

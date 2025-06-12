@@ -8,7 +8,7 @@ on:
 
 env:
   ASPNETCORE_ENVIRONMENT: Production
-  WEBAPP_PATH: ./src/MyLittleContentEngine.Docs/
+  WEBAPP_PATH: ./docs/MyLittleContentEngine.Docs/
   WEBAPP_CSPROJ: MyLittleContentEngine.Docs.csproj
 
 permissions:

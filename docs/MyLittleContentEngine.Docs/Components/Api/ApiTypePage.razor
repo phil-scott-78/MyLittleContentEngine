@@ -1,0 +1,165 @@
+@page "/api/type/{xmlDocId}/"
+@using System.Web
+@using MyLittleContentEngine.Services.Content
+@inject ContentEngineOptions ContentEngineOptions
+@inject ApiReferenceContentService ApiService
+
+<PageTitle>@ContentEngineOptions.SiteTitle - @PageTitle</PageTitle>
+
+@if (_type != null && IsLoaded)
+{
+    
+<article>
+    <header>
+        <div class="flex items-center gap-2 mb-2 font-display ">
+
+            <h1 class="text-2xl lg:text-4xl font-bold tracking-tight text-base-900 dark:text-base-50">
+                @_type.Name
+            </h1>
+            <span class="text-xs bg-base-100 font-light dark:bg-base-800 px-2 py-1 rounded text-base-600 dark:text-base-400">
+                @_type.TypeKind
+            </span>
+        </div>
+        <p class="text-base-600 dark:text-base-400 mb-4">Namespace: <a href="/api/namespace/@EncodeUrlSegment($"N:{_type.Namespace}")/" class="text-blue-600 dark:text-blue-400 hover:underline">@_type.Namespace</a></p>
+        @if (!string.IsNullOrEmpty(_type.Summary))
+        {
+            <Prose>
+                @_type.Summary
+            </Prose>
+        }
+    </header>
+
+    <div>
+       <Prose>
+            <h2>Declaration</h2>
+            <CodeSnippet Code="@_type.Declaration"/>
+       </Prose>
+        
+        @if (!string.IsNullOrEmpty(_type.BaseType))
+        {
+            <Prose>
+            <h3>Inheritance</h3>
+            <p><code>@_type.BaseType</code> → <code>@_type.MinimalFullName</code></p>
+            </Prose>
+        }
+
+        @if (_type.Interfaces.Any())
+        {
+            <Prose>
+            <h3>Implements</h3>
+            <ul>
+                @foreach (var iface in _type.Interfaces)
+                {
+                    <li><code>@iface</code></li>
+                }
+            </ul>
+            </Prose>
+        }
+
+        @if (_type.Members.Any())
+        {
+            @foreach (var group in _type.Members.GroupBy(m => m.MemberKind))
+            {
+                <Prose>
+                <h3>@ToTitleCase(group.Key)</h3>
+                </Prose>
+                
+                <div class="space-y-6">
+                    @foreach (var member in group)
+                    {
+                        <div class="py-4">
+                            <div class="flex items-center gap-2 mb-2">
+                                
+                                <h4 class="font-mono font-bold text-lg text-base-900 dark:text-base-50">
+                                    @member.Name
+                                </h4>
+                                <span class="text-xs bg-base-100 dark:bg-base-800 px-2 py-1 rounded text-base-600 dark:text-base-400">
+                                    @member.MemberKind
+                                </span>
+                            </div>
+                            <Prose>
+                                <CodeSnippet Code="@member.Declaration"/>  
+                            </Prose>
+
+                            @if (!string.IsNullOrEmpty(member.Summary))
+                            {
+                                <div class="prose dark:prose-invert max-w-full prose-sm md:prose-base min-w-0">
+                                    @((MarkupString)member.Summary)
+                                </div>
+                            }
+
+
+                            @if (!string.IsNullOrEmpty(member.ReturnTypeDisplayName))
+                            {
+                                <Prose class="mb-4">
+                                        <span>Returns:</span>
+                                        <code>@member.ReturnTypeDisplayName</code>
+                                    
+                                </Prose>
+                            }
+
+                            @if (member.Parameters.Any())
+                            {
+                                <Prose>
+                                <table>
+                                    @foreach (var param in member.Parameters)
+                                    {
+                                        <tr><td>@param.Name <code>@param.TypeDisplayName</code></td><td>@HttpUtility.HtmlDecode(param.Summary)</td></tr>
+                                    }
+                                </table>
+                                </Prose>
+                                
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        }
+    </div>
+</article>
+}
+else
+{
+    <p>Loading type documentation...</p>
+}
+
+@code {
+    private Models.ApiType? _type;
+
+    [Parameter] public string? XmlDocId { get; set; }
+
+    bool IsLoaded { get; set; }
+
+    private string PageTitle => _type != null ? $"{_type.Name} {_type.TypeKind}" : "Type Not Found";
+    
+    private RenderFragment Prose(RenderFragment childContent) => @<div class="prose dark:prose-invert max-w-full prose-sm md:prose-base min-w-0">(@childContent)</div>;
+            
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(XmlDocId))
+            {
+                var decodedXmlDocId = DecodeUrlSegment(XmlDocId);
+                _type = await ApiService.GetTypeByXmlDocIdAsync(decodedXmlDocId);
+            }
+            IsLoaded = true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading type data: {ex.Message}");
+            IsLoaded = true;
+        }
+    }
+
+    private static string DecodeUrlSegment(string segment) => HttpUtility.UrlDecode(segment);
+
+    private static string EncodeUrlSegment(string segment) => HttpUtility.UrlEncode(segment);
+
+    private static string ToTitleCase(string input)
+    {
+        if (string.IsNullOrEmpty(input)) return input;
+        return char.ToUpper(input[0]) + input.Substring(1).ToLower() + "s";
+    }
+}

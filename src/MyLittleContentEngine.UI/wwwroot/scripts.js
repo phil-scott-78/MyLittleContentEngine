@@ -22,6 +22,7 @@ class PageManager {
         this.syntaxHighlighter = new SyntaxHighlighter();
         this.mermaidManager = new MermaidManager();
         this.mobileNavManager = new MobileNavManager();
+        this.searchManager = new SearchManager();
 
         // Initialize all components
         this.outlineManager.init();
@@ -29,6 +30,7 @@ class PageManager {
         this.syntaxHighlighter.init();
         this.mermaidManager.init();
         this.mobileNavManager.init();
+        this.searchManager.init();
     }
 }
 
@@ -37,8 +39,21 @@ class PageManager {
  */
 class ThemeManager {
     constructor() {
+        this.bindThemeToggleEvents();
+        
         // Make swapTheme globally available for backwards compatibility
         window.swapTheme = this.swapTheme.bind(this);
+    }
+
+    bindThemeToggleEvents() {
+        // Find all elements with data-theme-toggle attribute
+        const themeToggleButtons = document.querySelectorAll('[data-theme-toggle]');
+        
+        themeToggleButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                this.swapTheme();
+            });
+        });
     }
 
     swapTheme() {
@@ -46,9 +61,11 @@ class ThemeManager {
 
         if (isDark) {
             document.documentElement.classList.remove('dark');
+            document.documentElement.dataset.theme = 'light';
             localStorage.theme = 'light';
         } else {
             document.documentElement.classList.add('dark');
+            document.documentElement.dataset.theme = 'dark';
             localStorage.theme = 'dark';
         }
 
@@ -574,12 +591,14 @@ class MobileNavManager {
     constructor() {
         this.menuToggle = null;
         this.navSidebar = null;
+        this.mobileOverlay = null;
         this.isInitialized = false;
     }
 
     init() {
         this.menuToggle = document.getElementById('menu-toggle');
         this.navSidebar = document.getElementById('nav-sidebar');
+        this.mobileOverlay = document.getElementById('mobile-overlay');
         
         if (this.menuToggle && this.navSidebar) {
             this.setupEventListeners();
@@ -600,27 +619,140 @@ class MobileNavManager {
             }
         });
         
+        // Close menu when clicking on overlay
+        if (this.mobileOverlay) {
+            this.mobileOverlay.addEventListener('click', () => {
+                this.closeMenu();
+            });
+        }
+        
         // Close menu when clicking outside (mobile only)
         document.addEventListener('click', (e) => {
             if (window.innerWidth < 1024 && 
                 !this.navSidebar.contains(e.target) && 
                 !this.menuToggle.contains(e.target) && 
-                !this.navSidebar.classList.contains('hidden')) {
+                this.isMenuOpen()) {
+                this.closeMenu();
+            }
+        });
+
+        // Close menu on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.isMenuOpen()) {
                 this.closeMenu();
             }
         });
     }
 
     toggleMenu() {
-        this.navSidebar.classList.toggle('hidden');
+        if (this.isMenuOpen()) {
+            this.closeMenu();
+        } else {
+            this.openMenu();
+        }
+    }
+
+    isMenuOpen() {
+        return this.navSidebar.getAttribute('aria-expanded') === 'true';
     }
 
     closeMenu() {
-        this.navSidebar.classList.add('hidden');
+        this.navSidebar.setAttribute('aria-expanded', 'false');
+        
+        if (this.mobileOverlay) {
+            this.mobileOverlay.setAttribute('aria-hidden', 'true');
+        }
+        
+        // Re-enable body scrolling
+        document.body.setAttribute('data-mobile-menu-open', 'false');
     }
 
     openMenu() {
-        this.navSidebar.classList.remove('hidden');
+        this.navSidebar.setAttribute('aria-expanded', 'true');
+        
+        if (this.mobileOverlay) {
+            this.mobileOverlay.setAttribute('aria-hidden', 'false');
+        }
+        
+        // Prevent body scrolling when menu is open
+        document.body.setAttribute('data-mobile-menu-open', 'true');
+    }
+}
+
+/**
+ * Search Manager - Handles Algolia DocSearch initialization
+ */
+class SearchManager {
+    constructor() {
+        this.searchContainer = null;
+        this.docsearchLoaded = false;
+    }
+
+    async init() {
+        this.searchContainer = document.getElementById('docsearch');
+        if (!this.searchContainer) return;
+
+        const appId = this.searchContainer.dataset.searchAppId;
+        const indexName = this.searchContainer.dataset.searchIndexName;
+        const apiKey = this.searchContainer.dataset.searchApiKey;
+
+        if (!appId || !indexName || !apiKey) {
+            console.warn('DocSearch: Missing required data attributes');
+            return;
+        }
+
+        try {
+            await this.loadDocSearch();
+            await this.initializeDocSearch(appId, indexName, apiKey);
+        } catch (error) {
+            console.error('Failed to initialize DocSearch:', error);
+        }
+    }
+
+    async loadDocSearch() {
+        if (this.docsearchLoaded) return;
+
+        // Dynamically load DocSearch JS and CSS
+        await Promise.all([
+            this.loadScript('https://cdn.jsdelivr.net/npm/@docsearch/js@3'),
+            this.loadCSS('https://cdn.jsdelivr.net/npm/@docsearch/css@3')
+        ]);
+
+        this.docsearchLoaded = true;
+    }
+
+    loadScript(src) {
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = src;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+    }
+
+    loadCSS(href) {
+        return new Promise((resolve, reject) => {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = href;
+            link.onload = resolve;
+            link.onerror = reject;
+            document.head.appendChild(link);
+        });
+    }
+
+    async initializeDocSearch(appId, indexName, apiKey) {
+        if (!window.docsearch) {
+            throw new Error('DocSearch library not loaded');
+        }
+
+        window.docsearch({
+            container: '#docsearch',
+            appId: appId,
+            indexName: indexName,
+            apiKey: apiKey,
+        });
     }
 }
 
@@ -732,3 +864,4 @@ const pageManager = new PageManager();
 
 // Make pageManager globally accessible
 window.pageManager = pageManager;
+

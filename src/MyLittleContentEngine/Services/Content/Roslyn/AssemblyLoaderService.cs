@@ -1,9 +1,7 @@
 using System.Collections.Concurrent;
-using System.Collections.Immutable;
 using System.IO.Abstractions;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.Extensions.Logging;
 
@@ -13,7 +11,7 @@ namespace MyLittleContentEngine.Services.Content.Roslyn;
 /// Handles loading of example assemblies.
 /// </summary>
 /// <param name="logger"></param>
-public class AssemblyLoaderService(ILogger<AssemblyLoaderService> logger, IFileSystem fileSystem)
+internal class AssemblyLoaderService(ILogger<AssemblyLoaderService> logger, IFileSystem fileSystem)
 {
     private readonly ILogger _logger = logger;
     private RoslynAssemblyLoadContext? _loadContext;

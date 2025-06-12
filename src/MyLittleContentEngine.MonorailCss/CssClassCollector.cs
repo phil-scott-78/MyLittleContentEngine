@@ -1,4 +1,7 @@
-// [assembly: MetadataUpdateHandler(typeof(CssClassCollector))]
+using System.Reflection.Metadata;
+using MyLittleContentEngine.MonorailCss;
+
+[assembly: MetadataUpdateHandler(typeof(CssClassCollector))]
 
 namespace MyLittleContentEngine.MonorailCss;
 
@@ -22,10 +25,8 @@ public class CssClassCollector
         }
     }
 
-    // ClearCache should be the only one we need. Clearing with the rest might be problematic.
-    // internal static void ClearCache(Type[]? _) => OnUpdate();
-    // internal static void UpdateApplication(Type[]? _) => OnUpdate();
-    // internal static void UpdateContent(string assemblyName, bool isApplicationProject, string relativePath, byte[] contents) => OnUpdate();
+    internal static void ClearCache(Type[]? _) => OnUpdate();
+    internal static void UpdateContent(string assemblyName, bool isApplicationProject, string relativePath, byte[] contents) => OnUpdate();
 
     public void AddClasses(string url, IEnumerable<string> classes)
     {

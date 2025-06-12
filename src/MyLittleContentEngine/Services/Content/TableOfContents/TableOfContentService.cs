@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
 
 namespace MyLittleContentEngine.Services.Content.TableOfContents;
@@ -26,9 +26,17 @@ internal class TreeNode
     public int Order { get; set; }
 }
 
-public class TableOfContentService(
+public interface ITableOfContentService
+{
+    Task<ImmutableList<TableOfContentEntry>> GetNavigationTocAsync(string currentUrl);
+
+    Task<ImmutableList<TableOfContentEntry>> GetNavigationTocAsync<T>(string currentUrl)
+        where T : IContentService;
+}
+
+internal class TableOfContentService(
     ContentEngineOptions options,
-    IEnumerable<IContentService> contentServices)
+    IEnumerable<IContentService> contentServices) : ITableOfContentService
 {
     private readonly ConcurrentDictionary<Type, IContentService> _contentServices =
         new(contentServices.ToDictionary(service => service.GetType(), service => service));
@@ -61,7 +69,7 @@ public class TableOfContentService(
 
         foreach (var contentService in services)
         {
-            var pages = await contentService.GetPagesToGenerateAsync();
+            var pages = await contentService.GetTocEntriesToGenerateAsync();
             foreach (var page in pages)
             {
                 if (page.Metadata?.Title == null) continue;

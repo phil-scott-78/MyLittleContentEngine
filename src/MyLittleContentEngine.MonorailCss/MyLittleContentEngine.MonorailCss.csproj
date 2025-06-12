@@ -1,18 +1,17 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
-    <PropertyGroup>
-        <!-- Project-specific NuGet Package Properties -->
-        <PackageId>MyLittleContentEngine.MonorailCss</PackageId>
-        <Title>My Little Content Engine - MonorailCSS Integration</Title>
-        <Description>MonorailCSS integration for My Little Content Engine providing utility-first CSS framework support</Description>
-        <PackageTags>blazor;monorail-css;css;utility-first;asp-net-core</PackageTags>
-    </PropertyGroup>
-    <ItemGroup>
-        <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    </ItemGroup>
-    <ItemGroup>
-      <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
-      <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.5" />
-      <PackageReference Include="MonorailCss" Version="0.0.2-preview.0.3.1.69" />
-    </ItemGroup>
+  <PropertyGroup>
+    <!-- Project-specific NuGet Package Properties -->
+    <PackageId>MyLittleContentEngine.MonorailCss</PackageId>
+    <Title>My Little Content Engine - MonorailCSS Integration</Title>
+    <Description>MonorailCSS integration for My Little Content Engine providing utility-first CSS framework support</Description>
+    <PackageTags>blazor;monorail-css;css;utility-first;asp-net-core</PackageTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.5" />
+    <PackageReference Include="MonorailCss" Version="0.0.2-preview.0.3.1.79" />
+  </ItemGroup>
 </Project>

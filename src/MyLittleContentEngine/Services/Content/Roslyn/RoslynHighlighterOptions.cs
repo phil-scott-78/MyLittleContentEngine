@@ -17,8 +17,8 @@ public record RoslynHighlighterOptions
     /// </summary>
     public ConnectedDotNetSolution? ConnectedSolution { get; init; }
 
-    public Func<CodeHighlightRenderOptions> CodeHighlightRenderOptionsFactory { get; init; } = () => CodeHighlightRenderOptions.MonorailColorful;
-    public Func<TabbedCodeBlockRenderOptions> TabbedCodeBlockRenderOptionsFactory { get; init; } = () => TabbedCodeBlockRenderOptions.MonorailColorful;
+    public Func<CodeHighlightRenderOptions> CodeHighlightRenderOptionsFactory { get; init; } = () => CodeHighlightRenderOptions.Default;
+    public Func<TabbedCodeBlockRenderOptions> TabbedCodeBlockRenderOptionsFactory { get; init; } = () => TabbedCodeBlockRenderOptions.Default;
 
 }
 

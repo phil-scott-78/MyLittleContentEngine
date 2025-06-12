@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using MyLittleContentEngine.Models;
+﻿using MyLittleContentEngine.Models;
 
 namespace MyLittleContentEngine;
 
@@ -86,6 +85,53 @@ public class ContentEngineContentOptions<TFrontMatter> : IContentOptions
     /// Gets or sets the options related to tag functionality.
     /// </summary>
     public TagsOptions Tags { get; init; } = new();
+}
+
+/// <summary>
+/// Provides configuration options for API reference documentation generation.
+/// </summary>
+/// <remarks>
+/// Controls how API reference documentation URLs are generated and structured.
+/// </remarks>
+public class ApiReferenceContentOptions : IContentOptions
+{
+    /// <summary>
+    /// Gets or sets the URL path component for API reference documentation pages.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// This value controls the base URL path for all API reference documentation.
+    /// For example, with the default value of "api", API documentation will be available at "/api/".
+    /// </para>
+    /// <para>
+    /// This value also serves as the generated folder name for static API documentation.
+    /// Using this property in code helps avoid magic strings in .razor files.
+    /// </para>
+    /// <para>
+    /// The default value is "api".
+    /// </para>
+    /// </remarks>
+    public string BasePageUrl { get; init; } = "api";
+
+    /// <summary>
+    /// Gets or sets the array of namespace prefixes to include in API documentation.
+    /// </summary>
+    public string[] IncludeNamespace { get; init; } = [];
+
+    /// <summary>
+    /// Gets or sets the array of namespace prefixes to exclude in API documentation.
+    /// </summary>
+    public string[] ExcludedNamespace { get; init; } = [];
+
+    /// <summary>
+    /// Gets the path where content files are stored. Not applicable for API reference content.
+    /// </summary>
+    /// <remarks>
+    /// This property is required by IContentOptions but is not used for API reference generation
+    /// since API content is generated from code analysis rather than files.
+    /// </remarks>
+    public string ContentPath { get; init; } = string.Empty;
+
 }
 
 /// <summary>

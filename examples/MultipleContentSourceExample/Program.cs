@@ -9,7 +9,7 @@ builder.Services.AddRazorComponents();
 
 // configures site wide settings
 // hot reload note - these will not be reflected until the application restarts
-builder.Services.AddContentEngineService(() => new ContentEngineOptions
+builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 {
     SiteTitle = "My Little Content Engine",
     SiteDescription = "An Inflexible Content Engine for .NET",
@@ -17,20 +17,20 @@ builder.Services.AddContentEngineService(() => new ContentEngineOptions
     ContentRootPath = "Content",
 });
 
-builder.Services.AddContentEngineStaticContentService(() => new ContentEngineContentOptions<ContentFrontMatter>()
+builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<ContentFrontMatter>()
 {
     ContentPath = "Content",
     BasePageUrl = "",
     ExcludeSubfolders = true,
 });
 
-builder.Services.AddContentEngineStaticContentService(() => new ContentEngineContentOptions<BlogFrontMatter>()
+builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<BlogFrontMatter>()
 {
     ContentPath = "Content/blog",
     BasePageUrl = "/blog"
 });
 
-builder.Services.AddContentEngineStaticContentService(() => new ContentEngineContentOptions<DocsFrontMatter>()
+builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<DocsFrontMatter>()
 {
     ContentPath = "Content/docs",
     BasePageUrl = "/docs"

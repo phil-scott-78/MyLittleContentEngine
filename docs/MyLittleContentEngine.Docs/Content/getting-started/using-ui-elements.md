@@ -1,0 +1,115 @@
+---
+title: "Using UI Elements"
+description: "Learn how to enhance your site with pre-built UI components from MyLittleContentEngine.UI"
+order: 1030
+---
+
+MyLittleContentEngine includes a set of pre-built UI components that make it easy to create professional, responsive layouts for your content sites. These components handle common patterns like navigation, page outlines, and headers.
+
+In this tutorial, you'll learn how to integrate and use the UI components to create a documentation or blog site with sidebar navigation, page outlines, and responsive design.
+
+## What You'll Learn
+
+By the end of this tutorial, you'll be able to:
+
+- Set up and configure MyLittleContentEngine.UI components
+- Create a sidebar navigation with TableOfContentsNavigation
+- Add page outline navigation with OutlineNavigation
+
+## Prerequisites
+
+Before starting, ensure you have:
+
+- Completed the [Creating Your First Site](creating-first-site.md) tutorial
+- A working MyLittleContentEngine site with multiple content pages
+- Basic familiarity with Blazor components and CSS
+
+<Steps>
+<Step stepNumber="1">
+## Add the UI Package
+
+First, add a reference to the MyLittleContentEngine.UI package:
+
+```bash
+dotnet add package MyLittleContentEngine.UI
+```
+
+</Step>
+
+<Step stepNumber="2">
+## Import Components and Scripts
+
+Add the UI components to your `Components/_Imports.razor` file:
+
+```razor
+@using MyLittleContentEngine.UI.Components
+```
+
+Add the required scripts to your `Components/App.razor` file in head the closing `<head>` tag:
+
+```razor
+<script src="_content/MyLittleContentEngine.UI/scripts.js" defer></script>
+```
+
+These scripts aren't necessary for the components to function, but they provide additional features like highlighting
+the current page in the navigation.
+</Step>
+
+<Step stepNumber="3">
+## Set Up TableOfContentsNavigation
+
+The `TableOfContentsNavigation` component automatically generates navigation based on your content structure and front matter.
+
+Create or update your `Components/Layout/MainLayout.razor` with a sidebar navigation:
+
+```razor:path
+examples/UserInterfaceExample/Components/Layout/MainLayout.razor
+```
+
+This creates a responsive sidebar layout with sticky navigation that scrolls independently from the main content.
+</Step>
+
+<Step stepNumber="4">
+## Add OutlineNavigation for Page Structure
+
+The `OutlineNavigation` component shows the outline of the current page based on its headings (h2, h3, etc.).
+
+Update your `Components/Layout/Pages.razor` to include page outline navigation:
+
+```razor:path
+examples/UserInterfaceExample/Components/Layout/Pages.razor
+```
+
+This creates a three-column layout: sidebar navigation, main content, and page outline.
+</Step>
+
+<Step stepNumber="6">
+## Test Your UI Components
+
+Run your site in development mode:
+
+```bash
+dotnet watch
+```
+
+Navigate to your site and you should see:
+
+1. **Sidebar Navigation** - Auto-generated from your content structure
+2. **Page Outline** - Shows headings from the current page with anchor links
+
+Test the functionality by:
+- Clicking navigation links to move between pages
+- Using the page outline to jump to different sections
+</Step>
+
+</Steps>
+
+## Next Steps
+
+Now that you have a complete UI setup, you can:
+
+- Explore the [UserInterfaceExample](../../examples/UserInterfaceExample/) to see a complete implementation
+- Learn about [Building a Multi-Section Blog](building-a-multi-section-blog.md) to organize content with different types
+- Check out the [Configuration Options](../reference/configuration-options.md) to customize component behavior further
+
+The UI components provide a solid foundation for creating professional documentation sites, blogs, or any content-focused web application with MyLittleContentEngine.

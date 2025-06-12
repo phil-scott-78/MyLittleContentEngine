@@ -4,7 +4,7 @@
 @using MyLittleContentEngine.Services.Content
 @using MyLittleContentEngine
 @inject ContentEngineOptions ContentEngineOptions
-@inject MarkdownContentService<BlogFrontMatter> MarkdownContentService
+@inject IMarkdownContentService<BlogFrontMatter> MarkdownContentService
 
 @if (_postContent == null || _post == null)
 {

@@ -30,19 +30,20 @@ public static class ContentEngineExtensions
     /// <returns>The updated service collection for method chaining.</returns>
     public static IServiceCollection AddContentEngineStaticContentService<TFrontMatter>(
         this IServiceCollection services,
-        Func<ContentEngineContentOptions<TFrontMatter>>? configureOptions)
+        Func<IServiceProvider, ContentEngineContentOptions<TFrontMatter>>? configureOptions)
         where TFrontMatter : class, IFrontMatter, new()
     {
         if (configureOptions == null)
         {
-            configureOptions = () => new ContentEngineContentOptions<TFrontMatter>
+            configureOptions = _ => new ContentEngineContentOptions<TFrontMatter>
             {
                 ContentPath = "Content",
                 BasePageUrl = string.Empty,
             };
         }
+
         // Register options
-        services.AddTransient<ContentEngineContentOptions<TFrontMatter>>(_ => configureOptions());
+        services.AddTransient(configureOptions);
 
         // Register specialized services
         services.AddSingleton<TagService<TFrontMatter>>();
@@ -50,14 +51,12 @@ public static class ContentEngineExtensions
         services.AddSingleton<MarkdownContentProcessor<TFrontMatter>>();
 
         // Register the primary service
-        services.AddSingleton<MarkdownContentService<TFrontMatter>>();
+        services.AddSingleton<IMarkdownContentService<TFrontMatter>, MarkdownContentService<TFrontMatter>>();
         services.AddSingleton<SitemapRssService>();
 
         // Register interface implementations
-        services.AddSingleton<IContentService>(provider =>
-            provider.GetRequiredService<MarkdownContentService<TFrontMatter>>());
-        services.AddSingleton<IContentOptions>(provider =>
-            provider.GetRequiredService<ContentEngineContentOptions<TFrontMatter>>());
+        services.AddSingleton<IContentService>(provider => provider.GetRequiredService<IMarkdownContentService<TFrontMatter>>());
+        services.AddSingleton<IContentOptions>(provider => provider.GetRequiredService<ContentEngineContentOptions<TFrontMatter>>());
 
         return services;
     }
@@ -69,13 +68,13 @@ public static class ContentEngineExtensions
     /// <param name="configureOptions">Optional action to customize the static generation process.</param>
     /// <returns>The updated service collection for method chaining.</returns>
     public static IServiceCollection AddContentEngineService(this IServiceCollection services,
-        Func<ContentEngineOptions> configureOptions)
+        Func<IServiceProvider, ContentEngineOptions> configureOptions)
     {
         // Register the main options for the content engine
-        services.AddTransient<ContentEngineOptions>(_ => configureOptions());
+        services.AddTransient(configureOptions);
         services.AddSingleton<OutputGenerationService>();
         services.AddSingleton<IContentEngineFileWatcher, ContentEngineFileWatcher>();
-        services.AddSingleton<TableOfContentService>();
+        services.AddSingleton<ITableOfContentService, TableOfContentService>();
         services.AddSingleton<MarkdownParserService>();
         services.AddSingleton<RoutesHelperService>();
         services.AddSingleton<IFileSystem>(new FileSystem());
@@ -96,19 +95,52 @@ public static class ContentEngineExtensions
     /// using Roslyn configuration provided in the specified options.
     /// </remarks>
     public static IServiceCollection AddRoslynService(this IServiceCollection services,
-        Func<RoslynHighlighterOptions>? configureOptions = null)
+        Func<IServiceProvider, RoslynHighlighterOptions>? configureOptions = null)
     {
-        var options = configureOptions?.Invoke() ?? new RoslynHighlighterOptions();
-
-        services.AddSingleton(options);
-        services.AddSingleton<RoslynHighlighterService>();
-
-        if (options.ConnectedSolution != null)
+        if (configureOptions == null)
         {
-            services.AddSingleton<RoslynExampleCoordinator>();
-            services.AddSingleton<CodeExecutionService>();
-            services.AddSingleton<AssemblyLoaderService>();
+            services.AddSingleton(new RoslynHighlighterOptions());
         }
+        else
+        {
+            services.AddTransient(configureOptions);
+            
+            var options = configureOptions.Invoke(services.BuildServiceProvider());
+            if (options.ConnectedSolution != null)
+            {
+                           
+                services.AddSingleton<IRoslynHighlighterService, RoslynHighlighterService>();
+                services.AddSingleton<IRoslynExampleCoordinator, RoslynExampleCoordinator>();
+                services.AddSingleton<CodeExecutionService>();
+                services.AddSingleton<AssemblyLoaderService>();
+            }
+        }
+
+
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds an ApiReferenceContentService to the application's service collection for generating API documentation.
+    /// </summary>
+    /// <param name="services">The application's service collection.</param>
+    /// <param name="func"></param>
+    /// <returns>The updated service collection for method chaining.</returns>
+    /// <remarks>
+    /// This method registers the ApiReferenceContentService as both a singleton service and as an IContentService.
+    /// The ApiReferenceContentService requires RoslynExampleCoordinator to be registered first via AddRoslynService.
+    /// </remarks>
+    public static IServiceCollection AddApiReferenceContentService(this IServiceCollection services,
+        Func<IServiceProvider, ApiReferenceContentOptions> func)
+    {
+        
+        services.AddTransient(func);
+        // Register the API reference content service
+        services.AddSingleton<ApiReferenceContentService>();
+
+        // Register as IContentService (this allows multiple IContentService implementations)
+        services.AddSingleton<IContentService>(provider => provider.GetRequiredService<ApiReferenceContentService>());
 
         return services;
     }

@@ -9,7 +9,7 @@ namespace MyLittleContentEngine.Services.Content;
 /// Service for handling content file operations in a MyLittleContentEngine site.
 /// </summary>
 /// <typeparam name="TFrontMatter">The type of front matter used in content.</typeparam>
-public class ContentFilesService<TFrontMatter>
+internal class ContentFilesService<TFrontMatter>
     where TFrontMatter : class, IFrontMatter
 {
     private readonly ContentEngineContentOptions<TFrontMatter> _engineContentOptions;

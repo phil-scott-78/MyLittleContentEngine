@@ -1,0 +1,83 @@
+@page "/api/namespace/{xmlDocId}/"
+@using System.Web
+@using MyLittleContentEngine.Services.Content
+@inject ContentEngineOptions ContentEngineOptions
+@inject ApiReferenceContentService ApiService
+
+<PageTitle>@ContentEngineOptions.SiteTitle - @PageTitle</PageTitle>
+
+@if (_namespace != null && IsLoaded)
+{
+    
+    <article>
+        <header>
+            <h1 class="font-display text-2xl lg:text-4xl font-bold tracking-tight text-base-900 dark:text-base-50">
+                @_namespace.Name Namespace
+            </h1>
+            @if (!string.IsNullOrEmpty(_namespace.Summary))
+            {
+                <p class="text-base-700 dark:text-base-300 mt-4">@_namespace.Summary</p>
+            }
+        </header>
+
+        <div class="prose dark:prose-invert max-w-full prose-sm md:prose-base min-w-0 mt-8">
+            <h2>Types</h2>
+            <div class="grid gap-4 not-prose">
+                @foreach (var type in _namespace.Types.OrderBy(t => t.Name))
+                {
+                    <div class="border border-base-200 dark:border-base-800 rounded-lg p-4">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-xs bg-base-100 dark:bg-base-800 px-2 py-1 rounded text-base-600 dark:text-base-400">
+                                @type.TypeKind
+                            </span>
+                            <a href="@type.Url" class="text-lg font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                                @type.Name
+                            </a>
+                        </div>
+                        @if (!string.IsNullOrEmpty(type.Summary))
+                        {
+                            <p class="text-base-600 dark:text-base-400 mt-1">@type.Summary</p>
+                        }
+                        <p class="text-sm text-base-500 dark:text-base-500 mt-2">
+                            @type.Members.Count member(s)
+                        </p>
+                    </div>
+                }
+            </div>
+        </div>
+    </article>
+}
+else
+{
+    <p>Loading namespace documentation...</p>
+}
+
+@code {
+    private Models.ApiNamespace? _namespace;
+
+    [Parameter] public string? XmlDocId { get; set; }
+
+    bool IsLoaded { get; set; }
+
+    private string PageTitle => _namespace != null ? $"{_namespace.Name} Namespace" : "Namespace Not Found";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(XmlDocId))
+            {
+                var decodedXmlDocId = DecodeUrlSegment(XmlDocId);
+                _namespace = await ApiService.GetNamespaceByXmlDocIdAsync(decodedXmlDocId);
+            }
+            IsLoaded = true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading namespace data: {ex.Message}");
+            IsLoaded = true;
+        }
+    }
+
+    private static string DecodeUrlSegment(string segment) => HttpUtility.UrlDecode(segment);
+}

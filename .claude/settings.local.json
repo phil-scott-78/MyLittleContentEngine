@@ -17,7 +17,9 @@
       "Bash(git reset:*)",
       "Bash(git add:*)",
       "Bash(cp:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(dotnet run:*)",
+      "Bash(dotnet script:*)"
     ]
   },
   "model": "sonnet",

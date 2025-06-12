@@ -5,10 +5,8 @@ namespace MyLittleContentEngine.Services.Infrastructure;
 /// <summary>
 /// Provides utilities for working with paths and URLs in MyLittleContentEngine.
 /// </summary>
-public class PathUtilities(IFileSystem fileSystem)
+internal class PathUtilities(IFileSystem fileSystem)
 {
-    private readonly IFileSystem _fileSystem = fileSystem;
-
     /// <summary>
     /// Converts a file path to a URL-friendly path.
     /// </summary>
@@ -17,11 +15,11 @@ public class PathUtilities(IFileSystem fileSystem)
     /// <returns>A URL-friendly relative path.</returns>
     public string FilePathToUrlPath(string filePath, string baseContentPath)
     {
-        var relativePath = _fileSystem.Path.GetRelativePath(baseContentPath, filePath);
-        var directoryPath = _fileSystem.Path.GetDirectoryName(relativePath) ?? string.Empty;
-        var fileNameWithoutExtension = _fileSystem.Path.GetFileNameWithoutExtension(relativePath).Slugify();
+        var relativePath = fileSystem.Path.GetRelativePath(baseContentPath, filePath);
+        var directoryPath = fileSystem.Path.GetDirectoryName(relativePath) ?? string.Empty;
+        var fileNameWithoutExtension = fileSystem.Path.GetFileNameWithoutExtension(relativePath).Slugify();
 
-        return _fileSystem.Path.Combine(directoryPath, fileNameWithoutExtension).Replace(Path.DirectorySeparatorChar, '/');
+        return fileSystem.Path.Combine(directoryPath, fileNameWithoutExtension).Replace(Path.DirectorySeparatorChar, '/');
     }
 
     /// <summary>
@@ -32,7 +30,17 @@ public class PathUtilities(IFileSystem fileSystem)
     /// <returns>A complete URL.</returns>
     public static string CombineUrl(string baseUrl, string relativePath)
     {
-        baseUrl = baseUrl.Trim('/');
+        if (string.IsNullOrWhiteSpace(relativePath))
+        {
+            return baseUrl;
+        }
+        
+        if (!baseUrl.EndsWith('/') && (relativePath.StartsWith('#') || relativePath.StartsWith('?')))
+        {
+            return $"{baseUrl}{relativePath}";
+        }
+        
+        baseUrl = baseUrl.TrimEnd('/');
         relativePath = relativePath.Trim('/');
 
         return $"{baseUrl}/{relativePath}";
@@ -58,7 +66,7 @@ public class PathUtilities(IFileSystem fileSystem)
         };
 
         // Get all files matching the pattern and return with the content path
-        return (_fileSystem.Directory.GetFiles(directoryPath, pattern, enumerationOptions), directoryPath);
+        return (fileSystem.Directory.GetFiles(directoryPath, pattern, enumerationOptions), directoryPath);
     }
 
     /// <summary>
@@ -70,13 +78,13 @@ public class PathUtilities(IFileSystem fileSystem)
     /// <exception cref="DirectoryNotFoundException">Thrown when the directory doesn't exist and createIfNotExists is false.</exception>
     public string ValidateDirectoryPath(string path, bool createIfNotExists = false)
     {
-        var fullPath = _fileSystem.Path.GetFullPath(path);
+        var fullPath = fileSystem.Path.GetFullPath(path);
 
-        if (_fileSystem.Directory.Exists(fullPath)) return fullPath;
+        if (fileSystem.Directory.Exists(fullPath)) return fullPath;
 
         if (createIfNotExists)
         {
-            _fileSystem.Directory.CreateDirectory(fullPath);
+            fileSystem.Directory.CreateDirectory(fullPath);
         }
         else
         {
@@ -94,6 +102,6 @@ public class PathUtilities(IFileSystem fileSystem)
     /// <returns></returns>
     public string Combine(string basePageUrl, string relativePath)
     {
-        return _fileSystem.Path.Combine(basePageUrl, relativePath);
+        return fileSystem.Path.Combine(basePageUrl, relativePath);
     }
 }

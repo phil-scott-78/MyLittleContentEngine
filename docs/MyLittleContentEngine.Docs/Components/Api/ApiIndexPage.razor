@@ -1,0 +1,61 @@
+@page "/api/"
+@using System.Collections.Immutable
+@using MyLittleContentEngine.Services.Content
+@using ApiNamespace = MyLittleContentEngine.Models.ApiNamespace
+@inject ContentEngineOptions ContentEngineOptions
+@inject ApiReferenceContentService ApiService
+
+<PageTitle>@ContentEngineOptions.SiteTitle - API Reference</PageTitle>
+
+@if (IsLoaded)
+{
+    <article>
+        <header>
+            <h1 class="font-display text-2xl lg:text-4xl font-bold tracking-tight text-base-900 dark:text-base-50">API Reference</h1>
+            <p class="text-base-700 dark:text-base-300 mt-4">Browse the API documentation by namespace.</p>
+        </header>
+
+        <div class="prose dark:prose-invert max-w-full prose-sm md:prose-base min-w-0 mt-8">
+            <h2>Namespaces</h2>
+            <div class="grid gap-4 not-prose">
+                @foreach (var ns in _namespaces.OrderBy(n => n.Name))
+                {
+                    <div class="border border-base-200 dark:border-base-800 rounded-lg p-4">
+                        <a href="@ns.Url" class="text-lg font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                            @ns.Name
+                        </a>
+                        <p class="text-base-600 dark:text-base-400 mt-1">
+                            @ns.Summary
+                        </p>
+                        <p class="text-sm text-base-500 dark:text-base-500 mt-2">
+                            @ns.Types.Count type(s)
+                        </p>
+                    </div>
+                }
+            </div>
+        </div>
+    </article>
+}
+else
+{
+    <p>Loading API documentation...</p>
+}
+
+@code {
+    private ImmutableList<ApiNamespace> _namespaces = [];
+    bool IsLoaded { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _namespaces = await ApiService.GetNamespacesAsync();
+            IsLoaded = true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading API data: {ex.Message}");
+            IsLoaded = true;
+        }
+    }
+}

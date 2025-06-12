@@ -1,0 +1,54 @@
+using ApiReferenceExample;
+using ApiReferenceExample.Components;
+using MyLittleContentEngine;
+using MyLittleContentEngine.MonorailCss;
+using MyLittleContentEngine.Services.Content.Roslyn;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddRazorComponents();
+
+// configures site wide settings
+// hot reload note - these will not be reflected until the application restarts
+builder.Services.AddContentEngineService(_ => new ContentEngineOptions
+{
+    SiteTitle = "API Reference Example",
+    SiteDescription = "Demonstrating API Reference Content Service",
+    BaseUrl =  Environment.GetEnvironmentVariable("BaseHref") ?? "/",
+    ContentRootPath = "Content",
+});
+
+// configures individual sections of the blog. PageUrl should match the configured razor pages route,
+// and contentPath should match the location on disk.
+// you can have multiple of these per site.
+builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<BlogFrontMatter>()
+{
+    ContentPath = "Content",
+    BasePageUrl = string.Empty
+});
+
+// this is required if you are using the API content service
+builder.Services.AddRoslynService(_ => new RoslynHighlighterOptions()
+{
+    ConnectedSolution = new ConnectedDotNetSolution()
+    {
+        SolutionPath = "../../MyLittleContentEngine.sln",
+    }
+});
+
+// Add API reference content service
+builder.Services.AddApiReferenceContentService(_ => new ApiReferenceContentOptions()
+{
+    IncludeNamespace = ["MyLittleContentEngine"],
+    ExcludedNamespace = ["MyLittleContentEngine.Tests"],
+});
+
+builder.Services.AddMonorailCss();
+
+var app = builder.Build();
+app.UseAntiforgery();
+app.UseStaticFiles();
+app.MapRazorComponents<App>();
+app.UseMonorailCss();
+
+await app.RunOrBuildContent(args);

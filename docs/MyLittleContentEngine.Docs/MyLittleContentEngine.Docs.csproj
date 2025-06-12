@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Formats.Asn1" Version="9.0.6" />
+  </ItemGroup>
+  <ItemGroup>
+    <Watch Include="Content\**\*.*" Exclude="..\..\**\obj\**\*;..\..\**\bin\**\*;**\*AssemblyReference.cache" />
+    <Watch Include="..\..\**\*.cs" Exclude="..\..\**\obj\**\*;..\..\**\bin\**\*;**\*AssemblyReference.cache" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\MyLittleContentEngine.MonorailCss\MyLittleContentEngine.MonorailCss.csproj" />
+    <ProjectReference Include="..\..\src\MyLittleContentEngine.UI\MyLittleContentEngine.UI.csproj" />
+    <ProjectReference Include="..\..\src\MyLittleContentEngine\MyLittleContentEngine.csproj" />
+  </ItemGroup>
+</Project>

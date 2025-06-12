@@ -3,7 +3,7 @@
 @using MyLittleContentEngine.Services.Content
 @using MyLittleContentEngine
 @inject ContentEngineOptions ContentEngineOptions
-@inject MarkdownContentService<DocsFrontMatter> MarkdownContentService
+@inject IMarkdownContentService<DocsFrontMatter> MarkdownContentService
 
 @if (_postContent == null || _post == null)
 {

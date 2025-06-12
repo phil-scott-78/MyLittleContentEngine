@@ -16,7 +16,7 @@ namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.Tabs
         /// </summary>
         public TabbedCodeBlocksExtension(Func<TabbedCodeBlockRenderOptions>? options)
         {
-            _options = options ?? (() => TabbedCodeBlockRenderOptions.MonorailMono);
+            _options = options ?? (() => TabbedCodeBlockRenderOptions.Default);
         }
 
         public void Setup(MarkdownPipelineBuilder pipeline)

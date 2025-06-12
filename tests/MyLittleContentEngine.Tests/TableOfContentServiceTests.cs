@@ -31,6 +31,7 @@ public class TableOfContentServiceTests
         }
 
         public Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync() => Task.FromResult(_pages);
+        public Task<ImmutableList<PageToGenerate>> GetTocEntriesToGenerateAsync() => Task.FromResult(_pages);
 
         public Task<ImmutableList<ContentToCopy>> GetContentToCopyAsync() => Task.FromResult(ImmutableList<ContentToCopy>.Empty);
 
@@ -216,24 +217,12 @@ public class TableOfContentServiceTests
     }
 
     // Helper class for the above test to provide specific pages
-    private class TestContentServiceWithSpecificPages : IContentService
+    private class TestContentServiceWithSpecificPages(ImmutableList<PageToGenerate> pages) : IContentService
     {
-        private readonly ImmutableList<PageToGenerate> _pages;
-
-        public TestContentServiceWithSpecificPages(ImmutableList<PageToGenerate> pages)
-        {
-            _pages = pages;
-        }
-
-        public Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync() => Task.FromResult(_pages);
-
+        public Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync() => Task.FromResult(pages);
+        public Task<ImmutableList<PageToGenerate>> GetTocEntriesToGenerateAsync() => Task.FromResult(pages);
         public Task<ImmutableList<ContentToCopy>> GetContentToCopyAsync() => Task.FromResult(ImmutableList<ContentToCopy>.Empty);
-
         public Task<ImmutableList<CrossReference>> GetCrossReferencesAsync() => Task.FromResult(ImmutableList<CrossReference>.Empty);
-
-        public void Dispose() { }
-
-        public string GetSourceId() => "TestContentServiceWithSpecificPages";
     }
 
 

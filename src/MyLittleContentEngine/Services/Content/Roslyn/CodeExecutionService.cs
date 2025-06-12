@@ -8,7 +8,7 @@ namespace MyLittleContentEngine.Services.Content.Roslyn;
 /// Handles executing sample code.
 /// </summary>
 /// <param name="logger"></param>
-public class CodeExecutionService(ILogger<CodeExecutionService> logger)
+internal class CodeExecutionService(ILogger<CodeExecutionService> logger)
 {
     internal Dictionary<string, string> ExecuteMethod(Assembly assembly, IMethodSymbol methodSymbol)
     {

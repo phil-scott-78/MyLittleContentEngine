@@ -10,11 +10,11 @@ using HtmlRenderer = Markdig.Renderers.HtmlRenderer;
 namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
 
 internal sealed class CodeHighlightRenderer(
-    RoslynHighlighterService? roslynHighlighter,
+    IRoslynHighlighterService? roslynHighlighter,
     Func<CodeHighlightRenderOptions>? options)
     : HtmlObjectRenderer<CodeBlock>
 {
-    private readonly Func<CodeHighlightRenderOptions> _optionsFactory = options ?? (() => CodeHighlightRenderOptions.MonorailMono);
+    private readonly Func<CodeHighlightRenderOptions> _optionsFactory = options ?? (() => CodeHighlightRenderOptions.Default);
 
     protected override void Write(HtmlRenderer renderer, CodeBlock codeBlock)
     {
@@ -58,7 +58,7 @@ internal sealed class CodeHighlightRenderer(
         renderer.WriteLine("</div>");
     }
 
-    private static void WriteCode(HtmlRenderer renderer, CodeBlock codeBlock, string languageId, string code, RoslynHighlighterService roslynHighlighter)
+    private static void WriteCode(HtmlRenderer renderer, CodeBlock codeBlock, string languageId, string code, IRoslynHighlighterService roslynHighlighter)
     {
         switch (languageId.Trim())
         {
@@ -176,6 +176,6 @@ internal sealed class CodeHighlightRenderer(
             code.Append(lineText);
         }
 
-        return code.ToString();
+        return code.ToString().Trim();
     }
 }

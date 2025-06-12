@@ -7,14 +7,28 @@ using MyLittleContentEngine.Services.Infrastructure;
 
 namespace MyLittleContentEngine.Services.Content.Roslyn;
 
+public interface IRoslynHighlighterService
+{
+    string Highlight(string codeContent, Language language = Language.CSharp);
+    Task<string> GetCodeOutputAsync(string xmlDocId, string value);
+    Task<string> HighlightExampleAsync(string xmlDocIds, bool bodyOnly);
+
+    /// <summary>
+    /// Retrieves the full content of a file using a path relative to the solution root.
+    /// </summary>
+    /// <param name="relativePath">The path relative to the solution root directory</param>
+    /// <returns>The full content of the file</returns>
+    Task<string> GetFileContentAsync(string relativePath);
+}
+
 /// <summary>
 /// A service for providing syntax highlighting for code blocks using Roslyn.
 /// </summary>
-public class RoslynHighlighterService : IDisposable
+internal class RoslynHighlighterService : IDisposable, IRoslynHighlighterService
 {
     private readonly ILogger<RoslynHighlighterService> _logger;
     private readonly SyntaxHighlighter _highlighter;
-    private readonly RoslynExampleCoordinator? _documentProcessor;
+    private readonly IRoslynExampleCoordinator? _documentProcessor;
     private readonly ConcurrentDictionary<int, string> _cache;
     private readonly IContentEngineFileWatcher _fileWatcher;
     private readonly IFileSystem _fileSystem;
@@ -25,7 +39,7 @@ public class RoslynHighlighterService : IDisposable
     /// Provides functionality for syntax highlighting of code using Roslyn.
     /// </summary>
     public RoslynHighlighterService(RoslynHighlighterOptions options, ILogger<RoslynHighlighterService> logger,
-        IContentEngineFileWatcher fileWatcher, IFileSystem fileSystem, RoslynExampleCoordinator? documentProcessor = null)
+        IContentEngineFileWatcher fileWatcher, IFileSystem fileSystem, IRoslynExampleCoordinator? documentProcessor = null)
     {
         _logger = logger;
         _highlighter = new SyntaxHighlighter();
@@ -48,7 +62,7 @@ public class RoslynHighlighterService : IDisposable
         _documentProcessor?.InvalidateFile(filePath);
     }
 
-    internal async Task<string> GetCodeOutputAsync(string xmlDocId, string value)
+    public async Task<string> GetCodeOutputAsync(string xmlDocId, string value)
     {
         if (_documentProcessor == null)
         {
@@ -59,7 +73,7 @@ public class RoslynHighlighterService : IDisposable
         return await _documentProcessor.GetCodeResultAsync(xmlDocId, value);
     }
 
-    internal async Task<string> HighlightExampleAsync(string xmlDocIds, bool bodyOnly)
+    public async Task<string> HighlightExampleAsync(string xmlDocIds, bool bodyOnly)
     {
         if (_documentProcessor == null)
         {
@@ -87,7 +101,7 @@ public class RoslynHighlighterService : IDisposable
         return $"<pre><code>{sb.ToString().TrimEnd()}</code></pre>";
     }
 
-    internal string Highlight(string codeContent, Language language = Language.CSharp)
+    public string Highlight(string codeContent, Language language = Language.CSharp)
     {
         var highlightExample = _cache.GetOrAdd(codeContent.GetHashCode(), _ =>
             _highlighter.Highlight(HttpUtility.HtmlDecode(codeContent), language));

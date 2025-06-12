@@ -391,9 +391,7 @@ internal class OutputGenerationService(
         MustBeFirst = 0,
         Normal = 50,
         MustBeLast = 100,
-
     }
-
 }
 
 internal static class ListExtensions

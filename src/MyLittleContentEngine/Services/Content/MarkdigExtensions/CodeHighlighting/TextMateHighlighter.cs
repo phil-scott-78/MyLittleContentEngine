@@ -5,7 +5,7 @@ using TextMateSharp.Registry;
 
 namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
 
-public static class TextMateHighlighter
+internal static class TextMateHighlighter
 {
     private static readonly Registry Registry;
     private static readonly RegistryOptions RegistryOptions;

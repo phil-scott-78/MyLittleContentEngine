@@ -1,0 +1,23 @@
+﻿@using MyLittleContentEngine.Services.Content.Roslyn
+@inject IRoslynHighlighterService HighlighterService
+
+@((MarkupString) _highlightedCode)
+
+@code {
+    [Parameter] public string? Code { get; init; }
+
+    string _highlightedCode = string.Empty;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrEmpty(Code))
+        {
+            _highlightedCode = string.Empty;
+            return;
+        }
+        
+        _highlightedCode = HighlighterService.Highlight(Code);
+        await base.OnInitializedAsync();
+    }
+
+}

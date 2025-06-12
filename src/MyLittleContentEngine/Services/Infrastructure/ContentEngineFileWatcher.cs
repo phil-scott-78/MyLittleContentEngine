@@ -8,7 +8,7 @@ using MyLittleContentEngine.Services.Infrastructure;
 
 namespace MyLittleContentEngine.Services.Infrastructure;
 
-public interface IContentEngineFileWatcher
+internal interface IContentEngineFileWatcher
 {
     /// <summary>
     /// Adds a watch for a single directory for file changes with a specific file pattern.
@@ -40,7 +40,7 @@ public interface IContentEngineFileWatcher
 /// Additionally, it supports hot-reloading of content in a Blazor static site by listening for file changes to those
 /// configured in the csproj as being watching for changes.
 /// </summary>
-public sealed class ContentEngineFileWatcher : IDisposable, IContentEngineFileWatcher
+internal sealed class ContentEngineFileWatcher : IDisposable, IContentEngineFileWatcher
 {
     private readonly Dictionary<string, FileSystemWatcher> _watchers = new();
     private static readonly ConcurrentBag<Action> UpdateActions = [];

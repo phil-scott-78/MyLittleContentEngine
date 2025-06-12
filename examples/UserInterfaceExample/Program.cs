@@ -9,7 +9,7 @@ builder.Services.AddRazorComponents();
 
 // configures site wide settings
 // hot reload note - these will not be reflected until the application restarts
-builder.Services.AddContentEngineService(() => new ContentEngineOptions
+builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 {
     SiteTitle = "Daily Life Hub",
     SiteDescription = "Your everyday life, simplified",
@@ -17,7 +17,7 @@ builder.Services.AddContentEngineService(() => new ContentEngineOptions
     ContentRootPath = "Content",
 });
 
-builder.Services.AddContentEngineStaticContentService(() => new ContentEngineContentOptions<DocsFrontMatter>()
+builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<DocsFrontMatter>()
 {
     ContentPath = "Content",
     BasePageUrl = ""

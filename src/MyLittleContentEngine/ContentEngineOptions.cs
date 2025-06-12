@@ -2,6 +2,7 @@
 using Markdig;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions;
 using Markdig.Extensions.AutoIdentifiers;
+using Mdazor;
 using Microsoft.Extensions.DependencyInjection;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content.Roslyn;
@@ -211,16 +212,25 @@ public class ContentEngineOptions
     /// </remarks>
     public Func<IServiceProvider, MarkdownPipeline> MarkdownPipelineBuilder { get; init; } = serviceProvider =>
     {
-        var roslynHighlighter = serviceProvider.GetService<RoslynHighlighterService>();
+        var roslynHighlighter = serviceProvider.GetService<IRoslynHighlighterService>();
         var roslynHighlighterOptions = serviceProvider.GetService<RoslynHighlighterOptions>();
-        return new MarkdownPipelineBuilder()
+
+        var builder = new MarkdownPipelineBuilder()
             .UseAutoIdentifiers(AutoIdentifierOptions.GitHub) // This sets up GitHub-style header IDs
             .UseAdvancedExtensions()
             .UseDiagrams()
+            .UseAutoLinks()
+            .UseCustomAlertBlocks()
+            .UseCustomContainers()
             .UseSyntaxHighlighting(roslynHighlighter, roslynHighlighterOptions?.CodeHighlightRenderOptionsFactory)
             .UseTabbedCodeBlocks(roslynHighlighterOptions?.TabbedCodeBlockRenderOptionsFactory)
-            .UseYamlFrontMatter()
-            .Build();
+            .UseYamlFrontMatter();
+
+        // If the service provider has a component registry, enable Mdazor support
+        if (serviceProvider.GetService<IComponentRegistry>() != null)
+            builder = builder.UseMdazor(serviceProvider);
+
+        return builder.Build();
     };
 
     /// <summary>

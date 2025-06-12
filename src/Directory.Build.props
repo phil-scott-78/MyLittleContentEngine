@@ -1,4 +1,7 @@
+
 <Project>
+    <Import Project="$([MSBuild]::GetPathOfFileAbove('$(MSBuildThisFile)', '$(MSBuildThisFileDirectory)../'))" />
+
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
@@ -13,12 +16,7 @@
         <RepositoryType>git</RepositoryType>
         <PackageLicenseExpression>MIT</PackageLicenseExpression>
     </PropertyGroup>
-    <ItemGroup>
-        <InternalsVisibleTo Include="$(AssemblyName).Tests"/>
-    </ItemGroup>
-    <PropertyGroup>
-        <MinVerVerbosity>detailed</MinVerVerbosity>
-    </PropertyGroup>
+
     <!-- Common package references for all projects -->
     <ItemGroup Condition="'$(Configuration)'=='Release'">
         <!--

@@ -1,0 +1,30 @@
+<div  @attributes="@CapturedAttributes" class="@css">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+    
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string,object>? CapturedAttributes { get; set; }
+
+    string css;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        if (CapturedAttributes?["class"] is not string classValue)
+        {
+            css = "prose dark:prose-invert max-w-full prose-sm md:prose-base min-w-0";
+        }
+        else
+        {
+            css = $"prose dark:prose-invert max-w-full prose-sm md:prose-base min-w-0 {classValue}";
+            CapturedAttributes.Remove("class");
+        }
+        
+        
+        await base.OnInitializedAsync();
+    }
+
+}

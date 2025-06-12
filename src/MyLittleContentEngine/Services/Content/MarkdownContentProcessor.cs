@@ -12,7 +12,7 @@ namespace MyLittleContentEngine.Services.Content;
 /// Processes markdown content into HTML with front matter extraction.
 /// </summary>
 /// <typeparam name="TFrontMatter">The type of front matter used in content.</typeparam>
-public class MarkdownContentProcessor<TFrontMatter>
+internal class MarkdownContentProcessor<TFrontMatter>
     where TFrontMatter : class, IFrontMatter, new()
 {
     private readonly ContentEngineContentOptions<TFrontMatter> _engineContentOptions;

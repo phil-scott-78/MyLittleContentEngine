@@ -14,7 +14,7 @@ namespace MyLittleContentEngine.Services.Content.MarkdigExtensions;
 /// Service for parsing and processing Markdown files with YAML front matter.
 /// Provides caching, HTML conversion, and image path transformation capabilities.
 /// </summary>
-public class MarkdownParserService
+internal class MarkdownParserService
 {
     private readonly ILogger _logger;
     private readonly IServiceProvider _serviceProvider;

@@ -1,4 +1,4 @@
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Generation;
 
@@ -17,6 +17,18 @@ public interface IContentService
     /// should be processed by the <see cref="OutputGenerationService"/>.
     /// </returns>
     Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync();
+
+    /// <summary>
+    /// Gets the collection of pages that should appear in the Table of Contents.
+    /// This is typically a subset of the pages returned by GetPagesToGenerateAsync().
+    /// For example, API documentation might generate thousands of pages but only
+    /// want to show the root "/api/" entry in the TOC.
+    /// </summary>
+    /// <returns>
+    /// An ImmutableList of PageToGenerate objects that should be included in the
+    /// Table of Contents navigation.
+    /// </returns>
+    Task<ImmutableList<PageToGenerate>> GetTocEntriesToGenerateAsync();
 
     /// <summary>
     /// Gets the collection of content that should be copied to the output directory.

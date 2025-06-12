@@ -4,37 +4,12 @@
 @if (TableOfContents != null)
 {
     <nav>
-        @{
-            var childlessTocEntries = TableOfContents.Where(i => i.Items.Length == 0).ToList();
-        }
-        @if (childlessTocEntries.Count > 0)
-        {
-            <ul>
-                @foreach (var tableOfContentEntry in childlessTocEntries.OrderBy(i => i.Order))
-                {
-                    @RootTocLink(tableOfContentEntry)
-                }
-            </ul>
-        }
-
-        @foreach (var tableOfContentEntry in TableOfContents.Where(i => i.Items.Length > 0).OrderBy(i => i.Order))
-        {
-            @if (string.IsNullOrWhiteSpace(tableOfContentEntry.Href))
+        <ul class="flex flex-col gap-4">
+            @foreach (var tableOfContentEntry in TableOfContents.OrderBy(i => i.Order))
             {
-                <h4 class="@SectionHeaderStructureClass @SectionHeaderColorClass">@tableOfContentEntry.Name</h4>
+                @TocEntry(tableOfContentEntry)
             }
-            else
-            {
-                <h4 class="@SectionHeaderStructureClass @SectionHeaderColorClass"><a href="@tableOfContentEntry.Href">@tableOfContentEntry.Name</a></h4>
-            }
-
-            <ul>
-                @foreach (var childEntries in tableOfContentEntry.Items.OrderBy(i => i.Order))
-                {
-                    @TocLink(childEntries)
-                }
-            </ul>
-        }
+        </ul>
     </nav>
 }
 
@@ -48,13 +23,26 @@
     [Parameter] public string RootLinkColorClass { get; set; } = "text-base-700 dark:text-base-400 aria-current:text-primary-800 dark:aria-current:text-primary-500 hover:text-accent-400 dark:hover:text-base-50";
 
     
-    private RenderFragment TocLink(TableOfContentEntry tocEntry) =>
+    private RenderFragment TocEntry(TableOfContentEntry tocEntry) =>
         @<li class="block">
-            <a aria-current="@tocEntry.IsSelected.ToString().ToLowerInvariant()" href="@tocEntry.Href" class="@LinkStructureClass @LinkColorClass">@tocEntry.Name</a>
-        </li>;
-    
-    private RenderFragment RootTocLink(TableOfContentEntry tocEntry) =>
-        @<li class="block">
-            <a aria-current="@tocEntry.IsSelected.ToString().ToLowerInvariant()" href="@tocEntry.Href" class="@RootLinkStructureClass @RootLinkColorClass">@tocEntry.Name</a>
+            @if (string.IsNullOrWhiteSpace(tocEntry.Href))
+            {
+                <div class="@SectionHeaderStructureClass @SectionHeaderColorClass">@tocEntry.Name</div>
+            }
+            else
+            {
+                <a aria-current="@tocEntry.IsSelected.ToString().ToLowerInvariant()" href="@tocEntry.Href" class="@(tocEntry.Items.Length == 0 ? RootLinkStructureClass + " " + RootLinkColorClass : SectionHeaderStructureClass + " " + SectionHeaderColorClass)">@tocEntry.Name</a>
+            }
+            @if (tocEntry.Items.Length > 0)
+            {
+                <ul class="mt-4">
+                    @foreach (var childEntry in tocEntry.Items.OrderBy(i => i.Order))
+                    {
+                        <li class="block">
+                            <a aria-current="@childEntry.IsSelected.ToString().ToLowerInvariant()" href="@childEntry.Href" class="@LinkStructureClass @LinkColorClass">@childEntry.Name</a>
+                        </li>
+                    }
+                </ul>
+            }
         </li>;
 }

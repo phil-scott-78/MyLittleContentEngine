@@ -1,10 +1,27 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions;
 using MyLittleContentEngine.Services.Infrastructure;
 
 namespace MyLittleContentEngine.Services.Content;
+
+public interface IMarkdownContentService<TFrontMatter> : IContentService where TFrontMatter : class, IFrontMatter, new()
+{
+    /// <summary>
+    /// Gets content by its URL and renders the Markdown to HTML. Returns null if not found.
+    /// </summary>
+    /// <param name="url">The URL identifier of the content page to retrieve</param>
+    /// <returns>A tuple of the content page and rendered HTML, or null if not found</returns>
+    Task<(MarkdownContentPage<TFrontMatter> Page, string HtmlContent)?>
+        GetRenderedContentPageByUrlOrDefault(string url);
+
+    /// <summary>
+    /// Gets an immutable list of all content.
+    /// </summary>
+    /// <returns>An immutable list containing all parsed and processed content pages.</returns>
+    Task<ImmutableList<MarkdownContentPage<TFrontMatter>>> GetAllContentPagesAsync();
+}
 
 /// <summary>
 ///     Content service responsible for managing Markdown-based content in a Blazor static site.
@@ -14,8 +31,7 @@ namespace MyLittleContentEngine.Services.Content;
 ///     The type of front matter metadata used in content files.
 ///     Must implement IFrontMatter and have a parameterless constructor.
 /// </typeparam>
-public class MarkdownContentService<TFrontMatter> : IContentService, IDisposable
-    where TFrontMatter : class, IFrontMatter, new()
+internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownContentService<TFrontMatter> where TFrontMatter : class, IFrontMatter, new()
 {
     private readonly LazyAndForgetful<ConcurrentDictionary<string, MarkdownContentPage<TFrontMatter>>> _contentCache;
     private readonly MarkdownContentProcessor<TFrontMatter> _contentProcessor;
@@ -125,6 +141,13 @@ public class MarkdownContentService<TFrontMatter> : IContentService, IDisposable
     {
         var allPosts = await GetAllContentPagesAsync();
         return _contentProcessor.CreatePagesToGenerate(allPosts);
+    }
+
+    /// <inheritdoc />
+    async Task<ImmutableList<PageToGenerate>> IContentService.GetTocEntriesToGenerateAsync()
+    {
+        // For markdown content, all generated pages should appear in the TOC
+        return await ((IContentService)this).GetPagesToGenerateAsync();
     }
 
     /// <inheritdoc />

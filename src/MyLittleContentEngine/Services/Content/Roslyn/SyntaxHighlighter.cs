@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace MyLittleContentEngine.Services.Content.Roslyn;
 
-internal enum Language
+public enum Language
 {
     CSharp,
     VisualBasic,

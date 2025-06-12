@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using Markdig.Renderers.Html;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;
@@ -9,7 +9,7 @@ namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.Navigation;
 /// <summary>
 /// Service for generating outlines from Markdown documents.
 /// </summary>
-public static class MarkdownOutlineGenerator
+internal static class MarkdownOutlineGenerator
 {
     /// <summary>
     /// Generates an outline from a Markdown document
@@ -18,15 +18,13 @@ public static class MarkdownOutlineGenerator
     /// <returns>An array of outline entries representing the document's headings</returns>
     public static OutlineEntry[] GenerateOutline(MarkdownDocument document)
     {
-        var outlineEntries = new List<OutlineEntry>();
-        var headerStack = new Stack<(OutlineEntry Entry, int Level)>();
+        var flatEntries = new List<(OutlineEntry Entry, int Level)>();
 
-        // Traverse the document to find headings
+        // First pass: collect all headings in document order
         foreach (var node in document.Descendants())
         {
             if (node is not HeadingBlock headingBlock) continue;
-            var level = headingBlock.Level;
-
+            
             if (headingBlock.Inline == null)
             {
                 continue;
@@ -34,58 +32,89 @@ public static class MarkdownOutlineGenerator
 
             // Extract title from the heading
             var title = GetPlainTextFromInline(headingBlock.Inline);
+            
+            // Skip empty headings
+            if (string.IsNullOrWhiteSpace(title))
+            {
+                continue;
+            }
 
             // Get the ID that will be used in the HTML output
             var id = headingBlock.TryGetAttributes()?.Id;
 
             // Skip headers without IDs
-            if (id == null)
+            if (string.IsNullOrWhiteSpace(id))
             {
                 continue;
             }
 
-            var newEntry = new OutlineEntry(title, id, []);
+            var entry = new OutlineEntry(title, id, []);
+            flatEntries.Add((entry, headingBlock.Level));
+        }
 
-            // Pop entries from the stack that are at the same or higher level
-            while (headerStack.Count > 0 && headerStack.Peek().Level >= level)
+        // Second pass: build hierarchy
+        return BuildHierarchy(flatEntries);
+    }
+
+    /// <summary>
+    /// Builds a hierarchical outline from a flat list of entries
+    /// </summary>
+    /// <param name="flatEntries">Flat list of entries with their levels</param>
+    /// <returns>Hierarchical outline</returns>
+    private static OutlineEntry[] BuildHierarchy(List<(OutlineEntry Entry, int Level)> flatEntries)
+    {
+        if (flatEntries.Count == 0) return [];
+
+        var result = new List<OutlineEntry>();
+        var stack = new List<(OutlineEntry Entry, int Level, List<OutlineEntry> Children)>();
+
+        foreach (var (entry, level) in flatEntries)
+        {
+            var children = new List<OutlineEntry>();
+            var newStackEntry = (entry, level, children);
+
+            // Find the correct position in the stack
+            while (stack.Count > 0 && stack[^1].Level >= level)
             {
-                headerStack.Pop();
-            }
-
-            if (headerStack.Count == 0)
-            {
-                // This is a top-level heading
-                outlineEntries.Add(newEntry);
-            }
-            else
-            {
-                // Add as child-to-parent heading
-                var (parentEntry, parentLevel) = headerStack.Peek(); // Store the parent level here
-                var parentChildren = parentEntry.Children.ToList();
-                parentChildren.Add(newEntry);
-
-                // Create updated parent with new children
-                var updatedParent = parentEntry with { Children = parentChildren.ToArray() };
-
-                // Pop the old parent and push the updated one with the same level
-                headerStack.Pop();
-                headerStack.Push((updatedParent, parentLevel)); // Use the stored parent level
-
-                // Update in the main list if it's a top-level entry
-                if (headerStack.Count == 1)
+                var lastEntry = stack[^1];
+                stack.RemoveAt(stack.Count - 1);
+                
+                var completedEntry = lastEntry.Entry with { Children = lastEntry.Children.ToArray() };
+                
+                // Add to the appropriate parent
+                if (stack.Count > 0)
                 {
-                    var index = outlineEntries.IndexOf(parentEntry);
-                    if (index >= 0) // Make sure we found the parent
-                    {
-                        outlineEntries[index] = updatedParent;
-                    }
+                    stack[^1].Children.Add(completedEntry);
+                }
+                else
+                {
+                    result.Add(completedEntry);
                 }
             }
 
-            headerStack.Push((newEntry, level));
+            // Add current entry to stack
+            stack.Add(newStackEntry);
         }
 
-        return outlineEntries.ToArray();
+        // Process remaining entries in stack
+        while (stack.Count > 0)
+        {
+            var lastEntry = stack[^1];
+            stack.RemoveAt(stack.Count - 1);
+            
+            var completedEntry = lastEntry.Entry with { Children = lastEntry.Children.ToArray() };
+            
+            if (stack.Count > 0)
+            {
+                stack[^1].Children.Add(completedEntry);
+            }
+            else
+            {
+                result.Add(completedEntry);
+            }
+        }
+
+        return result.ToArray();
     }
 
     /// <summary>
