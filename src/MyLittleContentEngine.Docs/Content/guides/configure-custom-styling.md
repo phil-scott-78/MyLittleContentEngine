@@ -8,6 +8,10 @@ order: 2001
 
 ## What You'll Accomplish
 
+```
+a very long line of code that is used to demonstrate the capabilities of the MyLittleContentEngine's custom styling features.
+```
+
 This guide shows you how to:
 - Customize MonorailCSS color palettes
 - Override default component styles
