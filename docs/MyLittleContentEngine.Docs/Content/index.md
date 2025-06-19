@@ -18,6 +18,22 @@ Everything you need to build a nice little documentation website for your .NET p
 [Getting Started Guide](getting-started/creating-first-site) - Learn how to set up your first content site with MyLittleContentEngine.
 
 
-## And something more
+## Frequently Asked Questions
 
-Merp.
+Are these docs finished? 
+:   No.
+
+Is this app bug-free and ready for production?
+:   Not even close.
+
+Is there a migration tool from my favorite documentation tool?
+:   No
+
+Is this an appropriate tool for my non-.NET project?
+:   Probably not, but knock yourself out
+
+Can I submit a pull request?
+:   Yeah, but do me a favor and include a demo or unit test around what you are adding or fixing.
+
+There is a missing feature my company critically needs, it is costing us $1000 a day! 
+:   I will add it for $999 a day.

@@ -74,7 +74,8 @@ internal class AssemblyLoaderService(ILogger<AssemblyLoaderService> logger, IFil
                 if (reference.FilePath == null || !fileSystem.File.Exists(reference.FilePath)) continue;
                 if (reference.FilePath.Contains("Microsoft.NETCore.App.Ref") ||
                     reference.FilePath.Contains(@".Ref\") ||
-                    reference.FilePath.Contains(@"\ref\"))
+                    reference.FilePath.Contains(@"\ref\")||
+                    reference.FilePath.Contains(@"/ref/"))
                 {
                     continue;
                 }
