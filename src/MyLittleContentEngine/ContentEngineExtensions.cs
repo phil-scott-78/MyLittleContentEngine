@@ -55,8 +55,10 @@ public static class ContentEngineExtensions
         services.AddSingleton<SitemapRssService>();
 
         // Register interface implementations
-        services.AddSingleton<IContentService>(provider => provider.GetRequiredService<IMarkdownContentService<TFrontMatter>>());
-        services.AddSingleton<IContentOptions>(provider => provider.GetRequiredService<ContentEngineContentOptions<TFrontMatter>>());
+        services.AddSingleton<IContentService>(provider =>
+            provider.GetRequiredService<IMarkdownContentService<TFrontMatter>>());
+        services.AddSingleton<IContentOptions>(provider =>
+            provider.GetRequiredService<ContentEngineContentOptions<TFrontMatter>>());
 
         return services;
     }
@@ -105,19 +107,16 @@ public static class ContentEngineExtensions
         else
         {
             services.AddTransient(configureOptions);
-            
+
             var options = configureOptions.Invoke(services.BuildServiceProvider());
             if (options.ConnectedSolution != null)
             {
-                           
                 services.AddSingleton<IRoslynHighlighterService, RoslynHighlighterService>();
                 services.AddSingleton<IRoslynExampleCoordinator, RoslynExampleCoordinator>();
                 services.AddSingleton<CodeExecutionService>();
                 services.AddSingleton<AssemblyLoaderService>();
             }
         }
-
-
 
         return services;
     }
@@ -135,7 +134,6 @@ public static class ContentEngineExtensions
     public static IServiceCollection AddApiReferenceContentService(this IServiceCollection services,
         Func<IServiceProvider, ApiReferenceContentOptions> func)
     {
-        
         services.AddTransient(func);
         // Register the API reference content service
         services.AddSingleton<ApiReferenceContentService>();

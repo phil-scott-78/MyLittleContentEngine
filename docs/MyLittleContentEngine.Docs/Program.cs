@@ -19,7 +19,6 @@ builder.Services.AddMdazor()
     .AddMdazorComponent<Column>()
     .AddMdazorComponent<Step>()
     .AddMdazorComponent<Steps>();
-    ;
 
 // configures site wide settings
 // hot reload note - these will not be reflected until the application restarts

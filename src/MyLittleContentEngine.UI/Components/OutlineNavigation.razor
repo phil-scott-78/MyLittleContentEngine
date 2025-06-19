@@ -1,6 +1,6 @@
 @using MyLittleContentEngine.Models
 
-@if (Outline != null && Outline.Length > 1)
+@if (Outline is { Length: > 1 })
 {
     <div data-role="page-outline" class="@ContainerStructureClass @ContainerColorClass">
         <ul class="@ListStructureClass @ListColorClass">

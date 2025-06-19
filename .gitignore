@@ -484,7 +484,7 @@ $RECYCLE.BIN/
 *.swp
 
 
-src/Thirty25.Web/output/
+docs/MyLittleContentEngine.Docs/output/
 
 # verify
 *.received.*
