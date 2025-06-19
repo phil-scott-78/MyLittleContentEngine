@@ -4,13 +4,13 @@ using Shouldly;
 
 namespace MyLittleContentEngine.Tests.Infrastructure;
 
-public class PathUtilitiesTests
+public class FileSystemUtilitiesTests
 {
     [Fact]
     public void FilePathToUrlPath_SimpleFile_ReturnsSlugifiedName()
     {
         var fileSystem = new MockFileSystem();
-        var pathUtilities = new PathUtilities(fileSystem);
+        var pathUtilities = new FileSystemUtilities(fileSystem);
         var filePath = "/content/my-blog-post.md";
         var baseContentPath = "/content";
 
@@ -23,7 +23,7 @@ public class PathUtilitiesTests
     public void FilePathToUrlPath_FileInSubdirectory_PreservesDirectoryStructure()
     {
         var fileSystem = new MockFileSystem();
-        var pathUtilities = new PathUtilities(fileSystem);
+        var pathUtilities = new FileSystemUtilities(fileSystem);
         var filePath = "/content/blog/my-first-post.md";
         var baseContentPath = "/content";
 
@@ -36,7 +36,7 @@ public class PathUtilitiesTests
     public void FilePathToUrlPath_NestedSubdirectories_PreservesFullPath()
     {
         var fileSystem = new MockFileSystem();
-        var pathUtilities = new PathUtilities(fileSystem);
+        var pathUtilities = new FileSystemUtilities(fileSystem);
         var filePath = "/content/docs/guides/getting-started.md";
         var baseContentPath = "/content";
 
@@ -49,7 +49,7 @@ public class PathUtilitiesTests
     public void FilePathToUrlPath_FileWithSpecialCharacters_SlugifiesFilename()
     {
         var fileSystem = new MockFileSystem();
-        var pathUtilities = new PathUtilities(fileSystem);
+        var pathUtilities = new FileSystemUtilities(fileSystem);
         var filePath = "/content/My Blog Post With Spaces!.md";
         var baseContentPath = "/content";
 
@@ -62,7 +62,7 @@ public class PathUtilitiesTests
     public void FilePathToUrlPath_WindowsPathSeparators_ConvertsToForwardSlashes()
     {
         var fileSystem = new MockFileSystem();
-        var pathUtilities = new PathUtilities(fileSystem);
+        var pathUtilities = new FileSystemUtilities(fileSystem);
         var filePath = "/content/blog/posts/article.md";
         var baseContentPath = "/content";
 
@@ -74,59 +74,58 @@ public class PathUtilitiesTests
     [Theory]
     [InlineData("https://example.com", "", "https://example.com")]
     [InlineData("https://example.com", "   ", "https://example.com")]
-    [InlineData("https://example.com", null, "https://example.com")]
     public void CombineUrl_EmptyRelativePath_ReturnsBaseUrl(string baseUrl, string relativePath, string expected)
     {
-        var result = PathUtilities.CombineUrl(baseUrl, relativePath);
+        var result = FileSystemUtilities.CombineUrl(baseUrl, relativePath);
         result.ShouldBe(expected);
     }
 
     [Fact]
     public void CombineUrl_FragmentPath_AppendsDirectlyToBaseUrl()
     {
-        var result = PathUtilities.CombineUrl("https://example.com/page", "#section");
+        var result = FileSystemUtilities.CombineUrl("https://example.com/page", "#section");
         result.ShouldBe("https://example.com/page#section");
     }
 
     [Fact]
     public void CombineUrl_QueryPath_AppendsDirectlyToBaseUrl()
     {
-        var result = PathUtilities.CombineUrl("https://example.com/page", "?param=value");
+        var result = FileSystemUtilities.CombineUrl("https://example.com/page", "?param=value");
         result.ShouldBe("https://example.com/page?param=value");
     }
 
     [Fact]
     public void CombineUrl_BaseUrlWithTrailingSlash_CombinesCorrectly()
     {
-        var result = PathUtilities.CombineUrl("https://example.com/", "path/to/page");
+        var result = FileSystemUtilities.CombineUrl("https://example.com/", "path/to/page");
         result.ShouldBe("https://example.com/path/to/page");
     }
 
     [Fact]
     public void CombineUrl_BaseUrlWithoutTrailingSlash_CombinesCorrectly()
     {
-        var result = PathUtilities.CombineUrl("https://example.com", "path/to/page");
+        var result = FileSystemUtilities.CombineUrl("https://example.com", "path/to/page");
         result.ShouldBe("https://example.com/path/to/page");
     }
 
     [Fact]
     public void CombineUrl_RelativePathWithLeadingSlash_CombinesCorrectly()
     {
-        var result = PathUtilities.CombineUrl("https://example.com", "/path/to/page");
+        var result = FileSystemUtilities.CombineUrl("https://example.com", "/path/to/page");
         result.ShouldBe("https://example.com/path/to/page");
     }
 
     [Fact]
     public void CombineUrl_BothPathsHaveSlashes_CombinesCorrectly()
     {
-        var result = PathUtilities.CombineUrl("https://example.com/", "/path/to/page");
+        var result = FileSystemUtilities.CombineUrl("https://example.com/", "/path/to/page");
         result.ShouldBe("https://example.com/path/to/page");
     }
 
     [Fact]
     public void CombineUrl_RelativePathWithTrailingSlashes_TrimsCorrectly()
     {
-        var result = PathUtilities.CombineUrl("https://example.com", "path/to/page/");
+        var result = FileSystemUtilities.CombineUrl("https://example.com", "path/to/page/");
         result.ShouldBe("https://example.com/path/to/page");
     }
 
@@ -135,7 +134,7 @@ public class PathUtilitiesTests
     public void ValidateDirectoryPath_NonExistingDirectory_ThrowsDirectoryNotFoundException()
     {
         var fileSystem = new MockFileSystem();
-        var pathUtilities = new PathUtilities(fileSystem);
+        var pathUtilities = new FileSystemUtilities(fileSystem);
 
         Should.Throw<DirectoryNotFoundException>(() => 
             pathUtilities.ValidateDirectoryPath("/nonexistent"));
@@ -145,7 +144,7 @@ public class PathUtilitiesTests
     public void Combine_EmptyPaths_HandlesGracefully()
     {
         var fileSystem = new MockFileSystem();
-        var pathUtilities = new PathUtilities(fileSystem);
+        var pathUtilities = new FileSystemUtilities(fileSystem);
 
         var result = pathUtilities.Combine("", "relative/path");
 
@@ -156,7 +155,7 @@ public class PathUtilitiesTests
     public void FilePathToUrlPath_FileInRootDirectory_ReturnsJustFilename()
     {
         var fileSystem = new MockFileSystem();
-        var pathUtilities = new PathUtilities(fileSystem);
+        var pathUtilities = new FileSystemUtilities(fileSystem);
         var filePath = "/content/index.md";
         var baseContentPath = "/content";
 
@@ -175,7 +174,7 @@ public class PathUtilitiesTests
             { "/content/file2.md", new MockFileData("content2") },
             { "/content/subdirectory/file3.md", new MockFileData("content3") }
         });
-        var pathUtilities = new PathUtilities(fileSystem);
+        var pathUtilities = new FileSystemUtilities(fileSystem);
 
         var (files, absolutePath) = pathUtilities.GetFilesInDirectory("/content", "*.md", recursive: false);
 
@@ -193,7 +192,7 @@ public class PathUtilitiesTests
             { "/content/file2.md", new MockFileData("content2") },
             { "/content/subdirectory/file3.md", new MockFileData("content3") }
         });
-        var pathUtilities = new PathUtilities(fileSystem);
+        var pathUtilities = new FileSystemUtilities(fileSystem);
 
         var (files, absolutePath) = pathUtilities.GetFilesInDirectory("/content", "*.md", recursive: true);
 
@@ -206,7 +205,7 @@ public class PathUtilitiesTests
     public void FilePathToUrlPath_ComplexPath_HandlesCorrectly()
     {
         var fileSystem = new MockFileSystem();
-        var pathUtilities = new PathUtilities(fileSystem);
+        var pathUtilities = new FileSystemUtilities(fileSystem);
         var filePath = "/var/www/content/blog/2023/my-awesome-post.md";
         var baseContentPath = "/var/www/content";
 

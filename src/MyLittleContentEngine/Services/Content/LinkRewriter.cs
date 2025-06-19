@@ -1,6 +1,6 @@
 using MyLittleContentEngine.Services.Infrastructure;
 
-namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.Navigation;
+namespace MyLittleContentEngine.Services.Content;
 
 /// <summary>
 /// Service for handling URL rewriting in Markdown content when converted to HTML.
@@ -93,7 +93,7 @@ internal static class LinkRewriter
         if (!relativePath.StartsWith("../"))
         {
             // Regular relative path, combine with base URL
-            return PathUtilities.CombineUrl(baseUrl, relativePath);
+            return FileSystemUtilities.CombineUrl(baseUrl, relativePath);
         }
 
         var baseSegments = baseUrl.Split('/')

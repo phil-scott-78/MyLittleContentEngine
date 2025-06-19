@@ -13,7 +13,7 @@ public class TableOfContentEntry
 }
 
 // Internal tree node class
-internal class TreeNode
+internal record TreeNode
 {
     public string Segment { get; init; } = "";
 
@@ -26,27 +26,69 @@ internal class TreeNode
     public int Order { get; set; }
 }
 
+internal record PageWithOrder(string PageTitle, string Url, int Order);
+
 public interface ITableOfContentService
 {
     Task<ImmutableList<TableOfContentEntry>> GetNavigationTocAsync(string currentUrl);
 
     Task<ImmutableList<TableOfContentEntry>> GetNavigationTocAsync<T>(string currentUrl)
         where T : IContentService;
+
+    Task<(TableOfContentEntry? Previous, TableOfContentEntry? Next)> GetNextPreviousAsync(
+        string currentUrl);
 }
 
-internal class TableOfContentService(
-    ContentEngineOptions options,
-    IEnumerable<IContentService> contentServices) : ITableOfContentService
+internal class TableOfContentService(IEnumerable<IContentService> contentServices) : ITableOfContentService
 {
     private readonly ConcurrentDictionary<Type, IContentService> _contentServices =
         new(contentServices.ToDictionary(service => service.GetType(), service => service));
 
+    public async Task<(TableOfContentEntry? Previous, TableOfContentEntry? Next)> GetNextPreviousAsync(
+        string currentUrl)
+    {
+        var services = _contentServices.Values;
+        var allPages = await GetPageTitlesWithOrderAsync(services);
+        var currentPage = allPages.FirstOrDefault(p => HrefEquals(p.Url, currentUrl));
+        if (currentPage == null)
+        {
+            return (null, null);
+        }
+
+        var previous = allPages
+            .Where(p => p.Order < currentPage.Order)
+            .OrderByDescending(p => p.Order)
+            .FirstOrDefault();
+
+        var next = allPages
+            .Where(p => p.Order > currentPage.Order)
+            .OrderBy(p => p.Order)
+            .FirstOrDefault();
+
+        return (AsTocEntry(previous), AsTocEntry(next));
+
+        TableOfContentEntry? AsTocEntry(PageWithOrder? page)
+        {
+            if (page == null) return null;
+
+            return new TableOfContentEntry
+            {
+                Name = page.PageTitle,
+                // anytime we are talking about whole site navigation, we should rely on baseHref being set properly
+                // and use relative URLs
+                Href = page.Url.StartsWith('/') ? page.Url.TrimStart('/') : page.Url,
+                Order = page.Order,
+                IsSelected = false,
+                Items = []
+            };
+        }
+    }
+
     public async Task<ImmutableList<TableOfContentEntry>> GetNavigationTocAsync(string currentUrl)
     {
-        var baseUrl = options.BaseUrl.TrimEnd('/');
         var services = _contentServices.Values;
 
-        return await GetTableOfContentEntries(currentUrl, services, baseUrl);
+        return await GetTableOfContentEntries(currentUrl, services);
     }
 
     public async Task<ImmutableList<TableOfContentEntry>> GetNavigationTocAsync<T>(string currentUrl)
@@ -57,25 +99,14 @@ internal class TableOfContentService(
             throw new InvalidOperationException($"Content service of type {typeof(T).Name} is not registered.");
         }
 
-        var baseUrl = options.BaseUrl.TrimEnd('/');
-        return await GetTableOfContentEntries(currentUrl, [contentService], baseUrl);
+        return await GetTableOfContentEntries(currentUrl, [contentService]);
     }
 
     private async Task<ImmutableList<TableOfContentEntry>> GetTableOfContentEntries(string currentUrl,
-        ICollection<IContentService> services, string baseUrl)
+        ICollection<IContentService> services)
     {
         // Collect all pages (Title, Url, Order)
-        var pageTitlesWithOrder = new List<(string PageTitle, string Url, int Order)>();
-
-        foreach (var contentService in services)
-        {
-            var pages = await contentService.GetTocEntriesToGenerateAsync();
-            foreach (var page in pages)
-            {
-                if (page.Metadata?.Title == null) continue;
-                pageTitlesWithOrder.Add((page.Metadata.Title, page.Url, page.Metadata.Order));
-            }
-        }
+        var pageTitlesWithOrder = await GetPageTitlesWithOrderAsync(services);
 
         // Build the tree of URL segments
         var root = new TreeNode { Segment = "" };
@@ -83,9 +114,7 @@ internal class TableOfContentService(
         foreach (var (pageTitle, url, order) in pageTitlesWithOrder)
         {
             // Normalize and split the URL into segments
-            var relativePath = url.Trim('/'); // e.g. "folder/subfolder/index"
-            var segments = relativePath.Split(['/'], StringSplitOptions.RemoveEmptyEntries);
-            var fullHref = $"{baseUrl}/{relativePath}"; // e.g. "https://example.com/folder/subfolder/index"
+            var segments = url.Trim('/').Split(['/'], StringSplitOptions.RemoveEmptyEntries);
 
             var currentNode = root;
             foreach (var segment in segments)
@@ -104,12 +133,31 @@ internal class TableOfContentService(
             currentNode.HasPage = true;
             currentNode.Title = pageTitle;
             currentNode.Order = order;
-            currentNode.Url = fullHref;
+            // anytime we are talking about whole site navigation, we should rely on baseHref being set properly
+            // and use relative URLs
+            currentNode.Url = url.StartsWith('/') ? url.TrimStart('/') : url;
             currentNode.IsIndex = string.Equals(lastSegment, "index", StringComparison.OrdinalIgnoreCase);
         }
 
         // Build the top‐level entries from the root node
         return BuildEntries(root, currentUrl).ToImmutableList();
+    }
+
+    private static async Task<List<PageWithOrder>> GetPageTitlesWithOrderAsync(ICollection<IContentService> services)
+    {
+        var pageTitlesWithOrder = new List<PageWithOrder>();
+
+        foreach (var contentService in services)
+        {
+            var pages = await contentService.GetTocEntriesToGenerateAsync();
+            foreach (var page in pages)
+            {
+                if (page.Metadata?.Title == null) continue;
+                pageTitlesWithOrder.Add(new PageWithOrder(page.Metadata.Title, page.Url, page.Metadata.Order));
+            }
+        }
+
+        return pageTitlesWithOrder;
     }
 
     // Recursive helper: build a single TOC entry (including its children)

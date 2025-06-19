@@ -1,4 +1,4 @@
-<div  @attributes="@CapturedAttributes" class="@css">
+<div  @attributes="@CapturedAttributes" class="@_css">
     @ChildContent
 </div>
 
@@ -9,17 +9,17 @@
     [Parameter(CaptureUnmatchedValues = true)]
     public Dictionary<string,object>? CapturedAttributes { get; set; }
 
-    string css;
+    string _css = string.Empty;
     
     protected override async Task OnInitializedAsync()
     {
         if (CapturedAttributes?["class"] is not string classValue)
         {
-            css = "prose dark:prose-invert max-w-full prose-sm md:prose-base min-w-0";
+            _css = "prose dark:prose-invert max-w-full prose-sm md:prose-base min-w-0";
         }
         else
         {
-            css = $"prose dark:prose-invert max-w-full prose-sm md:prose-base min-w-0 {classValue}";
+            _css = $"prose dark:prose-invert max-w-full prose-sm md:prose-base min-w-0 {classValue}";
             CapturedAttributes.Remove("class");
         }
         

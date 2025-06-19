@@ -8,13 +8,6 @@ namespace MyLittleContentEngine.Tests;
 
 public class TableOfContentServiceTests
 {
-    private readonly ContentEngineOptions _options = new()
-    { 
-        BaseUrl = "https://example.com",
-        SiteTitle = "Test Blog",
-        SiteDescription = "Test Description"
-    };
-
     private class TestContentService2(params (string title, string url, int order)[] pages) : TestContentService(pages);
     
     // Test-specific concrete implementations of IContentService
@@ -42,7 +35,7 @@ public class TableOfContentServiceTests
     public async Task GetNavigationTocAsync_WithEmptyContentServices_ReturnsEmptyList()
     {
         // Arrange
-        var service = new TableOfContentService(_options, []);
+        var service = new TableOfContentService([]);
 
         // Act
         var result = await service.GetNavigationTocAsync("/current");
@@ -57,16 +50,16 @@ public class TableOfContentServiceTests
         // Arrange
         var contentService = new TestContentService(("Home", "index", 1));
         var contentServices = new List<IContentService> { contentService };
-        var service = new TableOfContentService(_options, contentServices);
+        var service = new TableOfContentService(contentServices);
 
         // Act
-        var result = await service.GetNavigationTocAsync("https://example.com/index");
+        var result = await service.GetNavigationTocAsync("/index");
 
         // Assert
         result.ShouldHaveSingleItem();
         var entry = result.First();
         entry.Name.ShouldBe("Home");
-        entry.Href.ShouldBe("https://example.com/index");
+        entry.Href.ShouldBe("index");
         entry.Order.ShouldBe(1);
         entry.IsSelected.ShouldBeTrue();
         entry.Items.ShouldBeEmpty();
@@ -82,7 +75,7 @@ public class TableOfContentServiceTests
             ("Second", "second", 2)
         );
         var contentServices = new List<IContentService> { contentService };
-        var service = new TableOfContentService(_options, contentServices);
+        var service = new TableOfContentService(contentServices);
 
         // Act
         var result = await service.GetNavigationTocAsync("/current");
@@ -110,7 +103,7 @@ public class TableOfContentServiceTests
             ("Contact", "contact", 4)
         );
         var contentServices = new List<IContentService> { contentService };
-        var service = new TableOfContentService(_options, contentServices);
+        var service = new TableOfContentService(contentServices);
 
         // Act
         var result = await service.GetNavigationTocAsync("/current");
@@ -119,10 +112,10 @@ public class TableOfContentServiceTests
         result.Count.ShouldBe(3); // Home, About (with Team as child), Contact
 
         var aboutEntry = result.First(e => e.Name == "About");
-        aboutEntry.Href.ShouldBe("https://example.com/about/index");
+        aboutEntry.Href.ShouldBe("about/index");
         aboutEntry.Items.ShouldHaveSingleItem();
         aboutEntry.Items[0].Name.ShouldBe("Team");
-        aboutEntry.Items[0].Href.ShouldBe("https://example.com/about/team");
+        aboutEntry.Items[0].Href.ShouldBe("about/team");
     }
 
     [Fact]
@@ -134,7 +127,7 @@ public class TableOfContentServiceTests
             ("History", "about/history", 2)
         );
         var contentServices = new List<IContentService> { contentService };
-        var service = new TableOfContentService(_options, contentServices);
+        var service = new TableOfContentService(contentServices);
 
         // Act
         var result = await service.GetNavigationTocAsync("/current");
@@ -159,10 +152,10 @@ public class TableOfContentServiceTests
             ("Contact", "contact", 3)
         );
         var contentServices = new List<IContentService> { contentService };
-        var service = new TableOfContentService(_options, contentServices);
+        var service = new TableOfContentService(contentServices);
 
         // Act
-        var result = await service.GetNavigationTocAsync("https://example.com/about");
+        var result = await service.GetNavigationTocAsync("/about");
 
         // Assert
         result.First(e => e.Name == "Home").IsSelected.ShouldBeFalse();
@@ -180,10 +173,10 @@ public class TableOfContentServiceTests
             ("History", "about/history", 3)
         );
         var contentServices = new List<IContentService> { contentService };
-        var service = new TableOfContentService(_options, contentServices);
+        var service = new TableOfContentService(contentServices);
 
         // Act
-        var result = await service.GetNavigationTocAsync("https://example.com/about/team");
+        var result = await service.GetNavigationTocAsync("/about/team");
 
         // Assert
         var aboutEntry = result.First(e => e.Name == "About");
@@ -206,7 +199,7 @@ public class TableOfContentServiceTests
         // Create a custom IContentService that returns the specific pages for this test
         var customContentService = new TestContentServiceWithSpecificPages(pages.ToImmutableList());
         var contentServices = new List<IContentService> { customContentService };
-        var service = new TableOfContentService(_options, contentServices);
+        var service = new TableOfContentService(contentServices);
 
         // Act
         var result = await service.GetNavigationTocAsync("/current");
@@ -233,7 +226,7 @@ public class TableOfContentServiceTests
         var contentService1 = new TestContentService(("Home", "index", 1));
         var contentService2 = new TestContentService2(("About", "about", 2));
         var contentServices = new List<IContentService> { contentService1, contentService2 };
-        var service = new TableOfContentService(_options, contentServices);
+        var service = new TableOfContentService(contentServices);
 
         // Act
         var result = await service.GetNavigationTocAsync("/current");
@@ -254,7 +247,7 @@ public class TableOfContentServiceTests
             ("API Reference", "docs/api", 3)
         );
         var contentServices = new List<IContentService> { contentService };
-        var service = new TableOfContentService(_options, contentServices);
+        var service = new TableOfContentService(contentServices);
 
         // Act
         var result = await service.GetNavigationTocAsync("/current");
@@ -263,7 +256,7 @@ public class TableOfContentServiceTests
         result.ShouldHaveSingleItem();
         var docsEntry = result.First();
         docsEntry.Name.ShouldBe("Documentation"); // From the index page title
-        docsEntry.Href.ShouldBe("https://example.com/docs/index"); // From index page URL
+        docsEntry.Href.ShouldBe("docs/index"); // From index page URL
         docsEntry.Items.Length.ShouldBe(2); // Non-index pages in the folder
     }
 
@@ -273,17 +266,15 @@ public class TableOfContentServiceTests
         // Arrange
         var contentService = new TestContentService(("Home", "index", 1));
         var contentServices = new List<IContentService> { contentService };
-        var service = new TableOfContentService(_options, contentServices);
+        var service = new TableOfContentService(contentServices);
 
         // Act - Test different URL formats that should all match the index page
-        var resultWithSlash = await service.GetNavigationTocAsync("https://example.com/");
-        var resultWithIndex = await service.GetNavigationTocAsync("https://example.com/index");
-        var resultWithExactMatch = await service.GetNavigationTocAsync("https://example.com/index");
+        var resultWithSlash = await service.GetNavigationTocAsync("/");
+        var resultWithIndex = await service.GetNavigationTocAsync("/index");
 
         // Assert - All should mark the home page as selected
         resultWithSlash.First().IsSelected.ShouldBeTrue();
         resultWithIndex.First().IsSelected.ShouldBeTrue();
-        resultWithExactMatch.First().IsSelected.ShouldBeTrue();
     }
 
     [Fact]
@@ -300,7 +291,7 @@ public class TableOfContentServiceTests
             ("API", "api", 30)
         );
         var contentServices = new List<IContentService> { contentService };
-        var service = new TableOfContentService(_options, contentServices);
+        var service = new TableOfContentService(contentServices);
 
         // Act
         var result = await service.GetNavigationTocAsync("/current");
@@ -326,7 +317,7 @@ public class TableOfContentServiceTests
             ("API Reference", "api--reference/page2", 2)
         );
         var contentServices = new List<IContentService> { contentService };
-        var service = new TableOfContentService(_options, contentServices);
+        var service = new TableOfContentService(contentServices);
 
         // Act
         var result = await service.GetNavigationTocAsync("/current");
@@ -347,7 +338,7 @@ public class TableOfContentServiceTests
             ("Level 3", "level1/level2/level3/page", 3)
         );
         var contentServices = new List<IContentService> { contentService };
-        var service = new TableOfContentService(_options, contentServices);
+        var service = new TableOfContentService(contentServices);
 
         // Act
         var result = await service.GetNavigationTocAsync("/current");
@@ -377,7 +368,7 @@ public class TableOfContentServiceTests
             ("Third", "third", -1)
         );
         var contentServices = new List<IContentService> { contentService };
-        var service = new TableOfContentService(_options, contentServices);
+        var service = new TableOfContentService(contentServices);
 
         // Act
         var result = await service.GetNavigationTocAsync("/current");
@@ -401,7 +392,7 @@ public class TableOfContentServiceTests
         
         var customContentService = new TestContentServiceWithSpecificPages(pages.ToImmutableList());
         var contentServices = new List<IContentService> { customContentService };
-        var service = new TableOfContentService(_options, contentServices);
+        var service = new TableOfContentService(contentServices);
 
         // Act
         var result = await service.GetNavigationTocAsync("/current");

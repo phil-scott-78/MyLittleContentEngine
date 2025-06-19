@@ -78,7 +78,8 @@ public static class ContentEngineExtensions
         services.AddSingleton<MarkdownParserService>();
         services.AddSingleton<RoutesHelperService>();
         services.AddSingleton<IFileSystem>(new FileSystem());
-        services.AddSingleton<PathUtilities>();
+        services.AddSingleton<FileSystemUtilities>();
+        services.AddSingleton<LinkService>();
 
         return services;
     }

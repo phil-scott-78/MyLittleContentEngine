@@ -13,22 +13,22 @@ internal class ContentFilesService<TFrontMatter>
     where TFrontMatter : class, IFrontMatter
 {
     private readonly ContentEngineContentOptions<TFrontMatter> _engineContentOptions;
-    private readonly PathUtilities _pathUtilities;
+    private readonly FileSystemUtilities _fileSystemUtilities;
     private readonly ILogger<ContentFilesService<TFrontMatter>> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ContentFilesService{TFrontMatter}"/> class.
     /// </summary>
     /// <param name="engineContentOptions">Content options.</param>
-    /// <param name="pathUtilities">Path utilities service.</param>
+    /// <param name="fileSystemUtilities">Path utilities service.</param>
     /// <param name="logger">Logger instance.</param>
     public ContentFilesService(
         ContentEngineContentOptions<TFrontMatter> engineContentOptions,
-        PathUtilities pathUtilities,
+        FileSystemUtilities fileSystemUtilities,
         ILogger<ContentFilesService<TFrontMatter>> logger)
     {
         _engineContentOptions = engineContentOptions;
-        _pathUtilities = pathUtilities;
+        _fileSystemUtilities = fileSystemUtilities;
         _logger = logger;
     }
 
@@ -42,9 +42,9 @@ internal class ContentFilesService<TFrontMatter>
         try
         {
             // Validate the content path exists
-            var absoluteContentPath = _pathUtilities.ValidateDirectoryPath(_engineContentOptions.ContentPath);
+            var absoluteContentPath = _fileSystemUtilities.ValidateDirectoryPath(_engineContentOptions.ContentPath);
 
-            return _pathUtilities.GetFilesInDirectory(
+            return _fileSystemUtilities.GetFilesInDirectory(
                 absoluteContentPath,
                 _engineContentOptions.PostFilePattern, !_engineContentOptions.ExcludeSubfolders);
         }
@@ -79,7 +79,7 @@ internal class ContentFilesService<TFrontMatter>
 
         try
         {
-            return _pathUtilities.FilePathToUrlPath(filePath, baseContentPath);
+            return _fileSystemUtilities.FilePathToUrlPath(filePath, baseContentPath);
         }
         catch (Exception ex)
         {
@@ -100,7 +100,7 @@ internal class ContentFilesService<TFrontMatter>
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(contentUrl);
 
-        return PathUtilities.CombineUrl(_engineContentOptions.BasePageUrl, contentUrl);
+        return FileSystemUtilities.CombineUrl(_engineContentOptions.BasePageUrl, contentUrl);
     }
 
     /// <summary>
@@ -113,7 +113,7 @@ internal class ContentFilesService<TFrontMatter>
         ArgumentException.ThrowIfNullOrEmpty(contentUrl);
 
         var relativePath = contentUrl.Replace('/', Path.DirectorySeparatorChar);
-        return _pathUtilities.Combine(_engineContentOptions.BasePageUrl, $"{relativePath}.html");
+        return _fileSystemUtilities.Combine(_engineContentOptions.BasePageUrl, $"{relativePath}.html");
     }
 
     /// <summary>
@@ -125,7 +125,7 @@ internal class ContentFilesService<TFrontMatter>
     {
         ArgumentException.ThrowIfNullOrEmpty(contentUrl);
 
-        return PathUtilities.CombineUrl(_engineContentOptions.BasePageUrl, contentUrl);
+        return FileSystemUtilities.CombineUrl(_engineContentOptions.BasePageUrl, contentUrl);
     }
 
     /// <summary>
@@ -137,7 +137,7 @@ internal class ContentFilesService<TFrontMatter>
         try
         {
             // Validate the content path exists
-            _pathUtilities.ValidateDirectoryPath(_engineContentOptions.ContentPath);
+            _fileSystemUtilities.ValidateDirectoryPath(_engineContentOptions.ContentPath);
 
             return new[]
             {

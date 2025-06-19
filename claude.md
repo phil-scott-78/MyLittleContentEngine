@@ -34,7 +34,8 @@ MyLittleContentEngine is a .NET content management library with UI components an
 - `dotnet build src/MyLittleContentEngine` - Build core library only
 - `dotnet test tests/MyLittleContentEngine.Tests` - Run specific test project
 
-NOTE: Always use `dotnet` commands for building and testing against the solution. NEVER try to run individual files directly.
+NOTE: Always use `dotnet` commands for building and testing against the solution and project. 
+NEVER try to run individual files directly, NEVER try and test individual files, and NEVER try to run single-file execution.
 
 ## Code Standards & Style Guide
 
@@ -61,7 +62,7 @@ NOTE: Always use `dotnet` commands for building and testing against the solution
    - Explanations are in the /under-the-hood/ directory
    - Reference documentation is in the /reference/ directory
 - Ensure all documentation has YML front matter structure that matches existing content
-- 
+ 
 
 ## Development Workflow
 

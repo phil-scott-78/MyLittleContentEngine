@@ -47,20 +47,26 @@ public class ContentEngineOptions
     /// </summary>
     /// <remarks>
     /// <para>
-    /// This value is used for generating absolute URLs in various contexts, including:
+    /// This value is used for generating absolute URLs while taking into account the deployment might be in a child path or subdirectory,
+    /// such as when deploying to GitHub Pages or a subfolder on a web server.
     /// </para>
-    /// <list type="bullet">
-    ///     <item><description>Sitemap.xml generation</description></item>
-    ///     <item><description>RSS/Atom feed URLs</description></item>
-    ///     <item><description>Open Graph and other social media metadata</description></item>
-    ///     <item><description>Canonical URL generation</description></item>
-    /// </list>
     /// <para>
-    /// Example format: "https://example.com" (without a trailing slash)
+    /// Example format: "/MyLittleContentEngine" (without a trailing slash)
+    /// </para>
+    /// <para>
+    /// Generally, this should be an empty string for dev and set by an environment variable or configuration setting for production deployments.
     /// </para>
     /// </remarks>
     public required string BaseUrl { get; init; }
 
+    /// <summary>
+    /// Url to use as the canonical base URL for the site, specifically for sitemaps, RSS feeds, and Open Graph metadata.
+    /// </summary>
+    /// <para>
+    /// Example format: "https://example.com" (without a trailing slash)
+    /// </para>
+    public string? CanonicalBaseUrl { get; init; }
+    
     /// <summary>
     /// Gets or sets the path to the content root directory. Defaults to "Content".
     /// </summary>
@@ -232,9 +238,4 @@ public class ContentEngineOptions
 
         return builder.Build();
     };
-
-    /// <summary>
-    /// Url to use as the canonical base URL for the site, specifically for sitemaps, RSS feeds, and Open Graph metadata.
-    /// </summary>
-    public string? CanonicalBaseUrl { get; init; }
 }

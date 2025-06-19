@@ -5,7 +5,7 @@ namespace MyLittleContentEngine.Services.Infrastructure;
 /// <summary>
 /// Provides utilities for working with paths and URLs in MyLittleContentEngine.
 /// </summary>
-internal class PathUtilities(IFileSystem fileSystem)
+internal class FileSystemUtilities(IFileSystem fileSystem)
 {
     /// <summary>
     /// Converts a file path to a URL-friendly path.
