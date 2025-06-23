@@ -54,8 +54,8 @@ public class ApiReferenceContentService : IContentService, IDisposable
         foreach (var ns in apiData.Namespaces)
         {
             pages.Add(new PageToGenerate(
-                Url: ns.Url,
-                OutputFile: $"{_options.BasePageUrl}/namespace/{HttpUtility.UrlEncode(ns.XmlDocId)}/index.html",
+                Url: $"/{_options.BasePageUrl}/namespace/{ns.MicrosoftStyleId}",
+                OutputFile: $"{_options.BasePageUrl}/namespace/{ns.MicrosoftStyleId}/index.html",
                 Metadata: new Models.Metadata
                 {
                     Title = $"{ns.Name} Namespace",
@@ -68,8 +68,8 @@ public class ApiReferenceContentService : IContentService, IDisposable
         foreach (var type in apiData.Types)
         {
             pages.Add(new PageToGenerate(
-                Url: type.Url,
-                OutputFile: $"{_options.BasePageUrl}/type/{HttpUtility.UrlEncode(type.XmlDocId)}/index.html",
+                Url: $"/{_options.BasePageUrl}/type/{type.MicrosoftStyleId}",
+                OutputFile: $"{_options.BasePageUrl}/type/{type.MicrosoftStyleId}/index.html",
                 Metadata: new Models.Metadata
                 {
                     Title = $"{type.Name} {type.TypeKind}",
@@ -121,7 +121,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
             {
                 Uid = ns.XmlDocId,
                 Title = ns.Name,
-                Url = ns.Url
+                Url = $"/{_options.BasePageUrl}/namespace/{ns.MicrosoftStyleId}/"
             });
         }
 
@@ -132,7 +132,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
             {
                 Uid = type.XmlDocId,
                 Title = type.FullName,
-                Url = type.Url
+                Url = $"/{_options.BasePageUrl}/type/{type.MicrosoftStyleId}/"
             });
         }
 
@@ -214,6 +214,37 @@ public class ApiReferenceContentService : IContentService, IDisposable
             string.Equals(t.XmlDocId, xmlDocId, StringComparison.OrdinalIgnoreCase));
     }
 
+    /// <summary>
+    /// Gets a specific namespace by Microsoft-style identifier
+    /// </summary>
+    public async Task<ApiNamespace?> GetNamespaceByMicrosoftStyleIdAsync(string microsoftStyleId)
+    {
+        var apiData = await _apiDataCache.Value;
+        return apiData.Namespaces.FirstOrDefault(n =>
+            string.Equals(n.MicrosoftStyleId, microsoftStyleId, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Gets a specific type by Microsoft-style identifier
+    /// </summary>
+    public async Task<ApiType?> GetTypeByMicrosoftStyleIdAsync(string microsoftStyleId)
+    {
+        var apiData = await _apiDataCache.Value;
+        return apiData.Types.FirstOrDefault(t =>
+            string.Equals(t.MicrosoftStyleId, microsoftStyleId, StringComparison.OrdinalIgnoreCase));
+    }
+
+    /// <summary>
+    /// Gets members by Microsoft-style identifier (can return multiple results for overloads)
+    /// </summary>
+    public async Task<ImmutableList<ApiMember>> GetMembersByMicrosoftStyleIdAsync(string microsoftStyleId)
+    {
+        var apiData = await _apiDataCache.Value;
+        var members = apiData.Members.Where(m =>
+            string.Equals(m.MicrosoftStyleId, microsoftStyleId, StringComparison.OrdinalIgnoreCase)).ToList();
+        return members.ToImmutableList();
+    }
+
     // Member retrieval methods removed - members are now accessed through their containing types
 
     private async Task<ApiReferenceData> BuildApiReferenceDataAsync()
@@ -287,7 +318,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
                 FullName = namespaceName,
                 MinimalFullName = namespaceName,
                 Declaration = $"namespace {namespaceName}",
-                Url = $"/{_options.BasePageUrl}/namespace/{HttpUtility.UrlEncode(xmlDocId)}/",
+                MicrosoftStyleId = GenerateMicrosoftStyleId(namespaceName),
                 Types = nsTypes,
                 Summary = $"The {namespaceName} namespace"
             };
@@ -325,7 +356,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
             FullName = typeSymbol.ToDisplayString(),
             MinimalFullName = typeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
             Declaration = declaration,
-            Url = $"/{_options.BasePageUrl}/type/{HttpUtility.UrlEncode(xmlDocId)}/",
+            MicrosoftStyleId = GenerateMicrosoftStyleId(namespaceName, typeSymbol.Name),
             Namespace = namespaceName,
             TypeKind = typeSymbol.TypeKind.ToString().ToLowerInvariant(),
             BaseType = baseType,
@@ -431,7 +462,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
             FullName = memberSymbol.ToDisplayString(),
             MinimalFullName = memberSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
             Declaration = declaration,
-            Url = $"/{_options.BasePageUrl}/member/{HttpUtility.UrlEncode(xmlDocId)}/",
+            MicrosoftStyleId = GenerateMicrosoftStyleId(namespaceName, containingType, memberSymbol.Name),
             ContainingType = containingType,
             Namespace = namespaceName,
             MemberKind = memberKind,
@@ -981,6 +1012,41 @@ public class ApiReferenceContentService : IContentService, IDisposable
 
         // If both IncludeNamespace and ExcludeNamespaces are set
         return isIncluded && !isExcluded;
+    }
+
+    /// <summary>
+    /// Generates a Microsoft-style identifier for a namespace
+    /// </summary>
+    /// <param name="namespaceName">The namespace name</param>
+    /// <returns>Microsoft-style identifier (e.g., "system.collections.generic")</returns>
+    private static string GenerateMicrosoftStyleId(string namespaceName)
+    {
+        return namespaceName.ToLowerInvariant();
+    }
+
+    /// <summary>
+    /// Generates a Microsoft-style identifier for a type
+    /// </summary>
+    /// <param name="namespaceName">The namespace name</param>
+    /// <param name="typeName">The type name</param>
+    /// <returns>Microsoft-style identifier (e.g., "system.collections.generic.list-1")</returns>
+    private static string GenerateMicrosoftStyleId(string namespaceName, string typeName)
+    {
+        var safeTypeName = typeName.Replace("`", "-");
+        return $"{namespaceName.ToLowerInvariant()}.{safeTypeName.ToLowerInvariant()}";
+    }
+
+    /// <summary>
+    /// Generates a Microsoft-style identifier for a member
+    /// </summary>
+    /// <param name="namespaceName">The namespace name</param>
+    /// <param name="typeName">The type name</param>
+    /// <param name="memberName">The member name</param>
+    /// <returns>Microsoft-style identifier (e.g., "system.collections.generic.list-1.add")</returns>
+    private static string GenerateMicrosoftStyleId(string namespaceName, string typeName, string memberName)
+    {
+        var safeTypeName = typeName.Replace("`", "-");
+        return $"{namespaceName.ToLowerInvariant()}.{safeTypeName.ToLowerInvariant()}.{memberName.ToLowerInvariant()}";
     }
 
     protected virtual void Dispose(bool disposing)

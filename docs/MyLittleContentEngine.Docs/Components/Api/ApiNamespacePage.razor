@@ -1,5 +1,4 @@
-@page "/api/namespace/{xmlDocId}/"
-@using System.Web
+@page "/api/namespace/{microsoftStyleId}/"
 @using MyLittleContentEngine.Services.Content
 @inject ContentEngineOptions ContentEngineOptions
 @inject ApiReferenceContentService ApiService
@@ -30,7 +29,7 @@
                             <span class="text-xs bg-base-100 dark:bg-base-800 px-2 py-1 rounded text-base-600 dark:text-base-400">
                                 @type.TypeKind
                             </span>
-                            <a href="@type.Url" class="text-lg font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                            <a href="api/type/@type.MicrosoftStyleId" class="text-lg font-semibold text-blue-600 dark:text-blue-400 hover:underline">
                                 @type.Name
                             </a>
                         </div>
@@ -55,7 +54,7 @@ else
 @code {
     private Models.ApiNamespace? _namespace;
 
-    [Parameter] public string? XmlDocId { get; set; }
+    [Parameter] public string? MicrosoftStyleId { get; set; }
 
     bool IsLoaded { get; set; }
 
@@ -65,10 +64,9 @@ else
     {
         try
         {
-            if (!string.IsNullOrEmpty(XmlDocId))
+            if (!string.IsNullOrEmpty(MicrosoftStyleId))
             {
-                var decodedXmlDocId = DecodeUrlSegment(XmlDocId);
-                _namespace = await ApiService.GetNamespaceByXmlDocIdAsync(decodedXmlDocId);
+                _namespace = await ApiService.GetNamespaceByMicrosoftStyleIdAsync(MicrosoftStyleId);
             }
             IsLoaded = true;
         }
@@ -79,5 +77,4 @@ else
         }
     }
 
-    private static string DecodeUrlSegment(string segment) => HttpUtility.UrlDecode(segment);
 }

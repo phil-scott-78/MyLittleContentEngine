@@ -1,4 +1,4 @@
-@page "/api/type/{xmlDocId}/"
+@page "/api/type/{microsoftStyleId}/"
 @using System.Web
 @using MyLittleContentEngine.Services.Content
 @inject ContentEngineOptions ContentEngineOptions
@@ -20,7 +20,7 @@
                 @_type.TypeKind
             </span>
         </div>
-        <p class="text-base-600 dark:text-base-400 mb-4">Namespace: <a href="/api/namespace/@EncodeUrlSegment($"N:{_type.Namespace}")/" class="text-blue-600 dark:text-blue-400 hover:underline">@_type.Namespace</a></p>
+        <p class="text-base-600 dark:text-base-400 mb-4">Namespace: <a href="/api/namespace/@_type.Namespace.ToLowerInvariant()/" class="text-blue-600 dark:text-blue-400 hover:underline">@_type.Namespace</a></p>
         @if (!string.IsNullOrEmpty(_type.Summary))
         {
             <Prose>
@@ -126,7 +126,7 @@ else
 @code {
     private Models.ApiType? _type;
 
-    [Parameter] public string? XmlDocId { get; set; }
+    [Parameter] public string? MicrosoftStyleId { get; set; }
 
     bool IsLoaded { get; set; }
 
@@ -139,10 +139,9 @@ else
     {
         try
         {
-            if (!string.IsNullOrEmpty(XmlDocId))
+            if (!string.IsNullOrEmpty(MicrosoftStyleId))
             {
-                var decodedXmlDocId = DecodeUrlSegment(XmlDocId);
-                _type = await ApiService.GetTypeByXmlDocIdAsync(decodedXmlDocId);
+                _type = await ApiService.GetTypeByMicrosoftStyleIdAsync(MicrosoftStyleId);
             }
             IsLoaded = true;
         }
@@ -153,9 +152,6 @@ else
         }
     }
 
-    private static string DecodeUrlSegment(string segment) => HttpUtility.UrlDecode(segment);
-
-    private static string EncodeUrlSegment(string segment) => HttpUtility.UrlEncode(segment);
 
     private static string ToTitleCase(string input)
     {
