@@ -19,6 +19,7 @@ internal class MarkdownParserService
     private readonly ILogger _logger;
     private readonly IServiceProvider _serviceProvider;
     private readonly IFileSystem _fileSystem;
+    private readonly LinkService _linkService;
     private readonly ContentEngineOptions _options;
     private readonly MarkdownPipeline _pipeline;
 
@@ -28,13 +29,15 @@ internal class MarkdownParserService
     /// <param name = "logger">Logger for recording operational information</param>
     /// <param name = "serviceProvider">Service provider for dependency resolution</param>
     /// <param name="fileSystem">The file system.</param>
+    /// <param name="linkService">The link service.</param>
     /// <param name = "options">Options for configuring the Markdown processing behavior</param>
-    public MarkdownParserService(ILogger<MarkdownParserService> logger, IServiceProvider serviceProvider, IFileSystem fileSystem,
+    public MarkdownParserService(ILogger<MarkdownParserService> logger, IServiceProvider serviceProvider, IFileSystem fileSystem, LinkService linkService,
         ContentEngineOptions options)
     {
         _logger = logger;
         _serviceProvider = serviceProvider;
         _fileSystem = fileSystem;
+        _linkService = linkService;
         _options = options;
 
         _pipeline = options.MarkdownPipelineBuilder.Invoke(serviceProvider);

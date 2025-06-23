@@ -39,13 +39,15 @@ internal static class LinkRewriter
     /// Rewrites a URL based on special rules for different link types
     /// </summary>
     /// <param name="url">URL to rewrite</param>
-    /// <param name="baseUrl"></param>
+    /// <param name="relativeToUrl"></param>
     /// <returns>The rewritten URL</returns>
-    public static string RewriteUrl(string url, string baseUrl)
+    public static string RewriteUrl(string url, string relativeToUrl)
     {
-        if (string.IsNullOrWhiteSpace(baseUrl))
+        if (string.IsNullOrWhiteSpace(relativeToUrl))
         {
-            return url;
+            return url.StartsWith('/') 
+                ? url[1..] : // Remove leading slash if no base URL is provided
+                url;
         }
 
         // Skip rewriting certain types of URLs
@@ -57,21 +59,21 @@ internal static class LinkRewriter
         // Handle URLs with query strings or fragments
         if (!ContainsQueryOrFragment(url))
         {
-            return GetAbsolutePath(url, baseUrl);
+            return GetAbsolutePath(url, relativeToUrl);
         }
 
         // For URLs with fragments/queries, we need to handle only the path part
         var specialCharPos = url.IndexOfAny(['?', '#']);
         if (specialCharPos <= 0)
         {
-            return GetAbsolutePath(url, baseUrl);
+            return GetAbsolutePath(url, relativeToUrl);
         }
 
         var path = url[..specialCharPos];
         var rest = url[specialCharPos..];
 
         // Only rewrite the path portion
-        var newPath = GetAbsolutePath(path, baseUrl);
+        var newPath = GetAbsolutePath(path, relativeToUrl);
         return newPath + rest;
     }
 

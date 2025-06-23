@@ -34,6 +34,14 @@ MyLittleContentEngine is a .NET content management library with UI components an
 - `dotnet build src/MyLittleContentEngine` - Build core library only
 - `dotnet test tests/MyLittleContentEngine.Tests` - Run specific test project
 
+### AI-Friendly Testing Commands
+- `dotnet test --filter "FullyQualifiedName~ServiceName"` - Test specific service class
+- `dotnet test --filter "DisplayName~keyword"` - Test methods containing keyword  
+- `dotnet test --logger "console;verbosity=detailed"` - Detailed test output with stack traces
+- `dotnet test tests/MyLittleContentEngine.Tests/Navigation/` - Test specific folder/namespace
+- `dotnet test --collect:"XPlat Code Coverage"` - Generate coverage reports
+- `dotnet watch test` - Continuous testing during development
+
 NOTE: Always use `dotnet` commands for building and testing against the solution and project. 
 NEVER try to run individual files directly, NEVER try and test individual files, and NEVER try to run single-file execution.
 
@@ -105,9 +113,89 @@ NEVER try to run individual files directly, NEVER try and test individual files,
 - Follow established patterns for theming and customization
 
 ## Testing Strategy
+
+### Testing Approach
+- **ALWAYS write unit tests instead of console apps** for testing functionality
 - Unit tests should cover core business logic
 - Example projects serve as functional tests
 - Aim for high code coverage on critical paths
+
+### Testing Infrastructure
+The test project includes several helper utilities to simplify test creation:
+
+#### ContentEngineTestBuilder
+Fluent builder for creating integration test scenarios:
+
+```csharp
+// Basic usage
+var builder = new ContentEngineTestBuilder()
+    .WithMarkdownFiles(("/content/test.md", "# Test\nContent here"))
+    .WithContentOptions(opts => opts.ContentPath = "/content");
+
+var contentService = await builder.BuildContentServiceAsync();
+var fileSystem = builder.GetFileSystem();
+
+// Pre-configured sample content
+var builder = ContentEngineTestBuilder.WithSampleContent();
+```
+
+#### MarkdownTestData
+Pre-built markdown samples for common scenarios:
+
+```csharp
+// Use predefined samples
+var richPost = MarkdownTestData.RichPost;  // Complex post with tags, dates
+var simplePost = MarkdownTestData.SimplePost;  // Basic post
+var draftPost = MarkdownTestData.DraftPost;  // Draft content
+
+// Get all sample files  
+var allSamples = MarkdownTestData.SampleFiles;
+var publishedOnly = MarkdownTestData.PublishedFiles;
+
+// Create custom posts
+var custom = MarkdownTestData.CreatePost("Title", 1, "# Content", ["tag1", "tag2"]);
+```
+
+#### ServiceMockFactory
+Common service mock configurations:
+
+```csharp
+// Create mock content service with pages
+var mockService = ServiceMockFactory.CreateContentService(
+    ("Home", "/", 1),
+    ("About", "/about", 2)
+);
+
+// Create empty service
+var emptyService = ServiceMockFactory.CreateEmptyContentService();
+
+// Create with static content
+var staticService = ServiceMockFactory.CreateContentServiceWithStaticContent(
+    new ContentToCopy("source.css", "dest.css")
+);
+
+// Helper builders
+var page = ServiceMockFactory.PageBuilder.Create("Title", "/url", 1);
+var richPage = ServiceMockFactory.PageBuilder.CreateRich("Title", "/url", 1, ["tag"], false);
+```
+
+### Test Data Creation Patterns
+```csharp
+// Use MockFileSystem for file operations
+var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+{
+    { "/content/test.md", new MockFileData(MarkdownTestData.SimplePost) }
+});
+
+// Use ServiceMockFactory for mocking IContentService
+var mockContentService = ServiceMockFactory.CreateContentService(("Test", "/test", 1));
+```
+
+### Test Organization Rules
+- Mirror source structure in test project
+- One test class per service/class being tested  
+- Group related tests with nested classes or clear naming
+- Use TestHelpers utilities to reduce boilerplate
 
 ## Contributing Guidelines
 - Follow the established project structure

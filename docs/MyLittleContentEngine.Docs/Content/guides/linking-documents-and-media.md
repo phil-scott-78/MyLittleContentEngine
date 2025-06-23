@@ -1,147 +1,311 @@
 ---
 title: "Linking Documents and Media"
-description: "Learn how to link to other pages and include media files in your content"
+description: "Master the complexities of BaseUrl configuration and linking strategies for different deployment scenarios"
 order: 2010
 ---
 
-Working with links and media in MyLittleContentEngine is straightforward once you understand how paths are resolved relative to your configured `ContentRootPath`.
+The most challenging aspect of building static sites is creating links that work consistently across different deployment scenarios. MyLittleContentEngine handles this complexity through a sophisticated URL rewriting system built around `BaseUrl` configuration and context-aware linking strategies.
 
-## Understanding ContentRootPath
+## The Deployment Challenge
 
-When you configure MyLittleContentEngine in your `Program.cs`, you specify a `ContentRootPath`:
+Static sites often need to work in multiple deployment contexts:
+
+- **Local development**: `http://localhost:5000/`
+- **Production at root**: `https://mydomain.com/`
+- **Production in subdirectory**: `https://mydomain.github.io/my-repo/`
+
+The same site must generate correct links regardless of where it's deployed. This is where `BaseUrl` becomes critical.
+
+## Understanding BaseUrl
+
+The `BaseUrl` property in `ContentEngineOptions` solves the subdirectory deployment problem by providing a path prefix that gets prepended to all internal links.
+
+### BaseUrl Configuration
 
 ```csharp
-builder.Services.AddContentEngineService(() => new ContentEngineOptions
+builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 {
-    ContentRootPath = "Content", // This is your content root
+    SiteTitle = "My Documentation Site",
+    SiteDescription = "Technical documentation",
+    BaseUrl = Environment.GetEnvironmentVariable("BaseHref") ?? "/",
+    ContentRootPath = "Content",
 });
 ```
 
-All image paths and internal links are resolved relative to this content root directory.
+### BaseUrl Format Rules
 
-## Linking to Images
+- **Local development**: `"/"` (empty path)
+- **Root domain**: `"/"` (empty path)  
+- **Subdirectory**: `"/repository-name"` (no trailing slash)
 
-### Absolute Paths from Content Root
+### Environment-Based Configuration
 
-Images can be referenced using absolute paths from your content root. If your content structure looks like this:
+The recommended pattern uses environment variables for flexible deployment:
 
-```
-Content/
-├── index.md
-├── media/
-│   └── photo.jpg
-└── sub-folder/
-    ├── page.md
-    └── local-image.jpg
+**Local Development:**
+```bash
+# No BaseHref set, defaults to "/"
+dotnet run
 ```
 
-You can reference images using absolute paths from the content root:
+**GitHub Pages Deployment:**
+```bash
+# Set via environment variable or CI/CD
+export BaseHref="/MyLittleContentEngine"
+dotnet run --build-static
+```
+
+## Understanding BasePageUrl
+
+`BasePageUrl` in `ContentEngineContentOptions` serves a different purpose - it defines the URL path segment for content sections and the generated folder structure.
+
+### BasePageUrl Configuration
+
+```csharp
+// For blog content at /blog/*
+builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<BlogFrontMatter>()
+{
+    ContentPath = "Content/Blog",
+    BasePageUrl = "blog"  // Creates /blog/ URLs
+});
+
+// For root-level content at /*
+builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<PageFrontMatter>()
+{
+    ContentPath = "Content/Pages", 
+    BasePageUrl = string.Empty  // Creates root-level URLs
+});
+```
+
+### BasePageUrl vs BaseUrl
+
+| Property | Purpose | Example | Context |
+|----------|---------|---------|---------|
+| `BaseUrl` | Deployment path prefix | `"/my-repo"` | Site-wide deployment location |
+| `BasePageUrl` | Content section path | `"blog"` | Content organization and routing |
+
+Combined, they create URLs like: `{BaseUrl}/{BasePageUrl}/{content-slug}`
+
+## Linking Strategies by Context
+
+### Within Markdown Content
+
+**Use relative links** - MyLittleContentEngine automatically rewrites them based on the page context:
 
 ```markdown
-![Photo](/media/photo.jpg)
+<!-- Relative links - automatically rewritten -->
+[Another Article](../guides/advanced-configuration)
+[Media File](./images/diagram.png)
+[Root Page](/index)
+
+<!-- These work regardless of BaseUrl configuration -->
 ```
 
-This works from any page in your content structure, regardless of how deeply nested it is.
+**How the rewriting works:**
+1. `LinkRewriter` processes all URLs during HTML generation
+2. Relative paths get resolved relative to the current page
+3. Absolute paths (starting with `/`) get `BaseUrl` prepended
+4. External URLs and anchor links remain unchanged
 
-### Relative Paths
+### In Razor Pages and Components
 
-You can also use relative paths to reference images in the same directory or nearby directories:
+**Use site-root relative links** with the `LinkService`:
 
-```markdown
-<!-- From sub-folder/page.md -->
-![Local Image](local-image.jpg)
-![Photo from Media](../media/photo.jpg)
+```razor
+@inject LinkService LinkService
+
+<nav>
+    <a href="@LinkService.GetLink("/")">Home</a>
+    <a href="@LinkService.GetLink("/blog")">Blog</a>
+    <a href="@LinkService.GetLink("/api")">API Docs</a>
+</nav>
 ```
 
-## Linking to Other Pages
+Or use relative paths from the site root:
 
-### Absolute Links
+```razor
+<!-- This assumes you know the BaseUrl -->
+<a href="@($"{BaseUrl}/blog")">Blog</a>
+```
 
-Link to other pages using absolute paths from your content root:
+## Practical Deployment Examples
+
+### GitHub Pages Configuration
+
+**Program.cs:**
+```csharp
+builder.Services.AddContentEngineService(_ => new ContentEngineOptions
+{
+    SiteTitle = "My Project Docs",
+    SiteDescription = "Documentation for my open source project", 
+    BaseUrl = Environment.GetEnvironmentVariable("BaseHref") ?? "/",
+    CanonicalBaseUrl = "https://username.github.io/repository-name",
+    ContentRootPath = "Content",
+});
+```
+
+**GitHub Actions workflow:**
+```yaml
+- name: Build static site
+  run: dotnet run --project docs/MyProject.Docs --build-static
+  env:
+    BaseHref: /repository-name
+```
+
+**Result:** Links work both locally (`/`) and on GitHub Pages (`/repository-name`)
+
+### Multi-Section Site
+
+```csharp
+// Main site content at root level
+builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<PageFrontMatter>()
+{
+    ContentPath = "Content/Pages",
+    BasePageUrl = string.Empty  // Root: /about, /contact
+});
+
+// Blog content under /blog
+builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<BlogFrontMatter>()
+{
+    ContentPath = "Content/Blog", 
+    BasePageUrl = "blog"  // Blog: /blog/post-title
+});
+
+// Docs content under /docs  
+builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<DocsFrontMatter>()
+{
+    ContentPath = "Content/Documentation",
+    BasePageUrl = "docs"  // Docs: /docs/guide-name
+});
+```
+
+## Link Patterns and Best Practices
+
+### Markdown Content Linking
+
+**✅ Recommended patterns:**
 
 ```markdown
+<!-- Relative to current page -->
+[Related Guide](./related-guide)
+[Parent Section](../index)
+
+<!-- Absolute from content root -->  
 [Home Page](/index)
-[Sub-folder Page](/sub-folder/page)
+[Another Section](/blog/important-post)
+
+<!-- Media files -->
+![Diagram](./images/architecture.png)
+![Shared Image](/media/logo.png)
 ```
 
-Note that you typically omit the `.md` extension in links, as MyLittleContentEngine handles the routing automatically.
-
-### Relative Links
-
-You can also use relative links between pages:
+**❌ Avoid these patterns:**
 
 ```markdown
-<!-- From sub-folder/page.md -->
-[Another Page](other-page)
-[Back to Home](../index)
+<!-- Hardcoded base paths break deployment flexibility -->
+[Bad Link](/my-repo/blog/post)
+[Also Bad](https://example.com/my-repo/page)
+
+<!-- Including file extensions confuses routing -->
+[Will Download Instead of Render](/blog/post.md)
 ```
 
-## Practical Examples
+### Razor Component Linking
 
-Let's look at some real examples from our sample content:
+**✅ Recommended patterns:**
 
-### Sample Post with Mixed Media
+```razor
+@inject LinkService LinkService
+
+<!-- Use LinkService for dynamic BaseUrl -->
+<a href="@LinkService.GetLink("/blog")">Blog</a>
+<a href="@LinkService.GetLink("/api/reference")">API</a>
+
+<!-- Or build URLs programmatically -->
+@{
+    var blogUrl = $"{BaseUrl}/blog";
+}
+<a href="@blogUrl">Blog</a>
+```
+
+## Media and Asset Linking
+
+### Static Files in wwwroot
+
+Files in `wwwroot` are served from the site root and need BaseUrl consideration:
+
+```razor
+<!-- CSS/JS files -->
+<link href="@LinkService.GetLink("/css/site.css")" rel="stylesheet" />
+<script src="@LinkService.GetLink("/js/site.js")"></script>
+
+<!-- Images -->
+<img src="@LinkService.GetLink("/images/logo.png")" alt="Logo" />
+```
+
+### Content-Relative Media
+
+Media files alongside content are processed by the link rewriter:
 
 ```markdown
-## Images from Media Folder
-![Unsplash Photo](/media/dan-cristian-padure-8cxJzVpGKk8-unsplash.jpg)
-
-## Image from Current Folder
-![Local Photo](kelly-sikkema-rNdkGDOPJLc-unsplash.jpg)
+<!-- In Content/blog/my-post.md -->
+![Local Image](./screenshot.png)
+![Shared Asset](/media/shared-diagram.png)
 ```
 
-### Navigation Between Pages
+## Troubleshooting Common Issues
 
+### Links Work Locally But Break in Production
+
+**Problem:** `BaseUrl` not configured for production deployment
+
+**Solution:** Set `BaseHref` environment variable during build:
+```bash
+export BaseHref="/your-subdirectory"
+dotnet run --build-static
+```
+
+### Markdown Files Download Instead of Rendering
+
+**Problem:** Including `.md` extension in links
+
+**Solution:** Remove file extensions from links:
 ```markdown
-## Navigation
-- [Sample Post with Images](sample-post) - Learn about image handling
-- [Page Two - Advanced Topics](/sub-folder/page-two) - Dive deeper
-- [Home](/index) - Return to the home page
+<!-- Wrong -->
+[Guide](./setup-guide.md)
+
+<!-- Correct -->  
+[Guide](./setup-guide)
 ```
 
-## Best Practices
+### Navigation Breaks After Content Reorganization
 
-### Consistent Path Strategy
+**Problem:** Using too many relative `../` paths
 
-Choose either absolute or relative paths and stick with that approach consistently across your site:
+**Solution:** Use absolute paths from content root:
+```markdown
+<!-- Fragile -->
+[Other Section](../../other/page)
 
-- **Absolute paths** are more reliable when reorganizing content
-- **Relative paths** are more portable if you need to move entire sections
-
-### Media Organization
-
-Organize your media files logically:
-
-```
-Content/
-├── media/           # Site-wide media
-├── section-1/
-│   ├── images/      # Section-specific images
-│   └── page.md
-└── section-2/
-    ├── images/
-    └── page.md
+<!-- Robust -->
+[Other Section](/other/page)
 ```
 
-### File Naming
+### CSS/JS Not Loading in Production
 
-Use descriptive, URL-friendly filenames:
-- `my-awesome-post.md` instead of `My Awesome Post.md`
-- `hero-image.jpg` instead of `Hero Image.jpg`
+**Problem:** Missing BaseUrl in asset references
 
-## Common Issues
+**Solution:** Use `LinkService` for all asset URLs:
+```razor
+<link href="@LinkService.GetLink("/css/site.css")" rel="stylesheet" />
+```
 
-### Broken Links After Reorganization
+## Summary
 
-If you move files around, remember to update all references. Absolute paths from the content root are less likely to 
-break during reorganization. 
+Successful linking in MyLittleContentEngine requires understanding the distinction between:
 
-### Case Sensitivity
+- **BaseUrl**: Handles deployment location (subdirectory vs root)
+- **BasePageUrl**: Organizes content sections and routing
+- **Context**: Markdown content vs Razor components use different strategies
 
-Be aware that file systems can be case-sensitive. Keep your file names consistently lowercase to avoid issues when deploying to different environments.
-
-### It Loads a Markdown File Instead of Rendering It
-
-You'll want to ensure that your links to markdown files do not include the `.md` extension. ASP.NET 
-automatically handles routing for markdown files, so you should link to them without the extension. 
-If you include the `.md` extension, it may try to serve the raw markdown file instead of rendering it.
+By following these patterns, your site will work consistently across all deployment scenarios from local development to GitHub Pages to custom domains.

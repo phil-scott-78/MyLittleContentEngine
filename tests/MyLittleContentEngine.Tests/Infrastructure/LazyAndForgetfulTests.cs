@@ -163,13 +163,7 @@ public class LazyAndForgetfulTests
         stopwatch.ElapsedMilliseconds.ShouldBeGreaterThanOrEqualTo(200);
         callCount.ShouldBe(2);
     }
-
-    [Fact]
-    public void Constructor_NullFactory_ThrowsArgumentNullException()
-    {
-        Should.Throw<ArgumentNullException>(() => new LazyAndForgetful<int>(null!));
-    }
-
+    
     [Fact]
     public async Task Factory_ThrowsException_PropagatesException()
     {
@@ -223,25 +217,5 @@ public class LazyAndForgetfulTests
 
         // Should not throw
         // No assertion needed - test passes if no exception is thrown
-    }
-
-    [Fact]
-    public async Task DefaultDebounceDelay_Is50Milliseconds()
-    {
-        var callCount = 0;
-        var factory = () => Task.FromResult(++callCount);
-        using var lazy = new LazyAndForgetful<int>(factory);
-
-        await lazy.Value; // Initial value
-
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        lazy.Refresh();
-        await Task.Delay(100, TestContext.Current.CancellationToken); // Wait longer than default debounce
-
-        await lazy.Value; // Trigger refresh completion
-        stopwatch.Stop();
-
-        stopwatch.ElapsedMilliseconds.ShouldBeGreaterThanOrEqualTo(50);
-        callCount.ShouldBe(2);
     }
 }

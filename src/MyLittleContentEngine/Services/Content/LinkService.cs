@@ -1,9 +1,9 @@
 namespace MyLittleContentEngine.Services.Content;
 
-public class LinkService(ContentEngineOptions options)
+public class LinkService
 {
     public string GetLink(string url)
     {
-        return LinkRewriter.RewriteUrl(url, options.BaseUrl);
+        return LinkRewriter.RewriteUrl(url, string.Empty);
     }
 }
