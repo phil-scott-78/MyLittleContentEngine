@@ -3,10 +3,7 @@ using MonorailCss;
 using MyLittleContentEngine;
 using MyLittleContentEngine.Docs;
 using MyLittleContentEngine.Docs.Components;
-using MyLittleContentEngine.Docs.Components.Markdown;
 using MyLittleContentEngine.MonorailCss;
-using MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
-using MyLittleContentEngine.Services.Content.MarkdigExtensions.Tabs;
 using MyLittleContentEngine.Services.Content.Roslyn;
 using MyLittleContentEngine.UI.Components;
 

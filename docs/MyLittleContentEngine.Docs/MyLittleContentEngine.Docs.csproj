@@ -9,9 +9,12 @@
     <PackageReference Include="System.Formats.Asn1" Version="9.0.6" />
   </ItemGroup>
   <ItemGroup>
-    <Watch Include="Content\**\*.*" Exclude="..\..\**\obj\**\*;..\..\**\bin\**\*;**\*AssemblyReference.cache" />
-    <Watch Include="..\..\**\*.cs" Exclude="..\..\**\obj\**\*;..\..\**\bin\**\*;**\*AssemblyReference.cache" />
+    <Watch Include="Content\**\*.*" />
+    <Watch Include="..\..\**\*.cs" Exclude="..\..\**\obj\**\*;..\..\**\bin\**\*" />
   </ItemGroup>
+  <PropertyGroup>
+    <DefaultItemExcludes>$(DefaultItemExcludes);**/*.cache</DefaultItemExcludes>
+  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\MyLittleContentEngine.MonorailCss\MyLittleContentEngine.MonorailCss.csproj" />
     <ProjectReference Include="..\..\src\MyLittleContentEngine.UI\MyLittleContentEngine.UI.csproj" />

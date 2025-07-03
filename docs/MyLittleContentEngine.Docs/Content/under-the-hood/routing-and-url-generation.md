@@ -4,8 +4,6 @@ description: "How MyLittleContentEngine handles file-based routing and generates
 order: 3004
 ---
 
-# Routing and URL Generation
-
 *Understanding how file paths become URLs and how the routing system handles edge cases and special requirements.*
 
 ## File-Based Routing Principles

@@ -1,4 +1,4 @@
-// Copyright (c) Alexandre Mutel. All rights reserved.
+﻿// Copyright (c) Alexandre Mutel. All rights reserved.
 // This file is licensed under the BSD-Clause 2 license.
 // See the license.txt file in the project root for more information.
 
@@ -58,6 +58,7 @@ public class CustomAlertBlockRenderer : HtmlObjectRenderer<Markdig.Extensions.Al
         renderer.ImplicitParagraph = savedImplicitParagraph;
         if (renderer.EnableHtmlForBlock)
         {
+            renderer.WriteLine("</div>");
             renderer.WriteLine("</div>");
             renderer.WriteLine("</div>");
         }

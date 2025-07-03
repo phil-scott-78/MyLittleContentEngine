@@ -8,7 +8,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <base href="@_baseHref"/>
+    <base href="@Options.BaseUrl"/>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,7 +26,6 @@
     </script>
     
     <HeadOutlet/>
-    <PageTitle>Hey</PageTitle>
 </head>
 
 <body data-mobile-menu-open="false" class="data-[mobile-menu-open='true']:overflow-hidden ">
@@ -38,17 +37,10 @@
 </html>
 
 @code{
-    string _baseHref = null!;
 
     static readonly string Version = DateTime.Now.Ticks.ToString();
     
     string GetVersioned(string url) => WebHostEnvironment.IsDevelopment()
         ? url 
         : QueryHelpers.AddQueryString(url, "v", Version);
-
-    protected override void OnInitialized()
-    {
-        _baseHref = Options.BaseUrl;
-    }
-
 }

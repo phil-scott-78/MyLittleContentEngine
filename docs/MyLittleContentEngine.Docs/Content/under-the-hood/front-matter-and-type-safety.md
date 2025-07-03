@@ -4,8 +4,6 @@ description: "How strongly-typed front matter improves developer experience and 
 order: 3003
 ---
 
-# Front Matter and Type Safety
-
 *Understanding the benefits and implementation of MyLittleContentEngine's strongly-typed front matter system.*
 
 ## Why Strongly-Typed Front Matter?

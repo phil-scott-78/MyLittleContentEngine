@@ -4,8 +4,6 @@ description: "Understanding the core components and design principles of MyLittl
 order: 3001
 ---
 
-# Architecture Overview
-
 *A comprehensive look at how MyLittleContentEngine is structured and why it was designed this way.*
 
 ## Core Philosophy

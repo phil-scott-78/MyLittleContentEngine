@@ -43,6 +43,14 @@ namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.Tabs
             {
                 if (allBlocks[i] is FencedCodeBlock codeBlock)
                 {
+                    var attributes = codeBlock.GetArgumentPairs();
+                    if (!attributes.TryGetValue("tabs", out var tabs) || tabs != "true")
+                    {
+                        // If the code block is not marked for tabs, add it directly
+                        document.Add(allBlocks[i]);
+                        continue;
+                    }
+                    
                     // Look ahead to find consecutive code blocks
                     var consecutiveCodeBlocks = new List<FencedCodeBlock> { codeBlock };
                     var j = i + 1;

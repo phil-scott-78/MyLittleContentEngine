@@ -4,7 +4,6 @@ description: "Deep dive into how markdown content is processed, transformed, and
 order: 3002
 ---
 
-# Content Processing Pipeline
 
 *Detailed explanation of how content flows through the system from markdown files to rendered HTML.*
 

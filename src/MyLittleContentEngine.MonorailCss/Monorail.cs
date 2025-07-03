@@ -132,7 +132,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                         ".tab-container",
                         "flex flex-col bg-base-100 border border-base-300/75 shadow-xs rounded rounded-xl overflow-x-auto dark:bg-base-950/25 dark:border-base-700/50"
                     },
-                    { ".tab-list", "flex flex-row flex-wrap px-4 pt-1 bg-base-200/90 gap-x-2 dark:bg-base-800/50" },
+                    { ".tab-list", "flex flex-row flex-wrap px-4 pt-1 bg-base-200/90 gap-x-2 lg:gap-x-3 dark:bg-base-800/50" },
                     {
                         ".tab-button",
                         "whitespace-nowrap border-b border-transparent py-2 text-xs text-base-900/90 font-medium transition-colors hover:text-accent-500 disabled:pointer-events-none disabled:opacity-50 aria-selected:text-accent-700 aria-selected:border-accent-700 dark:text-base-100/90 dark:hover:text-accent-300 dark:aria-selected:text-accent-400 dark:aria-selected:border-accent-400"

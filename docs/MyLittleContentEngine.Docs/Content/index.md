@@ -33,7 +33,7 @@ Is this an appropriate tool for my non-.NET project?
 :   Probably not, but knock yourself out
 
 Can I submit a pull request?
-:   Yeah, but do me a favor and include a demo or unit test around what you are adding or fixing.
+:   Yeah, but hop on the [github discussions](https://github.com/phil-scott-78/MyLittleContentEngine/discussions) first before getting too far ahead of yourself.
 
 There is a missing feature my company critically needs, it is costing us $1000 a day! 
 :   I will add it for $999 a day.

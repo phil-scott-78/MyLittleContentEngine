@@ -4,8 +4,6 @@ description: "When to use static generation versus server rendering and the trad
 order: 3005
 ---
 
-# Static vs Dynamic Rendering
-
 *Understanding the differences between static generation and dynamic rendering, and when to use each approach.*
 
 ## Rendering Modes Explained
