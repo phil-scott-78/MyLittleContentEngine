@@ -25,6 +25,7 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
     SiteDescription = "An Inflexible Content Engine for .NET",
     BaseUrl =  Environment.GetEnvironmentVariable("BaseHref") ?? "/",
     ContentRootPath = "Content",
+    CanonicalBaseUrl = Environment.GetEnvironmentVariable("CanonicalBaseUrl") ?? "https://phil-scott-78.github.io/MyLittleContentEngine/" // for sitemap.xml and RSS feed, 
 });
 
 // configures individual sections of the blog. PageUrl should match the configured razor pages route,

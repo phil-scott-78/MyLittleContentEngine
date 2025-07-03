@@ -1,40 +1,105 @@
 ---
-title: "Content Processing Pipeline"
-description: "Deep dive into how markdown content is processed, transformed, and rendered"
-order: 3002
+title: "Static Site Generation Pipeline"
+description: "Deep dive into how static site generation works in MyLittleContentEngine"
+order: 3010
 ---
 
+The static site generation pipeline in MyLittleContentEngine transforms your Blazor application into a collection of
+pre-rendered HTML files. This process is orchestrated by the `OutputGenerationService.GenerateStaticPages` method, which
+coordinates multiple subsystems to produce a complete static website.
 
-*Detailed explanation of how content flows through the system from markdown files to rendered HTML.*
+## Overview of the Generation Process
 
-## Pipeline Overview
+The static generation pipeline follows a carefully orchestrated sequence of operations:
 
-The content processing pipeline consists of several stages:
-1. **File Discovery**: Scanning content directories for markdown files
-2. **Front Matter Parsing**: YAML deserialization into strongly-typed models
-3. **Markdown Processing**: Markdig parsing with custom extensions
-4. **Content Transformation**: Link rewriting and asset processing
-5. **Cross-Reference Resolution**: Building relationships between pages
-6. **HTML Generation**: Final rendering for static output
+```mermaid
+graph TD
+    A[Start Generation] --> B[Collect Pages to Generate]
+    B --> C[Discover Routes]
+    C --> D[Clear Output Directory]
+    D --> E[Copy Static Assets]
+    E --> F[Render Pages by Priority]
+    F --> G[Save HTML Files]
+    G --> H[Complete]
+```
 
-## Processing Stages
+## Phase 1: Page Collection and Discovery
 
-*Detailed explanation of each stage to be added...*
+The pipeline begins by collecting all pages that need to be generated from multiple sources:
 
-### File Discovery and Monitoring
-### Front Matter Deserialization
-### Markdown Processing with Markdig
-### Content Transformation Pipeline
-### Asset Discovery and Processing
-### Cross-Reference and Navigation Building
+### Content Service Pages
 
-## Performance Optimizations
+Each registered `IContentService` (such as `MarkdownContentService` or `ApiReferenceContentService`) contributes pages
+based on their content sources. For example:
 
-*Explanation of caching and optimization strategies to be added...*
+- Markdown files become individual pages
+- API documentation generates namespace and type pages
+- Custom content services can add specialized pages
 
-### Content Caching Strategies
-### Incremental Processing
-### Memory Management
-### Build Time Optimizations
+### Route Discovery
 
-*Technical implementation details and performance analysis to be added...*
+The system automatically discovers routes from two sources:
+
+#### Blazor Component Routes
+
+When `AddPagesWithoutParameters` is enabled, the `RoutesHelperService` scans assemblies for Blazor components with
+`@page` directives. This discovers routes like:
+
+- `@page "/about"` becomes `/about/index.html`
+- `@page "/contact"` becomes `/contact/index.html`
+
+Only non-parameterized routes are included (routes without `{parameter}` segments).
+
+#### MapGet Endpoints
+
+The system also discovers HTTP GET endpoints registered via `app.MapGet()`. These are assigned `Priority.MustBeLast`
+because they often include dynamically generated content like CSS files that depend on other pages being processed
+first. This includes generating the MonorailCSS stylesheet if it has been registered.
+
+### Explicit Pages
+
+Additionally, pages can be explicitly defined in configuration through the `PagesToGenerate` option.
+
+## Phase 2: Output Directory Preparation
+
+Before generation begins, the output directory is completely cleared and recreated. This ensures a clean slate for each
+generation run, preventing stale files from previous builds.
+
+## Phase 3: Static Asset Collection and Copying
+
+The pipeline collects and copies all static assets from multiple sources:
+
+### Web Root Assets
+
+Standard `wwwroot` files from the main application are automatically included.
+
+### Razor Class Library Assets
+
+Static assets from referenced Razor Class Libraries are automatically included. This includes `scripts.js` from the
+`MyLittleContentEngine.UI` library, which is essential for the UI functionality.
+
+### Content Engine Assets
+
+Custom content directories registered via `MapContentEngineStaticAssets` are included with their assets mapped to
+specific request paths.
+
+### Content Service Assets
+
+Individual content services can contribute their own static assets through the `GetContentToCopyAsync` method.
+
+All collected assets are then copied to the output directory, respecting the `IgnoredPathsOnContentCopy` configuration.
+
+## Phase 4: Page Generation with Priority Ordering
+
+Pages are generated in priority order to handle dependencies correctly. The system uses three priority levels:
+
+- **`MustBeFirst` (0)**: Pages that other pages might depend on
+- **`Normal` (50)**: Standard content pages
+- **`MustBeLast` (100)**: Pages that depend on other pages (like CSS files that need to scan generated HTML)
+
+Within each priority level, pages are generated in parallel for optimal performance.
+
+### Page Rendering Process
+
+Each page is rendered by making an HTTP request to the running Blazor application. The rendered HTML is then saved to
+the appropriate location in the output directory, with directories created as needed.

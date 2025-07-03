@@ -110,6 +110,8 @@ public class BlogFrontMatter : IFrontMatter
 }
 ```
 
+Each post would have a front matter like this:
+
 ```yaml
 ---
 title: "Getting Started with Blazor"

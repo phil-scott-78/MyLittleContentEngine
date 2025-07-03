@@ -1,6 +1,6 @@
 ---
 title: "Markdown Extensions"
-description: "TODO: Generate"
+description: "Learn about the powerful Markdown extensions supported by MyLittleContentEngine, including code highlighting, tabbed content, alerts, Mermaid diagrams, and Blazor components integration."
 order: 2040
 ---
 
@@ -251,3 +251,5 @@ in the sidebar.
 
 </Step>
 </Steps>
+````````
+
