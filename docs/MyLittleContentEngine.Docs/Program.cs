@@ -24,7 +24,7 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 {
     SiteTitle = "My Little Content Engine",
     SiteDescription = "An Inflexible Content Engine for .NET",
-    BaseUrl =  Environment.GetEnvironmentVariable("BaseHref") ?? "/",
+    BaseUrl =  Environment.GetEnvironmentVariable("BaseUrl") ?? "/",
     ContentRootPath = "Content",
     CanonicalBaseUrl = Environment.GetEnvironmentVariable("CanonicalBaseUrl") ?? "https://phil-scott-78.github.io/MyLittleContentEngine/" // for sitemap.xml and RSS feed, 
 });

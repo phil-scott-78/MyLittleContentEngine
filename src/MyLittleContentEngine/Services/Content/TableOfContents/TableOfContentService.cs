@@ -74,9 +74,7 @@ internal class TableOfContentService(IEnumerable<IContentService> contentService
             return new TableOfContentEntry
             {
                 Name = page.PageTitle,
-                // anytime we are talking about whole site navigation, we should rely on baseHref being set properly
-                // and use relative URLs
-                Href = page.Url.StartsWith('/') ? page.Url.TrimStart('/') : page.Url,
+                Href = page.Url.StartsWith('/') ? page.Url : '/' + page.Url,
                 Order = page.Order,
                 IsSelected = false,
                 Items = []
@@ -133,9 +131,7 @@ internal class TableOfContentService(IEnumerable<IContentService> contentService
             currentNode.HasPage = true;
             currentNode.Title = pageTitle;
             currentNode.Order = order;
-            // anytime we are talking about whole site navigation, we should rely on baseHref being set properly
-            // and use relative URLs
-            currentNode.Url = url.StartsWith('/') ? url.TrimStart('/') : url;
+            currentNode.Url = url.StartsWith('/') ? url : '/' + url;
             currentNode.IsIndex = string.Equals(lastSegment, "index", StringComparison.OrdinalIgnoreCase);
         }
 
@@ -307,7 +303,7 @@ internal class TableOfContentService(IEnumerable<IContentService> contentService
 
         if (href.EndsWith('/'))
         {
-            href = href + "index";
+            href += "index";
         }
 
         return href.ToLowerInvariant();

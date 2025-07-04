@@ -30,12 +30,12 @@
     [Parameter] public string ListColorClass { get; set; } = "text-neutral-900 dark:text-neutral-400";
     [Parameter] public string OutlineLinkColorClass { get; set; } = "hover:text-primary-900 dark:hover:text-neutral-50/90 aria-selected:text-primary-800 dark:aria-selected:text-primary-400";
     [Parameter] public string OutlineLinkStructureClass { get; set; } = "text-sm  pt-2 ";
-    [Parameter] public string BaseUrl { get; set; } = "";
+    
 
     private RenderFragment OutlineLink(OutlineEntry entry, string padding) =>
         @<li class="flex">
             <a
                 class="@padding @OutlineLinkStructureClass @OutlineLinkColorClass"
-                href="@(BaseUrl)#@entry.Id">@entry.Title</a>
+                href="#@entry.Id">@entry.Title</a>
         </li>;
 }

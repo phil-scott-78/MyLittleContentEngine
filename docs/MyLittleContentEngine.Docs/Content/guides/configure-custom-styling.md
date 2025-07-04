@@ -264,13 +264,13 @@ builder.Services.AddMonorailCss(_ => new MonorailCssOptions
 
 ## Troubleshooting
 
-* **No Styling Applied:** Ensure you have included the MonorailCSS stylesheet in your HTML head, after settings the base
-  href:
+* **No Styling Applied:** Ensure you are using the LinkService for resolving the CSS file properly
 
-    ```html
-    <base href="@_baseHref"/> <!-- pull the base href from the configuration -->
-    <link rel="stylesheet" href="styles.css" />
-    ```
+  ```razor
+  @inject LinkService LinkService
+  // ...
+  <link rel="stylesheet" href="@LinkService.GetLine("styles.css")" />
+  ```
 
 * **Theme not switching:** Ensure your button has the `data-theme-toggle` attribute and the JavaScript is loaded.
 

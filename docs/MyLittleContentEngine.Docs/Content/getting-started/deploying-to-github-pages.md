@@ -86,7 +86,7 @@ jobs:
          
       - name: Run webapp and generate static files
         env:
-          BaseHref: "/your-repository-name/"
+          BaseUrl: "/your-repository-name/"
           DOTNET_CLI_TELEMETRY_OPTOUT: true
         run: |
           dotnet build
@@ -121,21 +121,23 @@ jobs:
 **Environment Variables to Update:**
 - `WEBAPP_PATH`: Path to your project directory
 - `WEBAPP_CSPROJ`: Your project file name
-- `BaseHref`: Your repository name (for GitHub Pages subdirectory)
+- `BaseUrl`: Your repository name (for GitHub Pages subdirectory)
 
 **Important:** Replace `your-repository-name` and `YourProject` with your actual values.
 
 ## Step 3: Understanding and Configuring Base URLs
 
-This is one of the most important aspects of GitHub Pages deployment. Understanding BaseHref is crucial for your site to work correctly.
+This is one of the most important aspects of GitHub Pages deployment. Understanding BaseUrl is crucial for your site to work correctly.
 
-### Why BaseHref Matters
+### Why BaseUrl Matters
 
 **Local Development vs GitHub Pages:**
 - **Local development**: Your site runs at `http://localhost:5000/` (root domain)
 - **GitHub Pages**: Your site runs at `https://username.github.io/repository-name/` (subdirectory)
 
-Without proper BaseHref configuration, your site will have broken links, missing CSS, and non-functional navigation when deployed to GitHub Pages.
+Without proper BaseUrl configuration, your site will have broken links, missing CSS, and non-functional navigation when deployed to GitHub Pages.
+
+See the [Linking Documents and Media](/guides/linking-documents-and-media) guide for more details on how MyLittleContentEngine handles links.
 
 ### Update Your Program.cs
 
@@ -146,7 +148,7 @@ builder.Services.AddContentEngineService(() => new ContentEngineOptions
 {
     SiteTitle = "My Site",
     SiteDescription = "My site description",
-    BaseUrl = Environment.GetEnvironmentVariable("BaseHref") ?? "/",
+    BaseUrl = Environment.GetEnvironmentVariable("BaseUrl") ?? "/",
     ContentRootPath = "Content",
 });
 ```
@@ -213,7 +215,7 @@ Modify your workflow to use your custom domain:
 ```yaml
 - name: Run webapp and generate static files
   env:
-    BaseHref: "/"  # Root path for custom domain
+    BaseUrl: "/"  # Root path for custom domain
     DOTNET_CLI_TELEMETRY_OPTOUT: true
 ```
 
@@ -227,36 +229,36 @@ Modify your workflow to use your custom domain:
 **Issue**: Project not found
 **Solution**: Verify the `WEBAPP_PATH` and `WEBAPP_CSPROJ` environment variables are correct.
 
-### BaseHref and URL Issues
+### BaseUrl and URL Issues
 
 **Issue**: Site loads but CSS/styles are missing
 **Solution**: 
-- Verify `BaseHref` is set correctly in your GitHub Actions workflow
+- Verify `BaseUrl` is set correctly in your GitHub Actions workflow
 - Check that it matches your repository name exactly: `/repository-name/`
 - Ensure the trailing slash is included
 
 **Issue**: Navigation links return 404 errors
 **Solution**:
-- Confirm your `Program.cs` reads the `BaseHref` environment variable
-- Test locally by setting `BaseHref=/your-repo-name/` and running `dotnet run -- build`
+- Confirm your `Program.cs` reads the `BaseUrl` environment variable
+- Test locally by setting `BaseUrl=/your-repo-name/` and running `dotnet run -- build`
 - Verify the generated HTML contains the correct prefixed URLs
 
 **Issue**: "This site can't be reached" or completely broken deployment
 **Solution**:
-- Double-check the `BaseHref` format: `/repository-name/` (with leading and trailing slashes)
+- Double-check the `BaseUrl` format: `/repository-name/` (with leading and trailing slashes)
 - Ensure your repository name in the workflow matches your actual GitHub repository name
 - Case sensitivity matters: `/MyRepo/` ≠ `/myrepo/`
 
-**Example of correct BaseHref values:**
+**Example of correct BaseUrl values:**
 ```yaml
 # For repository "MyLittleContentEngine"
-BaseHref: "/MyLittleContentEngine/"
+BaseUrl: "/MyLittleContentEngine/"
 
 # For repository "my-blog"  
-BaseHref: "/my-blog/"
+BaseUrl: "/my-blog/"
 
 # For custom domain (no subdirectory)
-BaseHref: "/"
+BaseUrl: "/"
 ```
 
 ### Other Deployment Issues
@@ -264,7 +266,7 @@ BaseHref: "/"
 **Issue**: 404 errors on page navigation
 **Solution**: 
 - Ensure the `.nojekyll` file is created
-- Check that `BaseHref` is configured correctly (see above)
+- Check that `BaseUrl` is configured correctly (see above)
 - Verify your routing setup
 
 **Issue**: Images or other assets not loading

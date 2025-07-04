@@ -169,4 +169,102 @@ public class LinkRewriterTests
 
         result.ShouldBe(expected);
     }
+
+    // Tests for BaseUrl functionality
+    [Theory]
+    [InlineData("/docs/guide", "/MyLittleContentEngine", "/MyLittleContentEngine/docs/guide")]
+    [InlineData("/", "/MyLittleContentEngine", "/MyLittleContentEngine/")]
+    [InlineData("/api/reference", "/app", "/app/api/reference")]
+    [InlineData("/index.html", "/subdir", "/subdir/index.html")]
+    [InlineData("/styles.css", "/", "/styles.css")]
+    [InlineData("/api", "/", "/api")]
+    [InlineData("/", "/", "/")]
+    public void RewriteUrl_WithBaseUrl_PrependsBaseUrlToAbsolutePaths(string url, string baseUrl, string expected)
+    {
+        var result = LinkRewriter.RewriteUrl(url, string.Empty, baseUrl);
+
+        result.ShouldBe(expected);
+    }
+
+    [Theory]
+    [InlineData("/docs/guide", "/MyLittleContentEngine/", "/MyLittleContentEngine/docs/guide")]
+    [InlineData("/api/reference", "/app/", "/app/api/reference")]
+    [InlineData("/index.html", "/subdir/", "/subdir/index.html")]
+    [InlineData("/styles.css", "/", "/styles.css")]
+    [InlineData("/", "/MyLittleContentEngine/", "/MyLittleContentEngine/")]
+    public void RewriteUrl_WithTrailingSlashBaseUrl_HandlesCorrectly(string url, string baseUrl, string expected)
+    {
+        var result = LinkRewriter.RewriteUrl(url, string.Empty, baseUrl);
+
+        result.ShouldBe(expected);
+    }
+
+    [Theory]
+    [InlineData("relative-page", "/docs", "/MyLittleContentEngine", "/MyLittleContentEngine/docs/relative-page")]
+    [InlineData("../parent", "/docs/sub", "/app", "/app/docs/parent")]
+    [InlineData("guide.md", "/content", "/subdir", "/subdir/content/guide.md")]
+    public void RewriteUrl_WithBaseUrlAndRelativePaths_CombinesAndPrependsBaseUrl(string url, string relativeToUrl, string baseUrl, string expected)
+    {
+        var result = LinkRewriter.RewriteUrl(url, relativeToUrl, baseUrl);
+
+        result.ShouldBe(expected);
+    }
+
+    [Theory]
+    [InlineData("http://example.com", "/MyLittleContentEngine", "http://example.com")]
+    [InlineData("https://example.com", "/app", "https://example.com")]
+    [InlineData("mailto:test@example.com", "/subdir", "mailto:test@example.com")]
+    [InlineData("#section", "/MyLittleContentEngine", "#section")]
+    public void RewriteUrl_WithBaseUrlAndExternalOrAnchorLinks_DoesNotApplyBaseUrl(string url, string baseUrl, string expected)
+    {
+        var result = LinkRewriter.RewriteUrl(url, string.Empty, baseUrl);
+
+        result.ShouldBe(expected);
+    }
+
+    [Theory]
+    [InlineData("/docs/guide?param=value", "/MyLittleContentEngine", "/MyLittleContentEngine/docs/guide?param=value")]
+    [InlineData("/api#section", "/app", "/app/api#section")]
+    [InlineData("/search?q=test&type=docs#results", "/subdir", "/subdir/search?q=test&type=docs#results")]
+    public void RewriteUrl_WithBaseUrlAndQueryStringsFragments_PrependsBaseUrlToPathOnly(string url, string baseUrl, string expected)
+    {
+        var result = LinkRewriter.RewriteUrl(url, string.Empty, baseUrl);
+
+        result.ShouldBe(expected);
+    }
+
+    [Theory]
+    [InlineData("/docs/guide", "", "/docs/guide")]
+    [InlineData("/docs/guide", "   ", "/docs/guide")]
+    [InlineData("relative", "", "relative")]
+    public void RewriteUrl_WithEmptyBaseUrl_DoesNotModifyUrl(string url, string baseUrl, string expected)
+    {
+        var result = LinkRewriter.RewriteUrl(url, string.Empty, baseUrl);
+
+        result.ShouldBe(expected);
+    }
+
+    [Theory]
+    [InlineData("/docs/guide", "MyLittleContentEngine", "/MyLittleContentEngine/docs/guide")]
+    [InlineData("/docs/guide", "MyLittleContentEngine/", "/MyLittleContentEngine/docs/guide")]
+    [InlineData("/docs/guide", "/MyLittleContentEngine/", "/MyLittleContentEngine/docs/guide")]
+    public void RewriteUrl_WithBaseUrlNormalization_HandlesSlashesCorrectly(string url, string baseUrl, string expected)
+    {
+        var result = LinkRewriter.RewriteUrl(url, string.Empty, baseUrl);
+
+        result.ShouldBe(expected);
+    }
+
+    [Fact]
+    public void RewriteUrl_WithComplexBaseUrlScenario_WorksCorrectly()
+    {
+        var url = "../../api/reference/methods#get-user";
+        var relativeToUrl = "/docs/guides/authentication";
+        var baseUrl = "/MyLittleContentEngine";
+        var expected = "/MyLittleContentEngine/docs/api/reference/methods#get-user";
+
+        var result = LinkRewriter.RewriteUrl(url, relativeToUrl, baseUrl);
+
+        result.ShouldBe(expected);
+    }
 }

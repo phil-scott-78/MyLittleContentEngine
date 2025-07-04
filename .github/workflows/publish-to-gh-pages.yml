@@ -34,7 +34,7 @@ jobs:
          
       - name: Run webapp and generate static files
         env:
-          BaseHref: "/MyLittleContentEngine/"
+          BaseUrl: "/MyLittleContentEngine/"
           DOTNET_CLI_TELEMETRY_OPTOUT: true
         run: |
           dotnet build

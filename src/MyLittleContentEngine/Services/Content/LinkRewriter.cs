@@ -1,4 +1,4 @@
-using MyLittleContentEngine.Services.Infrastructure;
+﻿using MyLittleContentEngine.Services.Infrastructure;
 
 namespace MyLittleContentEngine.Services.Content;
 
@@ -43,13 +43,18 @@ internal static class LinkRewriter
     /// <returns>The rewritten URL</returns>
     public static string RewriteUrl(string url, string relativeToUrl)
     {
-        if (string.IsNullOrWhiteSpace(relativeToUrl))
-        {
-            return url.StartsWith('/') 
-                ? url[1..] : // Remove leading slash if no base URL is provided
-                url;
-        }
+        return RewriteUrl(url, relativeToUrl, string.Empty);
+    }
 
+    /// <summary>
+    /// Rewrites a URL based on special rules for different link types, with BaseUrl support
+    /// </summary>
+    /// <param name="url">URL to rewrite</param>
+    /// <param name="relativeToUrl">The URL to resolve relative paths against</param>
+    /// <param name="baseUrl">Base URL to prepend to absolute paths (e.g., "/MyLittleContentEngine/")</param>
+    /// <returns>The rewritten URL</returns>
+    public static string RewriteUrl(string url, string relativeToUrl, string baseUrl)
+    {
         // Skip rewriting certain types of URLs
         if (IsExternalUrl(url) || IsAnchorLink(url))
         {
@@ -59,21 +64,21 @@ internal static class LinkRewriter
         // Handle URLs with query strings or fragments
         if (!ContainsQueryOrFragment(url))
         {
-            return GetAbsolutePath(url, relativeToUrl);
+            return GetAbsolutePathWithBaseUrl(url, relativeToUrl, baseUrl);
         }
 
         // For URLs with fragments/queries, we need to handle only the path part
         var specialCharPos = url.IndexOfAny(['?', '#']);
         if (specialCharPos <= 0)
         {
-            return GetAbsolutePath(url, relativeToUrl);
+            return GetAbsolutePathWithBaseUrl(url, relativeToUrl, baseUrl);
         }
 
         var path = url[..specialCharPos];
         var rest = url[specialCharPos..];
 
         // Only rewrite the path portion
-        var newPath = GetAbsolutePath(path, relativeToUrl);
+        var newPath = GetAbsolutePathWithBaseUrl(path, relativeToUrl, baseUrl);
         return newPath + rest;
     }
 
@@ -85,20 +90,46 @@ internal static class LinkRewriter
     /// <returns>The absolute path</returns>
     private static string GetAbsolutePath(string relativePath, string baseUrl)
     {
-        // If the path is already absolute, return it as is
+        return GetAbsolutePathWithBaseUrl(relativePath, baseUrl, string.Empty);
+    }
+
+    /// <summary>
+    /// Converts a relative path to an absolute path with BaseUrl support
+    /// </summary>
+    /// <param name="relativePath">The relative path to convert</param>
+    /// <param name="relativeToUrl">The URL to resolve relative paths against</param>
+    /// <param name="baseUrl">Base URL to prepend to absolute paths (e.g., "/MyLittleContentEngine")</param>
+    /// <returns>The absolute path with BaseUrl prepended if applicable</returns>
+    private static string GetAbsolutePathWithBaseUrl(string relativePath, string relativeToUrl, string baseUrl)
+    {
+        // Handle case where no relative base is provided
+        if (string.IsNullOrWhiteSpace(relativeToUrl))
+        {
+            // If it's an absolute path, prepend BaseUrl
+            if (relativePath.StartsWith('/'))
+            {
+                return PrependBaseUrl(relativePath, baseUrl);
+            }
+            
+            // If it's a relative path with no base, return as-is (or remove leading slash for legacy behavior)
+            return relativePath;
+        }
+
+        // If the path is already absolute, prepend BaseUrl
         if (relativePath.StartsWith('/'))
         {
-            return relativePath;
+            return PrependBaseUrl(relativePath, baseUrl);
         }
 
         // Handle relative paths that start with "../"
         if (!relativePath.StartsWith("../"))
         {
-            // Regular relative path, combine with base URL
-            return FileSystemUtilities.CombineUrl(baseUrl, relativePath);
+            // Regular relative path, combine with base URL then prepend BaseUrl
+            var combinedPath = FileSystemUtilities.CombineUrl(relativeToUrl, relativePath);
+            return PrependBaseUrl(combinedPath, baseUrl);
         }
 
-        var baseSegments = baseUrl.Split('/')
+        var baseSegments = relativeToUrl.Split('/')
             .Where(s => !string.IsNullOrEmpty(s))
             .ToList();
 
@@ -117,8 +148,53 @@ internal static class LinkRewriter
 
         // Combine the remaining base segments with the relative segments
         var resultSegments = baseSegments.Concat(relativeSegments);
-        return baseUrl.StartsWith('/') 
+        var resultPath = relativeToUrl.StartsWith('/') 
             ? "/" + string.Join("/", resultSegments)
             : string.Join("/", resultSegments);
+
+        return PrependBaseUrl(resultPath, baseUrl);
+    }
+
+    /// <summary>
+    /// Prepends the BaseUrl to an absolute path if BaseUrl is provided
+    /// </summary>
+    /// <param name="path">The absolute path to prepend BaseUrl to</param>
+    /// <param name="baseUrl">The BaseUrl to prepend (e.g., "/MyLittleContentEngine")</param>
+    /// <returns>The path with BaseUrl prepended if applicable</returns>
+    private static string PrependBaseUrl(string path, string baseUrl)
+    {
+        // If no BaseUrl is provided, return the path as-is
+        if (string.IsNullOrWhiteSpace(baseUrl))
+        {
+            return path;
+        }
+
+        // Ensure path starts with /
+        if (!path.StartsWith('/'))
+        {
+            path = "/" + path;
+        }
+
+        // Normalize BaseUrl: ensure it starts with / but doesn't end with /
+        var normalizedBaseUrl = baseUrl.StartsWith('/') ? baseUrl : "/" + baseUrl;
+        if (normalizedBaseUrl.EndsWith('/') && normalizedBaseUrl.Length > 1)
+        {
+            normalizedBaseUrl = normalizedBaseUrl[..^1];
+        }
+
+        // Special case: if BaseUrl is just "/" (root), don't prepend anything
+        if (normalizedBaseUrl == "/")
+        {
+            return path;
+        }
+
+        // If path is just "/", return BaseUrl with trailing slash
+        if (path == "/")
+        {
+            return normalizedBaseUrl + "/";
+        }
+
+        // Combine BaseUrl with path
+        return normalizedBaseUrl + path;
     }
 }

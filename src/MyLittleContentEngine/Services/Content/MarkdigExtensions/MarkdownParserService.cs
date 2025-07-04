@@ -150,7 +150,7 @@ internal class MarkdownParserService
         using var writer = new StringWriter();
         var htmlRenderer = new HtmlRenderer(writer)
         {
-            LinkRewriter = s => LinkRewriter.RewriteUrl(s, baseUrl)
+            LinkRewriter = s => LinkRewriter.RewriteUrl(s, baseUrl, _options.BaseUrl)
         };
         _pipeline.Setup(htmlRenderer);
         htmlRenderer.Render(document);

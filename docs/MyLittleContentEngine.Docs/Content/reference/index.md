@@ -18,13 +18,13 @@ This section contains:
 
 ## Reference Categories
 
-### [Configuration Options](configuration-options.md)
+### [Configuration Options](configuration-options)
 Complete reference for all configuration options available in `ContentEngineOptions`, `ContentEngineContentOptions<T>`, and related configuration classes.
 
-### [Content Models](content-models.md)
+### [Content Models](content-models)
 Detailed specifications for content models, front matter interfaces, and the built-in content types provided by the framework.
 
-### [Services](services.md)
+### [Services](services)
 Comprehensive API documentation for all services provided by MyLittleContentEngine, including their methods, properties, and usage patterns.
 
 ## API Documentation

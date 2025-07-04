@@ -1,4 +1,4 @@
-using MyLittleContentEngine;
+﻿using MyLittleContentEngine;
 using MyLittleContentEngine.MonorailCss;
 using MultipleContentSourceExample;
 using MultipleContentSourceExample.Components;
@@ -13,7 +13,7 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 {
     SiteTitle = "My Little Content Engine",
     SiteDescription = "An Inflexible Content Engine for .NET",
-    BaseUrl =  Environment.GetEnvironmentVariable("BaseHref") ?? "/",
+    BaseUrl =  Environment.GetEnvironmentVariable("BaseUrl") ?? "/",
     ContentRootPath = "Content",
 });
 

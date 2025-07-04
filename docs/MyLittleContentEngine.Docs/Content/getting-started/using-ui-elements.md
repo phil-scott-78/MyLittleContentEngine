@@ -20,7 +20,7 @@ By the end of this tutorial, you'll be able to:
 
 Before starting, ensure you have:
 
-- Completed the [Creating Your First Site](creating-first-site.md) tutorial
+- Completed the [Creating Your First Site](creating-first-site) tutorial
 - A working MyLittleContentEngine site with multiple content pages
 - Basic familiarity with Blazor components and CSS
 
@@ -103,13 +103,3 @@ Test the functionality by:
 </Step>
 
 </Steps>
-
-## Next Steps
-
-Now that you have a complete UI setup, you can:
-
-- Explore the [UserInterfaceExample](../../examples/UserInterfaceExample/) to see a complete implementation
-- Learn about [Building a Multi-Section Blog](building-a-multi-section-blog.md) to organize content with different types
-- Check out the [Configuration Options](../reference/configuration-options.md) to customize component behavior further
-
-The UI components provide a solid foundation for creating professional documentation sites, blogs, or any content-focused web application with MyLittleContentEngine.

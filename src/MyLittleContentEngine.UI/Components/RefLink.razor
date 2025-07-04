@@ -1,0 +1,70 @@
+@using MyLittleContentEngine.Services.Content
+@inject LinkService LinkService
+
+@if (IsExternal)
+{
+    <a href="@Href" 
+       target="@Target" 
+       rel="@Rel"
+       class="@CssClass" 
+       @attributes="AdditionalAttributes">
+        @ChildContent
+    </a>
+}
+else
+{
+    <a href="@ProcessedHref" 
+       target="@Target" 
+       rel="@Rel"
+       class="@CssClass" 
+       @attributes="AdditionalAttributes">
+        @ChildContent
+    </a>
+}
+
+@code {
+    /// <summary>
+    /// The URL to navigate to when the link is clicked.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public required string Href { get; set; }
+
+    /// <summary>
+    /// The content to display inside the link.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// CSS class to apply to the link element.
+    /// </summary>
+    [Parameter]
+    public string? CssClass { get; set; }
+
+    /// <summary>
+    /// Target attribute for the link (e.g., "_blank", "_self").
+    /// </summary>
+    [Parameter]
+    public string? Target { get; set; }
+
+    /// <summary>
+    /// Rel attribute for the link (e.g., "noopener", "noreferrer").
+    /// </summary>
+    [Parameter]
+    public string? Rel { get; set; }
+
+    /// <summary>
+    /// Additional attributes to apply to the link element.
+    /// </summary>
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string ProcessedHref => LinkService.GetLink(Href);
+
+    private bool IsExternal => 
+        Href.StartsWith("http://", StringComparison.OrdinalIgnoreCase) ||
+        Href.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
+        Href.StartsWith("mailto:", StringComparison.OrdinalIgnoreCase) ||
+        Href.StartsWith("tel:", StringComparison.OrdinalIgnoreCase) ||
+        Href.StartsWith("ftp:", StringComparison.OrdinalIgnoreCase);
+}

@@ -1,12 +1,12 @@
 ---
 title: "Linking Documents and Media"
-description: "Master the complexities of BaseUrl configuration and linking strategies for different deployment scenarios"
+description: "Master BaseUrl configuration and automatic link rewriting for consistent links across deployment scenarios"
 order: 2010
 ---
 
 The most challenging aspect of building static sites is creating links that work consistently across different
-deployment scenarios. MyLittleContentEngine handles this complexity through a sophisticated URL rewriting system built
-around `BaseUrl` configuration and context-aware linking strategies.
+deployment scenarios. MyLittleContentEngine solves this through automatic BaseUrl-aware link rewriting that ensures
+your links work seamlessly whether deployed at the root domain or in a subdirectory.
 
 ## The Deployment Challenge
 
@@ -17,64 +17,32 @@ Static sites often need to work in multiple deployment contexts:
 - **Production in subdirectory**: `https://mydomain.github.io/my-repo/`
 - **Versioned in subdirectory**: `https://mydomain.github.io/my-repo/v4/`
 
-The same site must generate correct links regardless of where it's deployed. This is where Base Url becomes critical.
+The same site must generate correct links regardless of where it's deployed. MyLittleContentEngine's automatic link
+rewriting handles this complexity for you.
 
 ## Understanding BaseUrl
 
-The [base HTML element](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base) is a key part of HTML that
-allows you to set a base URL for **all** relative URLs in a document.
-It ensures that links and resources are resolved correctly based on the deployment context.
-
-Once the base url is set, all relative links in the document will be resolved against it. For example, if you are in the
-`/blog/post/my-latest-post` page and the base URL is set to `/blog`, a link like `my-image.jpg` will resolve to
-`/blog/my-image.jpg`.
-
-Because these rules can be complex, we recommend using the following guidelines:
-
-- Always configure the base url in your razor page and in the `ContentEngineOptions` configuration.
-- Never use leading slashes to create absolute paths. A link like `/blog/post` will work locally but break in production
-  if deployed in a
-  subdirectory.
+The `BaseUrl` setting in `ContentEngineOptions` tells MyLittleContentEngine where your site will be deployed.
 
 ### BaseUrl Format Rules
 
-- **Local development**: `"/"` (empty path)
-- **Root domain**: `"/"` (empty path)
-- **Subdirectory**: `"/repository-name"` (no trailing slash)
+- **Local development**: `"/"` (root)
+- **Root domain**: `"/"` (root)
+- **Subdirectory**: `"/repository-name/"`
 
 ### BaseUrl Configuration
 
-Configuring the `BaseUrl` is done in the `ContentEngineOptions` when setting up the service in your `Program.cs`.
-We recommend using an environment variable to set the base URL dynamically based on the deployment context.
+Configure the `BaseUrl` in your `Program.cs` using `ContentEngineOptions`. We recommend using an environment variable
+for flexible deployment:
 
 ```csharp
 builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 {
     SiteTitle = "My Documentation Site",
     SiteDescription = "Technical documentation",
-    BaseUrl = Environment.GetEnvironmentVariable("BaseHref") ?? "/",
+    BaseUrl = Environment.GetEnvironmentVariable("BaseUrl") ?? "/",
     ContentRootPath = "Content",
 });
-```
-
-### Configuring BaseUrl in Razor Pages
-
-In your Razor pages, you can set the base URL using the `<base>` HTML element in your `App.razor` file
-by injecting the `ContentEngineOptions` and using the `BaseUrl` property:
-
-```razor
-@inject ContentEngineOptions Options
-
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <base href="@Options.BaseUrl"/>
-
-    <HeadOutlet/>
-</head>
 ```
 
 ### Environment-Based Configuration
@@ -84,7 +52,7 @@ The recommended pattern uses environment variables for flexible deployment:
 **Local Development:**
 
 ```bash
-# No BaseHref set, defaults to "/"
+# No BaseUrl set, defaults to "/"
 dotnet watch
 ```
 
@@ -92,62 +60,106 @@ dotnet watch
 
 ```bash
 # Set via environment variable or CI/CD
-export BaseHref="/MyLittleContentEngine"
+export BaseUrl="/MyLittleContentEngine/"
 dotnet run --build-static
 ```
 
-## Linking Strategies by Context
+## Automatic Link Rewriting
 
-### Within Markdown Content
+MyLittleContentEngine automatically processes all links in your content:
 
-**Use relative links** - MyLittleContentEngine automatically rewrites them based on the page context:
+### In Markdown Content
+
+**Use relative or absolute links** - both are automatically processed:
 
 ```markdown
 <!-- Relative links - automatically rewritten -->
 [Another Article](../guides/advanced-configuration)
 [Media File](./images/diagram.png)
 [Root Page](index)
+
+<!-- Absolute links - BaseUrl automatically prepended -->
+[Documentation](/docs/guide)
+[API Reference](/api)
+[Home Page](/)
 ```
 
 **How the rewriting works:**
 
 1. `LinkRewriter` processes all URLs during HTML generation
-2. Relative paths get resolved relative to the current page and rewritten to be relative links from the base of the site
-3. External URLs and anchor links remain unchanged
+2. Relative paths get resolved relative to the current page location
+3. Absolute paths get the `BaseUrl` automatically prepended
+4. External URLs and anchor links remain unchanged
+
+**Example transformations** (with `BaseUrl = "/MyLittleContentEngine"`):
+
+| Original Link         | Current Page  | Result                                  |
+|-----------------------|---------------|-----------------------------------------|
+| `../api`              | `/docs/guide` | `/MyLittleContentEngine/docs/api`       |
+| `/docs/guide`         | Any page      | `/MyLittleContentEngine/docs/guide`     |
+| `image.png`           | `/docs/guide` | `/MyLittleContentEngine/docs/image.png` |
+| `https://example.com` | Any page      | `https://example.com` (unchanged)       |
 
 ### In Razor Pages and Components
 
-Use relative paths from the site root:
+Use the `<Link>` component for consistent link handling:
 
-```html
-<a href="blog"">Blog</a>
+```razor
+@* Basic usage *@
+<Link Href="/docs/guide">Documentation</Link>
+<Link Href="../api">API Reference</Link>
+
+@* With additional attributes *@
+<Link Href="https://example.com" Target="_blank" CssClass="external-link">
+    External Site
+</Link>
+
+@* For CSS/JS resources, inject LinkService *@
+@inject LinkService LinkService
+
+<link rel="stylesheet" href="@LinkService.GetLink("/styles.css")" />
+<script src="@LinkService.GetLink("/scripts/app.js")"></script>
 ```
 
+### Manual Link Processing
+
+For advanced scenarios, you can use `LinkService` directly:
+
+```csharp
+@inject LinkService LinkService
+
+@{
+    var processedUrl = LinkService.GetLink("/docs/guide");
+    var relativeUrl = LinkService.GetLink("../api", "/docs/current");
+}
+```
 
 ## Static Files in `ContentRootPath`
 
-Static files like images, CSS, and JavaScript are served from the `ContentRootPath` directory.
-Use relative paths in your Razor components or HTML files from the base of the site:
+Static files like images, CSS, and JavaScript are served from the `ContentRootPath` directory and automatically
+processed:
 
-```html
-<img src="images/logo.png" alt="Logo" />
-```
-
-When working within markdown files, rememer that we will rewrite the links to be relative to the current page
+### In Markdown
 
 ```markdown
-[My Vacation](vacation.png) <!-- This will be rewritten to a path relative to the base url -->
+![Logo](images/logo.png)
+[Download PDF](documents/guide.pdf)
+```
+
+### In Razor Components
+
+```razor
+<img src="@LinkService.GetLink("/images/logo.png")" alt="Logo" />
+<Link Href="/documents/guide.pdf">Download Guide</Link>
 ```
 
 ## Testing Static Deployment
 
-It is crucial to test your site in the same environment it will be deployed to. We can use the 
-[https://github.com/natemcmaster/dotnet-serve](dotnet-serve) tool to simulate a production environment
-by serving the static files with the correct base URL.
+Test your site in the same environment it will be deployed to using the `dotnet-serve` tool:
 
 <Steps>
 <Step stepNumber="1">
-### Install the `dotnet-serve` tool globally 
+### Install dotnet-serve
 ```bash
 dotnet tool install --global dotnet-serve
 ```
@@ -161,35 +173,49 @@ dotnet clean
 </Step>
 
 <Step stepNumber="3">
-### Build the Site with BaseHref Set
+### Build with BaseHref
 ```bash
-dotnet run --environment baseHref="/mybase/" -- build 
+BaseUrl="/mybase" dotnet run -- build
 ```
 </Step>
 
 <Step stepNumber="4">
-### Serve the Output with Correct Base URL
-
-Use the dotnet-serve tool to serve the output directory with the specified base path. We will also
-set the default extensions to `.html` so that we can access the pages without needing to specify the extension in the URL.
-
+### Serve with Correct Base URL
 ```bash
 dotnet serve -d output --path-base mybase --default-extensions:.html
 ```
 </Step>
 </Steps>
 
-Once dotnet-serve is installed, you can create a script to automate the build and serve process. 
-Here’s an example script for Windows:
+Create a script to automate testing:
 
 ```bash
+#!/bin/bash
 dotnet clean
-dotnet run --environment baseHref="/mybase/" -- build 
+BaseUrl="/mybase" dotnet run -- build 
 dotnet serve -d output --path-base mybase --default-extensions:.html
 ```
 
+## Link Validation
+
+MyLittleContentEngine provides built-in link validation:
+
+- **Relative links** are resolved and validated against your content structure
+- **Absolute internal links** are checked for valid routes
+- **External links** are preserved without validation
+- **Missing targets** generate build warnings
+
+## Best Practices
+
+1. **Prefer absolute paths** (`/docs/guide`) over relative paths (`../guide`) for cleaner, more predictable links
+2. **Use the Link component** in Razor pages for consistent behavior
+3. **Test with different BaseUrl values** to ensure deployment compatibility
+4. **Inject LinkService** for programmatic link generation
+5. **Avoid manual BaseUrl concatenation** - let the system handle it automatically
+
 ## Summary
 
-Getting a static site to work correctly across different deployment contexts can be complex, but MyLittleContentEngine's
-link rewriting and BaseUrl configuration make it manageable. By following the guidelines for BaseUrl setup and using
-relative links in your content, you can ensure your site works seamlessly whether deployed at the root or in a subdirectory.
+MyLittleContentEngine's automatic link rewriting eliminates the complexity of managing links across different deployment
+scenarios. By configuring `BaseUrl` appropriately and using the provided `Link` component and `LinkService`, your site
+will generate correct links whether deployed at the root or in a subdirectory, without requiring HTML `<base>` tags that
+can interfere with crawlers and SEO.

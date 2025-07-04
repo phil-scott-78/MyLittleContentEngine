@@ -1,4 +1,4 @@
-using UserInterfaceExample;
+﻿using UserInterfaceExample;
 using UserInterfaceExample.Components;
 using MyLittleContentEngine;
 using MyLittleContentEngine.MonorailCss;
@@ -13,7 +13,7 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 {
     SiteTitle = "Daily Life Hub",
     SiteDescription = "Your everyday life, simplified",
-    BaseUrl =  Environment.GetEnvironmentVariable("BaseHref") ?? "/",
+    BaseUrl =  Environment.GetEnvironmentVariable("BaseUrl") ?? "/",
     ContentRootPath = "Content",
 });
 

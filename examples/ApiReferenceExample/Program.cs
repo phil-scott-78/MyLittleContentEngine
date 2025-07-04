@@ -1,4 +1,4 @@
-using ApiReferenceExample;
+﻿using ApiReferenceExample;
 using ApiReferenceExample.Components;
 using MyLittleContentEngine;
 using MyLittleContentEngine.MonorailCss;
@@ -14,7 +14,7 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 {
     SiteTitle = "API Reference Example",
     SiteDescription = "Demonstrating API Reference Content Service",
-    BaseUrl =  Environment.GetEnvironmentVariable("BaseHref") ?? "/",
+    BaseUrl =  Environment.GetEnvironmentVariable("BaseUrl") ?? "/",
     ContentRootPath = "Content",
 });
 

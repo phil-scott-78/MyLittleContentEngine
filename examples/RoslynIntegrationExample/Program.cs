@@ -1,4 +1,4 @@
-using RoslynIntegrationExample;
+﻿using RoslynIntegrationExample;
 using RoslynIntegrationExample.Components;
 using MyLittleContentEngine;
 using MyLittleContentEngine.MonorailCss;
@@ -14,7 +14,7 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 {
     SiteTitle = "My Little Content Engine",
     SiteDescription = "An Inflexible Content Engine for .NET",
-    BaseUrl =  Environment.GetEnvironmentVariable("BaseHref") ?? "/",
+    BaseUrl =  Environment.GetEnvironmentVariable("BaseUrl") ?? "/",
     ContentRootPath = "Content",
 });
 

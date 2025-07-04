@@ -59,7 +59,7 @@ public class TableOfContentServiceTests
         result.ShouldHaveSingleItem();
         var entry = result.First();
         entry.Name.ShouldBe("Home");
-        entry.Href.ShouldBe("index");
+        entry.Href.ShouldBe("/index");
         entry.Order.ShouldBe(1);
         entry.IsSelected.ShouldBeTrue();
         entry.Items.ShouldBeEmpty();
@@ -112,10 +112,10 @@ public class TableOfContentServiceTests
         result.Count.ShouldBe(3); // Home, About (with Team as child), Contact
 
         var aboutEntry = result.First(e => e.Name == "About");
-        aboutEntry.Href.ShouldBe("about/index");
+        aboutEntry.Href.ShouldBe("/about/index");
         aboutEntry.Items.ShouldHaveSingleItem();
         aboutEntry.Items[0].Name.ShouldBe("Team");
-        aboutEntry.Items[0].Href.ShouldBe("about/team");
+        aboutEntry.Items[0].Href.ShouldBe("/about/team");
     }
 
     [Fact]
@@ -242,9 +242,9 @@ public class TableOfContentServiceTests
     {
         // Arrange
         var contentService = new TestContentService(
-            ("Documentation", "docs/index", 1),
-            ("Getting Started", "docs/getting-started", 2),
-            ("API Reference", "docs/api", 3)
+            ("Documentation", "/docs/index", 1),
+            ("Getting Started", "/docs/getting-started", 2),
+            ("API Reference", "/docs/api", 3)
         );
         var contentServices = new List<IContentService> { contentService };
         var service = new TableOfContentService(contentServices);
@@ -256,7 +256,7 @@ public class TableOfContentServiceTests
         result.ShouldHaveSingleItem();
         var docsEntry = result.First();
         docsEntry.Name.ShouldBe("Documentation"); // From the index page title
-        docsEntry.Href.ShouldBe("docs/index"); // From index page URL
+        docsEntry.Href.ShouldBe("/docs/index"); // From index page URL
         docsEntry.Items.Length.ShouldBe(2); // Non-index pages in the folder
     }
 
