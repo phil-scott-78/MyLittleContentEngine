@@ -25,12 +25,13 @@
         </div>
         <div class="flex-1 min-w-0 lg:ml-0">
             <header
-                class="sticky  top-0 z-10 h-14 backdrop-blur-sm dark:bg-base-900/90 flex items-center justify-between gap-x-8 border-b border-base-200 dark:border-base-800">
+                class="sticky  top-0 z-10 h-14 backdrop-blur-sm bg-base-50/90 dark:bg-base-900/90 flex items-center justify-between gap-x-8 border-b border-base-200 dark:border-base-800">
                 <nav class="mx-auto px-4 lg:px-8   max-w-6xl flex flex-row items-center gap-x-2 w-full">
                     @_mobileMenuButton
                     <div
                         class="lg:hidden flex flex-1 lg:flex-none min-w-0 shrink items-center place-content-center  gap-x-2 lg:gap-x-4">
-                        @_headerIcon
+                        <div class="hidden sm:block">@_headerIcon</div>
+                        
                         <span
                             class="font-display dark:text-base-50 text-sm lg:text-base font-light  text-base-900 tracking-tighter"><a href="index">My Little Content Engine</a></span>
                     </div>
