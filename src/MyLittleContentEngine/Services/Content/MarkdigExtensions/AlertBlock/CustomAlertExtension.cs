@@ -14,7 +14,7 @@ namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.AlertBlock;
 /// <summary>
 /// Extension for adding alerts to a Markdown pipeline.
 /// </summary>
-public class CustomAlertExtension : IMarkdownExtension
+internal class CustomAlertExtension : IMarkdownExtension
 {
     /// <summary>
     /// Gets or sets the delegate to render the kind of the alert.

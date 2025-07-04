@@ -36,7 +36,7 @@ By the end of this tutorial, you'll be able to:
 
 Before starting, ensure you have:
 
-- Completed the [Creating Your First Site](creating-first-site.md) tutorial
+- Completed the [Creating Your First Site](creating-first-site) tutorial
 - A .NET solution with XML documentation comments
 - Familiarity with XML documentation ID syntax
 

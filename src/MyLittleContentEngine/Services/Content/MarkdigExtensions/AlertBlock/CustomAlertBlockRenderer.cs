@@ -12,7 +12,7 @@ namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.AlertBlock;
 /// A HTML renderer for a <see cref="MyLittleContentEngine.Services.Content.MarkdigExtensions.AlertBlock.AlertBlock"/>.
 /// </summary>
 /// <seealso cref="HtmlObjectRenderer{AlertBlock}" />
-public class CustomAlertBlockRenderer : HtmlObjectRenderer<Markdig.Extensions.Alerts.AlertBlock>
+internal class CustomAlertBlockRenderer : HtmlObjectRenderer<Markdig.Extensions.Alerts.AlertBlock>
 {
     /// <summary>
     /// Creates a new instance of this renderer.

@@ -41,7 +41,7 @@ builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineCont
 
 builder.Services.AddMonorailCss(_ => new MonorailCssOptions
 {
-    PrimaryHue = () => 210,
+    PrimaryHue = () => 350,
     BaseColorName = () => ColorNames.Zinc,
     CustomCssFrameworkSettings = defaultSettings => defaultSettings with
     {

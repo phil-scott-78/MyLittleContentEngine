@@ -182,11 +182,15 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                             new CssRuleSet("a",
                             [
                                 new CssDeclaration(CssProperties.FontWeight, "inherit"),
-                                new CssDeclaration(CssProperties.TextDecoration, "none"),
+                                new CssDeclaration(CssProperties.TextDecoration, "none"),]
+                            ),
+                            new CssRuleSet("a:not(:has(> code))",
+                            [
                                 new CssDeclaration(CssProperties.BorderBottomWidth, "1px"),
                                 new CssDeclaration(CssProperties.BorderBottomColor,
                                     designSystem.Colors["primary"][ColorLevels._500].AsStringWithOpacity("75%"))
                             ]),
+
                             new CssRuleSet("blockquote",
                             [
                                 new CssDeclaration(CssProperties.BorderLeftWidth, "4px"),

@@ -8,7 +8,7 @@ namespace MyLittleContentEngine.Services.Infrastructure;
 /// <typeparam name="T">The type of value to cache and lazily compute.</typeparam>
 /// <param name="factory">The factory function that computes the cached value. This should be an expensive operation worth caching.</param>
 /// <param name="debounceDelay">The delay to wait after a refresh request before actually executing the factory. Defaults to 50 ms.</param>
-internal class LazyAndForgetful<T>(Func<Task<T>> factory, TimeSpan? debounceDelay = null) : IDisposable
+public class LazyAndForgetful<T>(Func<Task<T>> factory, TimeSpan? debounceDelay = null) : IDisposable
 {
     private readonly Func<Task<T>> _factory = factory ?? throw new ArgumentNullException(nameof(factory));
     private readonly SemaphoreSlim _lock = new(1, 1);

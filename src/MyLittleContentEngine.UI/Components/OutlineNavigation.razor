@@ -26,10 +26,10 @@
     [Parameter] public string Title { get; set; } = "On This Page";
     [Parameter] public string ContainerStructureClass { get; set; } = "";
     [Parameter] public string ContainerColorClass { get; set; } = "";
-    [Parameter] public string ListStructureClass { get; set; } = "list-none text-sm mt-6";
+    [Parameter] public string ListStructureClass { get; set; } = "list-none text-xs mt-6";
     [Parameter] public string ListColorClass { get; set; } = "text-neutral-900 dark:text-neutral-400";
-    [Parameter] public string OutlineLinkColorClass { get; set; } = "border-neutral-200 dark:border-neutral-700 hover:text-primary-900 dark:hover:text-neutral-50/90 aria-selected:text-primary-800 aria-selected:border-accent-700 dark:aria-selected:text-primary-400 aria-selected:border-accent-400";
-    [Parameter] public string OutlineLinkStructureClass { get; set; } = "text-sm border-l-2 pt-2 ";
+    [Parameter] public string OutlineLinkColorClass { get; set; } = "hover:text-primary-900 dark:hover:text-neutral-50/90 aria-selected:text-primary-800 dark:aria-selected:text-primary-400";
+    [Parameter] public string OutlineLinkStructureClass { get; set; } = "text-sm  pt-2 ";
     [Parameter] public string BaseUrl { get; set; } = "";
 
     private RenderFragment OutlineLink(OutlineEntry entry, string padding) =>

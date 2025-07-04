@@ -8,7 +8,7 @@ using MyLittleContentEngine.Services.Infrastructure;
 
 namespace MyLittleContentEngine.Services.Infrastructure;
 
-internal interface IContentEngineFileWatcher
+public interface IContentEngineFileWatcher
 {
     /// <summary>
     /// Adds a watch for a single directory for file changes with a specific file pattern.

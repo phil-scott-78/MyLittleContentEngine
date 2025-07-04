@@ -180,7 +180,7 @@ public class ApiReferenceUrlOptions
     /// Default: "/{BasePageUrl}/namespace/{Slug}"
     /// </para>
     /// </remarks>
-    public string NamespaceUrlTemplate { get; init; } = "/{BasePageUrl}/namespace/{Slug}";
+    public string NamespaceUrlTemplate { get; init; } = "/{BasePageUrl}/namespace/{Slug}/";
 
     /// <summary>
     /// Gets or sets the output file path template for namespace pages.
@@ -206,7 +206,7 @@ public class ApiReferenceUrlOptions
     /// Default: "/{BasePageUrl}/type/{Slug}"
     /// </para>
     /// </remarks>
-    public string TypeUrlTemplate { get; init; } = "/{BasePageUrl}/type/{Slug}";
+    public string TypeUrlTemplate { get; init; } = "/{BasePageUrl}/type/{Slug}/";
 
     /// <summary>
     /// Gets or sets the output file path template for type pages.

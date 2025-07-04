@@ -120,8 +120,8 @@ class OutlineManager {
         this.observer = new IntersectionObserver(
             this.handleIntersection.bind(this),
             {
-                rootMargin: '10% 0px -5% 0px', // Very generous - catch sections with small margins
-                threshold: [0] // Just needs any part visible
+                rootMargin: '-30px 0px -25%', // Very generous - catch sections with small margins
+                threshold: [1] // Just needs any part visible
             }
         );
 
@@ -157,50 +157,57 @@ class OutlineManager {
         // Reset all links first
         this.resetAllLinks();
         
-        if (this.visibleSections.size > 0) {
-            // Activate all visible sections
-            this.visibleSections.forEach(section => {
-                const link = this.sectionMap.get(section);
-                if (link) {
-                    this.activateLink(link);
-                }
-            });
-        } else if (this.passedSections.size > 0) {
-            // No sections visible, find the closest one (most recently passed)
-            const closestSection = this.findClosestPassedSection();
-            if (closestSection) {
-                const link = this.sectionMap.get(closestSection);
-                if (link) {
-                    this.activateLink(link);
-                }
+        const sectionToHighlight = this.findSectionToHighlight();
+        if (sectionToHighlight) {
+            const link = this.sectionMap.get(sectionToHighlight);
+            if (link) {
+                this.activateLink(link);
             }
         }
     }
     
-    findClosestPassedSection() {
-        if (this.passedSections.size === 0) return null;
-        
-        // Convert to array and sort by position in document
-        const sectionsArray = Array.from(this.passedSections);
-        const sectionPositions = sectionsArray.map(section => ({
+    findSectionToHighlight() {
+        // Get all sections sorted by document order
+        const allSections = Array.from(this.sectionMap.keys());
+        const sectionPositions = allSections.map(section => ({
             section,
             top: section.getBoundingClientRect().top
         }));
         
-        // Find the section closest to the top of the viewport (but likely above it)
-        // Sort by distance from top - we want the one that was most recently visible
-        sectionPositions.sort((a, b) => Math.abs(a.top) - Math.abs(b.top));
+        // Rule 1: If only one is visible, highlight it
+        if (this.visibleSections.size === 1) {
+            return this.visibleSections.values().next().value;
+        }
         
-        // If we have sections above the viewport, prefer the one closest to the top
-        const sectionsAbove = sectionPositions.filter(s => s.top < 0);
+        // Rule 2: If multiple are visible, highlight the top-most visible item
+        if (this.visibleSections.size > 1) {
+            const visibleSectionPositions = sectionPositions.filter(({section}) => 
+                this.visibleSections.has(section)
+            );
+            // Sort by top position (ascending) to get the top-most
+            visibleSectionPositions.sort((a, b) => a.top - b.top);
+            return visibleSectionPositions[0].section;
+        }
+        
+        // Rule 3: If none are visible, highlight the first item that is above the top of the screen
+        const sectionsAbove = sectionPositions.filter(({top}) => top < 0);
         if (sectionsAbove.length > 0) {
             // Sort by top position descending (closest to 0, meaning most recently passed)
             sectionsAbove.sort((a, b) => b.top - a.top);
             return sectionsAbove[0].section;
         }
         
-        // Fallback to closest section overall
-        return sectionPositions[0].section;
+        // Rule 4: If none are visible and no item is above the top of the screen, highlight the first item
+        if (allSections.length > 0) {
+            // Sort sections by document order (using their DOM position)
+            const sortedSections = allSections.sort((a, b) => {
+                const posA = a.compareDocumentPosition(b);
+                return posA & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
+            });
+            return sortedSections[0];
+        }
+        
+        return null;
     }
 
     resetAllLinks() {
