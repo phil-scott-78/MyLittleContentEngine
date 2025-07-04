@@ -1,5 +1,5 @@
 ---
-title: "Markdown Extensions"
+title: "Using Markdown Extensions"
 description: "Learn about the powerful Markdown extensions supported by MyLittleContentEngine, including code highlighting, tabbed content, alerts, Mermaid diagrams, and Blazor components integration."
 order: 2040
 ---
@@ -47,12 +47,12 @@ linking to specific sections of the content within the sidebar navigation.
 
 ## Code Highlighting
 
-MyLittleContentEngine will make an to highlight code blocks based on the language specified in the opening code block
+MyLittleContentEngine will try to highlight code blocks based on the language specified in the opening code block
 server-side.
 
 The following rules are followed:
 
-1. If the [roslyn is connected](../getting-started/connecting-to-roslyn), and the code block is C# or VB.NET,
+1. If the [roslyn is connected](../getting-started/connecting-to-roslyn) and the code block is C# or VB.NET,
    then
    Roslyn's [Microsoft.CodeAnalysis.Classification.Classifier](https://learn.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.classification.classifier.getclassifiedspans?view=roslyn-dotnet-3.0)
    will be used to highlight the code block. This ensures
@@ -152,7 +152,9 @@ The Markdig AlertBlock has been tweaked to play nicer with Monorail and Tailwind
 > [!CAUTION]
 > Negative potential consequences of an action.
 ```
-
+> [!CAUTION]
+> Negative potential consequences of an action.
+> 
 ## Mermaid Diagrams
 
 MyLittleContentEngine supports [Mermaid](https://mermaid.js.org/) diagrams. If you are using `MyLittleContentEngine.UI`, then
@@ -251,5 +253,115 @@ in the sidebar.
 
 </Step>
 </Steps>
-````````
+
+### Card Components
+
+MyLittleContentEngine.UI includes a set of card components that work together to create attractive content layouts. These components integrate seamlessly with Mdazor to provide flexible grid-based content organization.
+
+To register the card components, add the following to your `Program.cs`:
+
+```csharp
+builder.Services.AddMdazor()
+    .AddMdazorComponent<CardGrid>()
+    .AddMdazorComponent<Card>()
+    .AddMdazorComponent<LinkCard>();
+```
+
+#### CardGrid Component
+
+The `CardGrid` component creates a responsive grid container for organizing cards. It automatically adjusts the number of columns based on screen size.
+
+**Parameters:**
+- `Columns` (string, default: "2") - Number of columns for the grid on larger screens
+- `ChildContent` (RenderFragment) - The card content to display in the grid
+
+#### Card Component
+
+The `Card` component creates a styled content card with optional icon and title.
+
+**Parameters:**
+- `Title` (string, optional) - The card title displayed prominently at the top
+- `Color` (string, default: "primary") - Color theme for the card styling
+- `Icon` (RenderFragment, optional) - Icon content displayed next to the title
+- `ChildContent` (RenderFragment) - The main card content
+
+#### LinkCard Component
+
+The `LinkCard` component extends the Card component by wrapping it in a clickable link.
+
+**Parameters:**
+- `Title` (string, optional) - The card title displayed prominently at the top
+- `Href` (string, optional) - The URL the card should link to
+- `Color` (string, default: "primary") - Color theme for the card styling
+- `Icon` (RenderFragment, optional) - Icon content displayed next to the title
+- `ChildContent` (RenderFragment) - The main card content
+
+#### Usage Example
+
+Here's how to create a grid of link cards for navigation:
+
+```````markdown
+<CardGrid>
+<LinkCard Title="Creating First Site" href="getting-started/creating-first-site">
+<Icon>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="2em" height="2em" stroke="currentColor">
+    <path d="M8 4.5V3M16 4.5V3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+    <path d="M8 11C8 9.58579 8 8.87868 8.43934 8.43934C8.87868 8 9.58579 8 11 8H13C14.4142 8 15.1213 8 15.5607 8.43934C16 8.87868 16 9.58579 16 11V13C16 14.4142 16 15.1213 15.5607 15.5607C15.1213 16 14.4142 16 13 16H11C9.58579 16 8.87868 16 8.43934 15.5607C8 15.1213 8 14.4142 8 13V11Z" stroke="currentColor" stroke-width="1.5"></path>
+</svg>
+</Icon>
+Build a complete content site from scratch using MyLittleContentEngine
+</LinkCard>
+
+<LinkCard Title="Connecting to Roslyn" href="getting-started/connecting-to-roslyn" Color="secondary">
+<Icon>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="2em" height="2em">
+    <path d="M4.51255 19.4866C7.02498 21.8794 10.016 20.9223 11.2124 19.9532" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+</svg>
+</Icon>
+Integrate Roslyn for enhanced code highlighting and documentation
+</LinkCard>
+</CardGrid>
+```````
+
+You can also use the `Card` component without links for static content displays:
+
+```````markdown
+<CardGrid Columns="3">
+<Card Title="Feature One" Color="primary">
+<Icon>
+<!-- Your SVG icon here -->
+</Icon>
+This card describes an important feature of your application.
+</Card>
+
+<Card Title="Feature Two" Color="accent">
+<Icon>
+<!-- Your SVG icon here -->
+</Icon>
+Another key feature with different color styling.
+</Card>
+
+<Card Title="Feature Three">
+A card without an icon, showing just title and content.
+</Card>
+</CardGrid>
+```````
+
+#### Color Options
+
+Both `Card` and `LinkCard` support color theming through the `Color` parameter. The available colors depend on your CSS framework configuration, but common options include:
+
+- `primary` (default) - Primary brand color
+- `secondary` - Secondary brand color  
+- `accent` - Accent color
+- `neutral` - Neutral gray tones
+
+#### Responsive Behavior
+
+The `CardGrid` component automatically adjusts its layout:
+
+- Mobile devices: Single column layout
+- Tablets and larger: Uses the specified `Columns` value (default: 2)
+
+This ensures your card layouts look great across all device sizes without requiring additional configuration.
 

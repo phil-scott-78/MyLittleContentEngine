@@ -1,5 +1,5 @@
 ---
-title: "Practical Recipes"
+title: "Recipes"
 description: "Practical solutions to common problems and specific tasks"
 order: 2000
 ---
