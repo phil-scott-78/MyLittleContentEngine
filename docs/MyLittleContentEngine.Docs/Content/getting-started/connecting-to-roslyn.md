@@ -45,7 +45,7 @@ Before starting, ensure you have:
 ## Start with a Basic Site
 
 We'll start by copying the MinimalExample to create a new site with Roslyn integration. If you don't have the
-MinimalExample, follow the [Creating Your First Site](creating-first-site.md) tutorial first.
+MinimalExample, follow the [Creating Your First Site](creating-first-site) tutorial first.
 
 </Step>
 
