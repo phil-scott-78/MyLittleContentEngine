@@ -124,6 +124,14 @@ public class ApiReferenceContentOptions : IContentOptions
     public string[] ExcludedNamespace { get; init; } = [];
 
     /// <summary>
+    /// Gets or sets the URL configuration for API reference documentation.
+    /// </summary>
+    /// <remarks>
+    /// Controls the URL structure for different types of API documentation pages.
+    /// </remarks>
+    public ApiReferenceUrlOptions UrlOptions { get; init; } = new();
+
+    /// <summary>
     /// Gets the path where content files are stored. Not applicable for API reference content.
     /// </summary>
     /// <remarks>
@@ -132,6 +140,86 @@ public class ApiReferenceContentOptions : IContentOptions
     /// </remarks>
     public string ContentPath { get; init; } = string.Empty;
 
+}
+
+/// <summary>
+/// Provides configuration options for API reference URL generation.
+/// </summary>
+/// <remarks>
+/// Controls how URLs are generated for different types of API documentation.
+/// URL templates support placeholders: {BasePageUrl}, {Slug}, {Name}, {Namespace}, {TypeName}
+/// </remarks>
+public class ApiReferenceUrlOptions
+{
+    /// <summary>
+    /// Gets or sets whether to generate namespace documentation pages.
+    /// </summary>
+    /// <remarks>
+    /// When false, namespace pages will not be generated and namespace URLs will not be included in cross-references.
+    /// Default is true.
+    /// </remarks>
+    public bool GenerateNamespacePages { get; init; } = true;
+
+    /// <summary>
+    /// Gets or sets whether to generate type documentation pages.
+    /// </summary>
+    /// <remarks>
+    /// When false, type pages will not be generated and type URLs will not be included in cross-references.
+    /// Default is true.
+    /// </remarks>
+    public bool GenerateTypePages { get; init; } = true;
+
+    /// <summary>
+    /// Gets or sets the URL template for namespace pages.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Template supports placeholders: {BasePageUrl}, {Slug}, {Name}
+    /// </para>
+    /// <para>
+    /// Default: "/{BasePageUrl}/namespace/{Slug}"
+    /// </para>
+    /// </remarks>
+    public string NamespaceUrlTemplate { get; init; } = "/{BasePageUrl}/namespace/{Slug}";
+
+    /// <summary>
+    /// Gets or sets the output file path template for namespace pages.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Template supports placeholders: {BasePageUrl}, {Slug}, {Name}
+    /// </para>
+    /// <para>
+    /// Default: "{BasePageUrl}/namespace/{Slug}/index.html"
+    /// </para>
+    /// </remarks>
+    public string NamespaceOutputTemplate { get; init; } = "{BasePageUrl}/namespace/{Slug}/index.html";
+
+    /// <summary>
+    /// Gets or sets the URL template for type pages.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Template supports placeholders: {BasePageUrl}, {Slug}, {Name}, {Namespace}, {TypeName}
+    /// </para>
+    /// <para>
+    /// Default: "/{BasePageUrl}/type/{Slug}"
+    /// </para>
+    /// </remarks>
+    public string TypeUrlTemplate { get; init; } = "/{BasePageUrl}/type/{Slug}";
+
+    /// <summary>
+    /// Gets or sets the output file path template for type pages.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Template supports placeholders: {BasePageUrl}, {Slug}, {Name}, {Namespace}, {TypeName}
+    /// </para>
+    /// <para>
+    /// Default: "{BasePageUrl}/type/{Slug}/index.html"
+    /// </para>
+    /// </remarks>
+    public string TypeOutputTemplate { get; init; } = "{BasePageUrl}/type/{Slug}/index.html";
 }
 
 /// <summary>

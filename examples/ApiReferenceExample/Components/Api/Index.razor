@@ -1,50 +1,46 @@
 @page "/api/"
 @using System.Collections.Immutable
-@using MyLittleContentEngine
+@using MyLittleContentEngine.Models
 @using MyLittleContentEngine.Services.Content
-@using ApiNamespace = MyLittleContentEngine.Models.ApiNamespace
-@inject ContentEngineOptions ContentEngineOptions
 @inject ApiReferenceContentService ApiService
 
-<PageTitle>@ContentEngineOptions.SiteTitle - API Reference</PageTitle>
+<PageTitle> API Reference</PageTitle>
 <article class="prose max-w-full">
-@if (IsLoaded)
-{
-    <h1>API Reference</h1>
-    <ol>
-        @foreach (var ns in _namespaces.OrderBy(n => n.Name))
-        {
-            <li>@ns.Name
-                <ol>
-                    @foreach (var type in ns.Types.OrderBy(t => t.Name))
-                    {
-                        <li>@type.Name
-                            <ol>
-                                @foreach (var member in type.Members.OrderBy(m => m.Name))
-                                {
-                                    <li><strong>@member.Name</strong> - @member.Declaration</li>
-                                }
-                            </ol>
-                        </li>
-                    }
-                </ol>
-            </li>
-        }
-    </ol>
-}
-else
-{
-    <p>Loading API documentation...</p>
-}
+    @if (_namespaces != null)
+    {
+        <h1>API Reference</h1>
+        <ol>
+            @foreach (var ns in _namespaces.OrderBy(n => n.Name))
+            {
+                <li>@ns.Name
+                    <ol>
+                        @foreach (var type in ns.Types.OrderBy(t => t.Name))
+                        {
+                            <li>@type.Name
+                                <ol>
+                                    @foreach (var member in type.Members.OrderBy(m => m.Name))
+                                    {
+                                        <li><strong>@member.Name</strong> - @member.Declaration</li>
+                                    }
+                                </ol>
+                            </li>
+                        }
+                    </ol>
+                </li>
+            }
+        </ol>
+    }
+    else
+    {
+        <p>Loading API documentation...</p>
+    }
 </article>
+
 @code {
-    private ImmutableList<ApiNamespace> _namespaces = [];
-    bool IsLoaded { get; set; }
+    private ImmutableList<ApiNamespace>? _namespaces;
 
     protected override async Task OnInitializedAsync()
     {
-            _namespaces = await ApiService.GetNamespacesAsync();
-            
-            IsLoaded = true;
+        _namespaces = await ApiService.GetNamespacesAsync();
     }
 }

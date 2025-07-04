@@ -50,32 +50,44 @@ public class ApiReferenceContentService : IContentService, IDisposable
                 })
         };
 
-        // Add namespace pages
-        foreach (var ns in apiData.Namespaces)
+        // Add namespace pages if enabled
+        if (_options.UrlOptions.GenerateNamespacePages)
         {
-            pages.Add(new PageToGenerate(
-                Url: $"/{_options.BasePageUrl}/namespace/{ns.MicrosoftStyleId}",
-                OutputFile: $"{_options.BasePageUrl}/namespace/{ns.MicrosoftStyleId}/index.html",
-                Metadata: new Models.Metadata
-                {
-                    Title = $"{ns.Name} Namespace",
-                    Description = $"Types in the {ns.Name} namespace",
-                    Order = 1
-                }));
+            foreach (var ns in apiData.Namespaces)
+            {
+                var url = BuildUrlFromTemplate(_options.UrlOptions.NamespaceUrlTemplate, ns);
+                var outputFile = BuildUrlFromTemplate(_options.UrlOptions.NamespaceOutputTemplate, ns);
+                
+                pages.Add(new PageToGenerate(
+                    Url: url,
+                    OutputFile: outputFile,
+                    Metadata: new Models.Metadata
+                    {
+                        Title = $"{ns.Name} Namespace",
+                        Description = $"Types in the {ns.Name} namespace",
+                        Order = 1
+                    }));
+            }
         }
 
-        // Add type pages
-        foreach (var type in apiData.Types)
+        // Add type pages if enabled
+        if (_options.UrlOptions.GenerateTypePages)
         {
-            pages.Add(new PageToGenerate(
-                Url: $"/{_options.BasePageUrl}/type/{type.MicrosoftStyleId}",
-                OutputFile: $"{_options.BasePageUrl}/type/{type.MicrosoftStyleId}/index.html",
-                Metadata: new Models.Metadata
-                {
-                    Title = $"{type.Name} {type.TypeKind}",
-                    Description = type.Summary ?? $"{type.TypeKind} {type.FullName}",
-                    Order = 2
-                }));
+            foreach (var type in apiData.Types)
+            {
+                var url = BuildUrlFromTemplate(_options.UrlOptions.TypeUrlTemplate, type);
+                var outputFile = BuildUrlFromTemplate(_options.UrlOptions.TypeOutputTemplate, type);
+                
+                pages.Add(new PageToGenerate(
+                    Url: url,
+                    OutputFile: outputFile,
+                    Metadata: new Models.Metadata
+                    {
+                        Title = $"{type.Name} {type.TypeKind}",
+                        Description = type.Summary ?? $"{type.TypeKind} {type.FullName}",
+                        Order = 2
+                    }));
+            }
         }
 
         // Member pages are no longer generated - members are included inline in type pages
@@ -114,26 +126,42 @@ public class ApiReferenceContentService : IContentService, IDisposable
         var apiData = await _apiDataCache.Value;
         var crossRefs = new List<CrossReference>();
 
-        // Add namespace cross-references
-        foreach (var ns in apiData.Namespaces)
+        // Add namespace cross-references if namespace pages are enabled
+        if (_options.UrlOptions.GenerateNamespacePages)
         {
-            crossRefs.Add(new CrossReference
+            foreach (var ns in apiData.Namespaces)
             {
-                Uid = ns.XmlDocId,
-                Title = ns.Name,
-                Url = $"/{_options.BasePageUrl}/namespace/{ns.MicrosoftStyleId}/"
-            });
+                var url = BuildUrlFromTemplate(_options.UrlOptions.NamespaceUrlTemplate, ns);
+                // Ensure URL ends with trailing slash for consistency
+                if (!url.EndsWith('/'))
+                    url += "/";
+                
+                crossRefs.Add(new CrossReference
+                {
+                    Uid = ns.XmlDocId,
+                    Title = ns.Name,
+                    Url = url
+                });
+            }
         }
 
-        // Add type cross-references
-        foreach (var type in apiData.Types)
+        // Add type cross-references if type pages are enabled
+        if (_options.UrlOptions.GenerateTypePages)
         {
-            crossRefs.Add(new CrossReference
+            foreach (var type in apiData.Types)
             {
-                Uid = type.XmlDocId,
-                Title = type.FullName,
-                Url = $"/{_options.BasePageUrl}/type/{type.MicrosoftStyleId}/"
-            });
+                var url = BuildUrlFromTemplate(_options.UrlOptions.TypeUrlTemplate, type);
+                // Ensure URL ends with trailing slash for consistency
+                if (!url.EndsWith('/'))
+                    url += "/";
+                
+                crossRefs.Add(new CrossReference
+                {
+                    Uid = type.XmlDocId,
+                    Title = type.FullName,
+                    Url = url
+                });
+            }
         }
 
         // Member cross-references are no longer generated - members are included inline in type pages
@@ -215,33 +243,33 @@ public class ApiReferenceContentService : IContentService, IDisposable
     }
 
     /// <summary>
-    /// Gets a specific namespace by Microsoft-style identifier
+    /// Gets a specific namespace by slug identifier
     /// </summary>
-    public async Task<ApiNamespace?> GetNamespaceByMicrosoftStyleIdAsync(string microsoftStyleId)
+    public async Task<ApiNamespace?> GetNamespaceBySlugAsync(string slug)
     {
         var apiData = await _apiDataCache.Value;
         return apiData.Namespaces.FirstOrDefault(n =>
-            string.Equals(n.MicrosoftStyleId, microsoftStyleId, StringComparison.OrdinalIgnoreCase));
+            string.Equals(n.Slug, slug, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
-    /// Gets a specific type by Microsoft-style identifier
+    /// Gets a specific type by slug identifier
     /// </summary>
-    public async Task<ApiType?> GetTypeByMicrosoftStyleIdAsync(string microsoftStyleId)
+    public async Task<ApiType?> GetTypeBySlugAsync(string slug)
     {
         var apiData = await _apiDataCache.Value;
         return apiData.Types.FirstOrDefault(t =>
-            string.Equals(t.MicrosoftStyleId, microsoftStyleId, StringComparison.OrdinalIgnoreCase));
+            string.Equals(t.Slug, slug, StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
-    /// Gets members by Microsoft-style identifier (can return multiple results for overloads)
+    /// Gets members by slug identifier (can return multiple results for overloads)
     /// </summary>
-    public async Task<ImmutableList<ApiMember>> GetMembersByMicrosoftStyleIdAsync(string microsoftStyleId)
+    public async Task<ImmutableList<ApiMember>> GetMembersBySlugAsync(string slug)
     {
         var apiData = await _apiDataCache.Value;
         var members = apiData.Members.Where(m =>
-            string.Equals(m.MicrosoftStyleId, microsoftStyleId, StringComparison.OrdinalIgnoreCase)).ToList();
+            string.Equals(m.Slug, slug, StringComparison.OrdinalIgnoreCase)).ToList();
         return members.ToImmutableList();
     }
 
@@ -318,7 +346,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
                 FullName = namespaceName,
                 MinimalFullName = namespaceName,
                 Declaration = $"namespace {namespaceName}",
-                MicrosoftStyleId = GenerateMicrosoftStyleId(namespaceName),
+                Slug = GenerateSlug(namespaceName),
                 Types = nsTypes,
                 Summary = $"The {namespaceName} namespace"
             };
@@ -356,7 +384,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
             FullName = typeSymbol.ToDisplayString(),
             MinimalFullName = typeSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
             Declaration = declaration,
-            MicrosoftStyleId = GenerateMicrosoftStyleId(namespaceName, typeSymbol.Name),
+            Slug = GenerateSlug(namespaceName, typeSymbol.Name),
             Namespace = namespaceName,
             TypeKind = typeSymbol.TypeKind.ToString().ToLowerInvariant(),
             BaseType = baseType,
@@ -462,7 +490,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
             FullName = memberSymbol.ToDisplayString(),
             MinimalFullName = memberSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
             Declaration = declaration,
-            MicrosoftStyleId = GenerateMicrosoftStyleId(namespaceName, containingType, memberSymbol.Name),
+            Slug = GenerateSlug(namespaceName, containingType, memberSymbol.Name),
             ContainingType = containingType,
             Namespace = namespaceName,
             MemberKind = memberKind,
@@ -1015,38 +1043,68 @@ public class ApiReferenceContentService : IContentService, IDisposable
     }
 
     /// <summary>
-    /// Generates a Microsoft-style identifier for a namespace
+    /// Generates a URL-friendly slug identifier for a namespace
     /// </summary>
     /// <param name="namespaceName">The namespace name</param>
-    /// <returns>Microsoft-style identifier (e.g., "system.collections.generic")</returns>
-    private static string GenerateMicrosoftStyleId(string namespaceName)
+    /// <returns>URL-friendly slug identifier (e.g., "system.collections.generic")</returns>
+    private static string GenerateSlug(string namespaceName)
     {
         return namespaceName.ToLowerInvariant();
     }
 
     /// <summary>
-    /// Generates a Microsoft-style identifier for a type
+    /// Generates a URL-friendly slug identifier for a type
     /// </summary>
     /// <param name="namespaceName">The namespace name</param>
     /// <param name="typeName">The type name</param>
-    /// <returns>Microsoft-style identifier (e.g., "system.collections.generic.list-1")</returns>
-    private static string GenerateMicrosoftStyleId(string namespaceName, string typeName)
+    /// <returns>URL-friendly slug identifier (e.g., "system.collections.generic.list-1")</returns>
+    private static string GenerateSlug(string namespaceName, string typeName)
     {
         var safeTypeName = typeName.Replace("`", "-");
         return $"{namespaceName.ToLowerInvariant()}.{safeTypeName.ToLowerInvariant()}";
     }
 
     /// <summary>
-    /// Generates a Microsoft-style identifier for a member
+    /// Generates a URL-friendly slug identifier for a member
     /// </summary>
     /// <param name="namespaceName">The namespace name</param>
     /// <param name="typeName">The type name</param>
     /// <param name="memberName">The member name</param>
-    /// <returns>Microsoft-style identifier (e.g., "system.collections.generic.list-1.add")</returns>
-    private static string GenerateMicrosoftStyleId(string namespaceName, string typeName, string memberName)
+    /// <returns>URL-friendly slug identifier (e.g., "system.collections.generic.list-1.add")</returns>
+    private static string GenerateSlug(string namespaceName, string typeName, string memberName)
     {
         var safeTypeName = typeName.Replace("`", "-");
         return $"{namespaceName.ToLowerInvariant()}.{safeTypeName.ToLowerInvariant()}.{memberName.ToLowerInvariant()}";
+    }
+
+    /// <summary>
+    /// Builds a URL from a template by replacing placeholders with values from a namespace.
+    /// </summary>
+    /// <param name="template">The URL template containing placeholders like {BasePageUrl}, {Slug}, {Name}</param>
+    /// <param name="ns">The namespace to get values from</param>
+    /// <returns>The URL with placeholders replaced</returns>
+    private string BuildUrlFromTemplate(string template, ApiNamespace ns)
+    {
+        return template
+            .Replace("{BasePageUrl}", _options.BasePageUrl)
+            .Replace("{Slug}", ns.Slug)
+            .Replace("{Name}", ns.Name);
+    }
+
+    /// <summary>
+    /// Builds a URL from a template by replacing placeholders with values from a type.
+    /// </summary>
+    /// <param name="template">The URL template containing placeholders like {BasePageUrl}, {Slug}, {Name}, {Namespace}, {TypeName}</param>
+    /// <param name="type">The type to get values from</param>
+    /// <returns>The URL with placeholders replaced</returns>
+    private string BuildUrlFromTemplate(string template, ApiType type)
+    {
+        return template
+            .Replace("{BasePageUrl}", _options.BasePageUrl)
+            .Replace("{Slug}", type.Slug)
+            .Replace("{Name}", type.Name)
+            .Replace("{Namespace}", type.Namespace)
+            .Replace("{TypeName}", type.Name);
     }
 
     protected virtual void Dispose(bool disposing)

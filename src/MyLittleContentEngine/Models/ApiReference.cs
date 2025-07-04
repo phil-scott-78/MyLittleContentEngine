@@ -41,9 +41,9 @@ public abstract record ApiReferenceItem
     public required string Declaration { get; init; }
     
     /// <summary>
-    /// Microsoft-style identifier (e.g., namespace.typename.membername)
+    /// URL-friendly identifier used in documentation paths and links (e.g., namespace.typename.membername)
     /// </summary>
-    public required string MicrosoftStyleId { get; init; }
+    public required string Slug { get; init; }
 }
 
 /// <summary>

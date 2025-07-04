@@ -12,8 +12,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents();
 
 builder.Services.AddMdazor()
-    .AddMdazorComponent<Columns>()
-    .AddMdazorComponent<Column>()
+    .AddMdazorComponent<Card>()
+    .AddMdazorComponent<CardGrid>()
+    .AddMdazorComponent<LinkCard>()
     .AddMdazorComponent<Step>()
     .AddMdazorComponent<Steps>();
 
@@ -68,6 +69,10 @@ builder.Services.AddApiReferenceContentService(_ => new ApiReferenceContentOptio
 {
     IncludeNamespace = ["MyLittleContentEngine"],
     ExcludedNamespace = ["MyLittleContentEngine.Tests"],
+    UrlOptions = new ApiReferenceUrlOptions()
+    {
+        
+    }
 });
 
 var app = builder.Build();

@@ -1,4 +1,4 @@
-@page "/api/namespace/{microsoftStyleId}/"
+@page "/api/namespace/{slug}/"
 @using MyLittleContentEngine.Services.Content
 @inject ContentEngineOptions ContentEngineOptions
 @inject ApiReferenceContentService ApiService
@@ -29,7 +29,7 @@
                             <span class="text-xs bg-base-100 dark:bg-base-800 px-2 py-1 rounded text-base-600 dark:text-base-400">
                                 @type.TypeKind
                             </span>
-                            <a href="api/type/@type.MicrosoftStyleId" class="text-lg font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                            <a href="api/type/@type.Slug" class="text-lg font-semibold text-blue-600 dark:text-blue-400 hover:underline">
                                 @type.Name
                             </a>
                         </div>
@@ -54,7 +54,7 @@ else
 @code {
     private Models.ApiNamespace? _namespace;
 
-    [Parameter] public string? MicrosoftStyleId { get; set; }
+    [Parameter] public string? Slug { get; set; }
 
     bool IsLoaded { get; set; }
 
@@ -64,9 +64,9 @@ else
     {
         try
         {
-            if (!string.IsNullOrEmpty(MicrosoftStyleId))
+            if (!string.IsNullOrEmpty(Slug))
             {
-                _namespace = await ApiService.GetNamespaceByMicrosoftStyleIdAsync(MicrosoftStyleId);
+                _namespace = await ApiService.GetNamespaceBySlugAsync(Slug);
             }
             IsLoaded = true;
         }
