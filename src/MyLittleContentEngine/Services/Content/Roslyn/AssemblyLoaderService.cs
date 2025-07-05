@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.IO.Abstractions;
 using System.Reflection;
 using Microsoft.CodeAnalysis;
@@ -17,6 +17,7 @@ internal class AssemblyLoaderService(ILogger<AssemblyLoaderService> logger, IFil
     private RoslynAssemblyLoadContext? _loadContext;
     private bool _needsReset;
     private static readonly ConcurrentDictionary<string, byte[]> AssemblyBytesCache = new();
+    private Lock Lock = new();
 
     internal void ResetContext()
     {
@@ -25,19 +26,22 @@ internal class AssemblyLoaderService(ILogger<AssemblyLoaderService> logger, IFil
 
     private RoslynAssemblyLoadContext GetOrCreateContext()
     {
-        if (_needsReset)
+        lock (Lock)
         {
-            _loadContext?.Unload();
-            _loadContext = new RoslynAssemblyLoadContext();
-            AssemblyBytesCache.Clear();
-            _needsReset = false;
-        }
-        else
-        {
-            _loadContext ??= new RoslynAssemblyLoadContext();
-        }
+            if (_needsReset)
+            {
+                _loadContext?.Unload();
+                _loadContext = new RoslynAssemblyLoadContext();
+                AssemblyBytesCache.Clear();
+                _needsReset = false;
+            }
+            else
+            {
+                _loadContext ??= new RoslynAssemblyLoadContext();
+            }
 
-        return _loadContext;
+            return _loadContext;
+        }
     }
 
     internal async Task<Assembly> GetProjectAssembly(Project project, EmitOptions emitOptions)

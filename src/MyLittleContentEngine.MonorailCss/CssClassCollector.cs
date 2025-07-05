@@ -1,4 +1,4 @@
-using System.Reflection.Metadata;
+﻿using System.Reflection.Metadata;
 using MyLittleContentEngine.MonorailCss;
 
 [assembly: MetadataUpdateHandler(typeof(CssClassCollector))]
@@ -15,13 +15,18 @@ public class CssClassCollector
     // It'll cause some CSS classes to be added that are not used during hot reload scenarios,
     // but that's not a big deal. The classes will be removed on the next build.
     private static readonly HashSet<string> Classes = [];
-    private static readonly Lock Lock = new();
+    private static readonly ReaderWriterLockSlim ProcessingLock = new(LockRecursionPolicy.SupportsRecursion);
     
     private static void OnUpdate()
     {
-        lock (Lock)
+        ProcessingLock.EnterWriteLock();
+        try
         {
             Classes.Clear();
+        }
+        finally
+        {
+            ProcessingLock.ExitWriteLock();
         }
     }
 
@@ -30,20 +35,33 @@ public class CssClassCollector
 
     public void AddClasses(string url, IEnumerable<string> classes)
     {
-        lock (Lock)
+        // This is called from within middleware processing, so we're already holding the write lock
+        foreach (var cls in classes)
         {
-            foreach (var cls in classes)
-            {
-                Classes.Add(cls);
-            }
+            Classes.Add(cls);
         }
+    }
+    
+    public void BeginProcessing()
+    {
+        ProcessingLock.EnterWriteLock();
+    }
+    
+    public void EndProcessing()
+    {
+        ProcessingLock.ExitWriteLock();
     }
 
     public IReadOnlyCollection<string> GetClasses()
     {
-        lock (Lock)
+        ProcessingLock.EnterReadLock();
+        try
         {
             return Classes.ToList().AsReadOnly();
+        }
+        finally
+        {
+            ProcessingLock.ExitReadLock();
         }
     }
 
