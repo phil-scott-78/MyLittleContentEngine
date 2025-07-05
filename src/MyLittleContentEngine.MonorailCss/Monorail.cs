@@ -6,17 +6,41 @@ using MonorailCss.Plugins.Prose;
 
 namespace MyLittleContentEngine.MonorailCss;
 
+/// <summary>
+/// Options for configuring the Monorail CSS framework integration.
+/// </summary>
 public class MonorailCssOptions
 {
+    /// <summary>
+    /// Gets or sets the primary hue value used for generating the color palette.
+    /// The default value is 250.
+    /// </summary>
     public Func<int> PrimaryHue { get; init; } = () => 250;
 
+    /// <summary>
+    /// Gets or sets the name of the base color from the MonorailCSS color palette.
+    /// The default value is "Gray".
+    /// </summary>
     public Func<string> BaseColorName { get; init; } = () => ColorNames.Gray;
 
+    /// <summary>
+    /// Gets or sets the function that generates the color scheme.
+    /// The function takes the primary hue as input and returns a tuple containing the accent, tertiary one, and tertiary two hues.
+    /// </summary>
     public Func<int, (int, int, int)> ColorSchemeGenerator { get; init; } =
         primary => (primary + 180, primary + 90, primary - 90);
 
+    /// <summary>
+    /// Gets or sets a function to customize the CSS framework settings.
+    /// This allows for advanced customization of the MonorailCSS framework.
+    /// </summary>
     public Func<CssFrameworkSettings, CssFrameworkSettings> CustomCssFrameworkSettings { get; init; } =
         settings => settings;
+    
+    /// <summary>
+    /// Gets or sets any extra CSS styles to be included in the generated stylesheet.
+    /// </summary>
+    public string ExtraStyles { get; init; } = string.Empty;
 }
 
 public class MonorailCssService(MonorailCssOptions options, CssClassCollector cssClassCollector)
@@ -32,9 +56,11 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
         var docsearchOverride = GetDocsearchOverride();
 
         return $"""
+                {options.ExtraStyles}
+                
                 {styleSheet}
 
-                 {docsearchOverride}
+                {docsearchOverride}
                 """;
     }
 

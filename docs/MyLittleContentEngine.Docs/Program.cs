@@ -53,8 +53,9 @@ builder.Services.AddMonorailCss(_ => new MonorailCssOptions
                 .SetItem(
                     "mono", 
                     new FontFamilyDefinition("\"Cascadia Code\"" + defaultSettings.DesignSystem.FontFamilies["mono"].FontFamily))
-        }
-    }
+        },
+    },
+    ExtraStyles = GoogleFonts.GetLexendStyles(),
 });
 
 builder.Services.AddRoslynService(_ => new RoslynHighlighterOptions()
