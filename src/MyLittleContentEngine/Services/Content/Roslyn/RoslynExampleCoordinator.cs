@@ -498,7 +498,6 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
         {
             var methodSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration);
             if (methodSymbol == null) continue;
-            if (methodSymbol.DeclaredAccessibility != Accessibility.Public) continue; // Skip non-public methods
 
             var xmlDocId = methodSymbol.GetDocumentationCommentId();
             if (string.IsNullOrEmpty(xmlDocId)) continue;

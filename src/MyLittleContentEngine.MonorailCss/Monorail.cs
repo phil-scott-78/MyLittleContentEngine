@@ -323,6 +323,10 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                     ".code-highlight-wrapper .standalone-code-highlight pre",
                     "text-base-900/90 py-2 px-2 md:px-4 dark:text-base-100/90"
                 },
+                {
+                    ".code-highlight-wrapper pre code",
+                    "font-mono"
+                },
             });
     }
     
@@ -380,7 +384,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 { ".hljs", "text-base-900 dark:text-base-200" },
 
                 // Comments
-                { ".hljs-comment", "text-base-800/50 italic dark:text-base-300/50" },
+                { ".hljs-comment", "text-base-800/50 italic dark:text-base-300" },
                 { ".hljs-quote", "text-base-800/50 italic dark:text-base-300/50" },
 
                 // Keywords and control flow

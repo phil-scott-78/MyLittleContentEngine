@@ -50,9 +50,6 @@ builder.Services.AddMonorailCss(_ => new MonorailCssOptions
         {
             FontFamilies = defaultSettings.DesignSystem.FontFamilies
                 .Add("display", new FontFamilyDefinition("Lexend, sans-serif"))
-                .SetItem(
-                    "mono", 
-                    new FontFamilyDefinition("\"Cascadia Code\"" + defaultSettings.DesignSystem.FontFamilies["mono"].FontFamily))
         },
     },
     ExtraStyles = GoogleFonts.GetLexendStyles(),
