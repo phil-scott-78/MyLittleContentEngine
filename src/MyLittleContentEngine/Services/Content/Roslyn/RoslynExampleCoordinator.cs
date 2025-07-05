@@ -113,13 +113,15 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
             // Redirect only the final output directory for this specific build
             ["OutputPath"] = _fileSystem.Path.Combine(_tempBuildDirectory, "bin") + _fileSystem.Path.DirectorySeparatorChar,
             // Redirect intermediate files to temp location
-            ["IntermediateOutputPath"] = _fileSystem.Path.Combine(_tempBuildDirectory, "obj") + _fileSystem.Path.DirectorySeparatorChar
+            ["IntermediateOutputPath"] = _fileSystem.Path.Combine(_tempBuildDirectory, "obj") + _fileSystem.Path.DirectorySeparatorChar,
+            // Optimize for faster loading
+            ["DesignTimeBuild"] = "true",
+            ["SkipCompilerExecution"] = "true"
         };
 
         _workspace = MSBuildWorkspace.Create(properties);
         _logger.LogDebug("MSBuildWorkspace created with temp build directory: {TempBuildDir}", _tempBuildDirectory);
 
-        _workspace.LoadMetadataForReferencedProjects = true;
         _workspace.WorkspaceFailed += (_, args) =>
         {
             _logger.LogWarning("Workspace load issue: {message} (DiagnosticKind: {kind})",
@@ -267,8 +269,20 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
                     var fileDir = _fileSystem.Path.GetDirectoryName(filePath)!;
 
                     var project = solution.Projects.FirstOrDefault(p =>
-                        p.Documents.Any(d => d.FilePath != null && _fileSystem.Path.GetDirectoryName(d.FilePath) != null && fileDir.Equals(_fileSystem.Path.GetDirectoryName(d.FilePath), StringComparison.OrdinalIgnoreCase))
-                        || (p.FilePath != null && _fileSystem.Path.GetDirectoryName(p.FilePath) is { } projDir && fileDir.StartsWith(projDir, StringComparison.OrdinalIgnoreCase)));
+                    {
+                        // Check if any document in the project shares the same directory.
+                        if (p.Documents.Any(d => d.FilePath != null && fileDir.Equals(_fileSystem.Path.GetDirectoryName(d.FilePath), StringComparison.OrdinalIgnoreCase)))
+                        {
+                            return true;
+                        }
+
+                        // Check if the file is within the project's directory structure.
+                        if (p.FilePath == null) return false;
+
+                        var projDir = _fileSystem.Path.GetDirectoryName(p.FilePath);
+
+                        return projDir != null && fileDir.StartsWith(projDir, StringComparison.OrdinalIgnoreCase);
+                    });
 
                     if (project != null)
                     {

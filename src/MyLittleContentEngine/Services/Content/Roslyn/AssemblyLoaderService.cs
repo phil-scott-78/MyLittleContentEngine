@@ -59,8 +59,6 @@ internal class AssemblyLoaderService(ILogger<AssemblyLoaderService> logger, IFil
 
         compilation = compilation.WithOptions(options);
 
-        _logger.LogDebug("--- Compilation Details for Project: {ProjectFilePath} ---", project.FilePath);
-
         await using var ms = new MemoryStream();
         var emitResult = compilation.Emit(peStream: ms, options: emitOptions);
         if (!emitResult.Success)
