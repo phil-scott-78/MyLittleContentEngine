@@ -21,6 +21,9 @@ public interface IMarkdownContentService<TFrontMatter> : IContentService where T
     /// </summary>
     /// <returns>An immutable list containing all parsed and processed content pages.</returns>
     Task<ImmutableList<MarkdownContentPage<TFrontMatter>>> GetAllContentPagesAsync();
+
+    Task<(Tag Tag, ImmutableList<MarkdownContentPage<TFrontMatter>> ContentPages)?> GetTagByEncodedNameOrDefault(
+        string encodedName);
 }
 
 /// <summary>
