@@ -5,14 +5,14 @@
 @inject ITableOfContentService TableOfContentService
 @inject NavigationManager NavigationManager
 
-<div class="dark:scheme-dark box-content bg-base-100 dark:bg-base-900 text-base-900 dark:text-base-50">
+<div class="dark:scheme-dark box-content bg-base-100 dark:bg-base-950 text-base-900 dark:text-base-50">
     <!-- Mobile overlay -->
     <div id="mobile-overlay" class="fixed inset-0 bg-base-950/50 backdrop-blur z-30 lg:hidden aria-hidden:hidden"
          aria-hidden="true"></div>
 
     <div class="flex flex-row min-h-screen w-full">
         <div id="nav-sidebar" data-expanded="false"
-             class="box-border transition-spacing ease-in-out duration-300 -ml-80 data-[expanded=true]:ml-0 lg:ml-0 w-80 flex-none border-r border-base-200 dark:border-base-800 fixed lg:static lg:z-auto z-40 h-full lg:h-auto bg-base-100 dark:bg-base-900">
+             class="box-border transition-spacing ease-in-out duration-300 -ml-80 data-[expanded=true]:ml-0 lg:ml-0 w-80 flex-none border-r border-base-200 dark:border-base-800 fixed md:static lg:z-auto z-40 h-full lg:h-auto bg-base-100 dark:bg-base-950">
             <div class="sticky top-0 p-8 h-screen overflow-y-auto">
                 <div>
                     <div class="flex min-w-0 mb-8 font-display shrink items-center gap-x-2">
@@ -25,8 +25,8 @@
         </div>
         <div class="flex-1 min-w-0 lg:ml-0">
             <header
-                class="sticky  top-0 z-10 h-14 backdrop-blur-sm bg-base-50/90 dark:bg-base-900/90 flex items-center justify-between gap-x-8 border-b border-base-200 dark:border-base-800">
-                <nav class="mx-auto px-4 lg:px-8 max-w-6xl flex flex-row items-center gap-x-2 w-full">
+                class="sticky top-0 z-10 h-14 backdrop-blur-sm bg-base-50/90 dark:bg-base-950/90 flex items-center justify-between gap-x-8 border-b border-base-200 dark:border-base-800">
+                <nav class="mx-auto px-4 lg:px-8  max-w-6xl flex flex-row items-center gap-x-2 w-full">
                     @_mobileMenuButton
                     <div
                         class="lg:hidden flex flex-1 lg:flex-none min-w-0 shrink items-center place-content-center  gap-x-2 lg:gap-x-4">
