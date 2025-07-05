@@ -105,7 +105,7 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
         // Create a temporary directory for build outputs
         _tempBuildDirectory = _fileSystem.Path.Combine(_fileSystem.Path.GetTempPath(), "MyLittleContentEngine", Guid.NewGuid().ToString("N"));
         _fileSystem.Directory.CreateDirectory(_tempBuildDirectory);
-        
+
         // Configure MSBuild properties to use temp directory for compilation outputs only
         // We use OutputPath and IntermediateOutputPath rather than Base* to preserve reference resolution
         var properties = new Dictionary<string, string>
@@ -115,7 +115,7 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
             // Redirect intermediate files to temp location
             ["IntermediateOutputPath"] = _fileSystem.Path.Combine(_tempBuildDirectory, "obj") + _fileSystem.Path.DirectorySeparatorChar
         };
-        
+
         _workspace = MSBuildWorkspace.Create(properties);
         _logger.LogDebug("MSBuildWorkspace created with temp build directory: {TempBuildDir}", _tempBuildDirectory);
 
@@ -161,24 +161,7 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
             throw new Exception($"Could not get compilation for {project.FilePath}");
         }
 
-        // Check for source texts without encoding and prevent debug info emission in those cases
-        var emitOptions = new EmitOptions(debugInformationFormat: DebugInformationFormat.Embedded);
-        var hasSourcesWithoutEncoding = false;
-        foreach (var syntaxTree in compilation.SyntaxTrees)
-        {
-            var sourceText = await syntaxTree.GetTextAsync();
-            if (sourceText.Encoding == null)
-            {
-                hasSourcesWithoutEncoding = true;
-                _logger.LogWarning("Source file {path} has no encoding information", syntaxTree.FilePath);
-            }
-        }
-
-        if (hasSourcesWithoutEncoding)
-        {
-            _logger.LogWarning("Disabling embedded debug information due to source texts without encoding");
-            emitOptions = new EmitOptions(debugInformationFormat: DebugInformationFormat.Pdb);
-        }
+        var emitOptions = new EmitOptions(debugInformationFormat: DebugInformationFormat.Pdb);
 
         _logger.LogTrace("Compiling assembly for {assemblyName}", project.Name);
         var assembly = await _assemblyLoaderService.GetProjectAssembly(project, emitOptions);
@@ -242,7 +225,7 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
             return "Failed to get semantic model for method.";
         }
 
-        var result = _codeExecutionService.ExecuteMethod(id.Assembly, (IMethodSymbol) id.Symbol);
+        var result = _codeExecutionService.ExecuteMethod(id.Assembly, (IMethodSymbol)id.Symbol);
         return result[attachmentName ?? string.Empty];
     }
 
@@ -342,8 +325,6 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
 
             await foreach (var item in ProcessProjectDocumentsAsync(project).WithCancellation(ctx))
             {
-                _logger.LogTrace("Adding XmlDocId {xmlDocId} for project {project}", item.xmlDocId,
-                    project.FilePath);
                 result.TryAdd(item.xmlDocId, new CachedCompiledXmlDocId(item.document, item.textSpan, item.sourceText, item.symbol, assembly));
             }
         });
@@ -394,38 +375,39 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
             var sourceText = await document.GetTextAsync();
             var rootSyntaxNode = await syntaxTree.GetRootAsync();
 
+            var fileName = _fileSystem.Path.GetFileName(document.FilePath);
             foreach (var type in ProcessTypeDeclarationsAsync(document, rootSyntaxNode, semanticModel, sourceText))
             {
                 _logger.LogTrace("Yielding type XmlDocId {xmlDocId} in {document}", type.xmlDocId,
-                    document.FilePath);
+                    fileName);
                 yield return type;
             }
 
             foreach (var method in ProcessMethodDeclarationsAsync(document, rootSyntaxNode, semanticModel, sourceText))
             {
                 _logger.LogTrace("Yielding method XmlDocId {xmlDocId} in {document}", method.xmlDocId,
-                    document.FilePath);
+                    fileName);
                 yield return method;
             }
 
             foreach (var property in ProcessPropertyDeclarationsAsync(document, rootSyntaxNode, semanticModel, sourceText))
             {
                 _logger.LogTrace("Yielding property XmlDocId {xmlDocId} in {document}", property.xmlDocId,
-                    document.FilePath);
+                    fileName);
                 yield return property;
             }
 
             foreach (var field in ProcessFieldDeclarationsAsync(document, rootSyntaxNode, semanticModel, sourceText))
             {
                 _logger.LogTrace("Yielding field XmlDocId {xmlDocId} in {document}", field.xmlDocId,
-                    document.FilePath);
+                    fileName);
                 yield return field;
             }
 
             foreach (var eventItem in ProcessEventDeclarationsAsync(document, rootSyntaxNode, semanticModel, sourceText))
             {
                 _logger.LogTrace("Yielding event XmlDocId {xmlDocId} in {document}", eventItem.xmlDocId,
-                    document.FilePath);
+                    fileName);
                 yield return eventItem;
             }
         }
@@ -604,7 +586,7 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
         {
             _roslynCache.Dispose();
             _workspace.Dispose();
-            
+
             // Clean up temporary build directory
             try
             {
