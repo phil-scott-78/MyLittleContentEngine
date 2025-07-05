@@ -11,8 +11,8 @@
          aria-hidden="true"></div>
 
     <div class="flex flex-row min-h-screen w-full">
-        <div id="nav-sidebar" aria-expanded="false"
-             class="box-border transition-spacing -ml-80 aria-expanded:ml-0 lg:ml-0 w-80 flex-none border-r border-base-200 dark:border-base-800 fixed lg:static lg:z-auto z-40 h-full lg:h-auto bg-base-100 dark:bg-base-900">
+        <div id="nav-sidebar" data-expanded="false"
+             class="box-border transition-spacing -ml-80 data-[expanded=true]:ml-0 lg:ml-0 w-80 flex-none border-r border-base-200 dark:border-base-800 fixed lg:static lg:z-auto z-40 h-full lg:h-auto bg-base-100 dark:bg-base-900">
             <div class="sticky top-0 p-8 h-screen overflow-y-auto">
                 <div>
                     <div class="flex min-w-0 mb-8 font-display shrink items-center gap-x-2">
@@ -65,6 +65,7 @@
                         </button>
                         <!-- github icon -->
                         <a href="https://github.com/phil-scott-78/MyLittleContentEngine"
+                           aria-label="GitHub repository"
                            class="hover:bg-base-200 dark:hover:bg-base-800 rounded-md p-1">
                             <svg xmlns="http://www.w3.org/2000/svg" class="text-base-900 dark:text-base-200 h-5 w-5"
                                  viewBox="0 0 24 24" stroke="currentColor" fill="none">
@@ -98,7 +99,7 @@
     [Parameter] public RenderFragment? SidebarChildContent { get; set; }
 
     private readonly RenderFragment _mobileMenuButton =
-        @<button id="menu-toggle"
+        @<button id="menu-toggle" aria-label="Toggle Navigation Menu" aria-controls="nav-sidebar"
                  class="lg:hidden text-base-700 dark:text-base-100 rounded-md hover:bg-primary-100 dark:hover:bg-primary-800">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"

@@ -100,7 +100,7 @@ class OutlineManager {
 
         // Initialize all links and build section map
         this.outlineLinks.forEach(link => {
-            link.setAttribute('aria-selected', 'false');
+            link.dataset.selected ='false';
 
             const id = this.extractIdFromHref(link.getAttribute('href'));
             if (id) {
@@ -212,13 +212,13 @@ class OutlineManager {
 
     resetAllLinks() {
         this.outlineLinks.forEach(link => {
-            link.setAttribute('aria-selected', 'false');
+            link.dataset.selected = 'false';
             link.parentElement?.classList.remove('active');
         });
     }
 
     activateLink(link) {
-        link.setAttribute('aria-selected', 'true');
+        link.dataset.selected = 'true';
         link.parentElement?.classList.add('active');
     }
 
@@ -259,7 +259,7 @@ class TabManager {
     }
 
     initializeActiveTab(tablist, tabs) {
-        const activeTab = tablist.querySelector('[aria-selected="true"]');
+        const activeTab = tablist.querySelector('[data="true"]');
 
         if (!activeTab && tabs.length > 0) {
             this.activateTab(tabs[0], tabs);
@@ -271,13 +271,13 @@ class TabManager {
     activateTab(selectedTab, allTabs) {
         // Deactivate all tabs
         allTabs.forEach(tab => {
-            tab.setAttribute('aria-selected', 'false');
+            tab.dataset.selected  ='false';
             tab.setAttribute('data-state', 'inactive');
             tab.setAttribute('tabindex', '-1');
         });
 
         // Activate the selected tab
-        selectedTab.setAttribute('aria-selected', 'true');
+        selectedTab.dataset.selected = 'true';
         selectedTab.setAttribute('data-state', 'active');
         selectedTab.setAttribute('tabindex', '0');
 
@@ -297,7 +297,7 @@ class TabManager {
 
         // Show the selected content panel
         contentPanel.removeAttribute('hidden');
-        contentPanel.setAttribute('aria-selected', 'true');
+        contentPanel.dataset.selected = 'true';
     }
 
     hideRelatedContentPanels(tab) {
@@ -309,7 +309,7 @@ class TabManager {
             const allContentPanels = document.querySelectorAll(`[id^="tab-content${baseId}-"]`);
 
             allContentPanels.forEach(panel => {
-                panel.setAttribute('aria-selected', 'false');
+                panel.dataset.selected = 'false';
                 panel.setAttribute('hidden', '');
             });
         }
@@ -664,7 +664,7 @@ class MobileNavManager {
     }
 
     closeMenu() {
-        this.navSidebar.setAttribute('aria-expanded', 'false');
+        this.navSidebar.dataset.expanded = 'false';
         
         if (this.mobileOverlay) {
             this.mobileOverlay.setAttribute('aria-hidden', 'true');
@@ -675,7 +675,7 @@ class MobileNavManager {
     }
 
     openMenu() {
-        this.navSidebar.setAttribute('aria-expanded', 'true');
+        this.navSidebar.dataset.expanded = 'true';
         
         if (this.mobileOverlay) {
             this.mobileOverlay.setAttribute('aria-hidden', 'false');

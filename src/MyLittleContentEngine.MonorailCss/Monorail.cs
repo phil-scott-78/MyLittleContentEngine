@@ -314,11 +314,11 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                     "flex flex-row flex-wrap px-4 pt-1 bg-base-200/90 gap-x-2 lg:gap-x-3 dark:bg-base-800/50" },
                 {
                     ".tab-button",
-                    "whitespace-nowrap border-b border-transparent py-2 text-xs text-base-900/90 font-medium transition-colors hover:text-accent-500 disabled:pointer-events-none disabled:opacity-50 aria-selected:text-accent-700 aria-selected:border-accent-700 dark:text-base-100/90 dark:hover:text-accent-300 dark:aria-selected:text-accent-400 dark:aria-selected:border-accent-400"
+                    "whitespace-nowrap border-b border-transparent py-2 text-xs text-base-900/90 font-medium transition-colors hover:text-accent-500 disabled:pointer-events-none disabled:opacity-50 data-[selected=true]:text-accent-700 data-[selected=true]:border-accent-700 dark:text-base-100/90 dark:hover:text-accent-300 dark:data-[selected=true]:text-accent-400 dark:data-[selected=true]:border-accent-400"
                 },
                 {
                     ".tab-panel", 
-                    "hidden aria-selected:block py-3 px-2 md:px-4"
+                    "hidden data-[selected=true]:block py-3 px-2 md:px-4"
                 },
             });
     }
