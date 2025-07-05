@@ -101,6 +101,34 @@ jobs:
           dotnet build
           dotnet run --project ${{ env.WEBAPP_PATH }}${{env.WEBAPP_CSPROJ}} --configuration Release -- build
 
+      - name: Install minify
+        run: |
+          curl -sfL https://github.com/tdewolff/minify/releases/latest/download/minify_linux_amd64.tar.gz | tar -xzf - -C /tmp
+          sudo mv /tmp/minify /usr/local/bin/
+
+      - name: Minify CSS and JavaScript files
+        run: |
+          # Minify styles.css if it exists
+          if [ -f "${{ env.WEBAPP_PATH }}output/styles.css" ]; then
+            /usr/local/bin/minify -o "${{ env.WEBAPP_PATH }}output/styles.css" "${{ env.WEBAPP_PATH }}output/styles.css"
+            echo "Minified styles.css"
+          fi
+          
+          # Minify scripts.js if it exists
+          if [ -f "${{ env.WEBAPP_PATH }}output/_content/MyLittleContentEngine.UI/scripts.js" ]; then
+            /usr/local/bin/minify -o "${{ env.WEBAPP_PATH }}output/_content/MyLittleContentEngine.UI/scripts.js" "${{ env.WEBAPP_PATH }}output/_content/MyLittleContentEngine.UI/scripts.js"
+            echo "Minified scripts.js"
+          fi
+          
+          # Show file sizes after minification
+          echo "File sizes after minification:"
+          if [ -f "${{ env.WEBAPP_PATH }}output/styles.css" ]; then
+            ls -lh "${{ env.WEBAPP_PATH }}output/styles.css"
+          fi
+          if [ -f "${{ env.WEBAPP_PATH }}output/_content/MyLittleContentEngine.UI/scripts.js" ]; then
+            ls -lh "${{ env.WEBAPP_PATH }}output/_content/MyLittleContentEngine.UI/scripts.js"
+          fi
+
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
