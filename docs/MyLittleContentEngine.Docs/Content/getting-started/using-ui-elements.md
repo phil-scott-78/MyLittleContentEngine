@@ -4,17 +4,19 @@ description: "Learn how to enhance your site with pre-built UI components from M
 order: 1030
 ---
 
-MyLittleContentEngine includes a set of pre-built UI components that make it easy to create professional, responsive layouts for your content sites. These components handle common patterns like navigation, page outlines, and headers.
+MyLittleContentEngine includes a set of pre-built UI components that make it easy to create responsive layouts for your
+content sites. These components handle common patterns like navigation, page outlines and user components.
 
-In this tutorial, you'll learn how to integrate and use the UI components to create a documentation or blog site with sidebar navigation, page outlines, and responsive design.
+In this tutorial, you'll learn how to integrate and use the UI components to create a documentation or blog site with
+sidebar navigation, page outlines, and responsive design.
 
 ## What You'll Learn
 
 By the end of this tutorial, you'll be able to:
 
-- Set up and configure MyLittleContentEngine.UI components
-- Create a sidebar navigation with TableOfContentsNavigation
-- Add page outline navigation with OutlineNavigation
+- Set up and configure `MyLittleContentEngine.UI` components
+- Create a sidebar navigation with `TableOfContentsNavigation`
+- Add page outline navigation with `OutlineNavigation`
 
 ## Prerequisites
 
@@ -45,10 +47,19 @@ Add the UI components to your `Components/_Imports.razor` file:
 @using MyLittleContentEngine.UI.Components
 ```
 
-Add the required scripts to your `Components/App.razor` file in head the closing `<head>` tag:
+
+
+Inject the `LinkService` at the top of your `Components/App.razor`:
 
 ```razor
-<script src="_content/MyLittleContentEngine.UI/scripts.js" defer></script>
+@inject LinkService LinkService
+
+```
+
+Add the required scripts to your `Components/App.razor` file in head the closing `<head>` tag, ensuring to use the
+[LinkService](../guides/linking-documents-and-media) to generate the correct paths:
+```razor
+<script src="@LinkService.GetLink("/_content/MyLittleContentEngine.UI/scripts.js")" defer></script>
 ```
 
 These scripts aren't necessary for the components to function, but they provide additional features like highlighting
@@ -58,7 +69,8 @@ the current page in the navigation.
 <Step stepNumber="3">
 ## Set Up TableOfContentsNavigation
 
-The `TableOfContentsNavigation` component automatically generates navigation based on your content structure and front matter.
+The `TableOfContentsNavigation` component automatically generates navigation based on your content structure and front
+matter.
 
 Create or update your `Components/Layout/MainLayout.razor` with a sidebar navigation:
 
@@ -83,7 +95,7 @@ examples/UserInterfaceExample/Components/Layout/Pages.razor
 This creates a three-column layout: sidebar navigation, main content, and page outline.
 </Step>
 
-<Step stepNumber="6">
+<Step stepNumber="5">
 ## Test Your UI Components
 
 Run your site in development mode:
@@ -98,8 +110,9 @@ Navigate to your site and you should see:
 2. **Page Outline** - Shows headings from the current page with anchor links
 
 Test the functionality by:
+
 - Clicking navigation links to move between pages
 - Using the page outline to jump to different sections
-</Step>
+  </Step>
 
 </Steps>

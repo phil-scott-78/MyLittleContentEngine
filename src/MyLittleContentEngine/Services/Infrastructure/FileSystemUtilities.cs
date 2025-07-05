@@ -50,7 +50,7 @@ internal class FileSystemUtilities(IFileSystem fileSystem)
     /// Gets all files matching a pattern in a directory.
     /// </summary>
     /// <param name="directoryPath">The directory to search.</param>
-    /// <param name="pattern">The file pattern to match.</param>
+    /// <param name="pattern">The file pattern to match. Can be semicolon-separated for multiple patterns (e.g., "*.md;*.mdx").</param>
     /// <param name="recursive">Whether to search subdirectories.</param>
     /// <returns>A tuple with the array of file paths and the absolute directory path.</returns>
     public (string[] Files, string AbsolutePath) GetFilesInDirectory(
@@ -65,8 +65,24 @@ internal class FileSystemUtilities(IFileSystem fileSystem)
             RecurseSubdirectories = recursive
         };
 
-        // Get all files matching the pattern and return with the content path
-        return (fileSystem.Directory.GetFiles(directoryPath, pattern, enumerationOptions), directoryPath);
+        // Split the pattern by semicolon to support multiple patterns
+        var patterns = pattern.Split(';', StringSplitOptions.RemoveEmptyEntries);
+        var allFiles = new List<string>();
+
+        foreach (var singlePattern in patterns)
+        {
+            var trimmedPattern = singlePattern.Trim();
+            if (!string.IsNullOrWhiteSpace(trimmedPattern))
+            {
+                var files = fileSystem.Directory.GetFiles(directoryPath, trimmedPattern, enumerationOptions);
+                allFiles.AddRange(files);
+            }
+        }
+
+        // Remove duplicates and sort
+        var uniqueFiles = allFiles.Distinct().OrderBy(f => f).ToArray();
+
+        return (uniqueFiles, directoryPath);
     }
 
     /// <summary>

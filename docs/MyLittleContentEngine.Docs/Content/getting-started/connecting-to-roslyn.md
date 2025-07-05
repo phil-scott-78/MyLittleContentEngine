@@ -8,13 +8,6 @@ Because MyLittleContentEngine is a .NET application itself, you can integrate it
 service, we will use Roslyn to provide enhanced code syntax highlighting and access our application's code directly
 for documentation.
 
-Most documentation sites include code
-highlighting that relies on regular expressions or textmate files. These methods can be limited in their
-capabilities, or they may not support all the features of C#, especially if you are targeting newer versions of C#.
-
-By using Roslyn, you can ensure that if your code is compiling and running, the syntax highlighting will be accurate and
-up to date because it uses the same tools to highlight are used to compile your code.
-
 Once we have Roslyn added, we can also attach a solution file to the Roslyn Service. This allows you 
 to use your application's demos and unit tests as documentation, ensuring that your content is always up to date 
 with the latest syntax. No longer do you need to copy and paste code snippets into your documentation, instead, 
@@ -38,7 +31,7 @@ Before starting, ensure you have:
 
 - Completed the [Creating Your First Site](creating-first-site) tutorial
 - A .NET solution with XML documentation comments
-- Familiarity with XML documentation ID syntax
+- Familiarity with [XML documentation ID syntax](../reference/xmldocid-format)
 
 <Steps>
 <Step stepNumber="1">
@@ -119,13 +112,12 @@ T:MyLittleContentEngine.ContentEngineOptions
 ```
 ``````
 
-This syntax allows you to reference specific code elements:
+This syntax allows you to reference specific code elements using [XML documentation ID syntax](../reference/xmldocid-format).
 
-- `T:` for types/classes
-- `M:` for methods
 
 `bodyonly` can be added to `xmldocid` for scenarios where you only want the body of the method or type without the
 declaration. This can be useful for showing just the implementation details without the full signature.
+
 
 </Step>
 

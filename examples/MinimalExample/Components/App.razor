@@ -1,5 +1,4 @@
-﻿@using MyLittleContentEngine
-@inject ContentEngineOptions Options
+﻿@inject LinkService LinkService
 
 <!DOCTYPE html>
 <html lang="en">
@@ -7,10 +6,8 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     
-    @* ReSharper disable Html.PathError *@
-    <link rel="stylesheet" href="styles.css">
-    <script src="_content/MyLittleContentEngine.UI/scripts.js" defer></script>
-    @* ReSharper restore Html.PathError *@
+    <link rel="stylesheet" href="@LinkService.GetLink("/styles.css")">
+    <script src="@LinkService.GetLink("/_content/MyLittleContentEngine.UI/scripts.js")" defer></script>
     
     <HeadOutlet/>
 </head>

@@ -11,19 +11,9 @@ coordinates multiple subsystems to produce a complete static website.
 ## Overview of the Generation Process
 
 The static generation pipeline follows a carefully orchestrated sequence of operations:
-
-```mermaid
-graph TD
-    A[Start Generation] --> B[Collect Pages to Generate]
-    B --> C[Discover Routes]
-    C --> D[Clear Output Directory]
-    D --> E[Copy Static Assets]
-    E --> F[Render Pages by Priority]
-    F --> G[Save HTML Files]
-    G --> H[Complete]
-```
-
-## Phase 1: Page Collection and Discovery
+<Steps>
+<Step stepNumber="1">
+## Page Collection and Discovery
 
 The pipeline begins by collecting all pages that need to be generated from multiple sources:
 
@@ -60,12 +50,18 @@ first. This includes generating the MonorailCSS stylesheet if it has been regist
 
 Additionally, pages can be explicitly defined in configuration through the `PagesToGenerate` option.
 
-## Phase 2: Output Directory Preparation
+</Step>
+<Step stepNumber="2">
+
+## Output Directory Preparation
 
 Before generation begins, the output directory is completely cleared and recreated. This ensures a clean slate for each
 generation run, preventing stale files from previous builds.
 
-## Phase 3: Static Asset Collection and Copying
+
+</Step>
+<Step stepNumber="3">
+## Static Asset Collection and Copying
 
 The pipeline collects and copies all static assets from multiple sources:
 
@@ -89,7 +85,9 @@ Individual content services can contribute their own static assets through the `
 
 All collected assets are then copied to the output directory, respecting the `IgnoredPathsOnContentCopy` configuration.
 
-## Phase 4: Page Generation with Priority Ordering
+</Step>
+<Step stepNumber="4">
+## Page Generation with Priority Ordering
 
 Pages are generated in priority order to handle dependencies correctly. The system uses three priority levels:
 
@@ -103,3 +101,5 @@ Within each priority level, pages are generated in parallel for optimal performa
 
 Each page is rendered by making an HTTP request to the running Blazor application. The rendered HTML is then saved to
 the appropriate location in the output directory, with directories created as needed.
+</Step>
+</Steps>

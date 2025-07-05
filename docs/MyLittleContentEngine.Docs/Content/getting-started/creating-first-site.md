@@ -51,36 +51,16 @@ The `MyLittleContentEngine.MonorailCss` package is optional, but `MyLittleConten
 regarding styling that you'd otherwise have to unravel without it.
 We'll use it in this example to keep things simple.
 </Step>
-<Step title="Add Static Content Service" stepNumber="3">
+<Step stepNumber="3">
 
-## Add Static Content Service
+## Build Your Metadata Model
 
-Create a model to define the structure of your blog post metadata. Add a new file `BlogPost.cs`:
+Create a model to define the structure of your blog post metadata. Add a new file `BlogFrontMatter.cs`:
 
 
 
-```csharp
-public class BlogFrontMatter : IFrontMatter
-{
-    public string Title { get; init; } = "Empty title";
-    public string Description { get; init; } = string.Empty;
-    public string? Uid { get; init; } = null;
-
-    public DateTime Date { get; init; } = DateTime.Now;
-    public bool IsDraft { get; init; } = false;
-    public string[] Tags { get; init; } = [];
-
-    public Metadata AsMetadata()
-    {
-        return new Metadata()
-        {
-            Title = Title,
-            Description = Description,
-            LastMod = Date,
-            RssItem = true
-        };
-    }
-}
+```csharp:xmldocid
+T:MinimalExample.BlogFrontMatter
 ```
 </Step>
 <Step stepNumber="4">
@@ -105,7 +85,8 @@ mkdir -p Content
 <Step stepNumber="6">
 ## Write Your First Blog Post
 
-Create your first blog post at `Content/index.md`:
+Create your first blog post at `Content/index.md`. Make sure to include the front matter at the top of the file that 
+matches the `BlogFrontMatter` model you created earlier. Here's an example:
 
 ```markdown:path
 examples/MinimalExample/Content/index.md
@@ -128,7 +109,8 @@ examples/MinimalExample/Components/Layout/MainLayout.razor
 ## Create the Home Page
 
 Create `Components/Home.razor` to display your blog posts. Here we are calling `GetAllContentPagesAsync` to retrieve all
-the blog posts and display them in a list.
+the blog posts and display them in a list. `NavLink` is used to link to each blog post page, taking into account the [rules
+around BaseUrl](../guides/linking-documents-and-media).
 
 ```razor:path
 examples/MinimalExample/Components/Layout/Home.razor
@@ -144,7 +126,7 @@ to retrieve the blog post by its URL.
 examples/MinimalExample/Components/Layout/Pages.razor
 ```
 </Step>
-<Step stepNumber="6">
+<Step stepNumber="10">
 ## Configure `dotnet watch` Support
 
 The last step we need to do is to ensure that the content files are watched for changes during development.

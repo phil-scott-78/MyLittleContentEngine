@@ -213,4 +213,80 @@ public class FileSystemUtilitiesTests
 
         result.ShouldBe("blog/2023/my-awesome-post");
     }
+
+    [Fact]
+    public void GetFilesInDirectory_MultiplePatterns_ReturnsAllMatchingFiles()
+    {
+        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+        {
+            { "/content/file1.md", new MockFileData("content1") },
+            { "/content/file2.mdx", new MockFileData("content2") },
+            { "/content/file3.txt", new MockFileData("content3") },
+            { "/content/subdirectory/file4.md", new MockFileData("content4") },
+            { "/content/subdirectory/file5.mdx", new MockFileData("content5") }
+        });
+        var pathUtilities = new FileSystemUtilities(fileSystem);
+
+        var (files, absolutePath) = pathUtilities.GetFilesInDirectory("/content", "*.md;*.mdx", recursive: true);
+
+        files.Length.ShouldBe(4);
+        files.ShouldContain(s => s.Contains("file1.md"));
+        files.ShouldContain(s => s.Contains("file2.mdx"));
+        files.ShouldContain(s => s.Contains("file4.md"));
+        files.ShouldContain(s => s.Contains("file5.mdx"));
+        files.ShouldNotContain(s => s.Contains("file3.txt"));
+    }
+
+    [Fact]
+    public void GetFilesInDirectory_MultiplePatterns_RemovesDuplicates()
+    {
+        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+        {
+            { "/content/file1.md", new MockFileData("content1") },
+            { "/content/file2.mdx", new MockFileData("content2") }
+        });
+        var pathUtilities = new FileSystemUtilities(fileSystem);
+
+        var (files, absolutePath) = pathUtilities.GetFilesInDirectory("/content", "*.md;*.md;*.mdx", recursive: true);
+
+        files.Length.ShouldBe(2);
+        files.ShouldContain(s => s.Contains("file1.md"));
+        files.ShouldContain(s => s.Contains("file2.mdx"));
+    }
+
+    [Fact]
+    public void GetFilesInDirectory_MultiplePatternsWithSpaces_HandlesCorrectly()
+    {
+        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+        {
+            { "/content/file1.md", new MockFileData("content1") },
+            { "/content/file2.mdx", new MockFileData("content2") },
+            { "/content/file3.txt", new MockFileData("content3") }
+        });
+        var pathUtilities = new FileSystemUtilities(fileSystem);
+
+        var (files, absolutePath) = pathUtilities.GetFilesInDirectory("/content", " *.md ; *.mdx ", recursive: true);
+
+        files.Length.ShouldBe(2);
+        files.ShouldContain(s => s.Contains("file1.md"));
+        files.ShouldContain(s => s.Contains("file2.mdx"));
+        files.ShouldNotContain(s => s.Contains("file3.txt"));
+    }
+
+    [Fact]
+    public void GetFilesInDirectory_SinglePattern_WorksAsExpected()
+    {
+        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
+        {
+            { "/content/file1.md", new MockFileData("content1") },
+            { "/content/file2.mdx", new MockFileData("content2") }
+        });
+        var pathUtilities = new FileSystemUtilities(fileSystem);
+
+        var (files, absolutePath) = pathUtilities.GetFilesInDirectory("/content", "*.md", recursive: true);
+
+        files.Length.ShouldBe(1);
+        files.ShouldContain(s => s.Contains("file1.md"));
+        files.ShouldNotContain(s => s.Contains("file2.mdx"));
+    }
 }

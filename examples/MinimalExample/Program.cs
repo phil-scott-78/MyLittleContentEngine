@@ -26,7 +26,16 @@ builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineCont
     BasePageUrl = string.Empty
 });
 
-builder.Services.AddMonorailCss();
+builder.Services.AddMonorailCss(_ =>
+{
+    return new MonorailCssOptions
+    {
+        CustomCssFrameworkSettings = defaultSettings => defaultSettings with
+        {
+            Applies = defaultSettings.Applies.SetItem(".hljs-deletion", "text-amber-700 dark:text-amber-300")
+        }
+    };
+});
 
 var app = builder.Build();
 app.UseAntiforgery();

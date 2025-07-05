@@ -45,7 +45,12 @@ public class ContentEngineContentOptions<TFrontMatter> : IContentOptions
     /// Gets or sets the file pattern used to identify content files in the ContentPath.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// The default value is "*.md" to match all Markdown files.
+    /// </para>
+    /// <para>
+    /// Multiple patterns can be specified using semicolon separation (e.g., "*.md;*.mdx").
+    /// </para>
     /// </remarks>
     public string PostFilePattern { get; init; } = "*.md";
 

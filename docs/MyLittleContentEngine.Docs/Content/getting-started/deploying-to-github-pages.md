@@ -5,6 +5,7 @@ order: 1090
 ---
 
 This tutorial covers:
+
 - Setting up GitHub Actions for automated builds
 - Configuring base URLs for subdirectory deployment
 - Handling static assets and routing correctly
@@ -18,7 +19,9 @@ This tutorial covers:
 - Basic understanding of Git and GitHub
 - Your MyLittleContentEngine project pushed to a GitHub repository
 
-## Step 1: Prepare Your Repository
+<Steps>
+<Step stepNumber="1">
+## Prepare Your Repository
 
 First, ensure your project is properly configured for GitHub Pages deployment.
 
@@ -31,6 +34,7 @@ First, ensure your project is properly configured for GitHub Pages deployment.
 ### Project Structure
 
 Make sure your project structure follows this pattern:
+
 ```
 your-repo/
 ├── .github/
@@ -45,7 +49,12 @@ your-repo/
 └── README.md
 ```
 
-## Step 2: Configure GitHub Actions Workflow
+Note that we are using a [`global.json`](https://learn.microsoft.com/en-us/dotnet/core/tools/global-json) file to specify the
+.NET SDK version. This ensures consistent builds across different environments, and is used in the GH pages to install
+the appropriate .NET version.
+</Step>
+<Step stepNumber="2">
+## Configure GitHub Actions Workflow
 
 Create `.github/workflows/deploy.yml` in your repository root:
 
@@ -78,12 +87,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Install .NET
         uses: actions/setup-dotnet@v4
         with:
           global-json-file: global.json
-         
+
       - name: Run webapp and generate static files
         env:
           BaseUrl: "/your-repository-name/"
@@ -94,10 +103,10 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
-        
+
       - name: Add .nojekyll file
         run: touch ${{ env.WEBAPP_PATH }}output/.nojekyll
-        
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
@@ -119,25 +128,31 @@ jobs:
 ### Key Configuration Points
 
 **Environment Variables to Update:**
+
 - `WEBAPP_PATH`: Path to your project directory
 - `WEBAPP_CSPROJ`: Your project file name
 - `BaseUrl`: Your repository name (for GitHub Pages subdirectory)
 
 **Important:** Replace `your-repository-name` and `YourProject` with your actual values.
+</Step>
+<Step stepNumber="3">
+## Configuring Base URLs
 
-## Step 3: Understanding and Configuring Base URLs
-
-This is one of the most important aspects of GitHub Pages deployment. Understanding BaseUrl is crucial for your site to work correctly.
+This is one of the most important aspects of GitHub Pages deployment. Understanding BaseUrl is crucial for your site to
+work correctly.
 
 ### Why BaseUrl Matters
 
 **Local Development vs GitHub Pages:**
+
 - **Local development**: Your site runs at `http://localhost:5000/` (root domain)
 - **GitHub Pages**: Your site runs at `https://username.github.io/repository-name/` (subdirectory)
 
-Without proper BaseUrl configuration, your site will have broken links, missing CSS, and non-functional navigation when deployed to GitHub Pages.
+Without proper BaseUrl configuration, your site will have broken links, missing CSS, and non-functional navigation when
+deployed to GitHub Pages.
 
-See the [Linking Documents and Media](/guides/linking-documents-and-media) guide for more details on how MyLittleContentEngine handles links.
+See the [Linking Documents and Media](/guides/linking-documents-and-media) guide for more details on how
+MyLittleContentEngine handles links.
 
 ### Update Your Program.cs
 
@@ -152,9 +167,9 @@ builder.Services.AddContentEngineService(() => new ContentEngineOptions
     ContentRootPath = "Content",
 });
 ```
-
-
-## Step 4: Set Up GitHub Pages
+</Step>
+<Step stepNumber="4">
+## Set Up GitHub Pages
 
 ### Enable GitHub Pages
 
@@ -162,8 +177,10 @@ builder.Services.AddContentEngineService(() => new ContentEngineOptions
 2. Navigate to **Pages** in the sidebar
 3. Under **Source**, select **GitHub Actions**
 4. Save the settings
+</Step>
+<Step stepNumber="5">
 
-## Step 5: Test Your Deployment
+## Test Your Deployment
 
 ### Push Your Changes
 
@@ -190,7 +207,9 @@ Once the workflow completes:
 3. Verify that navigation works properly
 4. Test that images and other assets load
 
-## Step 6: Custom Domain (Optional)
+</Step>
+<Step stepNumber="6">
+## Custom Domain (Optional)
 
 To use a custom domain:
 
@@ -218,67 +237,10 @@ Modify your workflow to use your custom domain:
     BaseUrl: "/"  # Root path for custom domain
     DOTNET_CLI_TELEMETRY_OPTOUT: true
 ```
+</Step>
+</Steps>
 
-## Troubleshooting Common Issues
 
-### Build Failures
 
-**Issue**: `dotnet: command not found`
-**Solution**: Ensure the `global.json` file exists and specifies the correct .NET version.
-
-**Issue**: Project not found
-**Solution**: Verify the `WEBAPP_PATH` and `WEBAPP_CSPROJ` environment variables are correct.
-
-### BaseUrl and URL Issues
-
-**Issue**: Site loads but CSS/styles are missing
-**Solution**: 
-- Verify `BaseUrl` is set correctly in your GitHub Actions workflow
-- Check that it matches your repository name exactly: `/repository-name/`
-- Ensure the trailing slash is included
-
-**Issue**: Navigation links return 404 errors
-**Solution**:
-- Confirm your `Program.cs` reads the `BaseUrl` environment variable
-- Test locally by setting `BaseUrl=/your-repo-name/` and running `dotnet run -- build`
-- Verify the generated HTML contains the correct prefixed URLs
-
-**Issue**: "This site can't be reached" or completely broken deployment
-**Solution**:
-- Double-check the `BaseUrl` format: `/repository-name/` (with leading and trailing slashes)
-- Ensure your repository name in the workflow matches your actual GitHub repository name
-- Case sensitivity matters: `/MyRepo/` ≠ `/myrepo/`
-
-**Example of correct BaseUrl values:**
-```yaml
-# For repository "MyLittleContentEngine"
-BaseUrl: "/MyLittleContentEngine/"
-
-# For repository "my-blog"  
-BaseUrl: "/my-blog/"
-
-# For custom domain (no subdirectory)
-BaseUrl: "/"
-```
-
-### Other Deployment Issues
-
-**Issue**: 404 errors on page navigation
-**Solution**: 
-- Ensure the `.nojekyll` file is created
-- Check that `BaseUrl` is configured correctly (see above)
-- Verify your routing setup
-
-**Issue**: Images or other assets not loading
-**Solution**:
-- Use relative paths in your markdown content
-- Avoid absolute paths like `/images/photo.jpg`
-- Use relative paths like `images/photo.jpg` or `../images/photo.jpg`
-
-**Issue**: Custom domain not working
-**Solution**:
-- Verify DNS configuration
-- Check that HTTPS is enabled in repository settings
-- Ensure the `CNAME` file exists
-
-Your MyLittleContentEngine site is now automatically deployed to GitHub Pages! Every time you push to the main branch, your site will be rebuilt and deployed automatically.
+Your MyLittleContentEngine site is now automatically deployed to GitHub Pages! Every time you push to the main branch,
+your site will be rebuilt and deployed automatically.

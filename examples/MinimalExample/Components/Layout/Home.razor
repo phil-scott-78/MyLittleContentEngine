@@ -1,8 +1,5 @@
 @page "/"
 @using System.Collections.Immutable
-@using MyLittleContentEngine
-@using MyLittleContentEngine.Models
-@using MyLittleContentEngine.Services.Content
 @inject ContentEngineOptions ContentEngineOptions
 @inject IMarkdownContentService<BlogFrontMatter> MarkdownContentService
 
@@ -17,7 +14,7 @@
 <ul class="list-disc pl-6 space-y-2">
     @foreach (var p in _pages.OrderByDescending(i => i.FrontMatter.Date))
     {
-        <li><a href="@p.NavigateUrl">@p.FrontMatter.Title</a></li>
+        <li><NavLink Href="@p.NavigateUrl">@p.FrontMatter.Title</NavLink></li>
     }
 </ul>
 

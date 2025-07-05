@@ -1,10 +1,9 @@
-using MyLittleContentEngine.Models;
+﻿using MyLittleContentEngine.Models;
 
 namespace MinimalExample;
 
 public class BlogFrontMatter : IFrontMatter
 {
-    /// <summary>Title of the blog post.</summary>
     public string Title { get; init; } = "Empty title";
     public string Description { get; init; } = string.Empty;
     public string? Uid { get; init; } = null;

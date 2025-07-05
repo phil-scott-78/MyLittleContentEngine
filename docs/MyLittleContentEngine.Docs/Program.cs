@@ -36,7 +36,8 @@ builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineCont
 {
     ContentPath = "Content",
     BasePageUrl = string.Empty,
-    ExcludeSubfolders = false
+    ExcludeSubfolders = false,
+    PostFilePattern = "*.md;*.mdx"
 });
 
 builder.Services.AddMonorailCss(_ => new MonorailCssOptions
@@ -69,10 +70,6 @@ builder.Services.AddApiReferenceContentService(_ => new ApiReferenceContentOptio
 {
     IncludeNamespace = ["MyLittleContentEngine"],
     ExcludedNamespace = ["MyLittleContentEngine.Tests"],
-    UrlOptions = new ApiReferenceUrlOptions()
-    {
-        
-    }
 });
 
 var app = builder.Build();
