@@ -38,7 +38,7 @@ public interface IRoslynExampleCoordinator : IDisposable
 /// <summary>
 /// Coordinates loading of example assemblies and providing their source code and output.
 /// </summary>
-internal class RoslynExampleCoordinator : IDisposable, IRoslynExampleCoordinator
+internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
 {
     private readonly ILogger _logger;
     private readonly MSBuildWorkspace _workspace;
@@ -51,6 +51,7 @@ internal class RoslynExampleCoordinator : IDisposable, IRoslynExampleCoordinator
     private readonly ConnectedDotNetSolution _connectedSolution;
     private volatile bool _isRebuilding;
     private bool _disposed;
+    private readonly string _tempBuildDirectory;
 
     /// <summary>
     /// Creates a new instance of the <see cref="RoslynExampleCoordinator"/> class.
@@ -101,8 +102,22 @@ internal class RoslynExampleCoordinator : IDisposable, IRoslynExampleCoordinator
             _logger.LogDebug("MSBuildLocator already registered.");
         }
 
-        _workspace = MSBuildWorkspace.Create();
-        _logger.LogDebug("MSBuildWorkspace created");
+        // Create a temporary directory for build outputs
+        _tempBuildDirectory = _fileSystem.Path.Combine(_fileSystem.Path.GetTempPath(), "MyLittleContentEngine", Guid.NewGuid().ToString("N"));
+        _fileSystem.Directory.CreateDirectory(_tempBuildDirectory);
+        
+        // Configure MSBuild properties to use temp directory for compilation outputs only
+        // We use OutputPath and IntermediateOutputPath rather than Base* to preserve reference resolution
+        var properties = new Dictionary<string, string>
+        {
+            // Redirect only the final output directory for this specific build
+            ["OutputPath"] = _fileSystem.Path.Combine(_tempBuildDirectory, "bin") + _fileSystem.Path.DirectorySeparatorChar,
+            // Redirect intermediate files to temp location
+            ["IntermediateOutputPath"] = _fileSystem.Path.Combine(_tempBuildDirectory, "obj") + _fileSystem.Path.DirectorySeparatorChar
+        };
+        
+        _workspace = MSBuildWorkspace.Create(properties);
+        _logger.LogDebug("MSBuildWorkspace created with temp build directory: {TempBuildDir}", _tempBuildDirectory);
 
         _workspace.LoadMetadataForReferencedProjects = true;
         _workspace.WorkspaceFailed += (_, args) =>
@@ -589,6 +604,20 @@ internal class RoslynExampleCoordinator : IDisposable, IRoslynExampleCoordinator
         {
             _roslynCache.Dispose();
             _workspace.Dispose();
+            
+            // Clean up temporary build directory
+            try
+            {
+                if (_fileSystem.Directory.Exists(_tempBuildDirectory))
+                {
+                    _fileSystem.Directory.Delete(_tempBuildDirectory, recursive: true);
+                    _logger.LogDebug("Cleaned up temp build directory: {TempBuildDir}", _tempBuildDirectory);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to clean up temp build directory: {TempBuildDir}", _tempBuildDirectory);
+            }
         }
 
         _disposed = true;
