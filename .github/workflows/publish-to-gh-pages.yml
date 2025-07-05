@@ -45,6 +45,12 @@ jobs:
         
       - name: Add .nojekyll file
         run: touch ${{ env.WEBAPP_PATH }}output/.nojekyll
+
+      - name: Minify-JS Action
+        uses: jossydevers/minify-js@v1.0.0
+        with:
+          directory: ${{ env.WEBAPP_PATH }}output
+          output: ${{ env.WEBAPP_PATH }}output
         
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
