@@ -385,8 +385,8 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 { ".hljs", "text-base-900 dark:text-base-200" },
 
                 // Comments
-                { ".hljs-comment", "text-base-600 italic dark:text-base-500" },
-                { ".hljs-quote", "text-base-800/50 italic dark:text-base-300/50" },
+                { ".hljs-comment", "text-base-600 italic dark:text-base-400" },
+                { ".hljs-quote", "text-base-800/50 italic dark:text-base-300" },
 
                 // Keywords and control flow
                 { ".hljs-keyword", "text-primary-800 dark:text-primary-300" },
