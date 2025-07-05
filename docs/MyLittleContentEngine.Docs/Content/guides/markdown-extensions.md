@@ -15,31 +15,10 @@ default values.
 
 ## Default Markdig Pipeline
 
-The default [Markdig pipeline used by MyLittleContentEngine includes the following extensions:
+The default Markdig pipeline used by MyLittleContentEngine includes the following extensions:
 
-```csharp
-var builder = new MarkdownPipelineBuilder()
-   .UseAutoIdentifiers(AutoIdentifierOptions.GitHub) // This sets up GitHub-style header IDs
-   .UseAlertBlocks()
-   .UseAbbreviations()
-   .UseCitations()
-   .UseCustomContainers()
-   .UseDefinitionLists()
-   .UseEmphasisExtras()
-   .UseFigures()
-   .UseFooters()
-   .UseFootnotes()
-   .UseGridTables()
-   .UseMathematics()
-   .UseMediaLinks()
-   .UsePipeTables()
-   .UseListExtras()
-   .UseTaskLists()
-   .UseAutoLinks()
-   .UseGenericAttributes()
-   .UseDiagrams()
-   .UseCustomContainers()
-   .UseYamlFrontMatter()
+```csharp:xmldocid,bodyonly
+P:MyLittleContentEngine.ContentEngineOptions.MarkdownPipelineBuilder
 ```
 
 `UseAutoIdentifiers(AutoIdentifierOptions.GitHub)` is critical for generating IDs for headers, which is necessary for

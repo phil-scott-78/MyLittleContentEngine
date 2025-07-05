@@ -553,9 +553,19 @@ internal class RoslynExampleCoordinator : IDisposable, IRoslynExampleCoordinator
     {
         // Get the leading trivia and find whitespace
         var leadingTrivia = syntaxNode.GetLeadingTrivia();
-        var leadingWhitespaceLength = leadingTrivia
-            .Where(t => t.IsKind(SyntaxKind.WhitespaceTrivia))
-            .Sum(t => t.Span.Length);
+
+        var leadingWhitespaceLength = 0;
+        foreach (var trivia in leadingTrivia.Reverse())
+        {
+            if (trivia.IsKind(SyntaxKind.WhitespaceTrivia))
+            {
+                leadingWhitespaceLength += trivia.Span.Length;
+            }
+            else
+            {
+                break;
+            }
+        }
 
         // Create a new text span that includes the leading whitespace
         var extendedStartPosition = syntaxNode.SpanStart - leadingWhitespaceLength;

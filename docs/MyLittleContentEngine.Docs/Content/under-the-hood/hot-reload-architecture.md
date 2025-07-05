@@ -73,15 +73,6 @@ when batch operations modify many files.
 The `ContentEngineFileWatcher` monitors specified directories for file changes and triggers refresh operations. It
 supports both specific file pattern watching and general directory monitoring.
 
-### Capabilities
-
-- **Pattern Matching**: Watch specific file types (e.g., `*.md`, `*.razor`)
-- **Directory Monitoring**: Watch entire directories for any changes
-- **Subdirectory Support**: Optionally include subdirectories in monitoring
-- **Path Validation**: Automatically handles non-existent directories gracefully
-
-### Hot Reload Integration
-
 The watcher includes special support for Blazor's hot reload mechanism through the
 [
 `MetadataUpdateHandler`](https://learn.microsoft.com/en-us/dotnet/api/system.reflection.metadata.metadataupdatehandlerattribute?view=net-9.0)
@@ -126,7 +117,7 @@ public class MarkdownContentService<TFrontMatter> : IMarkdownContentService<TFro
 ### Workflow
 
 1. **Initial Load**: First content access triggers expensive processing operation
-2. **File Change**: Developer modifies a markdown file
+2. **File Change**: Developer modifies a markdown file or source code
 3. **Detection**: `ContentEngineFileWatcher` detects the change
 4. **Invalidation**: Calls `NeedsRefresh()` which triggers `_contentCache.Refresh()`
 5. **Debouncing**: If multiple changes occur rapidly, they're coalesced
@@ -134,100 +125,4 @@ public class MarkdownContentService<TFrontMatter> : IMarkdownContentService<TFro
 7. **Cache Update**: New content replaces cached values
 8. **UI Refresh**: Next page request gets updated content
 
-## Performance Characteristics
 
-### Memory Usage
-
-- **Lazy Loading**: Content is only loaded when accessed
-- **Single Instance**: Only one copy of processed content exists in memory
-- **Efficient Updates**: Only changed content is reprocessed
-
-### CPU Usage
-
-- **Debouncing**: Prevents excessive recomputation during rapid changes
-- **Incremental**: Only affected content is reprocessed
-- **Background**: Refresh operations don't block UI threads
-
-### I/O Optimization
-
-- **Minimal File Access**: Files are read only when necessary
-- **Efficient Watching**: File system watchers are lightweight
-- **Batch Processing**: Multiple file changes are processed together
-
-## Development Benefits
-
-The hot reload architecture provides several advantages for developers:
-
-### Immediate Feedback
-
-Changes to markdown files, templates, or other content are reflected immediately in the browser without restarting the
-application.
-
-### Efficient Development Workflow
-
-- **No Manual Restarts**: Content changes don't require application restarts
-- **Rapid Iteration**: Quick edit-and-refresh cycles
-- **Consistent State**: Application state is preserved across content updates
-
-### Robust Error Handling
-
-- **Graceful Degradation**: File system errors don't crash the application
-- **Logging**: Comprehensive logging for debugging file watching issues
-- **Recovery**: Automatic recovery from transient file system issues
-
-## Configuration and Customization
-
-### Debounce Timing
-
-The debounce delay can be customized based on your development environment:
-
-```csharp
-// Custom debounce delay for slower file systems
-var cache = new LazyAndForgetful<T>(factory, TimeSpan.FromMilliseconds(200));
-```
-
-### File Patterns
-
-Customize which files trigger refreshes:
-
-```csharp
-// Watch specific file types
-fileWatcher.AddPathWatch(contentPath, "*.md", OnMarkdownChanged);
-fileWatcher.AddPathWatch(templatePath, "*.razor", OnTemplateChanged);
-
-// Watch entire directories
-fileWatcher.AddPathsWatch([contentPath, templatePath], OnAnyContentChanged);
-```
-
-### Logging
-
-Enable detailed logging to troubleshoot file watching issues:
-
-```csharp
-// File watcher logs at Debug level for normal operations
-// and Warning/Error levels for issues
-services.AddLogging(builder => builder.SetMinimumLevel(LogLevel.Debug));
-```
-
-## Best Practices
-
-### Content Organization
-
-- **Logical Grouping**: Organize content in logical directory structures
-- **Minimal Nesting**: Avoid deeply nested directory structures that might impact watching performance
-- **Clear Naming**: Use descriptive file names that make debugging easier
-
-### Development Workflow
-
-- **Save Frequency**: The debouncing handles rapid saves gracefully
-- **Batch Operations**: Large batch file operations are handled efficiently
-- **IDE Integration**: Works seamlessly with popular IDEs and their file watching
-
-### Performance Monitoring
-
-- **Log Analysis**: Monitor file watcher logs for performance issues
-- **Memory Usage**: Track memory usage during long development sessions
-- **Response Times**: Monitor content refresh response times
-
-The hot reload architecture in MyLittleContentEngine provides a robust, efficient, and developer-friendly foundation for
-content management, enabling rapid iteration and a smooth development experience.

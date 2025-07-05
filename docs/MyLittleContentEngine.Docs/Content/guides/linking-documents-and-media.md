@@ -76,7 +76,7 @@ MyLittleContentEngine automatically processes all links in your content:
 <!-- Relative links - automatically rewritten -->
 [Another Article](../guides/advanced-configuration)
 [Media File](./images/diagram.png)
-[Root Page](index)
+[Root Page](../../index)
 
 <!-- Absolute links - BaseUrl automatically prepended -->
 [Documentation](/docs/guide)
@@ -102,17 +102,18 @@ MyLittleContentEngine automatically processes all links in your content:
 
 ### In Razor Pages and Components
 
-Use the `<Link>` component for consistent link handling:
+Use the `<RefLink>` component for consistent link handling. Not we swap the `class` 
+attribute to `CssClass`:
 
 ```razor
 @* Basic usage *@
-<Link Href="/docs/guide">Documentation</Link>
-<Link Href="../api">API Reference</Link>
+<RefLink Href="/docs/guide">Documentation</RefLink>
+<RefLink Href="../api">API Reference</RefLink>
 
 @* With additional attributes *@
-<Link Href="https://example.com" Target="_blank" CssClass="external-link">
+<RefLink Href="https://example.com" Target="_blank" CssClass="external-link">
     External Site
-</Link>
+</RefLink>
 
 @* For CSS/JS resources, inject LinkService *@
 @inject LinkService LinkService
@@ -142,15 +143,15 @@ processed:
 ### In Markdown
 
 ```markdown
-![Logo](images/logo.png)
-[Download PDF](documents/guide.pdf)
+![Logo](/images/logo.png)
+[Download PDF](/documents/guide.pdf)
 ```
 
 ### In Razor Components
 
 ```razor
 <img src="@LinkService.GetLink("/images/logo.png")" alt="Logo" />
-<Link Href="/documents/guide.pdf">Download Guide</Link>
+<RefLink Href="/documents/guide.pdf">Download Guide</RefLink>
 ```
 
 ## Testing Static Deployment
@@ -208,7 +209,7 @@ MyLittleContentEngine provides built-in link validation:
 ## Best Practices
 
 1. **Prefer absolute paths** (`/docs/guide`) over relative paths (`../guide`) for cleaner, more predictable links
-2. **Use the Link component** in Razor pages for consistent behavior
+2. **Use the `RefLink` component** in Razor pages for consistent behavior
 3. **Test with different BaseUrl values** to ensure deployment compatibility
 4. **Inject LinkService** for programmatic link generation
 5. **Avoid manual BaseUrl concatenation** - let the system handle it automatically
@@ -216,6 +217,6 @@ MyLittleContentEngine provides built-in link validation:
 ## Summary
 
 MyLittleContentEngine's automatic link rewriting eliminates the complexity of managing links across different deployment
-scenarios. By configuring `BaseUrl` appropriately and using the provided `Link` component and `LinkService`, your site
+scenarios. By configuring `BaseUrl` appropriately and using the provided `RefLink` component and `LinkService`, your site
 will generate correct links whether deployed at the root or in a subdirectory, without requiring HTML `<base>` tags that
 can interfere with crawlers and SEO.

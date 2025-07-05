@@ -193,10 +193,6 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                                     designSystem.Colors["base"][ColorLevels._700].AsString()),
                             ]),
 
-                            new CssRuleSet("table",
-                            [
-                                new CssDeclaration(CssProperties.FontSize, ".80em"),
-                            ]),
                         ]
                     }
                 },
@@ -205,11 +201,15 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                     {
                         ChildRules =
                         [
-                            new CssRuleSet(":not(pre) > code", [new CssDeclaration(CssProperties.FontSize, "0.77em")]),
+                            new CssRuleSet(":not(pre,table) > code", [new CssDeclaration(CssProperties.FontSize, "0.77em")]),
                             new CssRuleSet("pre code", [new CssDeclaration(CssProperties.FontSize, "1em")]),
                             new CssRuleSet("table",
                             [
                                 new CssDeclaration(CssProperties.FontSize, ".80em"),
+                            ]),
+                            new CssRuleSet("table :not(pre) > code",
+                            [
+                                new CssDeclaration(CssProperties.FontSize, ".95em"),
                             ]),
                         ]
                     }
@@ -272,11 +272,11 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
             .AddRange(new Dictionary<string, string>
             {
                 { ".DocSearch .cls-1, .DocSearch .cls-2", "fill-base-500 dark:fill-base-300" },
-                { ".DocSearch-Container", "backdrop-blur bg-base-200/75 dark:backdrop-blur dark:bg-base-800/75" },
-                { ".DocSearch.DocSearch-Button", "w-full m-0 max-w-lg h-8" },
+                { ".DocSearch-Container", "backdrop-blur bg-base-200/75 dark:backdrop-blur dark:bg-base-800/75 " },
+                { ".DocSearch.DocSearch-Button", "w-8 md:w-32 lg:w-full m-0 max-w-lg h-8 transition-all" },
                 { ".DocSearch.DocSearch-Button .DocSearch-Search-Icon", "h-4 w-4" },
                 { ".DocSearch .DocSearch-Button-Keys", "hidden" },
-                { ".DocSearch .DocSearch-Button-Placeholder", "text-base-500 text-sm font-normal" },
+                { ".DocSearch .DocSearch-Button-Placeholder", "text-base-500 text-sm font-normal hidden md:block" },
             });
     }
     
