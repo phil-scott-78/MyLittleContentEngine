@@ -5,7 +5,8 @@ order: 2050
 ---
 
 This guide shows you how to customize the visual appearance of your MyLittleContentEngine site using MonorailCSS.
-MonorailCSS is a [TailwindCSS](https://tailwindcss.com/) compatible utility-first CSS framework that aims for syntax compatibility with Tailwind
+MonorailCSS is a [TailwindCSS](https://tailwindcss.com/) compatible utility-first CSS framework that aims for syntax
+compatibility with Tailwind
 while providing enhanced customization capabilities. You'll learn to modify color palettes, implement theme switching,
 and override default styling. It's not required for MyLittleContentEngine, but the `MyLittleContentEngine.UI` package
 makes assumptions that it is configured, or at least TailwindCSS is configured compatibly.
@@ -29,6 +30,56 @@ var app = builder.Build();
 app.UseMonorailCss();
 ```
 
+### MonorailCSS Services
+
+MonorailCSS registers several services in the dependency injection container
+
+```csharp
+builder.Services.AddMonorailCss();
+```
+
+- **`MonorailCssService`** - Core service that generates CSS stylesheets from collected classes
+- **`CssClassCollector`** - Thread-safe service that maintains a collection of CSS classes found in HTML responses
+
+These services work together to provide automatic CSS class discovery, color generation, and stylesheet compilation.
+
+### MonorailCSS Middleware
+
+The `CssClassCollectorMiddleware` automatically scans HTML responses to discover CSS classes being used:
+
+```csharp
+// Middleware is registered automatically when you call UseMonorailCss()
+app.UseMonorailCss();
+```
+
+The middleware:
+
+- Intercepts HTML responses using a regex pattern to find `class="..."` attributes
+- Extracts individual CSS classes from the class attribute values
+- Stores discovered classes in the `CssClassCollector` for CSS generation
+
+This automatic discovery ensures that only the CSS classes actually used in your application are included in the
+generated stylesheet.
+
+### Style.css Generation
+
+MonorailCSS generates a complete CSS stylesheet at runtime through the `/styles.css` endpoint:
+
+1. **Class Collection**: The middleware collects CSS classes from rendered HTML
+2. **Color Generation**: Color palettes are generated from your configured hue values using OKLCH color space
+3. **Component Styles**: Built-in styles for code blocks, tabs, alerts, and other content engine components
+4. **CSS Compilation**: The `MonorailCssService` combines all elements into a complete stylesheet
+
+The generated CSS includes:
+
+- **Utility classes** for discovered CSS classes (spacing, colors, typography, etc.)
+- **Component styles** for syntax highlighting, tabbed code blocks, and markdown alerts
+- **Dark mode variants** using the `dark:` prefix
+- **Custom styles** defined in your `MonorailCssOptions.CustomCssFrameworkSettings`
+
+For static site generation, the CSS endpoint is automatically processed last to ensure all CSS classes have been
+discovered before generating the final stylesheet.
+
 ## Understanding MonorailCSS Colors
 
 MonorailCSS uses a TailwindCSS-compatible color system with numbered scales (50-950) and semantic color names. The
@@ -44,7 +95,6 @@ Like TailwindCSS, MonorailCSS uses a numerical color scale:
 - `500` - Base/medium shade
 - `600-800` - Dark shades
 - `900-950` - Darkest shades
-
 
 ## Customizing Color Palettes
 
@@ -102,7 +152,7 @@ All colors follow TailwindCSS naming conventions, so you can use them like:
 <button class="bg-accent-500 hover:bg-accent-600">
 ```
 
-All colors supported by TailwindCSS are available, but it is recommend to stick to `base`, `primary`, and `accent` 
+All colors supported by TailwindCSS are available, but it is recommend to stick to `base`, `primary`, and `accent`
 for your primary design system colors, as these are the ones that will be used by the MonorailCSS components.
 
 ## Implementing Dark/Light Theme Switching
@@ -152,16 +202,17 @@ MonorailCSS supports TailwindCSS dark mode syntax using the `dark:` prefix:
 
 By default, our pages will display in light mode unless we have set the `dark` class on the `<html>` element.
 
-We can make this more dynamic by adding a small script in the `<head>` section of our HTML to check the user's 
+We can make this more dynamic by adding a small script in the `<head>` section of our HTML to check the user's
 preference:
 
 ```html
+
 <script>
-  // this is actually duplicated in scripts.js, but we need it here to ensure the
-  // theme is set before the page loads to avoid flash of unstyled content
-  const isDarkMode = localStorage.theme === "dark" || (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches);
-  document.documentElement.classList.toggle("dark", isDarkMode);
-  document.documentElement.dataset.theme = isDarkMode ? "dark" : "light";
+    // this is actually duplicated in scripts.js, but we need it here to ensure the
+    // theme is set before the page loads to avoid flash of unstyled content
+    const isDarkMode = localStorage.theme === "dark" || (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    document.documentElement.classList.toggle("dark", isDarkMode);
+    document.documentElement.dataset.theme = isDarkMode ? "dark" : "light";
 </script>
 ```
 
@@ -217,9 +268,8 @@ CustomCssFrameworkSettings = defaultSettings => defaultSettings with
 ```
 
 The `Applies` dictionary lets you define reusable component classes using the full range of TailwindCSS utilities that
-MonorailCSS supports. This is especially useful when integrating with JavaScript frameworks. These apply elements are 
+MonorailCSS supports. This is especially useful when integrating with JavaScript frameworks. These apply elements are
 used, for example, to style the syntax highlighting in the code blocks
-
 
 ## Complete Example
 

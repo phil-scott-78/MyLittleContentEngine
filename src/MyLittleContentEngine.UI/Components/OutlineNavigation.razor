@@ -9,12 +9,14 @@
                 @OutlineLink(entry, "pl-4")
                 @if (entry.Children.Length > 0)
                 {
+                    <li>
                     <ul class="pb-1px">
                         @foreach (var childEntry in entry.Children)
                         {
                             @OutlineLink(childEntry, "pl-8")
                         }
                     </ul>
+                    </li>
                 }
             }
         </ul>

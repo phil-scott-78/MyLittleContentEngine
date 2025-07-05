@@ -270,6 +270,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                         [
                             new CssRuleSet("pre",
                             [
+                                new CssDeclaration(CssProperties.FontWeight, "300"),
                                 new CssDeclaration(CssProperties.BackgroundColor,
                                     designSystem.Colors["base"][ColorLevels._800].AsStringWithOpacity(".75")),
                                 new CssDeclaration(CssProperties.BoxShadow,
@@ -302,7 +303,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 { ".DocSearch.DocSearch-Button", "w-8 md:w-32 lg:w-full m-0 max-w-lg h-8 transition-all" },
                 { ".DocSearch.DocSearch-Button .DocSearch-Search-Icon", "h-4 w-4" },
                 { ".DocSearch .DocSearch-Button-Keys", "hidden" },
-                { ".DocSearch .DocSearch-Button-Placeholder", "text-base-500 text-sm font-normal hidden md:block" },
+                { ".DocSearch .DocSearch-Button-Placeholder", "text-base-700 dark:text-base-300 text-sm font-normal hidden md:block" },
             });
     }
     
@@ -316,8 +317,8 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                     "bg-base-100 border border-base-300/75 shadow-xs rounded rounded-xl overflow-x-auto dark:bg-base-950/25 dark:border-base-700/50"
                 },
                 {
-                    ".code-highlight-wrapper pre",
-                    "p-1 overflow-x-auto font-mono text-xs md:text-sm font-light leading-relaxed w-full dark:scheme-dark"
+                    ".code-highlight-wrapper pre ",
+                    "p-1 overflow-x-auto font-mono text-xs md:text-sm  dark:font-light leading-relaxed w-full dark:scheme-dark"
                 },
                 {
                     ".code-highlight-wrapper .standalone-code-highlight pre",
@@ -384,30 +385,30 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 { ".hljs", "text-base-900 dark:text-base-200" },
 
                 // Comments
-                { ".hljs-comment", "text-base-800/50 italic dark:text-base-300" },
+                { ".hljs-comment", "text-base-600 italic dark:text-base-500" },
                 { ".hljs-quote", "text-base-800/50 italic dark:text-base-300/50" },
 
                 // Keywords and control flow
-                { ".hljs-keyword", "text-primary-700 dark:text-primary-300" },
+                { ".hljs-keyword", "text-primary-800 dark:text-primary-300" },
                 { ".hljs-selector-tag", "text-primary-700 dark:text-primary-300" },
-                { ".hljs-literal", "text-primary-700 dark:text-primary-300" },
+                { ".hljs-literal", "text-primary-800 dark:text-primary-300" },
                 { ".hljs-type", "text-base-700 dark:text-base-300" },
 
                 // Strings and characters
-                { ".hljs-string", "text-tertiary-one-700 dark:text-tertiary-one-300" },
-                { ".hljs-number", "text-tertiary-one-700 dark:text-tertiary-one-300" },
-                { ".hljs-regexp", "text-tertiary-one-700 dark:text-tertiary-one-300" },
+                { ".hljs-string", "text-tertiary-one-800 dark:text-tertiary-one-300" },
+                { ".hljs-number", "text-tertiary-one-800 dark:text-tertiary-one-300" },
+                { ".hljs-regexp", "text-tertiary-one-800 dark:text-tertiary-one-300" },
 
                 // Functions and methods
-                { ".hljs-function", "text-accent-700 dark:text-accent-300" },
-                { ".hljs-title", "text-accent-700 dark:text-accent-300" },
-                { ".hljs-params", "text-accent-700 dark:text-accent-300" },
+                { ".hljs-function", "text-accent-800 dark:text-accent-300" },
+                { ".hljs-title", "text-accent-800 dark:text-accent-300" },
+                { ".hljs-params", "text-accent-800 dark:text-accent-300" },
 
                 // Variables and identifiers
-                { ".hljs-variable", "text-tertiary-two-700 dark:text-tertiary-two-300" },
-                { ".hljs-name", "text-tertiary-two-700 dark:text-tertiary-two-300" },
-                { ".hljs-attr", "text-tertiary-two-700 dark:text-tertiary-two-300" },
-                { ".hljs-symbol", "text-tertiary-two-700 dark:text-tertiary-two-300" },
+                { ".hljs-variable", "text-tertiary-two-800 dark:text-tertiary-two-300" },
+                { ".hljs-name", "text-tertiary-two-800 dark:text-tertiary-two-300" },
+                { ".hljs-attr", "text-tertiary-two-800 dark:text-tertiary-two-300" },
+                { ".hljs-symbol", "text-tertiary-two-800 dark:text-tertiary-two-300" },
 
                 // Operators and punctuation
                 { ".hljs-operator", "text-base-800 dark:text-base-300" },
@@ -415,13 +416,13 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
 
                 // Special elements
                 { ".hljs-built_in", "text-accent-700 dark:text-accent-300" },
-                { ".hljs-class", "text-primary-700 dark:text-primary-300" },
-                { ".hljs-meta", "text-base-700 dark:text-base-300" },
-                { ".hljs-tag", "text-primary-700 dark:text-primary-300" },
-                { ".hljs-attribute", "text-tertiary-two-700 dark:text-tertiary-two-300" },
-                { ".hljs-addition", "text-green-700 dark:text-green-300" },
-                { ".hljs-deletion", "text-red-700 dark:text-red-300" },
-                { ".hljs-link", "text-blue-700 dark:text-blue-300" },
+                { ".hljs-class", "text-primary-800 dark:text-primary-300" },
+                { ".hljs-meta", "text-base-800 dark:text-base-300" },
+                { ".hljs-tag", "text-primary-800 dark:text-primary-300" },
+                { ".hljs-attribute", "text-tertiary-two-800 dark:text-tertiary-two-300" },
+                { ".hljs-addition", "text-green-800 dark:text-green-300" },
+                { ".hljs-deletion", "text-red-800 dark:text-red-300" },
+                { ".hljs-link", "text-blue-800 dark:text-blue-300" },
             });
     }
 }

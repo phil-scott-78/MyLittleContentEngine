@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,12 +19,6 @@ public static class MonorailServiceExtensions
         }
         
         services.AddSingleton<CssClassCollector>();
-        services.AddSingleton<MonorailCssService>();
-
-        // Register the CSS class collector as a singleton
-        services.AddSingleton<CssClassCollector>();
-
-        // Register the MonorailCssService
         services.AddSingleton<MonorailCssService>();
 
         return services;
