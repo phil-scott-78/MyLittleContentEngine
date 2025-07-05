@@ -14,7 +14,7 @@
 <ul class="list-disc pl-6 space-y-2">
     @foreach (var p in _pages.OrderByDescending(i => i.FrontMatter.Date))
     {
-        <li><NavLink Href="@p.NavigateUrl">@p.FrontMatter.Title</NavLink></li>
+        <li><RefLink Href="@p.NavigateUrl">@p.FrontMatter.Title</RefLink></li>
     }
 </ul>
 
