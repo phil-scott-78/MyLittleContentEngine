@@ -4,7 +4,7 @@ description: "Complete reference for configuring MonorailCSS options, color sche
 order: 4020
 ---
 
-MonorailCSS provides a Tailwind-like CSS framework specifically designed for MyLittleContentEngine. This reference covers all configuration options, built-in styles, and customization capabilities.
+[MonorailCSS](https://github.com/monorailcss/MonorailCss.Framework) provides a Tailwind-like CSS framework specifically designed for MyLittleContentEngine. This reference covers all configuration options, built-in styles, and customization capabilities.
 
 ## MonorailCssOptions
 

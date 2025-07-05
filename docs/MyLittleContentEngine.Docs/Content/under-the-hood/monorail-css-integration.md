@@ -4,7 +4,7 @@ description: "Understanding the MonorailCSS integration and how to customize the
 order: 3002
 ---
 
-MyLittleContentEngine integrates with [MonorailCSS](https://github.com/DanielGaull/MonorailCSS) to provide a utility-first CSS framework with automatic class scanning and generation. This integration offers a complete design system with customizable colors, typography, and component styling.
+MyLittleContentEngine integrates with [MonorailCSS](https://github.com/monorailcss/MonorailCss.Framework) to provide a utility-first CSS framework with automatic class scanning and generation. This integration offers a complete design system with customizable colors, typography, and component styling.
 
 ## Overview
 
