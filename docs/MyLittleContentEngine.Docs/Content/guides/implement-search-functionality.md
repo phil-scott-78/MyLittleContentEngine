@@ -74,4 +74,26 @@ and `accent` colors.
 </Step>
 </Steps>
 
-## 
+## Testing Your Search
+
+Once you've configured DocSearch and your search index is populated:
+
+1. **Verify Search Button**: Check that the search button appears in your layout
+2. **Test Search Queries**: Try searching for content from your site
+3. **Check Results**: Ensure search results link to the correct pages
+4. **Mobile Testing**: Verify search works properly on mobile devices
+
+### Troubleshooting
+
+**Search not appearing:**
+- Verify all three data attributes are set correctly
+- Check browser console for JavaScript errors
+- Ensure `scripts.js` is loading properly
+
+**No search results:**
+- Wait for Algolia to index your site (can take 24-48 hours)
+- Verify your site is publicly accessible
+- Check Algolia dashboard for indexing status
+
+
+Your search functionality is now ready to help users find content quickly and efficiently!

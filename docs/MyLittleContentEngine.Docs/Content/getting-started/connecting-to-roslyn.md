@@ -121,7 +121,7 @@ declaration. This can be useful for showing just the implementation details with
 
 </Step>
 
-<Step stepNumber="6">
+<Step stepNumber="5">
 ## Test the Integration
 
 Run your site in development mode:

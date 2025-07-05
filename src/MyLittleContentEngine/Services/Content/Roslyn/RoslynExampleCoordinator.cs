@@ -144,10 +144,18 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
                 try
                 {
                     _logger.LogTrace("Populating XmlDocId cache");
-                    var solution = _workspace.CurrentSolution.ProjectIds.Count == 0
-                        ? await _workspace.OpenSolutionAsync(_connectedSolution.SolutionPath)
-                        : await ApplyPendingChangesToSolutionAsync(_workspace.CurrentSolution);
-                    _logger.LogTrace("Solution loaded for XmlDocId cache");
+                    Solution solution;
+                    if (_workspace.CurrentSolution.ProjectIds.Count == 0)
+                    {
+                        _logger.LogDebug("Loading solution from path: {SolutionPath}", _connectedSolution.SolutionPath);
+                        solution = await _workspace.OpenSolutionAsync(_connectedSolution.SolutionPath);
+                    }
+                    else
+                    {
+                        _logger.LogDebug("Applying pending changes to: {SolutionPath}", _connectedSolution.SolutionPath);
+                        solution = await ApplyPendingChangesToSolutionAsync(_workspace.CurrentSolution);
+                    }
+                    _logger.LogDebug("Solution loaded");
                     var result = await GetAllTypesAndMethodsInSolutionAsync(solution);
                     _logger.LogTrace("XmlDocId cache population complete");
                     return result;

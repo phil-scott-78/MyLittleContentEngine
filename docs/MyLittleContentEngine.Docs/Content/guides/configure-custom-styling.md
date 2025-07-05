@@ -15,7 +15,7 @@ makes assumptions that it is configured, or at least TailwindCSS is configured c
 Before customizing styling, ensure you have MonorailCSS configured in your application:
 
 ```bash
-dotnet add package MyLittleContentEngine.MonoarailCss
+dotnet add package MyLittleContentEngine.MonorailCss
 ```
 
 Then register the MonorailCSS services in your `Program.cs` file:
@@ -269,7 +269,7 @@ builder.Services.AddMonorailCss(_ => new MonorailCssOptions
   ```razor
   @inject LinkService LinkService
   // ...
-  <link rel="stylesheet" href="@LinkService.GetLine("styles.css")" />
+  <link rel="stylesheet" href="@LinkService.GetLink("styles.css")" />
   ```
 
 * **Theme not switching:** Ensure your button has the `data-theme-toggle` attribute and the JavaScript is loaded.

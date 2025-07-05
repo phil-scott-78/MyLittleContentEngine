@@ -4,8 +4,8 @@ description: "Automatically generate interactive API documentation from .NET ass
 order: 2100
 ---
 
-This guide shows you how to automatically generate comprehensive API documentation from your .NET assemblies using the *
-*ApiReferenceContentService**. You'll learn to configure namespace filtering, integrate with existing sites, and create
+This guide shows you how to automatically generate comprehensive API documentation from your .NET assemblies using the
+**ApiReferenceContentService**. You'll learn to configure namespace filtering, integrate with existing sites, and create
 interactive documentation pages that update automatically with your code.
 
 ## Prerequisites
