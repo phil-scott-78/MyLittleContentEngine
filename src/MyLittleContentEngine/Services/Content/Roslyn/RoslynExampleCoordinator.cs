@@ -14,12 +14,12 @@ using MyLittleContentEngine.Services.Infrastructure;
 
 namespace MyLittleContentEngine.Services.Content.Roslyn;
 
-internal record CachedCompiledXmlDocId(
+internal record CachedXmlDocId(
     Document Document,
     TextSpan TextSpan,
     SourceText SourceText,
     ISymbol Symbol,
-    Assembly Assembly);
+    Lazy<Task<Assembly>> LazyAssembly);
 
 public interface IRoslynExampleCoordinator : IDisposable
 {
@@ -45,7 +45,8 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
     private readonly AssemblyLoaderService _assemblyLoaderService;
     private readonly IFileSystem _fileSystem;
     private readonly CodeExecutionService _codeExecutionService;
-    private readonly LazyAndForgetful<ConcurrentDictionary<string, CachedCompiledXmlDocId>> _roslynCache;
+    private readonly LazyAndForgetful<ConcurrentDictionary<string, CachedXmlDocId>> _roslynCache;
+    private readonly ConcurrentDictionary<string, Lazy<Task<Assembly>>> _projectAssemblyCache = new();
     private readonly HashSet<string> _pendingChanges = new(StringComparer.OrdinalIgnoreCase);
     private readonly Lock _changeLock = new();
     private readonly ConnectedDotNetSolution _connectedSolution;
@@ -61,7 +62,8 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
     /// <param name="fileSystem">The file system.</param>
     /// <param name="codeExecutionService">The code execution service.</param>
     /// <param name="logger">The logger.</param>
-    public RoslynExampleCoordinator(RoslynHighlighterOptions options, AssemblyLoaderService assemblyLoaderService, IFileSystem fileSystem,
+    public RoslynExampleCoordinator(RoslynHighlighterOptions options, AssemblyLoaderService assemblyLoaderService,
+        IFileSystem fileSystem,
         CodeExecutionService codeExecutionService, ILogger<RoslynExampleCoordinator> logger)
     {
         _logger = logger;
@@ -82,7 +84,8 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
         // Set up MSBuild workspace
         if (!MSBuildLocator.IsRegistered)
         {
-            var instances = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(instance => instance.Version).ToArray();
+            var instances = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(instance => instance.Version)
+                .ToArray();
             if (instances.Length == 0)
             {
                 _logger.LogError("No MSBuild instances found. Make sure .NET SDK is installed.");
@@ -91,10 +94,13 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
 
             // Attempt to find an instance related to .NET SDK first
             var sdkInstance = instances.FirstOrDefault(i => i.DiscoveryType == DiscoveryType.DotNetSdk);
-            var msBuildInstance = sdkInstance ?? instances.First(); // Fallback to the latest version if no SDK specific one is found
+            var msBuildInstance =
+                sdkInstance ?? instances.First(); // Fallback to the latest version if no SDK specific one is found
 
-            _logger.LogDebug("MSBuildLocator selected instance: Name='{Name}', Version='{Version}', Path='{Path}', DiscoveryType='{DiscoveryType}'",
-                                   msBuildInstance.Name, msBuildInstance.Version, msBuildInstance.MSBuildPath, msBuildInstance.DiscoveryType);
+            _logger.LogDebug(
+                "MSBuildLocator selected instance: Name='{Name}', Version='{Version}', Path='{Path}', DiscoveryType='{DiscoveryType}'",
+                msBuildInstance.Name, msBuildInstance.Version, msBuildInstance.MSBuildPath,
+                msBuildInstance.DiscoveryType);
             MSBuildLocator.RegisterInstance(msBuildInstance);
         }
         else
@@ -103,7 +109,8 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
         }
 
         // Create a temporary directory for build outputs
-        _tempBuildDirectory = _fileSystem.Path.Combine(_fileSystem.Path.GetTempPath(), "MyLittleContentEngine", Guid.NewGuid().ToString("N"));
+        _tempBuildDirectory = _fileSystem.Path.Combine(_fileSystem.Path.GetTempPath(), "MyLittleContentEngine",
+            Guid.NewGuid().ToString("N"));
         _fileSystem.Directory.CreateDirectory(_tempBuildDirectory);
 
         // Configure MSBuild properties to use temp directory for compilation outputs only
@@ -111,9 +118,11 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
         var properties = new Dictionary<string, string>
         {
             // Redirect only the final output directory for this specific build
-            ["OutputPath"] = _fileSystem.Path.Combine(_tempBuildDirectory, "bin") + _fileSystem.Path.DirectorySeparatorChar,
+            ["OutputPath"] = _fileSystem.Path.Combine(_tempBuildDirectory, "bin") +
+                             _fileSystem.Path.DirectorySeparatorChar,
             // Redirect intermediate files to temp location
-            ["IntermediateOutputPath"] = _fileSystem.Path.Combine(_tempBuildDirectory, "obj") + _fileSystem.Path.DirectorySeparatorChar,
+            ["IntermediateOutputPath"] = _fileSystem.Path.Combine(_tempBuildDirectory, "obj") +
+                                         _fileSystem.Path.DirectorySeparatorChar,
             // Optimize for faster loading
             ["DesignTimeBuild"] = "true",
             ["SkipCompilerExecution"] = "true"
@@ -129,7 +138,7 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
         };
 
         _roslynCache =
-            new LazyAndForgetful<ConcurrentDictionary<string, CachedCompiledXmlDocId>>(async () =>
+            new LazyAndForgetful<ConcurrentDictionary<string, CachedXmlDocId>>(async () =>
             {
                 _isRebuilding = true;
                 try
@@ -172,6 +181,13 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
         return assembly;
     }
 
+    private Lazy<Task<Assembly>> GetOrCreateLazyAssembly(Project project)
+    {
+        var projectKey = project.Id.ToString();
+        return _projectAssemblyCache.GetOrAdd(projectKey,
+            _ => new Lazy<Task<Assembly>>(() => GetProjectAssembly(project)));
+    }
+
     internal bool IsRebuilding => _isRebuilding;
 
     public void InvalidateFile(string filePath)
@@ -185,6 +201,7 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
         _logger.LogTrace("InvalidateFile called for {filePath}", filePath);
         _pendingChanges.Add(filePath);
         _assemblyLoaderService.ResetContext();
+        _projectAssemblyCache.Clear(); // Clear lazy assembly cache
         _roslynCache.Refresh();
     }
 
@@ -227,7 +244,8 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
             return "Failed to get semantic model for method.";
         }
 
-        var result = _codeExecutionService.ExecuteMethod(id.Assembly, (IMethodSymbol)id.Symbol);
+        var assembly = await id.LazyAssembly.Value;
+        var result = _codeExecutionService.ExecuteMethod(assembly, (IMethodSymbol)id.Symbol);
         return result[attachmentName ?? string.Empty];
     }
 
@@ -235,13 +253,19 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
     /// Gets all symbols from the workspace for API documentation generation
     /// </summary>
     /// <returns>A dictionary of XmlDocId to symbol information</returns>
-    public async Task<IReadOnlyDictionary<string, (ISymbol Symbol, Document Document, Assembly Assembly)>> GetAllSymbolsAsync()
+    public async Task<IReadOnlyDictionary<string, (ISymbol Symbol, Document Document, Assembly Assembly)>>
+        GetAllSymbolsAsync()
     {
         var data = await _roslynCache.Value;
-        return data.ToDictionary(
-            kvp => kvp.Key,
-            kvp => (kvp.Value.Symbol, kvp.Value.Document, kvp.Value.Assembly)
-        );
+        var result = new Dictionary<string, (ISymbol Symbol, Document Document, Assembly Assembly)>();
+
+        foreach (var kvp in data)
+        {
+            var assembly = await kvp.Value.LazyAssembly.Value;
+            result[kvp.Key] = (kvp.Value.Symbol, kvp.Value.Document, assembly);
+        }
+
+        return result;
     }
 
     private async Task<Solution> ApplyPendingChangesToSolutionAsync(Solution solution)
@@ -271,7 +295,9 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
                     var project = solution.Projects.FirstOrDefault(p =>
                     {
                         // Check if any document in the project shares the same directory.
-                        if (p.Documents.Any(d => d.FilePath != null && fileDir.Equals(_fileSystem.Path.GetDirectoryName(d.FilePath), StringComparison.OrdinalIgnoreCase)))
+                        if (p.Documents.Any(d =>
+                                d.FilePath != null && fileDir.Equals(_fileSystem.Path.GetDirectoryName(d.FilePath),
+                                    StringComparison.OrdinalIgnoreCase)))
                         {
                             return true;
                         }
@@ -322,24 +348,26 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
         return solution;
     }
 
-    private async Task<ConcurrentDictionary<string, CachedCompiledXmlDocId>>
+    private async Task<ConcurrentDictionary<string, CachedXmlDocId>>
         GetAllTypesAndMethodsInSolutionAsync(Solution solution)
     {
         var sw = Stopwatch.StartNew();
         _logger.LogTrace("GetAllTypesAndMethodsInSolutionAsync started");
-        var result = new ConcurrentDictionary<string, CachedCompiledXmlDocId>();
+        var result = new ConcurrentDictionary<string, CachedXmlDocId>();
 
         var filteredProjects = FilterProjects(solution.Projects, _connectedSolution).ToArray();
         _logger.LogTrace("Processing {ProjectCount} projects after filtering", filteredProjects.Length);
 
-        await Parallel.ForEachAsync(filteredProjects, async (project, ctx) =>
+        await Parallel.ForEachAsync(filteredProjects, async (project, _) =>
         {
             _logger.LogTrace("Getting types and methods {project}", project.FilePath);
-            var assembly = await GetProjectAssembly(project);
 
-            await foreach (var item in ProcessProjectDocumentsAsync(project).WithCancellation(ctx))
+            var lazyAssembly = GetOrCreateLazyAssembly(project);
+
+            foreach (var item in await ProcessProjectDocumentsAsync(project))
             {
-                result.TryAdd(item.xmlDocId, new CachedCompiledXmlDocId(item.document, item.textSpan, item.sourceText, item.symbol, assembly));
+                result.TryAdd(item.xmlDocId,
+                    new CachedXmlDocId(item.document, item.textSpan, item.sourceText, item.symbol, lazyAssembly));
             }
         });
 
@@ -372,64 +400,39 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
         return projectList.Where(p => !excludedSet.Contains(p.Name));
     }
 
-    private async
-        IAsyncEnumerable<(string xmlDocId, ISymbol symbol, Document document, TextSpan textSpan, SourceText sourceText)>
+    private async Task<IEnumerable<(string xmlDocId, ISymbol symbol, Document document, TextSpan textSpan, SourceText
+            sourceText)>>
         ProcessProjectDocumentsAsync(Project project)
     {
+        ConcurrentBag<(string xmlDocId, ISymbol symbol, Document document, TextSpan textSpan, SourceText sourceText)>
+            allValues = [];
         _logger.LogTrace("ProcessProjectDocumentsAsync started for {project}", project.FilePath);
-        foreach (var document in project.Documents)
+        await Parallel.ForEachAsync(project.Documents, async (document, token) =>
         {
             // Skip documents that aren't C# code files
             if (!document.SupportsSyntaxTree)
-                continue;
+                return;
 
             _logger.LogTrace("Processing document {document}", document.FilePath);
-            var syntaxTree = await document.GetSyntaxTreeAsync() ?? throw new NullReferenceException();
-            var semanticModel = await document.GetSemanticModelAsync() ?? throw new NullReferenceException();
-            var sourceText = await document.GetTextAsync();
-            var rootSyntaxNode = await syntaxTree.GetRootAsync();
-
+            var syntaxTree = await document.GetSyntaxTreeAsync(token) ?? throw new NullReferenceException();
+            var semanticModel = await document.GetSemanticModelAsync(token) ?? throw new NullReferenceException();
+            var sourceText = await document.GetTextAsync(token);
+            var rootSyntaxNode = await syntaxTree.GetRootAsync(token);
+            
             var fileName = _fileSystem.Path.GetFileName(document.FilePath);
             foreach (var type in ProcessTypeDeclarationsAsync(document, rootSyntaxNode, semanticModel, sourceText))
             {
-                _logger.LogTrace("Yielding type XmlDocId {xmlDocId} in {document}", type.xmlDocId,
+                _logger.LogTrace("Adding type XmlDocId {xmlDocId} in {document}", type.xmlDocId,
                     fileName);
-                yield return type;
+                allValues.Add(type);
             }
-
-            foreach (var method in ProcessMethodDeclarationsAsync(document, rootSyntaxNode, semanticModel, sourceText))
-            {
-                _logger.LogTrace("Yielding method XmlDocId {xmlDocId} in {document}", method.xmlDocId,
-                    fileName);
-                yield return method;
-            }
-
-            foreach (var property in ProcessPropertyDeclarationsAsync(document, rootSyntaxNode, semanticModel, sourceText))
-            {
-                _logger.LogTrace("Yielding property XmlDocId {xmlDocId} in {document}", property.xmlDocId,
-                    fileName);
-                yield return property;
-            }
-
-            foreach (var field in ProcessFieldDeclarationsAsync(document, rootSyntaxNode, semanticModel, sourceText))
-            {
-                _logger.LogTrace("Yielding field XmlDocId {xmlDocId} in {document}", field.xmlDocId,
-                    fileName);
-                yield return field;
-            }
-
-            foreach (var eventItem in ProcessEventDeclarationsAsync(document, rootSyntaxNode, semanticModel, sourceText))
-            {
-                _logger.LogTrace("Yielding event XmlDocId {xmlDocId} in {document}", eventItem.xmlDocId,
-                    fileName);
-                yield return eventItem;
-            }
-        }
+        });
 
         _logger.LogTrace("ProcessProjectDocumentsAsync finished for {project}", project.FilePath);
+        return allValues;
     }
 
-    private static IEnumerable<(string xmlDocId, ISymbol, Document document, TextSpan textSpan, SourceText sourceText)>
+    private  IEnumerable<(string xmlDocId, ISymbol, Document document, TextSpan textSpan, SourceText sourceText)>
         ProcessTypeDeclarationsAsync(Document document, SyntaxNode rootSyntaxNode,
             SemanticModel semanticModel, SourceText sourceText)
     {
@@ -441,12 +444,36 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
         {
             var typeSymbol = semanticModel.GetDeclaredSymbol(typeDeclaration);
             if (typeSymbol == null) continue;
+            if (typeSymbol.DeclaredAccessibility != Accessibility.Public) continue;
 
             var xmlDocId = typeSymbol.GetDocumentationCommentId();
             if (string.IsNullOrEmpty(xmlDocId)) continue;
 
             var textSpan = CreateExtendedTextSpan(typeDeclaration);
             yield return (xmlDocId, typeSymbol, document, textSpan, sourceText);
+
+            
+            foreach (var method in ProcessMethodDeclarationsAsync(document, typeDeclaration, semanticModel, sourceText))
+            {
+                yield return method;
+            }
+
+            foreach (var property in ProcessPropertyDeclarationsAsync(document, typeDeclaration, semanticModel,
+                         sourceText))
+            {
+                yield return property;
+            }
+
+            foreach (var field in ProcessFieldDeclarationsAsync(document, typeDeclaration, semanticModel, sourceText))
+            {
+                yield return field;
+            }
+
+            foreach (var eventItem in
+                     ProcessEventDeclarationsAsync(document, typeDeclaration, semanticModel, sourceText))
+            {
+                yield return eventItem;
+            }
         }
     }
 
@@ -463,6 +490,7 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
         {
             var methodSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration);
             if (methodSymbol == null) continue;
+            if (methodSymbol.DeclaredAccessibility != Accessibility.Public) continue; // Skip non-public methods
 
             var xmlDocId = methodSymbol.GetDocumentationCommentId();
             if (string.IsNullOrEmpty(xmlDocId)) continue;
@@ -474,7 +502,8 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
         }
     }
 
-    private static IEnumerable<(string xmlDocId, ISymbol symbol, Document document, TextSpan textSpan, SourceText sourceText)>
+    private static IEnumerable<(string xmlDocId, ISymbol symbol, Document document, TextSpan textSpan, SourceText
+            sourceText)>
         ProcessPropertyDeclarationsAsync(Document document, SyntaxNode rootSyntaxNode,
             SemanticModel semanticModel, SourceText sourceText)
     {
@@ -486,6 +515,7 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
         {
             var propertySymbol = semanticModel.GetDeclaredSymbol(propertyDeclaration);
             if (propertySymbol == null) continue;
+            if (propertySymbol.DeclaredAccessibility != Accessibility.Public) continue; 
 
             var xmlDocId = propertySymbol.GetDocumentationCommentId();
             if (string.IsNullOrEmpty(xmlDocId)) continue;
@@ -495,7 +525,8 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
         }
     }
 
-    private static IEnumerable<(string xmlDocId, ISymbol symbol, Document document, TextSpan textSpan, SourceText sourceText)>
+    private static IEnumerable<(string xmlDocId, ISymbol symbol, Document document, TextSpan textSpan, SourceText
+            sourceText)>
         ProcessFieldDeclarationsAsync(Document document, SyntaxNode rootSyntaxNode,
             SemanticModel semanticModel, SourceText sourceText)
     {
@@ -510,6 +541,7 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
             {
                 var fieldSymbol = semanticModel.GetDeclaredSymbol(variable);
                 if (fieldSymbol == null) continue;
+                if (fieldSymbol.DeclaredAccessibility != Accessibility.Public) continue; 
 
                 var xmlDocId = fieldSymbol.GetDocumentationCommentId();
                 if (string.IsNullOrEmpty(xmlDocId)) continue;
@@ -520,7 +552,8 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
         }
     }
 
-    private static IEnumerable<(string xmlDocId, ISymbol symbol, Document document, TextSpan textSpan, SourceText sourceText)>
+    private static IEnumerable<(string xmlDocId, ISymbol symbol, Document document, TextSpan textSpan, SourceText
+            sourceText)>
         ProcessEventDeclarationsAsync(Document document, SyntaxNode rootSyntaxNode,
             SemanticModel semanticModel, SourceText sourceText)
     {
@@ -532,6 +565,7 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
         {
             var eventSymbol = semanticModel.GetDeclaredSymbol(eventDeclaration);
             if (eventSymbol == null) continue;
+            if (eventSymbol.DeclaredAccessibility != Accessibility.Public) continue;
 
             var xmlDocId = eventSymbol.GetDocumentationCommentId();
             if (string.IsNullOrEmpty(xmlDocId)) continue;
@@ -600,6 +634,7 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
         {
             _roslynCache.Dispose();
             _workspace.Dispose();
+            _projectAssemblyCache.Clear();
 
             // Clean up temporary build directory
             try
