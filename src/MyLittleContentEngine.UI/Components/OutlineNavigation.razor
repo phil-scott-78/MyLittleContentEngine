@@ -6,14 +6,14 @@
         <ul class="@ListStructureClass @ListColorClass">
             @foreach (var entry in Outline)
             {
-                @OutlineLink(entry, "pl-4")
+                @OutlineLink(entry, "")
                 @if (entry.Children.Length > 0)
                 {
                     <li>
                     <ul class="pb-1px">
                         @foreach (var childEntry in entry.Children)
                         {
-                            @OutlineLink(childEntry, "pl-8")
+                            @OutlineLink(childEntry, "pl-4")
                         }
                     </ul>
                     </li>
