@@ -53,6 +53,8 @@ public static class ContentEngineExtensions
         // Register the primary service
         services.AddSingleton<IMarkdownContentService<TFrontMatter>, MarkdownContentService<TFrontMatter>>();
         services.AddSingleton<SitemapRssService>();
+        services.AddHttpClient();
+        services.AddSingleton<SearchIndexService>();
 
         // Register interface implementations
         services.AddSingleton<IContentService>(provider =>
@@ -207,6 +209,14 @@ public static class ContentEngineExtensions
         {
             var rss = await service.GenerateRssFeed();
             return Results.Content(rss, "text/xml");
+        });
+
+        // Map the search index endpoint
+        app.MapGet("/search-index.json", async (SearchIndexService service, HttpContext context) =>
+        {
+            var baseUrl = $"{context.Request.Scheme}://{context.Request.Host}";
+            var searchIndex = await service.GenerateSearchIndexAsync(baseUrl);
+            return Results.Content(searchIndex, "application/json");
         });
     }
 
