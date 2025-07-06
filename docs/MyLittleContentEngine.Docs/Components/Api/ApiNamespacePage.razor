@@ -37,7 +37,7 @@
                                 @type.TypeKind
                             </span>
                             <RefLink Href=@($"/api/type/{type.Slug}/")
-                                     CssClass="text-lg break-all font-semibold text-blue-600 dark:text-blue-400 hover:underline">@type.Name</RefLink>
+                                     CssClass="text-lg font-semibold text-blue-600 dark:text-blue-400 hover:underline">@type.Name</RefLink>
                         </div>
                         @if (!string.IsNullOrEmpty(type.Summary))
                         {
