@@ -36,8 +36,25 @@
                             class="font-display dark:text-base-50 text-sm lg:text-base font-light  text-base-900 tracking-tighter"><RefLink Href="/index">My Little Content Engine</RefLink></span>
                     </div>
 
-                    <div class="lg:flex-1" id="docsearch" data-search-app-id="BTYPE2ESXQ" data-search-index-name="phil-scott-78io"
-                         data-search-api-key="72f2fcc02cb5184163de453d2d9b8b3c"></div>
+                    <div class="lg:flex-1 max-w-lg">
+                        <div class="relative">
+                            <input
+                                id="search-input"
+                                type="text"
+                                placeholder="Search documentation..."
+                                readonly
+                                class="w-full px-4 py-2 pl-10 bg-base-50 dark:bg-base-800 border border-base-300 dark:border-base-600 rounded-md text-base-900 dark:text-base-100 placeholder-base-500 dark:placeholder-base-400 cursor-pointer hover:bg-base-100 dark:hover:bg-base-700 transition-colors"
+                            />
+                            <svg class="absolute left-3 top-2.5 h-5 w-5 text-base-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="M21 21l-4.35-4.35"></path>
+                            </svg>
+                            <div class="absolute right-3 top-2.5 hidden sm:flex items-center gap-1">
+                                <kbd class="px-2 py-0.5 text-xs bg-base-200 dark:bg-base-700 text-base-600 dark:text-base-400 rounded border border-base-300 dark:border-base-600">Ctrl</kbd>
+                                <kbd class="px-2 py-0.5 text-xs bg-base-200 dark:bg-base-700 text-base-600 dark:text-base-400 rounded border border-base-300 dark:border-base-600">K</kbd>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="flex items-center gap-x-2">
                         <!-- sun icon -->
@@ -79,16 +96,16 @@
                     </div>
                 </nav>
             </header>
-            <div class="mx-auto max-w-6xl">
+            <main class="mx-auto max-w-6xl">
                 <div class="flex lg:gap-x-8 xl:gap-x-16">
-                    <div class="flex-1 mt-4 lg:mt-8 ml-4 lg:ml-8 mr-4 xl:mr-0 min-w-0">
+                    <article class="flex-1 mt-4 lg:mt-8 ml-4 lg:ml-8 mr-4 xl:mr-0 min-w-0">
                         @Body
-                    </div>
+                    </article>
                     <div class="hidden xl:block  sticky top-18 h-[calc(100vh-7rem)] overflow-y-auto w-80">
                         <SectionOutlet SectionName="sidebar"></SectionOutlet>
                     </div>
                 </div>
-            </div>
+            </main>
         </div>
     </div>
 </div>

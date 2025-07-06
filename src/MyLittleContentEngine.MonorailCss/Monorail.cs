@@ -159,6 +159,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 .AddRange(MarkdownAlertApplies())
                 .AddRange(HljsApplies())
                 .AddRange(DocSearchApplies())
+                .AddRange(SearchModalApplies())
         };
 
         return new CssFramework(options.CustomCssFrameworkSettings(cssFrameworkSettings));
@@ -423,6 +424,45 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 { ".hljs-addition", "text-green-800 dark:text-green-300" },
                 { ".hljs-deletion", "text-red-800 dark:text-red-300" },
                 { ".hljs-link", "text-blue-800 dark:text-blue-300" },
+            });
+    }
+
+    private static ImmutableDictionary<string, string> SearchModalApplies()
+    {
+        return ImmutableDictionary.Create<string, string>()
+            .AddRange(new Dictionary<string, string>
+            {
+                // Modal backdrop and container
+                { ".search-modal-backdrop", "fixed inset-0 bg-base-950/50 backdrop-blur z-50" },
+                { ".search-modal-content", "fixed top-16 left-1/2 transform -translate-x-1/2 w-full max-w-2xl mx-4 bg-base-100 dark:bg-base-900 rounded-lg shadow-xl border border-base-200 dark:border-base-700" },
+                
+                // Modal header and input
+                { ".search-modal-header", "p-4 border-b border-base-200 dark:border-base-700" },
+                { ".search-modal-input-container", "relative" },
+                { ".search-modal-input", "w-full px-4 py-2 pl-10 bg-base-50 dark:bg-base-800 border border-base-300 dark:border-base-600 rounded-md text-base-900 dark:text-base-100 placeholder-base-500 dark:placeholder-base-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" },
+                { ".search-modal-icon", "absolute left-3 top-2.5 h-5 w-5 text-base-400" },
+                
+                // Results container
+                { ".search-modal-results", "max-h-96 overflow-y-auto p-4" },
+                
+                // Status messages
+                { ".search-modal-placeholder", "text-center text-base-600 dark:text-base-400 py-8" },
+                { ".search-modal-loading", "text-center text-base-600 dark:text-base-400 py-8" },
+                { ".search-modal-no-results", "text-center text-base-600 dark:text-base-400 py-8" },
+                { ".search-modal-error", "text-center text-red-600 dark:text-red-400 py-8" },
+                
+                // Search result items
+                { ".search-result-item", "border-b border-base-200 dark:border-base-700 py-4 last:border-b-0" },
+                { ".search-result-link", "block hover:bg-base-50 dark:hover:bg-base-800 rounded-md p-2 -m-2 transition-colors" },
+                { ".search-result-header", "flex items-start justify-between mb-1" },
+                { ".search-result-title", "text-lg font-medium text-primary-700 dark:text-primary-400 flex-1" },
+                { ".search-result-score", "text-xs text-base-500 dark:text-base-500 ml-2" },
+                { ".search-result-description", "text-sm text-base-600 dark:text-base-400 mb-2" },
+                { ".search-result-snippet", "text-sm text-base-700 dark:text-base-300" },
+                { ".search-result-url", "text-xs text-base-500 dark:text-base-500 mt-2" },
+                
+                // Search highlighting
+                { ".search-highlight", "bg-yellow-200 dark:bg-yellow-800" },
             });
     }
 }

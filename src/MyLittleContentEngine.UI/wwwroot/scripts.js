@@ -687,79 +687,384 @@ class MobileNavManager {
 }
 
 /**
- * Search Manager - Handles Algolia DocSearch initialization
+ * Search Manager - Handles custom search with fuse.js
  */
 class SearchManager {
     constructor() {
-        this.searchContainer = null;
-        this.docsearchLoaded = false;
+        this.searchInput = null;
+        this.searchModal = null;
+        this.searchResults = null;
+        this.fuseLoaded = false;
+        this.fuse = null;
+        this.searchData = null;
+        this.Fuse = null;
     }
 
     async init() {
-        this.searchContainer = document.getElementById('docsearch');
-        if (!this.searchContainer) return;
+        this.searchInput = document.getElementById('search-input');
+        if (!this.searchInput) return;
 
-        const appId = this.searchContainer.dataset.searchAppId;
-        const indexName = this.searchContainer.dataset.searchIndexName;
-        const apiKey = this.searchContainer.dataset.searchApiKey;
+        this.createSearchModal();
+        this.setupEventListeners();
+        
+        // Don't load search index until user actually wants to search
+    }
 
-        if (!appId || !indexName || !apiKey) {
-            console.warn('DocSearch: Missing required data attributes');
+    createSearchModal() {
+        // Create modal backdrop
+        const modalBackdrop = document.createElement('div');
+        modalBackdrop.id = 'search-modal-backdrop';
+        modalBackdrop.className = 'search-modal-backdrop hidden';
+        
+        // Create modal content
+        const modalContent = document.createElement('div');
+        modalContent.className = 'search-modal-content';
+        
+        modalContent.innerHTML = `
+            <div class="search-modal-header">
+                <div class="search-modal-input-container">
+                    <input
+                        id="search-modal-input"
+                        type="text"
+                        placeholder="Search documentation..."
+                        autocomplete="off"
+                        class="search-modal-input"
+                    />
+                    <svg class="search-modal-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="M21 21l-4.35-4.35"></path>
+                    </svg>
+                </div>
+            </div>
+            <div id="search-results" class="search-modal-results">
+                <div class="search-modal-placeholder">
+                    Start typing to search...
+                </div>
+            </div>
+        `;
+        
+        modalBackdrop.appendChild(modalContent);
+        document.body.appendChild(modalBackdrop);
+        
+        this.searchModal = modalBackdrop;
+        this.searchResults = document.getElementById('search-results');
+        this.modalInput = document.getElementById('search-modal-input');
+    }
+
+    setupEventListeners() {
+        // Open modal when clicking search input
+        this.searchInput.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.openModal();
+        });
+
+        // Close modal when clicking backdrop
+        this.searchModal.addEventListener('click', (e) => {
+            if (e.target === this.searchModal) {
+                this.closeModal();
+            }
+        });
+
+        // Close modal on escape key and open modal on Cmd+K
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && !this.searchModal.classList.contains('hidden')) {
+                this.closeModal();
+            }
+            
+            // Open search modal with Cmd+K (Mac) or Ctrl+K (Windows/Linux)
+            if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+                e.preventDefault();
+                this.openModal();
+            }
+        });
+
+        // Search as user types
+        let searchTimeout;
+        this.modalInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                this.performSearch(e.target.value);
+            }, 300);
+        });
+    }
+
+    async openModal() {
+        this.searchModal.classList.remove('hidden');
+        this.modalInput.focus();
+        document.body.style.overflow = 'hidden';
+        
+        // Load search index on first open
+        if (!this.searchData) {
+            this.searchResults.innerHTML = '<div class="text-center text-base-600 dark:text-base-400 py-8">Loading search index...</div>';
+            try {
+                await this.loadSearchIndex();
+                this.searchResults.innerHTML = '<div class="search-modal-placeholder">Start typing to search...</div>';
+            } catch (error) {
+                console.error('Failed to load search index:', error);
+                this.searchResults.innerHTML = '<div class="search-modal-error">Search is currently unavailable</div>';
+            }
+        }
+    }
+
+    closeModal() {
+        this.searchModal.classList.add('hidden');
+        this.modalInput.value = '';
+        document.body.style.overflow = '';
+        this.searchResults.innerHTML = '<div class="search-modal-placeholder">Start typing to search...</div>';
+    }
+
+    async loadSearchIndex() {
+        if (this.searchData) return;
+
+        try {
+            // Load fuse.js using ES modules
+            if (!this.fuseLoaded) {
+                const fuseModule = await import('https://cdn.jsdelivr.net/npm/fuse.js@7.1.0/dist/fuse.mjs');
+                this.Fuse = fuseModule.default;
+                this.fuseLoaded = true;
+            }
+
+            // Fetch search index
+            const response = await fetch('/search-index.json');
+            if (!response.ok) {
+                throw new Error(`Failed to fetch search index: ${response.status}`);
+            }
+            
+            const indexData = await response.json();
+            this.searchData = indexData.documents;
+            
+            // Prepare documents for Fuse.js with flattened headings
+            const fuseData = this.searchData.map(doc => ({
+                ...doc,
+                headingsText: doc.headings.map(h => h.text).join(' ')
+            }));
+            
+            // Configure Fuse.js options
+            const fuseOptions = {
+                keys: [
+                    {
+                        name: 'title',
+                        weight: 3
+                    },
+                    {
+                        name: 'description',
+                        weight: 2
+                    },
+                    {
+                        name: 'headingsText',
+                        weight: 1.5
+                    },
+                    {
+                        name: 'content',
+                        weight: 1
+                    }
+                ],
+                threshold: 0.3, // Lower = more strict matching
+                distance: 1000, // Max distance for matches
+                minMatchCharLength: 2,
+                includeMatches: true,
+                includeScore: true,
+                ignoreLocation: true
+            };
+            
+            // Create Fuse instance
+            this.fuse = new this.Fuse(fuseData, fuseOptions);
+            
+        } catch (error) {
+            console.error('Failed to load search index:', error);
+            this.searchResults.innerHTML = '<div class="search-modal-error">Search is currently unavailable</div>';
+        }
+    }
+
+    performSearch(query) {
+        if (!query.trim()) {
+            this.searchResults.innerHTML = '<div class="search-modal-placeholder">Start typing to search...</div>';
+            return;
+        }
+
+        if (!this.fuse) {
+            // If search index is not loaded yet, try to load it
+            if (!this.searchData) {
+                this.searchResults.innerHTML = '<div class="search-modal-loading">Loading search index...</div>';
+                this.loadSearchIndex().then(() => {
+                    // Retry search after loading
+                    if (this.modalInput.value === query) {
+                        this.performSearch(query);
+                    }
+                }).catch(() => {
+                    this.searchResults.innerHTML = '<div class="search-modal-error">Search is currently unavailable</div>';
+                });
+            } else {
+                this.searchResults.innerHTML = '<div class="search-modal-loading">Search index loading...</div>';
+            }
             return;
         }
 
         try {
-            await this.loadDocSearch();
-            await this.initializeDocSearch(appId, indexName, apiKey);
+            const results = this.fuse.search(query);
+            this.displayResults(results, query);
         } catch (error) {
-            console.error('Failed to initialize DocSearch:', error);
+            console.error('Search error:', error);
+            this.searchResults.innerHTML = '<div class="search-modal-error">Search error occurred</div>';
         }
     }
 
-    async loadDocSearch() {
-        if (this.docsearchLoaded) return;
-
-        // Dynamically load DocSearch JS and CSS
-        await Promise.all([
-            this.loadScript('https://cdn.jsdelivr.net/npm/@docsearch/js@3'),
-            this.loadCSS('https://cdn.jsdelivr.net/npm/@docsearch/css@3')
-        ]);
-
-        this.docsearchLoaded = true;
-    }
-
-    loadScript(src) {
-        return new Promise((resolve, reject) => {
-            const script = document.createElement('script');
-            script.src = src;
-            script.onload = resolve;
-            script.onerror = reject;
-            document.head.appendChild(script);
-        });
-    }
-
-    loadCSS(href) {
-        return new Promise((resolve, reject) => {
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = href;
-            link.onload = resolve;
-            link.onerror = reject;
-            document.head.appendChild(link);
-        });
-    }
-
-    async initializeDocSearch(appId, indexName, apiKey) {
-        if (!window.docsearch) {
-            throw new Error('DocSearch library not loaded');
+    displayResults(results, query) {
+        if (results.length === 0) {
+            this.searchResults.innerHTML = '<div class="search-modal-no-results">No results found</div>';
+            return;
         }
 
-        window.docsearch({
-            container: '#docsearch',
-            appId: appId,
-            indexName: indexName,
-            apiKey: apiKey,
+        const resultElements = results.slice(0, 10).map(result => {
+            const doc = result.item; // Fuse.js wraps results in .item
+            if (!doc) return '';
+
+            // Use simple highlighting for now
+            const highlightedTitle = this.highlightText(doc.title, query);
+            const highlightedDescription = this.highlightText(doc.description || '', query);
+            
+            // Get content snippet with simple highlighting
+            const snippet = this.getContentSnippet(doc.content, query);
+
+            // Show relevance score for debugging (can be removed later)
+            const score = Math.round((1 - result.score) * 100);
+
+            return `
+                <div class="search-result-item">
+                    <a href="${doc.url}" class="search-result-link">
+                        <div class="search-result-header">
+                            <h3 class="search-result-title">${highlightedTitle}</h3>
+                            <span class="search-result-score">${score}%</span>
+                        </div>
+                        ${highlightedDescription ? `<p class="search-result-description">${highlightedDescription}</p>` : ''}
+                        ${snippet ? `<p class="search-result-snippet">${snippet}</p>` : ''}
+                        <p class="search-result-url">${doc.url}</p>
+                    </a>
+                </div>
+            `;
+        }).join('');
+
+        this.searchResults.innerHTML = resultElements;
+        
+        // Add click handlers to close modal when navigating
+        this.searchResults.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+                this.closeModal();
+            });
         });
+    }
+
+    highlightText(text, query) {
+        if (!text || !query) return text;
+        
+        const words = query.toLowerCase().split(/\s+/);
+        let highlightedText = text;
+        
+        words.forEach(word => {
+            if (word.length > 2) {
+                const regex = new RegExp(`(${word})`, 'gi');
+                highlightedText = highlightedText.replace(regex, '<mark class="search-highlight">$1</mark>');
+            }
+        });
+        
+        return highlightedText;
+    }
+
+    highlightFuseMatches(text, matches, fieldName) {
+        // For now, let's disable Fuse.js highlighting entirely to avoid the bug
+        // and just use simple text highlighting as a fallback
+        return null;
+    }
+
+    getContentSnippetWithFuse(content, query, matches) {
+        if (!content) return '';
+        
+        // Try to find content matches first
+        const contentMatches = matches?.filter(match => match.key === 'content');
+        
+        if (contentMatches && contentMatches.length > 0) {
+            // Use the first content match to create a snippet
+            const firstMatch = contentMatches[0];
+            if (firstMatch.indices && firstMatch.indices.length > 0) {
+                const matchStart = firstMatch.indices[0][0];
+                const start = Math.max(0, matchStart - 75);
+                const end = Math.min(content.length, matchStart + 75);
+                
+                let snippet = content.substring(start, end);
+                if (start > 0) snippet = '...' + snippet;
+                if (end < content.length) snippet = snippet + '...';
+                
+                // Adjust the match indices for the snippet
+                const adjustedMatches = contentMatches.map(match => ({
+                    ...match,
+                    indices: match.indices.map(([matchStart, matchEnd]) => [
+                        Math.max(0, matchStart - start),
+                        Math.min(snippet.length - 1, matchEnd - start)
+                    ]).filter(([s, e]) => s >= 0 && e < snippet.length && s <= e)
+                })).filter(match => match.indices.length > 0);
+                
+                return this.highlightFuseMatches(snippet, adjustedMatches, 'content') || snippet;
+            }
+        }
+        
+        // Fallback to regular snippet generation without highlighting
+        const words = query.toLowerCase().split(/\s+/);
+        const contentLower = content.toLowerCase();
+        
+        let firstIndex = -1;
+        for (const word of words) {
+            if (word.length > 2) {
+                const index = contentLower.indexOf(word);
+                if (index !== -1 && (firstIndex === -1 || index < firstIndex)) {
+                    firstIndex = index;
+                }
+            }
+        }
+        
+        if (firstIndex === -1) {
+            return content.substring(0, 150) + (content.length > 150 ? '...' : '');
+        }
+        
+        const start = Math.max(0, firstIndex - 75);
+        const end = Math.min(content.length, firstIndex + 75);
+        let snippet = content.substring(start, end);
+        
+        if (start > 0) snippet = '...' + snippet;
+        if (end < content.length) snippet = snippet + '...';
+        
+        return snippet; // No highlighting to avoid conflicts
+    }
+
+    getContentSnippet(content, query) {
+        if (!content || !query) return '';
+        
+        const words = query.toLowerCase().split(/\s+/);
+        const contentLower = content.toLowerCase();
+        
+        // Find first occurrence of any search term
+        let firstIndex = -1;
+        for (const word of words) {
+            if (word.length > 2) {
+                const index = contentLower.indexOf(word);
+                if (index !== -1 && (firstIndex === -1 || index < firstIndex)) {
+                    firstIndex = index;
+                }
+            }
+        }
+        
+        if (firstIndex === -1) {
+            return content.substring(0, 150) + (content.length > 150 ? '...' : '');
+        }
+        
+        // Get snippet around the found term
+        const start = Math.max(0, firstIndex - 75);
+        const end = Math.min(content.length, firstIndex + 75);
+        let snippet = content.substring(start, end);
+        
+        if (start > 0) snippet = '...' + snippet;
+        if (end < content.length) snippet = snippet + '...';
+        
+        return this.highlightText(snippet, query);
     }
 }
 

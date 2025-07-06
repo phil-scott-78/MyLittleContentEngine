@@ -11,22 +11,11 @@ namespace MyLittleContentEngine.Services.Web;
 /// <summary>
 /// Service for generating search index data for client-side searching
 /// </summary>
-public class SearchIndexService
+public partial class SearchIndexService(
+    IEnumerable<IContentService> contentServices,
+    IHttpClientFactory httpClientFactory,
+    ILogger<SearchIndexService> logger)
 {
-    private readonly IEnumerable<IContentService> _contentServices;
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly ILogger<SearchIndexService> _logger;
-
-    public SearchIndexService(
-        IEnumerable<IContentService> contentServices,
-        IHttpClientFactory httpClientFactory,
-        ILogger<SearchIndexService> logger)
-    {
-        _contentServices = contentServices;
-        _httpClientFactory = httpClientFactory;
-        _logger = logger;
-    }
-
     /// <summary>
     /// Generates a search index JSON document
     /// </summary>
@@ -36,10 +25,10 @@ public class SearchIndexService
     {
         var searchIndex = new SearchIndex();
         
-        using var httpClient = _httpClientFactory.CreateClient();
+        using var httpClient = httpClientFactory.CreateClient();
         httpClient.BaseAddress = new Uri(baseUrl);
 
-        foreach (var contentService in _contentServices)
+        foreach (var contentService in contentServices)
         {
             var pages = await contentService.GetPagesToGenerateAsync();
             
@@ -55,7 +44,7 @@ public class SearchIndexService
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to process page {Url} for search index", page.Url);
+                    logger.LogWarning(ex, "Failed to process page {Url} for search index", page.Url);
                 }
             }
         }
@@ -76,7 +65,7 @@ public class SearchIndexService
             var response = await httpClient.GetAsync(page.Url);
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogWarning("Failed to fetch page {Url} - Status: {StatusCode}", page.Url, response.StatusCode);
+                logger.LogWarning("Failed to fetch page {Url} - Status: {StatusCode}", page.Url, response.StatusCode);
                 return null;
             }
 
@@ -87,7 +76,7 @@ public class SearchIndexService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing page {Url}", page.Url);
+            logger.LogError(ex, "Error processing page {Url}", page.Url);
             return null;
         }
     }
@@ -114,32 +103,58 @@ public class SearchIndexService
 
     private string ExtractTitle(string html)
     {
-        var titleMatch = Regex.Match(html, @"<title[^>]*>([^<]+)</title>", RegexOptions.IgnoreCase);
+        var titleMatch = TitleRegex().Match(html);
         return titleMatch.Success ? titleMatch.Groups[1].Value.Trim() : string.Empty;
     }
 
     private string ExtractDescription(string html)
     {
-        var descriptionMatch = Regex.Match(html, @"<meta[^>]*name=[""']description[""'][^>]*content=[""']([^""']+)[""']", RegexOptions.IgnoreCase);
+        var descriptionMatch = DescriptionRegex().Match(html);
         return descriptionMatch.Success ? descriptionMatch.Groups[1].Value.Trim() : string.Empty;
     }
 
     private string ExtractMainContent(string html)
     {
-        var mainMatch = Regex.Match(html, @"<main[^>]*>(.*?)</main>", RegexOptions.IgnoreCase | RegexOptions.Singleline);
-        return mainMatch.Success ? mainMatch.Groups[1].Value : html;
+        // First, try to find the main tag
+        var mainMatch = MainTagRegex().Match(html);
+        
+        if (mainMatch.Success)
+        {
+            var mainContent = mainMatch.Groups[1].Value;
+            
+            // Within the main content, look for an article tag
+            var articleMatch = ArticleTagRegex().Match(mainContent);
+            
+            if (articleMatch.Success)
+            {
+                return articleMatch.Groups[1].Value;
+            }
+            
+            // If no article tag found, return the main content
+            return mainContent;
+        }
+        
+        // If no main tag found, fallback to looking for article anywhere in the document
+        var fallbackArticleMatch = ArticleTagRegex().Match(html);
+        if (fallbackArticleMatch.Success)
+        {
+            return fallbackArticleMatch.Groups[1].Value;
+        }
+        
+        // Last resort: return the entire HTML
+        return html;
     }
 
     private string CleanTextContent(string html)
     {
         // Remove script and style tags
-        var cleanHtml = Regex.Replace(html, @"<(script|style)[^>]*>.*?</\1>", string.Empty, RegexOptions.IgnoreCase | RegexOptions.Singleline);
+        var cleanHtml = CleanHtmlRegex().Replace(html, string.Empty);
         
         // Remove HTML tags but keep the content
-        cleanHtml = Regex.Replace(cleanHtml, @"<[^>]+>", " ");
+        cleanHtml = RemoveHtmlTagRegex().Replace(cleanHtml, " ");
         
         // Clean up whitespace
-        cleanHtml = Regex.Replace(cleanHtml, @"\s+", " ");
+        cleanHtml = RemoveWhitespaceRegex().Replace(cleanHtml, " ");
         
         return cleanHtml.Trim();
     }
@@ -148,7 +163,7 @@ public class SearchIndexService
     {
         var headings = new List<SearchIndexHeading>();
         
-        var headingMatches = Regex.Matches(html, @"<h([1-6])[^>]*>([^<]+)</h\1>", RegexOptions.IgnoreCase);
+        var headingMatches = HeadingRegex().Matches(html);
         
         foreach (Match match in headingMatches)
         {
@@ -182,4 +197,25 @@ public class SearchIndexService
             _ => 0
         };
     }
+
+    // Generated regex patterns for improved performance
+    [GeneratedRegex(@"<title[^>]*>([^<]+)</title>", RegexOptions.IgnoreCase)]
+    private static partial Regex TitleRegex();
+
+    [GeneratedRegex(@"<meta[^>]*name=[""']description[""'][^>]*content=[""']([^""']+)[""']", RegexOptions.IgnoreCase)]
+    private static partial Regex DescriptionRegex();
+
+    [GeneratedRegex(@"<main[^>]*>(.*?)</main>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
+    private static partial Regex MainTagRegex();
+
+    [GeneratedRegex(@"<article[^>]*>(.*?)</article>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
+    private static partial Regex ArticleTagRegex();
+    [GeneratedRegex(@"<(script|style)[^>]*>.*?</\1>", RegexOptions.IgnoreCase | RegexOptions.Singleline, "en-US")]
+    private static partial Regex CleanHtmlRegex();
+    [GeneratedRegex(@"<[^>]+>")]
+    private static partial Regex RemoveHtmlTagRegex();
+    [GeneratedRegex(@"\s+")]
+    private static partial Regex RemoveWhitespaceRegex();
+    [GeneratedRegex(@"<h([1-6])[^>]*>([^<]+)</h\1>", RegexOptions.IgnoreCase, "en-US")]
+    private static partial Regex HeadingRegex();
 }
