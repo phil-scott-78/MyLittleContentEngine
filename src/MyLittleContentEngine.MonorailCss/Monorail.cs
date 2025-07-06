@@ -379,7 +379,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 { ".search-modal-header", "p-4 border-b border-base-200 dark:border-base-700" },
                 { ".search-modal-input-container", "relative" },
                 { ".search-modal-input", "w-full px-4 py-2 pl-10 bg-base-50 dark:bg-base-800 border border-base-300 dark:border-base-600 rounded-md text-base-900 dark:text-base-100 placeholder-base-500 dark:placeholder-base-400 focus:outline-none focus:ring-1 focus:ring-primary-500/50 focus:border-primary-500" },
-                { ".search-modal-icon", "absolute left-3 top-2.5 h-4 w-4 text-base-400" },
+                { ".search-modal-icon", "absolute left-3 top-2.5 h-4 w-4 text-base-400 dark:text-base-500" },
                 
                 // Results container
                 { ".search-modal-results", "max-h-96 overflow-y-auto p-4 dark:scheme-dark"  },

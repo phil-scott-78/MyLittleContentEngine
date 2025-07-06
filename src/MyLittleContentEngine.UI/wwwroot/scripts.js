@@ -850,6 +850,7 @@ class SearchManager {
             // Create FlexSearch Document index
             this.searchIndex = new this.FlexSearch.Document({
                 tokenize: "forward",
+                encoder: this.FlexSearch.Charset.LatinAdvanced,
                 cache: 100,
                 document: {
                     id: 'id',
@@ -912,7 +913,10 @@ class SearchManager {
         }
 
         try {
-            const results = this.searchIndex.search(query, { limit: 10 });
+            const results = this.searchIndex.search(query, { 
+                limit: 10,
+                suggest: true,
+            });
             this.displayResults(results, query);
         } catch (error) {
             console.error('Search error:', error);
