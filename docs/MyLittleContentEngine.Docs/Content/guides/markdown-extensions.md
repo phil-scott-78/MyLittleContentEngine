@@ -153,10 +153,10 @@ sequenceDiagram
 
 ```
 
-## Blazor within Markdown vs Mdazor
+## Blazor within Markdown
 
 Simple blazor components can be used within Markdown content, using
-the [Mdazor](https://github.com/phil-scott-78/Mdazor)
+the [Mdazor](https://github.com/phil-scott-78/Mdazor) library.
 
 Mdazor is a custom Markdig extension that:
 
@@ -302,38 +302,71 @@ Integrate Roslyn for enhanced code highlighting and documentation
 </CardGrid>
 ```````
 
+<CardGrid>
+<LinkCard Title="Basketball" href="https://simple.wikipedia.org/wiki/Basketball">
+<Icon>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-8 h-8">
+    <path d="M5 17C4.37188 16.8651 3.87905 16.6488 3.46243 16.3018C3.25989 16.1331 3.07418 15.9446 2.90796 15.7391C2 14.6163 2 12.9481 2 9.61164C2 6.27522 2 4.60701 2.90796 3.48419C3.07418 3.27864 3.25989 3.09016 3.46243 2.92147C4.56878 2 6.21252 2 9.5 2H14.5C17.7875 2 19.4312 2 20.5376 2.92147C20.7401 3.09016 20.9258 3.27864 21.092 3.48419C22 4.60701 22 6.27522 22 9.61164C22 12.9481 22 14.6163 21.092 15.7391C20.9258 15.9446 20.7401 16.1331 20.5376 16.3018C20.1209 16.6488 19.6281 16.8651 19 17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
+    <path d="M6 13H7.33333M7.33333 13L8.5 22M7.33333 13H12M18 13H16.6667M16.6667 13L15.5 22M16.6667 13H12M12 13V22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+    <path d="M8 10C8.05893 8.04825 9.26181 8 10.9978 8H13.0022C14.7382 8 15.9411 8.04825 16 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+    <path d="M8 16.5H16M8.44444 20H15.5556" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"></path>
+</svg>
+</Icon>
+Basketball is a team sport where two teams, usually consisting of five players, play against each other on a rectangular court.
+</LinkCard>
+
+<LinkCard Title="Ice Hockey" href="https://simple.wikipedia.org/wiki/Ice_hockey" Color="tertiary-two">
+<Icon>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="w-8 h-8">
+    <path d="M14.6341 16.5168L22 3M17.5475 3L12.3738 12.7865C11.7391 13.9871 11.3456 14.149 10.0348 13.749C8.36082 13.2381 5.01415 11.4686 3.34756 12.2423C1.6805 13.0162 1.54011 18.1781 3.03845 19.2361C4.71629 20.4208 9.68674 19.9937 11.7961 19.5103" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+    <path d="M8 13L6 20" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"></path>
+    <path d="M12 19C12 17.3453 12.3453 17 14 17H18C19.6547 17 20 17.3453 20 19C20 20.6547 19.6547 21 18 21H14C12.3453 21 12 20.6547 12 19Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+</svg>
+</Icon>
+Ice hockey is a sport that is played by two teams on ice.
+</LinkCard>
+</CardGrid>
+
 You can also use the `Card` component without links for static content displays:
 
 ```````markdown
 <CardGrid Columns="3">
-<Card Title="Feature One" Color="primary">
-<Icon>
-<!-- Your SVG icon here -->
-</Icon>
+<Card Title="Feature One" Color="tertiary-one">
 This card describes an important feature of your application.
 </Card>
 
-<Card Title="Feature Two" Color="accent">
-<Icon>
-<!-- Your SVG icon here -->
-</Icon>
+<Card Title="Feature Two" Color="tertiary-two">
 Another key feature with different color styling.
 </Card>
 
-<Card Title="Feature Three">
+<Card Title="Feature Three" Color="yellow">
 A card without an icon, showing just title and content.
 </Card>
 </CardGrid>
 ```````
+
+<CardGrid Columns="3">
+<Card Title="Feature One" Color="tertiary-one">
+This card describes an important feature of your application.
+</Card>
+
+<Card Title="Feature Two" Color="tertiary-two">
+Another key feature with different color styling.
+</Card>
+
+<Card Title="Feature Three" Color="yellow">
+A card without an icon, showing just title and content.
+</Card>
+</CardGrid>
 
 #### Color Options
 
 Both `Card` and `LinkCard` support color theming through the `Color` parameter. The available colors depend on your CSS framework configuration, but common options include:
 
 - `primary` (default) - Primary brand color
-- `secondary` - Secondary brand color  
 - `accent` - Accent color
 - `neutral` - Neutral gray tones
+- `tertiary-one`, `tertiary-two`, etc. - Additional custom colors defined in your CSS
 
 #### Responsive Behavior
 

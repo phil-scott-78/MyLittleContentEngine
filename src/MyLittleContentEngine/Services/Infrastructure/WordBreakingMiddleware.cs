@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using Microsoft.AspNetCore.Http;
 using MyLittleContentEngine.Services.Content;
 
@@ -108,13 +108,15 @@ public class WordBreakingMiddleware(RequestDelegate next, WordBreakingMiddleware
         var inTag = false;
         var inScript = false;
         var inStyle = false;
+        var inHead = false;
+        var inPre = false;
         var currentWord = new StringBuilder();
 
         for (var i = 0; i < html.Length; i++)
         {
             var c = html[i];
 
-            // Track if we're inside tags, scripts, or styles
+            // Track if we're inside tags, scripts, styles, head, or pre elements
             if (c == '<')
             {
                 // Process any accumulated word before starting tag
@@ -130,7 +132,7 @@ public class WordBreakingMiddleware(RequestDelegate next, WordBreakingMiddleware
                 inTag = true;
                 result.Append(c);
 
-                // Check for script or style tags
+                // Check for script, style, head, or pre tags
                 if (i + 7 < html.Length && html.Substring(i, 7).Equals("<script", StringComparison.OrdinalIgnoreCase))
                 {
                     inScript = true;
@@ -140,13 +142,21 @@ public class WordBreakingMiddleware(RequestDelegate next, WordBreakingMiddleware
                 {
                     inStyle = true;
                 }
+                else if (i + 5 < html.Length && html.Substring(i, 5).Equals("<head", StringComparison.OrdinalIgnoreCase))
+                {
+                    inHead = true;
+                }
+                else if (i + 4 < html.Length && html.Substring(i, 4).Equals("<pre", StringComparison.OrdinalIgnoreCase))
+                {
+                    inPre = true;
+                }
             }
             else if (c == '>')
             {
                 inTag = false;
                 result.Append(c);
 
-                // Check for closing script or style tags
+                // Check for closing script, style, head, or pre tags
                 if (inScript && i >= 8 && html.Substring(i - 8, 9).Equals("</script>", StringComparison.OrdinalIgnoreCase))
                 {
                     inScript = false;
@@ -156,10 +166,18 @@ public class WordBreakingMiddleware(RequestDelegate next, WordBreakingMiddleware
                 {
                     inStyle = false;
                 }
+                else if (inHead && i >= 6 && html.Substring(i - 6, 7).Equals("</head>", StringComparison.OrdinalIgnoreCase))
+                {
+                    inHead = false;
+                }
+                else if (inPre && i >= 5 && html.Substring(i - 5, 6).Equals("</pre>", StringComparison.OrdinalIgnoreCase))
+                {
+                    inPre = false;
+                }
             }
-            else if (inTag || inScript || inStyle)
+            else if (inTag || inScript || inStyle || inHead || inPre)
             {
-                // Inside tags, scripts, or styles - don't process
+                // Inside tags, scripts, styles, head, or pre - don't process
                 result.Append(c);
             }
             else if (char.IsWhiteSpace(c))
