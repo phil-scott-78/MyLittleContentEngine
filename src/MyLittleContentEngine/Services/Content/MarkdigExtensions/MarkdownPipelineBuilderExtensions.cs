@@ -37,11 +37,10 @@ internal static class MarkdownPipelineBuilderExtensions
     }
     
     /// <summary>
-    /// Adds support for tabbed code blocks to the specified Markdig pipeline.
+    /// Adds support for custom alert blocks to the specified Markdig pipeline.
     /// </summary>
-    /// <param name="markdownPipelineBuilder">The <see cref="MarkdownPipelineBuilder"/> to which the tabbed code block extension will be added.</param>
-    /// <param name="options">The options for rendering the tabbed code block.</param>
-    /// <returns>The <paramref name="markdownPipelineBuilder"/> after the tabbed code block extension has been added.</returns>
+    /// <param name="markdownPipelineBuilder">The <see cref="MarkdownPipelineBuilder"/> to which the custom alert extension will be added.</param>
+    /// <returns>The <paramref name="markdownPipelineBuilder"/> after the custom alert extension has been added.</returns>
     public static MarkdownPipelineBuilder UseCustomAlertBlocks(this MarkdownPipelineBuilder markdownPipelineBuilder)
     {
         markdownPipelineBuilder.Extensions.AddIfNotAlready(new CustomAlertExtension());

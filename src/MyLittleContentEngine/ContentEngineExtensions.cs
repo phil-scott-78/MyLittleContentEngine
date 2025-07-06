@@ -186,6 +186,7 @@ public static class ContentEngineExtensions
             });
         }
 
+        app.UseWordBreaking();
         app.MapContentEngineSitemapRss();
     }
 

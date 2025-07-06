@@ -4,12 +4,11 @@
 @using ApiNamespace = MyLittleContentEngine.Models.ApiNamespace
 @inject ContentEngineOptions ContentEngineOptions
 @inject ApiReferenceContentService ApiService
-@inject LinkService LinkService
 <PageTitle>@ContentEngineOptions.SiteTitle - API Reference</PageTitle>
 
 @if (IsLoaded)
 {
-    <article class="break-all">
+    <article>
         <header>
             <h1 class="font-display text-2xl lg:text-4xl font-bold tracking-tight text-base-900 dark:text-base-50">API Reference</h1>
             <p class="text-base-700 dark:text-base-300 mt-4">Browse the API documentation by namespace.</p>
@@ -24,12 +23,12 @@
                         <RefLink Href=@($"/api/namespace/{ns.Slug}/") CssClass="text-lg font-semibold text-blue-600 dark:text-blue-400 hover:underline">
                             @ns.Name
                         </RefLink>
-                        <p class="text-base-600 dark:text-base-400 mt-1">
-                            @ns.Summary
-                        </p>
-                        <p class="text-sm text-base-500 dark:text-base-500 mt-2">
-                            @ns.Types.Count type(s)
-                        </p>
+                        @if (!string.IsNullOrWhiteSpace(ns.Summary))
+                        {
+                            <p class="text-base-600 dark:text-base-400 mt-1">
+                                @ns.Summary
+                            </p>    
+                        }
                     </div>
                 }
             </div>

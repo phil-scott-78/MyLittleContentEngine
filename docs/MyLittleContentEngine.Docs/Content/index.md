@@ -4,7 +4,6 @@ description: "A static site generator for .NET Blazor applications with markdown
 order: 1
 ---
 
-
 An inflexible and opinionated static content generator written in .NET.
 
 Everything you need to build a nice little documentation website for your .NET projects or blog.
