@@ -28,6 +28,12 @@ public interface IContentEngineFileWatcher
     void AddPathsWatch(IEnumerable<string> paths, Action onUpdate, bool includeSubdirectories = true);
 
     /// <summary>
+    /// Subscribes to all update events for metadata changes.
+    /// </summary>
+    /// <param name="onUpdate"></param>
+    void SubscribeToMetadataUpdate(Action onUpdate);
+
+    /// <summary>
     /// Releases all resources used by this instance.
     /// </summary>
     void Dispose();
@@ -107,6 +113,11 @@ internal sealed class ContentEngineFileWatcher : IDisposable, IContentEngineFile
         {
             _logger?.LogError(ex, "Error setting up file watcher for {Path} with pattern {Pattern}", path, filePattern);
         }
+    }
+    
+    public void SubscribeToMetadataUpdate(Action onUpdate)
+    {
+        UpdateActions.Add(onUpdate);
     }
 
     /// <summary>

@@ -5,17 +5,45 @@ using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using MyLittleContentEngine.Services.Infrastructure;
 
 namespace MyLittleContentEngine.Services.Web;
 
 /// <summary>
 /// Service for generating search index data for client-side searching
 /// </summary>
-public partial class SearchIndexService(
-    IEnumerable<IContentService> contentServices,
-    IHttpClientFactory httpClientFactory,
-    ILogger<SearchIndexService> logger)
+public partial class SearchIndexService
 {
+    private static readonly JsonSerializerOptions _jsonSerializerOptions;
+    private string _searchIndexCache = string.Empty;
+    private readonly IEnumerable<IContentService> _contentServices;
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ILogger<SearchIndexService> _logger;
+
+    /// <summary>
+    /// Service for generating search index data for client-side searching
+    /// </summary>
+    public SearchIndexService(IEnumerable<IContentService> contentServices,
+        IHttpClientFactory httpClientFactory,
+        IContentEngineFileWatcher fileWatcher,
+        ILogger<SearchIndexService> logger)
+    {
+        _contentServices = contentServices;
+        _httpClientFactory = httpClientFactory;
+        _logger = logger;
+
+        fileWatcher.SubscribeToMetadataUpdate(() => _searchIndexCache = string.Empty);
+    }
+
+    static SearchIndexService()
+    {
+        _jsonSerializerOptions = new JsonSerializerOptions
+        {
+            WriteIndented = false,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+    }
+
     /// <summary>
     /// Generates a search index JSON document
     /// </summary>
@@ -23,15 +51,20 @@ public partial class SearchIndexService(
     /// <returns>JSON string containing the search index</returns>
     public async Task<string> GenerateSearchIndexAsync(string baseUrl)
     {
+        if (!string.IsNullOrWhiteSpace(_searchIndexCache))
+        {
+            return _searchIndexCache;
+        }
+
         var searchIndex = new SearchIndex();
-        
-        using var httpClient = httpClientFactory.CreateClient();
+
+        using var httpClient = _httpClientFactory.CreateClient();
         httpClient.BaseAddress = new Uri(baseUrl);
 
-        foreach (var contentService in contentServices)
+        foreach (var contentService in _contentServices)
         {
             var pages = await contentService.GetPagesToGenerateAsync();
-            
+
             foreach (var page in pages)
             {
                 try
@@ -44,39 +77,35 @@ public partial class SearchIndexService(
                 }
                 catch (Exception ex)
                 {
-                    logger.LogWarning(ex, "Failed to process page {Url} for search index", page.Url);
+                    _logger.LogWarning(ex, "Failed to process page {Url} for search index", page.Url);
                 }
             }
         }
 
-        var options = new JsonSerializerOptions
-        {
-            WriteIndented = false,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
-
-        return JsonSerializer.Serialize(searchIndex, options);
+        _searchIndexCache = JsonSerializer.Serialize(searchIndex, _jsonSerializerOptions);
+        return _searchIndexCache;
     }
 
-    private async Task<SearchIndexDocument?> ProcessPageAsync(HttpClient httpClient, PageToGenerate page, int searchPriority)
+    private async Task<SearchIndexDocument?> ProcessPageAsync(HttpClient httpClient, PageToGenerate page,
+        int searchPriority)
     {
         try
         {
             var response = await httpClient.GetAsync(page.Url);
             if (!response.IsSuccessStatusCode)
             {
-                logger.LogWarning("Failed to fetch page {Url} - Status: {StatusCode}", page.Url, response.StatusCode);
+                _logger.LogWarning("Failed to fetch page {Url} - Status: {StatusCode}", page.Url, response.StatusCode);
                 return null;
             }
 
             var html = await response.Content.ReadAsStringAsync();
             var document = ExtractContentFromHtml(html, page, searchPriority);
-            
+
             return document;
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error processing page {Url}", page.Url);
+            _logger.LogError(ex, "Error processing page {Url}", page.Url);
             return null;
         }
     }
@@ -118,30 +147,30 @@ public partial class SearchIndexService(
     {
         // First, try to find the main tag
         var mainMatch = MainTagRegex().Match(html);
-        
+
         if (mainMatch.Success)
         {
             var mainContent = mainMatch.Groups[1].Value;
-            
+
             // Within the main content, look for an article tag
             var articleMatch = ArticleTagRegex().Match(mainContent);
-            
+
             if (articleMatch.Success)
             {
                 return articleMatch.Groups[1].Value;
             }
-            
+
             // If no article tag found, return the main content
             return mainContent;
         }
-        
+
         // If no main tag found, fallback to looking for article anywhere in the document
         var fallbackArticleMatch = ArticleTagRegex().Match(html);
         if (fallbackArticleMatch.Success)
         {
             return fallbackArticleMatch.Groups[1].Value;
         }
-        
+
         // Last resort: return the entire HTML
         return html;
     }
@@ -150,30 +179,30 @@ public partial class SearchIndexService(
     {
         // Remove script and style tags
         var cleanHtml = CleanHtmlRegex().Replace(html, string.Empty);
-        
+
         // Remove code blocks (pre tags)
         cleanHtml = CodeBlockRegex().Replace(cleanHtml, string.Empty);
-        
+
         // Remove HTML tags but keep the content
         cleanHtml = RemoveHtmlTagRegex().Replace(cleanHtml, " ");
-        
+
         // Clean up whitespace
         cleanHtml = RemoveWhitespaceRegex().Replace(cleanHtml, " ");
-        
+
         return cleanHtml.Trim();
     }
 
     private List<string> ExtractHeadings(string html)
     {
         var headings = new List<string>();
-        
+
         var headingMatches = HeadingRegex().Matches(html);
-        
+
         foreach (Match match in headingMatches)
         {
             var level = int.Parse(match.Groups[1].Value);
             var text = CleanTextContent(match.Groups[2].Value);
-            
+
             if (!string.IsNullOrEmpty(text))
             {
                 headings.Add($"{level}:{text}");
@@ -196,14 +225,19 @@ public partial class SearchIndexService(
 
     [GeneratedRegex(@"<article[^>]*>(.*?)</article>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
     private static partial Regex ArticleTagRegex();
+
     [GeneratedRegex(@"<(script|style)[^>]*>.*?</\1>", RegexOptions.IgnoreCase | RegexOptions.Singleline, "en-US")]
     private static partial Regex CleanHtmlRegex();
+
     [GeneratedRegex(@"<pre[^>]*>.*?</pre>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
     private static partial Regex CodeBlockRegex();
+
     [GeneratedRegex(@"<[^>]+>")]
     private static partial Regex RemoveHtmlTagRegex();
+
     [GeneratedRegex(@"\s+")]
     private static partial Regex RemoveWhitespaceRegex();
+
     [GeneratedRegex(@"<h([1-6])[^>]*>([^<]+)</h\1>", RegexOptions.IgnoreCase, "en-US")]
     private static partial Regex HeadingRegex();
 }

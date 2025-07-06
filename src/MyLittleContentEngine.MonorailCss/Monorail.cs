@@ -372,8 +372,8 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
             .AddRange(new Dictionary<string, string>
             {
                 // Modal backdrop and container
-                { ".search-modal-backdrop", "fixed inset-0 bg-base-950/50 backdrop-blur z-50" },
-                { ".search-modal-content", "fixed top-16 left-1/2 transform -translate-x-1/2 w-full max-w-2xl mx-4 bg-base-100 dark:bg-base-900 rounded-lg shadow-xl border border-base-200 dark:border-base-700" },
+                { ".search-modal-backdrop", "fixed inset-0 bg-base-950/50 backdrop-blur z-50 p-4 md:p-16" },
+                { ".search-modal-content", " top-16 mx-auto w-full mt-8 max-w-2xl bg-base-100 dark:bg-base-900 rounded-lg shadow-xl border border-base-200 dark:border-base-700" },
                 
                 // Modal header and input
                 { ".search-modal-header", "p-4 border-b border-base-200 dark:border-base-700" },
@@ -382,7 +382,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 { ".search-modal-icon", "absolute left-3 top-2.5 h-4 w-4 text-base-400 dark:text-base-500" },
                 
                 // Results container
-                { ".search-modal-results", "max-h-96 overflow-y-auto p-4 dark:scheme-dark"  },
+                { ".search-modal-results", "max-h-96 overflow-y-auto px-4 dark:scheme-dark"  },
                 
                 // Status messages
                 { ".search-modal-placeholder", "text-center text-base-600 dark:text-base-400 py-4" },
@@ -391,18 +391,18 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 { ".search-modal-error", "text-center text-red-600 dark:text-red-400 py-4" },
                 
                 // Search result items
-                { ".search-result-item", "border-b border-base-200 dark:border-base-700 py-4 last:border-b-0" },
+                { ".search-result-item", "border-b border-base-200 dark:border-base-800 py-4 last:border-b-0" },
                 { ".search-result-link", "block hover:bg-base-50 dark:hover:bg-base-800 rounded-md p-2 -m-2 transition-colors" },
                 { ".search-result-header", "flex items-start justify-between mb-1" },
-                { ".search-result-title", "text-lg font-medium text-primary-700 dark:text-primary-400 flex-1" },
+                { ".search-result-title", "text-sm font-medium text-primary-700 dark:text-primary-400 flex-1" },
                 { ".search-result-score", "text-xs text-base-500 dark:text-base-500 ml-2" },
                 { ".search-result-description", "text-sm text-base-600 dark:text-base-400 mb-2" },
-                { ".search-result-snippet", "text-xs text-base-700 dark:text-base-300" },
+                { ".search-result-snippet", "text-xs text-base-700 dark:text-base-500" },
                 { ".search-result-url", "text-xs text-base-500 dark:text-base-500 mt-2" },
                 
                 // Search highlighting
-                { ".search-result-title .search-highlight", "text-primary-500 dark:text-primary-200 bg-inherit" },
-                { ".search-highlight", "text-accent-500 dark:text-accent-400 bg-inherit" },
+                { ".search-result-title .search-highlight", "text-primary-500 dark:text-primary-100 bg-inherit" },
+                { ".search-highlight", "text-base-500 dark:text-base-50 bg-inherit" },
             });
     }
 }

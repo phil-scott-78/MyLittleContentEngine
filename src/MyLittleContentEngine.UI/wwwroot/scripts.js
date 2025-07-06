@@ -360,8 +360,6 @@ class MermaidManager {
         const isDark = document.documentElement.classList.contains('dark');
         const config = this.getMermaidConfig(isDark);
         
-        console.log('Mermaid config:', config); // Debug logging
-        
         // Use the correct initialization method
         this.mermaidInstance.default.initialize(config);
     }
@@ -376,13 +374,10 @@ class MermaidManager {
             const value = getComputedStyle(document.documentElement).getPropertyValue(variable).trim() || fallback;
 
             if (value.startsWith('oklch(')) {
-                console.log('oklch value detected:', value);
                 let s = oklchToHex(value);
-                console.log('converted oklch to hex:', s);
                 return s;
             }
 
-            console.log('falling back to CSS variable:', variable, 'with value:', value);
             return value;
         }
 
@@ -827,7 +822,7 @@ class SearchManager {
         try {
             // Load FlexSearch using ES modules
             if (!this.flexSearchLoaded) {
-                const flexSearchModule = await import('https://cdn.skypack.dev/flexsearch@0.7.43');
+                const flexSearchModule = await import('https://cdnjs.cloudflare.com/ajax/libs/FlexSearch/0.8.2/flexsearch.bundle.module.min.js');
                 this.FlexSearch = flexSearchModule.default;
                 this.flexSearchLoaded = true;
             }
@@ -1026,11 +1021,8 @@ class SearchManager {
                     <a href="${url}" class="search-result-link">
                         <div class="search-result-header">
                             <h3 class="search-result-title">${highlightedTitle}</h3>
-                            <span class="search-result-score">${Math.round(score * 10)}</span>
                         </div>
-                        ${highlightedDescription ? `<p class="search-result-description">${highlightedDescription}</p>` : ''}
                         ${snippet ? `<p class="search-result-snippet">${snippet}</p>` : ''}
-                        <p class="search-result-url">${url}</p>
                     </a>
                 </div>
             `;
