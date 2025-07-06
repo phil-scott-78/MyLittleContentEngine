@@ -13,19 +13,19 @@
     <header>
         <div class="flex items-center gap-2 mb-2 font-display ">
 
-            <h1 class="text-2xl break-all lg:text-4xl font-bold tracking-tight text-base-900 dark:text-base-50">
+            <h1 class="text-xl sm:text-2xl break-all lg:text-4xl font-bold tracking-tight text-base-900 dark:text-base-50">
                 @_type.Name
             </h1>
             <span class="text-xs bg-base-100 font-light dark:bg-base-800 px-2 py-1 rounded text-base-600 dark:text-base-400">
                 @_type.TypeKind
             </span>
         </div>
-        <p class="text-base-600 dark:text-base-400 mb-4">Namespace: 
+        <p class="text-base-600 dark:text-base-400 mb-4 text-xs">Namespace: 
         <RefLink Href=@($"/api/namespace/{_type.Namespace.ToLowerInvariant()}/")  CssClass="text-blue-600 break-all dark:text-blue-400 hover:underline">@_type.Namespace</RefLink>
         </p>
         @if (!string.IsNullOrEmpty(_type.Summary))
         {
-            <Prose>
+            <Prose class="mb-4">
                 @_type.Summary
             </Prose>
         }
@@ -93,7 +93,7 @@
 
                             @if (!string.IsNullOrEmpty(member.ReturnTypeDisplayName))
                             {
-                                <Prose class="mb-4">
+                                <Prose class="my-4">
                                         <span>Returns:</span>
                                         <code>@member.ReturnTypeDisplayName</code>
                                     

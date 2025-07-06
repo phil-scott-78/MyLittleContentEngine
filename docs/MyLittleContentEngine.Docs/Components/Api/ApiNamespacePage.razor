@@ -9,12 +9,12 @@
 @if (_namespace != null && IsLoaded)
 {
     
-    <article class="break-all">
+    <article>
         <header>
             <div class="flex items-center gap-2 mb-2 font-display ">
 
-                <h1 class="font-display text-2xl lg:text-4xl font-bold tracking-tight text-base-900 dark:text-base-50">
-                    @_namespace.Name
+                <h1 class="font-display text-xl sm:text-2xl lg:text-4xl font-bold tracking-tight text-base-900 dark:text-base-50">
+                     @((MarkupString) _namespace.Name.Replace(".", ".<wbr />"))
                 </h1>
                 <span class="text-xs bg-base-100 font-light dark:bg-base-800 px-2 py-1 rounded text-base-600 dark:text-base-400">
                     Namespace
@@ -22,7 +22,7 @@
             </div>
             @if (!string.IsNullOrEmpty(_namespace.Summary))
             {
-                <p class="text-base-700 dark:text-base-300 mt-4">@_namespace.Summary</p>
+                <p class="text-sm text-base-700 dark:text-base-300 mt-4">@_namespace.Summary</p>
             }
         </header>
 
@@ -41,11 +41,8 @@
                         </div>
                         @if (!string.IsNullOrEmpty(type.Summary))
                         {
-                            <p class="text-base-600 dark:text-base-400 mt-1">@type.Summary</p>
+                            <p class="text-base-600 text-xs dark:text-base-400 mt-1">@type.Summary</p>
                         }
-                        <p class="text-sm text-base-500 dark:text-base-500 mt-2">
-                            @type.Members.Count member(s)
-                        </p>
                     </div>
                 }
             </div>

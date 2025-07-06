@@ -15,11 +15,11 @@
     {
         if (CapturedAttributes?["class"] is not string classValue)
         {
-            _css = "prose dark:prose-invert max-w-full prose-sm md:prose-base min-w-0";
+            _css = "prose dark:prose-invert max-w-full prose-sm min-w-0";
         }
         else
         {
-            _css = $"prose dark:prose-invert max-w-full prose-sm md:prose-base min-w-0 {classValue}";
+            _css = $"prose dark:prose-invert max-w-full prose-sm min-w-0 {classValue}";
             CapturedAttributes.Remove("class");
         }
         
