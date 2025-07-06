@@ -1,4 +1,4 @@
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Content.TableOfContents;
@@ -23,6 +23,7 @@ public class TableOfContentServiceTests
                 new Metadata { Title = p.title, Order = p.order })).ToImmutableList();
         }
 
+        public int SearchPriority { get; } = 0;
         public Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync() => Task.FromResult(_pages);
         public Task<ImmutableList<PageToGenerate>> GetTocEntriesToGenerateAsync() => Task.FromResult(_pages);
 
@@ -212,6 +213,7 @@ public class TableOfContentServiceTests
     // Helper class for the above test to provide specific pages
     private class TestContentServiceWithSpecificPages(ImmutableList<PageToGenerate> pages) : IContentService
     {
+        public int SearchPriority { get; } = 0;
         public Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync() => Task.FromResult(pages);
         public Task<ImmutableList<PageToGenerate>> GetTocEntriesToGenerateAsync() => Task.FromResult(pages);
         public Task<ImmutableList<ContentToCopy>> GetContentToCopyAsync() => Task.FromResult(ImmutableList<ContentToCopy>.Empty);

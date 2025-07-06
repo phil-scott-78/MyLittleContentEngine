@@ -1,99 +1,214 @@
 ---
 title: "Implement Search Functionality"
-description: "Add client-side search to your content site with indexing and result highlighting"
+description: "Add powerful client-side search to your content site with built-in indexing and FlexSearch"
 order: 2060
 ---
 
-Adding search functionality to your MyLittleContentEngine site makes it easier for users to find relevant content
-quickly. This guide shows you how to integrate Algolia DocSearch for powerful, client-side search capabilities.
+MyLittleContentEngine includes a built-in search system that automatically indexes your content and provides fast, client-side search functionality. The search system uses FlexSearch for high-performance searching with smart ranking and highlighting.
+
+## How Search Works
+
+The search system consists of three main components:
+
+1. **Server-side Index Generation**: Automatically creates a JSON search index from all your content
+2. **Client-side Search Engine**: Uses FlexSearch to provide fast, fuzzy searching
+3. **Search UI**: Modal interface with keyboard shortcuts and result highlighting
+
+### Architecture Overview
+
+```mermaid
+graph TD
+    A[Content Services] --> B[SearchIndexService]
+    B --> C[/search-index.json]
+    C --> D[FlexSearch Engine]
+    D --> E[Search Results UI]
+    
+    F[User Types Query] --> D
+    G[Ctrl+K Shortcut] --> E
+    H[Search Button Click] --> E
+```
+
+**Content Processing Flow:**
+1. Content services (Markdown, API Reference) provide pages via `GetPagesToGenerateAsync()`
+2. `SearchIndexService` fetches each page's HTML and extracts searchable content
+3. Content is cleaned (code blocks removed), headings are extracted with priority levels
+4. A JSON index is generated at `/search-index.json` with weighted content and search priorities
+5. Client-side FlexSearch loads the index and provides instant search results
 
 ## Prerequisites
 
-Before implementing search, ensure you have:
+- MyLittleContentEngine site with content
+- `MyLittleContentEngine.UI` package installed
+- Search UI components added to your layout
 
-- A deployed MyLittleContentEngine site
-- Content that's publicly accessible - Algolia doesn't work locally
-- Administrative access to configure search settings
+## Implementation Steps
 
 <Steps>
 <Step stepNumber="1">
-## Set up Algolia DocSearch
+## Add Required Packages
 
-### Create an Algolia Account
-
-1. Visit [docsearch.algolia.com](https://docsearch.algolia.com/)
-2. Click "Apply for DocSearch" if you qualify for the free tier (open source projects, technical documentation)
-3. Alternatively, create a paid Algolia account at [algolia.com](https://www.algolia.com/)
-
-### Configure Your Search Index
-
-For free DocSearch:
-
-1. Fill out the application form with your site details
-2. Wait for approval (typically 1-2 weeks)
-3. Once approved, you'll receive your search credentials
-</Step>
-<Step stepNumber="2">
-## Add Search Scripts
-
-MyLittleContentEngine.UI includes built-in support for DocSearch. The required JavaScript is already included in the
-`scripts.js` file that's part of the `MyLittleContentEngine.UI package`.
+Ensure you have the UI package installed:
 
 ```bash
 dotnet add package MyLittleContentEngine.UI
 ```
 
-Then make sure to include the UI scripts in your project:
-
-```html
-<script src="_content/MyLittleContentEngine.UI/scripts.js" defer></script>
-```
-
-
+The search functionality is automatically included with the UI package - no additional setup required.
 </Step>
-<Step stepNumber="3">
-## Add Search Component to Your Layout
 
-Add the search container to your site's header or navigation area:
+<Step stepNumber="2">
+## Add Search UI to Your Layout
+
+Add a search input element to your layout with the `id="search-input"`:
 
 ```html
-
-<div id="docsearch"
-     data-search-app-id="YOUR_APP_ID"
-     data-search-index-name="YOUR_INDEX_NAME"
-     data-search-api-key="YOUR_SEARCH_API_KEY">
+<div class="lg:flex-1 max-w-lg">
+    <button type="button" 
+            id="search-input"
+            class="w-full px-4 py-2 pl-10 bg-base-50 dark:bg-base-800 border border-base-300 dark:border-base-600 rounded-md text-base-900 dark:text-base-100 placeholder-base-500 dark:placeholder-base-400 cursor-pointer hover:bg-base-100 dark:hover:bg-base-700 transition-colors">
+        <svg class="absolute left-3 top-2.5 h-5 w-5 text-base-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+            <circle cx="11" cy="11" r="8"></circle>
+            <path d="M21 21l-4.35-4.35"></path>
+        </svg>
+        Search documentation...
+        <div class="absolute right-3 top-2.5 hidden sm:flex items-center gap-1">
+            <kbd class="px-2 py-0.5 text-xs bg-base-200 dark:bg-base-700 text-base-600 dark:text-base-400 rounded border border-base-300 dark:border-base-600">Ctrl</kbd>
+            <kbd class="px-2 py-0.5 text-xs bg-base-200 dark:bg-base-700 text-base-600 dark:text-base-400 rounded border border-base-300 dark:border-base-600">K</kbd>
+        </div>
+    </button>
 </div>
 ```
-</Step>
-<Step stepNumber="4">
-## Customize Search Appearance (Optional)
 
-`MyLittleContentEngine.MonorailCss` will automatically style the search component using your `base`, `primary` 
-and `accent` colors.
- 
+The search system will automatically:
+- Generate a search modal when the input is clicked
+- Enable `Ctrl+K` keyboard shortcut
+- Provide search results with highlighting
+</Step>
+
+<Step stepNumber="3">
+## Include Scripts and Base URL
+
+In your `App.razor`, ensure you have the required scripts and base URL configuration:
+
+```html
+<head>
+    <!-- Other head content -->
+    <script src="@LinkService.GetLink("/_content/MyLittleContentEngine.UI/scripts.js")" defer></script>
+    
+    <script>
+        // Set global base URL for scripts to use (required for subdirectory deployments)
+        window.MyLittleContentEngineBaseUrl = '@LinkService.GetLink("/")';
+    </script>
+</head>
+```
+
+Don't forget to inject the LinkService:
+
+```csharp
+@inject LinkService LinkService
+```
+</Step>
+
+<Step stepNumber="4">
+## Configure Content Service Priorities (Optional)
+
+Content services have configurable search priorities that affect result ranking:
+
+- **MarkdownContentService**: Priority 10 (high) - documentation and guides appear first
+- **ApiReferenceContentService**: Priority 5 (medium) - API docs appear after main content
+
+To customize priorities for custom content services, implement the `SearchPriority` property:
+
+```csharp
+public class MyCustomContentService : IContentService
+{
+    public int SearchPriority => 8; // Custom priority (1-10 range recommended)
+    
+    // Other implementation...
+}
+```
 </Step>
 </Steps>
 
-## Testing Your Search
+## Search Features
 
-Once you've configured DocSearch and your search index is populated:
+### Intelligent Content Ranking
 
-1. **Verify Search Button**: Check that the search button appears in your layout
-2. **Test Search Queries**: Try searching for content from your site
-3. **Check Results**: Ensure search results link to the correct pages
-4. **Mobile Testing**: Verify search works properly on mobile devices
+The search system uses multiple factors to rank results:
 
-### Troubleshooting
+1. **Field Weights**: Title (3x) > Description (2x) > Headings (1.5x) > Content (1x)
+2. **Heading Priority**: H1 headings weighted higher than H2, H3, etc.
+3. **Content Service Priority**: Markdown content ranked higher than API reference
+4. **Position in Results**: Earlier matches in FlexSearch results get higher scores
 
-**Search not appearing:**
-- Verify all three data attributes are set correctly
+### Smart Content Processing
+
+- **Code Block Removal**: Code samples are excluded from search content for cleaner results
+- **Heading Extraction**: Headings are extracted with level-based priority weighting
+- **HTML Cleaning**: Scripts, styles, and markup are removed, leaving clean searchable text
+- **Optimized Index**: Headings stored as `"level:text"` format for efficient client-side processing
+
+### Search UI Features
+
+- **Modal Interface**: Clean, focused search experience
+- **Keyboard Shortcuts**: `Ctrl+K` (Windows/Linux) or `Cmd+K` (Mac) to open search
+- **Live Search**: Results appear as you type with 300ms debounce
+- **Result Highlighting**: Search terms highlighted in titles, descriptions, and content snippets
+- **Failure Handling**: Graceful degradation with clear error messages, no retry storms
+
+## Customization
+
+### Styling
+
+The search interface uses semantic CSS classes that are automatically styled by MonorailCSS:
+
+- `.search-modal-backdrop` - Modal overlay
+- `.search-modal-content` - Modal container
+- `.search-result-item` - Individual search results
+- `.search-highlight` - Highlighted search terms
+
+Customize the appearance by adding CSS rules in your stylesheets or via MonorailCSS configuration.
+
+### Search Index Endpoint
+
+The search index is automatically available at `/search-index.json` and includes:
+
+```json
+{
+  "documents": [
+    {
+      "url": "/page-url",
+      "title": "Page Title", 
+      "description": "Page description",
+      "content": "Clean page content without code blocks",
+      "headings": ["1:Main Heading", "2:Sub Heading"],
+      "searchPriority": 10
+    }
+  ],
+  "generatedAt": "2024-01-01T00:00:00.000Z"
+}
+```
+
+## Troubleshooting
+
+**Search modal not appearing:**
+- Verify `id="search-input"` is present on your search element
 - Check browser console for JavaScript errors
-- Ensure `scripts.js` is loading properly
+- Ensure `scripts.js` is loading correctly
+
+**Search index not loading:**
+- Verify the `/search-index.json` endpoint is accessible
+- Check that `MyLittleContentEngineBaseUrl` is set correctly in subdirectory deployments
+- Look for network errors in browser developer tools
 
 **No search results:**
-- Wait for Algolia to index your site (can take 24-48 hours)
-- Verify your site is publicly accessible
-- Check Algolia dashboard for indexing status
+- Verify your content services are implementing `GetPagesToGenerateAsync()` correctly
+- Check that pages are publicly accessible (search index generation fetches actual HTML)
+- Ensure content contains searchable text (not just images or code)
 
+**Subdirectory deployment issues:**
+- Ensure `LinkService` is injected in `App.razor` 
+- Verify `window.MyLittleContentEngineBaseUrl` is set correctly
+- Check that the search index URL resolves to the correct subdirectory
 
-Your search functionality is now ready to help users find content quickly and efficiently!
+Your search functionality will now provide fast, intelligent search across all your content with automatic indexing and a polished user interface!

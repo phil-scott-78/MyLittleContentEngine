@@ -10,6 +10,11 @@ namespace MyLittleContentEngine.Services.Content;
 public interface IContentService
 {
     /// <summary>
+    /// Gets the search priority for this content service. Higher values appear first in search results.
+    /// Default priority is 1. Recommended values: 1 (low), 5 (medium), 10 (high).
+    /// </summary>
+    int SearchPriority { get; }
+    /// <summary>
     /// Gets the collection of pages that should be generated for this content.
     /// </summary>
     /// <returns>

@@ -36,6 +36,8 @@ public interface IMarkdownContentService<TFrontMatter> : IContentService where T
 /// </typeparam>
 internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownContentService<TFrontMatter> where TFrontMatter : class, IFrontMatter, new()
 {
+    /// <inheritdoc />
+    public int SearchPriority => 10; // High priority for markdown content
     private readonly LazyAndForgetful<ConcurrentDictionary<string, MarkdownContentPage<TFrontMatter>>> _contentCache;
     private readonly MarkdownContentProcessor<TFrontMatter> _contentProcessor;
     private readonly TagService<TFrontMatter> _tagService;

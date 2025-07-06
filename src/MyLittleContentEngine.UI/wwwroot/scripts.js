@@ -687,17 +687,18 @@ class MobileNavManager {
 }
 
 /**
- * Search Manager - Handles custom search with fuse.js
+ * Search Manager - Handles custom search with FlexSearch
  */
 class SearchManager {
     constructor() {
         this.searchInput = null;
         this.searchModal = null;
         this.searchResults = null;
-        this.fuseLoaded = false;
-        this.fuse = null;
+        this.flexSearchLoaded = false;
+        this.searchIndex = null;
         this.searchData = null;
-        this.Fuse = null;
+        this.FlexSearch = null;
+        this.searchIndexFailed = false; // Track if search index loading failed
     }
 
     async init() {
@@ -793,14 +794,21 @@ class SearchManager {
         this.modalInput.focus();
         document.body.style.overflow = 'hidden';
         
+        // Check if search index loading previously failed
+        if (this.searchIndexFailed) {
+            this.searchResults.innerHTML = '<div class="search-modal-error">Search is currently unavailable</div>';
+            return;
+        }
+        
         // Load search index on first open
         if (!this.searchData) {
-            this.searchResults.innerHTML = '<div class="text-center text-base-600 dark:text-base-400 py-8">Loading search index...</div>';
+            this.searchResults.innerHTML = '<div class="search-modal-loading">Loading search index...</div>';
             try {
                 await this.loadSearchIndex();
                 this.searchResults.innerHTML = '<div class="search-modal-placeholder">Start typing to search...</div>';
             } catch (error) {
                 console.error('Failed to load search index:', error);
+                this.searchIndexFailed = true; // Mark as failed to prevent retries
                 this.searchResults.innerHTML = '<div class="search-modal-error">Search is currently unavailable</div>';
             }
         }
@@ -817,15 +825,21 @@ class SearchManager {
         if (this.searchData) return;
 
         try {
-            // Load fuse.js using ES modules
-            if (!this.fuseLoaded) {
-                const fuseModule = await import('https://cdn.jsdelivr.net/npm/fuse.js@7.1.0/dist/fuse.mjs');
-                this.Fuse = fuseModule.default;
-                this.fuseLoaded = true;
+            // Load FlexSearch using ES modules
+            if (!this.flexSearchLoaded) {
+                const flexSearchModule = await import('https://cdn.skypack.dev/flexsearch@0.7.43');
+                this.FlexSearch = flexSearchModule.default;
+                this.flexSearchLoaded = true;
             }
 
-            // Fetch search index
-            const response = await fetch('/search-index.json');
+            // Fetch search index using base URL if available
+            let baseUrl = window.MyLittleContentEngineBaseUrl || '';
+            if (baseUrl.endsWith('/')) {
+                baseUrl = baseUrl.slice(0, -1);
+            }
+            const searchIndexUrl = baseUrl ? `${baseUrl}/search-index.json` : '/search-index.json';
+            
+            const response = await fetch(searchIndexUrl);
             if (!response.ok) {
                 throw new Error(`Failed to fetch search index: ${response.status}`);
             }
@@ -833,45 +847,36 @@ class SearchManager {
             const indexData = await response.json();
             this.searchData = indexData.documents;
             
-            // Prepare documents for Fuse.js with flattened headings
-            const fuseData = this.searchData.map(doc => ({
-                ...doc,
-                headingsText: doc.headings.map(h => h.text).join(' ')
-            }));
+            // Create FlexSearch Document index
+            this.searchIndex = new this.FlexSearch.Document({
+                tokenize: "forward",
+                cache: 100,
+                document: {
+                    id: 'id',
+                    store: ["title", "description", "content", "headingsText", "url"],
+                    index: ["title", "description", "content", "headingsText"]
+                }
+            });
             
-            // Configure Fuse.js options
-            const fuseOptions = {
-                keys: [
-                    {
-                        name: 'title',
-                        weight: 3
-                    },
-                    {
-                        name: 'description',
-                        weight: 2
-                    },
-                    {
-                        name: 'headingsText',
-                        weight: 1.5
-                    },
-                    {
-                        name: 'content',
-                        weight: 1
-                    }
-                ],
-                threshold: 0.3, // Lower = more strict matching
-                distance: 1000, // Max distance for matches
-                minMatchCharLength: 2,
-                includeMatches: true,
-                includeScore: true,
-                ignoreLocation: true
-            };
-            
-            // Create Fuse instance
-            this.fuse = new this.Fuse(fuseData, fuseOptions);
+            // Index all documents
+            this.searchData.forEach((doc, index) => {
+                const url = baseUrl ? `${baseUrl}/{doc.url}` : doc.url;
+                
+                const docToIndex = {
+                    id: index.toString(), // FlexSearch Document API needs string IDs
+                    title: doc.title || '',
+                    description: doc.description || '',
+                    content: doc.content || '',
+                    headingsText: this.parseHeadingsText(doc.headings || []),
+                    url: url
+                };
+                
+                this.searchIndex.add(docToIndex);
+            });
             
         } catch (error) {
             console.error('Failed to load search index:', error);
+            this.searchIndexFailed = true; // Mark as failed to prevent retries
             this.searchResults.innerHTML = '<div class="search-modal-error">Search is currently unavailable</div>';
         }
     }
@@ -882,17 +887,23 @@ class SearchManager {
             return;
         }
 
-        if (!this.fuse) {
-            // If search index is not loaded yet, try to load it
+        if (!this.searchIndex) {
+            // Check if search index loading previously failed
+            if (this.searchIndexFailed) {
+                this.searchResults.innerHTML = '<div class="search-modal-error">Search is currently unavailable</div>';
+                return;
+            }
+            
+            // If search index is not loaded yet, try to load it (only once)
             if (!this.searchData) {
                 this.searchResults.innerHTML = '<div class="search-modal-loading">Loading search index...</div>';
                 this.loadSearchIndex().then(() => {
-                    // Retry search after loading
-                    if (this.modalInput.value === query) {
+                    // Retry search after loading only if not failed
+                    if (this.modalInput.value === query && !this.searchIndexFailed) {
                         this.performSearch(query);
                     }
                 }).catch(() => {
-                    this.searchResults.innerHTML = '<div class="search-modal-error">Search is currently unavailable</div>';
+                    // Error handling is done in loadSearchIndex method
                 });
             } else {
                 this.searchResults.innerHTML = '<div class="search-modal-loading">Search index loading...</div>';
@@ -901,12 +912,76 @@ class SearchManager {
         }
 
         try {
-            const results = this.fuse.search(query);
+            const results = this.searchIndex.search(query, { limit: 10 });
             this.displayResults(results, query);
         } catch (error) {
             console.error('Search error:', error);
             this.searchResults.innerHTML = '<div class="search-modal-error">Search error occurred</div>';
         }
+    }
+
+    parseHeadingsText(headings) {
+        // Convert "level:text" format headings to weighted text
+        // Higher priority for lower heading levels (H1 > H2 > H3, etc.)
+        return headings.map(heading => {
+            if (typeof heading === 'string' && heading.includes(':')) {
+                const [level, text] = heading.split(':', 2);
+                const priority = this.getHeadingPriority(parseInt(level));
+                // Repeat text based on priority for better matching
+                const repetitions = Math.ceil(priority / 20);
+                return Array(repetitions).fill(text).join(' ');
+            }
+            return heading; // Fallback for legacy format
+        }).join(' ');
+    }
+
+    getHeadingPriority(level) {
+        switch (level) {
+            case 1: return 100; // H1 - highest priority
+            case 2: return 80;  // H2 - high priority
+            case 3: return 60;  // H3 - medium-high priority
+            case 4: return 40;  // H4 - medium priority
+            case 5: return 20;  // H5 - low priority
+            case 6: return 10;  // H6 - lowest priority
+            default: return 0;
+        }
+    }
+
+    combineFieldResults(results) {
+        const scoreMap = new Map();
+        
+        // Field weights
+        const fieldWeights = {
+            'title': 3,
+            'description': 2,
+            'headingsText': 1.5,
+            'content': 1
+        };
+        
+        results.forEach(fieldResult => {
+            const field = fieldResult.field;
+            const weight = fieldWeights[field] || 1;
+            const docIds = fieldResult.result;
+            
+            docIds.forEach((docId, index) => {
+                // Get the document to access its search priority
+                const doc = this.searchData[parseInt(docId)];
+                const searchPriority = doc?.searchPriority || 1;
+                
+                // Give higher score to documents that appear earlier in results
+                const positionScore = 1 / (index + 1);
+                
+                // Apply search priority multiplier
+                const totalScore = weight * positionScore * searchPriority;
+                
+                scoreMap.set(docId, (scoreMap.get(docId) || 0) + totalScore);
+            });
+        });
+        
+        // Convert to array and sort by score
+        return Array.from(scoreMap.entries())
+            .sort((a, b) => b[1] - a[1])
+            .map(([docId, score]) => ({ docId, score }));
     }
 
     displayResults(results, query) {
@@ -915,8 +990,17 @@ class SearchManager {
             return;
         }
 
-        const resultElements = results.slice(0, 10).map(result => {
-            const doc = result.item; // Fuse.js wraps results in .item
+        // FlexSearch Document API returns array of field results
+        // Combine and score the results from different fields
+        const scoredResults = this.combineFieldResults(results);
+        
+        if (scoredResults.length === 0) {
+            this.searchResults.innerHTML = '<div class="search-modal-no-results">No results found</div>';
+            return;
+        }
+
+        const resultElements = scoredResults.slice(0, 10).map(({ docId, score }) => {
+            const doc = this.searchData[parseInt(docId)];
             if (!doc) return '';
 
             // Use simple highlighting for now
@@ -926,19 +1010,23 @@ class SearchManager {
             // Get content snippet with simple highlighting
             const snippet = this.getContentSnippet(doc.content, query);
 
-            // Show relevance score for debugging (can be removed later)
-            const score = Math.round((1 - result.score) * 100);
-
+            let baseUrl = window.MyLittleContentEngineBaseUrl || '';
+            if (baseUrl.endsWith('/')) {
+                baseUrl = baseUrl.slice(0, -1);
+            }
+            
+            const url = baseUrl ? `${baseUrl}${doc.url}` : doc.url;
+            
             return `
                 <div class="search-result-item">
-                    <a href="${doc.url}" class="search-result-link">
+                    <a href="${url}" class="search-result-link">
                         <div class="search-result-header">
                             <h3 class="search-result-title">${highlightedTitle}</h3>
-                            <span class="search-result-score">${score}%</span>
+                            <span class="search-result-score">${Math.round(score * 10)}</span>
                         </div>
                         ${highlightedDescription ? `<p class="search-result-description">${highlightedDescription}</p>` : ''}
                         ${snippet ? `<p class="search-result-snippet">${snippet}</p>` : ''}
-                        <p class="search-result-url">${doc.url}</p>
+                        <p class="search-result-url">${url}</p>
                     </a>
                 </div>
             `;
@@ -970,70 +1058,6 @@ class SearchManager {
         return highlightedText;
     }
 
-    highlightFuseMatches(text, matches, fieldName) {
-        // For now, let's disable Fuse.js highlighting entirely to avoid the bug
-        // and just use simple text highlighting as a fallback
-        return null;
-    }
-
-    getContentSnippetWithFuse(content, query, matches) {
-        if (!content) return '';
-        
-        // Try to find content matches first
-        const contentMatches = matches?.filter(match => match.key === 'content');
-        
-        if (contentMatches && contentMatches.length > 0) {
-            // Use the first content match to create a snippet
-            const firstMatch = contentMatches[0];
-            if (firstMatch.indices && firstMatch.indices.length > 0) {
-                const matchStart = firstMatch.indices[0][0];
-                const start = Math.max(0, matchStart - 75);
-                const end = Math.min(content.length, matchStart + 75);
-                
-                let snippet = content.substring(start, end);
-                if (start > 0) snippet = '...' + snippet;
-                if (end < content.length) snippet = snippet + '...';
-                
-                // Adjust the match indices for the snippet
-                const adjustedMatches = contentMatches.map(match => ({
-                    ...match,
-                    indices: match.indices.map(([matchStart, matchEnd]) => [
-                        Math.max(0, matchStart - start),
-                        Math.min(snippet.length - 1, matchEnd - start)
-                    ]).filter(([s, e]) => s >= 0 && e < snippet.length && s <= e)
-                })).filter(match => match.indices.length > 0);
-                
-                return this.highlightFuseMatches(snippet, adjustedMatches, 'content') || snippet;
-            }
-        }
-        
-        // Fallback to regular snippet generation without highlighting
-        const words = query.toLowerCase().split(/\s+/);
-        const contentLower = content.toLowerCase();
-        
-        let firstIndex = -1;
-        for (const word of words) {
-            if (word.length > 2) {
-                const index = contentLower.indexOf(word);
-                if (index !== -1 && (firstIndex === -1 || index < firstIndex)) {
-                    firstIndex = index;
-                }
-            }
-        }
-        
-        if (firstIndex === -1) {
-            return content.substring(0, 150) + (content.length > 150 ? '...' : '');
-        }
-        
-        const start = Math.max(0, firstIndex - 75);
-        const end = Math.min(content.length, firstIndex + 75);
-        let snippet = content.substring(start, end);
-        
-        if (start > 0) snippet = '...' + snippet;
-        if (end < content.length) snippet = snippet + '...';
-        
-        return snippet; // No highlighting to avoid conflicts
-    }
 
     getContentSnippet(content, query) {
         if (!content || !query) return '';

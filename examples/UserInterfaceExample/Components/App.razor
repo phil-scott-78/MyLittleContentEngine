@@ -1,5 +1,7 @@
 ﻿@using MyLittleContentEngine
+@using MyLittleContentEngine.Services.Content
 @inject ContentEngineOptions Options
+@inject LinkService LinkService
 
 <!DOCTYPE html>
 <html lang="en">
@@ -9,6 +11,11 @@
     
     <link rel="stylesheet" href="styles.css">
     <script src="_content/MyLittleContentEngine.UI/scripts.js" defer></script>
+
+    <script>
+        // Set global base URL for scripts to use
+        window.MyLittleContentEngineBaseUrl = '@LinkService.GetLink("/")';
+    </script>
 
     <HeadOutlet/>
 </head>

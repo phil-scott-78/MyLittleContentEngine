@@ -52,72 +52,11 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
         var cssClassValues = cssClassCollector.GetClasses();
         var styleSheet = GetCssFramework().Process(cssClassValues);
 
-        // add 
-        var docsearchOverride = GetDocsearchOverride();
-
         return $"""
                 {options.ExtraStyles}
                 
                 {styleSheet}
-
-                {docsearchOverride}
                 """;
-    }
-
-    private static string GetDocsearchOverride()
-    {
-        return """
-               .DocSearch {
-                   --docsearch-primary-color: var(--monorail-color-primary-900);
-                   --docsearch-text-color: var(--monorail-color-base-800);
-                   --docsearch-spacing: 12px;
-                   --docsearch-icon-stroke-width: 1.4;
-                   --docsearch-highlight-color: var(--monorail-color-primary-600);
-                   --docsearch-muted-color: var(--monorail-color-base-700);
-                   --docsearch-container-background: var(--monorail-color-base-200);
-                   --docsearch-modal-width: 560px;
-                   --docsearch-modal-height: 600px;
-                   --docsearch-modal-background: var(--monorail-color-base-100);
-                   --docsearch-modal-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-                   --docsearch-searchbox-height: 56px;
-                   --docsearch-searchbox-background: var(--monorail-color-base-200);
-                   --docsearch-searchbox-focus-background: var(--monorail-color-base-100);
-                   --docsearch-searchbox-shadow: inset 0 0 0 1px var(--monorail-color-base-400);
-                   --docsearch-hit-height: 56px;
-                   --docsearch-hit-color: var(--monorail-color-base-600);
-                   --docsearch-hit-active-color: var(--monorail-color-base-100);
-                   --docsearch-hit-background: var(--monorail-color-base-100);
-                   --docsearch-hit-shadow: 0 1px 3px 0 #d4d9e1;
-                   --docsearch-key-gradient: none;
-                   --docsearch-key-shadow: none;
-                   --docsearch-key-pressed-shadow: none;
-                   --docsearch-footer-height: 44px;
-                   --docsearch-footer-background: #var(--monorail-color-base-200);
-                   --docsearch-footer-shadow: 0 -1px 0 0 var(--monorail-color-base-300);
-                   --docsearch-icon-color: var(--monorail-color-base-500);
-               }
-
-
-               html[data-theme=dark] .DocSearch {
-                   --docsearch-text-color: var(--monorail-color-base-500);
-                   --docsearch-container-background: var(--monorail-color-base-800);
-                   --docsearch-modal-background: var(--monorail-color-base-900);
-                   --docsearch-highlight-color: var(--monorail-color-primary-700);
-                   --docsearch-searchbox-background:var(--monorail-color-base-800);
-                   --docsearch-searchbox-focus-background: var(--monorail-color-base-800);
-                   --docsearch-searchbox-shadow: inset 0 0 0 1px var(--monorail-color-base-500);
-
-                   --docsearch-hit-color: #bec3c9;
-                   --docsearch-hit-shadow: none;
-                   --docsearch-hit-background: #090a11;
-                   --docsearch-key-gradient: none;
-                   --docsearch-key-shadow: none;
-                   --docsearch-key-pressed-shadow: none;
-                   --docsearch-footer-background: #var(--monorail-color-base-800);
-                   --docsearch-footer-shadow: 0 -1px 0 0 var(--monorail-color-base-800);
-                   --docsearch-muted-color: var(--monorail-color-base-400);
-               }
-               """;
     }
 
     private CssFramework GetCssFramework()
@@ -439,17 +378,17 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 // Modal header and input
                 { ".search-modal-header", "p-4 border-b border-base-200 dark:border-base-700" },
                 { ".search-modal-input-container", "relative" },
-                { ".search-modal-input", "w-full px-4 py-2 pl-10 bg-base-50 dark:bg-base-800 border border-base-300 dark:border-base-600 rounded-md text-base-900 dark:text-base-100 placeholder-base-500 dark:placeholder-base-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500" },
-                { ".search-modal-icon", "absolute left-3 top-2.5 h-5 w-5 text-base-400" },
+                { ".search-modal-input", "w-full px-4 py-2 pl-10 bg-base-50 dark:bg-base-800 border border-base-300 dark:border-base-600 rounded-md text-base-900 dark:text-base-100 placeholder-base-500 dark:placeholder-base-400 focus:outline-none focus:ring-1 focus:ring-primary-500/50 focus:border-primary-500" },
+                { ".search-modal-icon", "absolute left-3 top-2.5 h-4 w-4 text-base-400" },
                 
                 // Results container
-                { ".search-modal-results", "max-h-96 overflow-y-auto p-4" },
+                { ".search-modal-results", "max-h-96 overflow-y-auto p-4 dark:scheme-dark"  },
                 
                 // Status messages
-                { ".search-modal-placeholder", "text-center text-base-600 dark:text-base-400 py-8" },
-                { ".search-modal-loading", "text-center text-base-600 dark:text-base-400 py-8" },
-                { ".search-modal-no-results", "text-center text-base-600 dark:text-base-400 py-8" },
-                { ".search-modal-error", "text-center text-red-600 dark:text-red-400 py-8" },
+                { ".search-modal-placeholder", "text-center text-base-600 dark:text-base-400 py-4" },
+                { ".search-modal-loading", "text-center text-base-600 dark:text-base-400 py-4" },
+                { ".search-modal-no-results", "text-center text-base-600 dark:text-base-400 py-4" },
+                { ".search-modal-error", "text-center text-red-600 dark:text-red-400 py-4" },
                 
                 // Search result items
                 { ".search-result-item", "border-b border-base-200 dark:border-base-700 py-4 last:border-b-0" },
@@ -458,11 +397,12 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 { ".search-result-title", "text-lg font-medium text-primary-700 dark:text-primary-400 flex-1" },
                 { ".search-result-score", "text-xs text-base-500 dark:text-base-500 ml-2" },
                 { ".search-result-description", "text-sm text-base-600 dark:text-base-400 mb-2" },
-                { ".search-result-snippet", "text-sm text-base-700 dark:text-base-300" },
+                { ".search-result-snippet", "text-xs text-base-700 dark:text-base-300" },
                 { ".search-result-url", "text-xs text-base-500 dark:text-base-500 mt-2" },
                 
                 // Search highlighting
-                { ".search-highlight", "bg-yellow-200 dark:bg-yellow-800" },
+                { ".search-result-title .search-highlight", "text-primary-500 dark:text-primary-200 bg-inherit" },
+                { ".search-highlight", "text-accent-500 dark:text-accent-400 bg-inherit" },
             });
     }
 }

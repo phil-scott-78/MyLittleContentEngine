@@ -14,6 +14,8 @@ namespace MyLittleContentEngine.Services.Content;
 /// </summary>
 public class ApiReferenceContentService : IContentService, IDisposable
 {
+    /// <inheritdoc />
+    public int SearchPriority => 5; // Medium priority for API reference content
     private readonly IRoslynExampleCoordinator _roslynCoordinator;
     private readonly ILogger<ApiReferenceContentService> _logger;
     private readonly ApiReferenceContentOptions _options;

@@ -16,6 +16,9 @@
     <script src="@LinkService.GetLink(GetVersioned("/_content/MyLittleContentEngine.UI/scripts.js"))" defer></script>
     
     <script>
+        // Set global base URL for scripts to use
+        window.MyLittleContentEngineBaseUrl = '@LinkService.GetLink("/")';
+        
         // this is actually duplicated in scripts.js, but we need it here to ensure the
         // theme is set before the page loads to avoid flash of unstyled content
         const isDarkMode = localStorage.theme === "dark" || (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches);

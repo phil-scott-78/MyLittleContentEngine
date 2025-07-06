@@ -1,4 +1,4 @@
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using MyLittleContentEngine.Models;
@@ -36,7 +36,7 @@ public partial class SearchIndexService(
             {
                 try
                 {
-                    var document = await ProcessPageAsync(httpClient, page);
+                    var document = await ProcessPageAsync(httpClient, page, contentService.SearchPriority);
                     if (document != null)
                     {
                         searchIndex.Documents.Add(document);
@@ -58,7 +58,7 @@ public partial class SearchIndexService(
         return JsonSerializer.Serialize(searchIndex, options);
     }
 
-    private async Task<SearchIndexDocument?> ProcessPageAsync(HttpClient httpClient, PageToGenerate page)
+    private async Task<SearchIndexDocument?> ProcessPageAsync(HttpClient httpClient, PageToGenerate page, int searchPriority)
     {
         try
         {
@@ -70,7 +70,7 @@ public partial class SearchIndexService(
             }
 
             var html = await response.Content.ReadAsStringAsync();
-            var document = ExtractContentFromHtml(html, page);
+            var document = ExtractContentFromHtml(html, page, searchPriority);
             
             return document;
         }
@@ -81,13 +81,14 @@ public partial class SearchIndexService(
         }
     }
 
-    private SearchIndexDocument ExtractContentFromHtml(string html, PageToGenerate page)
+    private SearchIndexDocument ExtractContentFromHtml(string html, PageToGenerate page, int searchPriority)
     {
         var document = new SearchIndexDocument
         {
             Url = page.Url,
             Title = page.Metadata?.Title ?? ExtractTitle(html),
-            Description = page.Metadata?.Description ?? ExtractDescription(html)
+            Description = page.Metadata?.Description ?? ExtractDescription(html),
+            SearchPriority = searchPriority
         };
 
         // Extract main content from <main> tag
@@ -150,6 +151,9 @@ public partial class SearchIndexService(
         // Remove script and style tags
         var cleanHtml = CleanHtmlRegex().Replace(html, string.Empty);
         
+        // Remove code blocks (pre tags)
+        cleanHtml = CodeBlockRegex().Replace(cleanHtml, string.Empty);
+        
         // Remove HTML tags but keep the content
         cleanHtml = RemoveHtmlTagRegex().Replace(cleanHtml, " ");
         
@@ -159,9 +163,9 @@ public partial class SearchIndexService(
         return cleanHtml.Trim();
     }
 
-    private List<SearchIndexHeading> ExtractHeadings(string html)
+    private List<string> ExtractHeadings(string html)
     {
-        var headings = new List<SearchIndexHeading>();
+        var headings = new List<string>();
         
         var headingMatches = HeadingRegex().Matches(html);
         
@@ -172,31 +176,13 @@ public partial class SearchIndexService(
             
             if (!string.IsNullOrEmpty(text))
             {
-                headings.Add(new SearchIndexHeading
-                {
-                    Text = text,
-                    Level = level,
-                    Priority = GetHeadingPriority(level)
-                });
+                headings.Add($"{level}:{text}");
             }
         }
 
         return headings;
     }
 
-    private int GetHeadingPriority(int level)
-    {
-        return level switch
-        {
-            1 => 100,  // H1 - highest priority
-            2 => 80,   // H2 - high priority
-            3 => 60,   // H3 - medium-high priority
-            4 => 40,   // H4 - medium priority
-            5 => 20,   // H5 - low priority
-            6 => 10,   // H6 - lowest priority
-            _ => 0
-        };
-    }
 
     // Generated regex patterns for improved performance
     [GeneratedRegex(@"<title[^>]*>([^<]+)</title>", RegexOptions.IgnoreCase)]
@@ -212,6 +198,8 @@ public partial class SearchIndexService(
     private static partial Regex ArticleTagRegex();
     [GeneratedRegex(@"<(script|style)[^>]*>.*?</\1>", RegexOptions.IgnoreCase | RegexOptions.Singleline, "en-US")]
     private static partial Regex CleanHtmlRegex();
+    [GeneratedRegex(@"<pre[^>]*>.*?</pre>", RegexOptions.IgnoreCase | RegexOptions.Singleline)]
+    private static partial Regex CodeBlockRegex();
     [GeneratedRegex(@"<[^>]+>")]
     private static partial Regex RemoveHtmlTagRegex();
     [GeneratedRegex(@"\s+")]

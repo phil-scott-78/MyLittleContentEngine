@@ -130,6 +130,7 @@ public class ContentEngineTestBuilder
     {
         private readonly ImmutableList<PageToGenerate> _pages = pages.ToImmutableList();
 
+        public int SearchPriority { get; } = 0;
         public Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync() => Task.FromResult(_pages);
         public Task<ImmutableList<PageToGenerate>> GetTocEntriesToGenerateAsync() => Task.FromResult(_pages);
         public Task<ImmutableList<ContentToCopy>> GetContentToCopyAsync() => Task.FromResult(ImmutableList<ContentToCopy>.Empty);
