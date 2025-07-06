@@ -9,12 +9,12 @@
 @if (_namespace != null && IsLoaded)
 {
     
-    <article>
+    <article class="break-all">
         <header>
             <div class="flex items-center gap-2 mb-2 font-display ">
 
                 <h1 class="font-display text-xl sm:text-2xl lg:text-4xl font-bold tracking-tight text-base-900 dark:text-base-50">
-                     @((MarkupString) _namespace.Name.Replace(".", ".<wbr />"))
+                     @_namespace.Name
                 </h1>
                 <span class="text-xs bg-base-100 font-light dark:bg-base-800 px-2 py-1 rounded text-base-600 dark:text-base-400">
                     Namespace
