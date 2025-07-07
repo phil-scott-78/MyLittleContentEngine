@@ -12,6 +12,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.6" />
-    <PackageReference Include="MonorailCss" Version="0.0.2-preview.0.3.1.80" />
+    <PackageReference Include="MonorailCss" Version="0.0.2-preview.0.3.1.81" />
   </ItemGroup>
 </Project>

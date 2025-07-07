@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+  </PropertyGroup>
+  <PropertyGroup>
+    <!-- Project-specific NuGet Package Properties -->
+    <PackageId>MyLittleContentEngine.DocSite</PackageId>
+    <Title>My Little Content Engine - A Cookie Cutter Documentation Site</Title>
+    <Description>A full site using the MyLittleContentEngine</Description>
+    <PackageTags>blazor;monorail-css;css;documentation</PackageTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\MyLittleContentEngine\MyLittleContentEngine.csproj" />
+    <ProjectReference Include="..\MyLittleContentEngine.UI\MyLittleContentEngine.UI.csproj" />
+    <ProjectReference Include="..\MyLittleContentEngine.MonorailCss\MyLittleContentEngine.MonorailCss.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Mdazor" Version="0.0.0-alpha.0.9" />
+  </ItemGroup>
+
+
+</Project>

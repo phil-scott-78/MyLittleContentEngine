@@ -1,9 +1,11 @@
-﻿@using System.Collections.Immutable
+@using System.Collections.Immutable
 @using MyLittleContentEngine.Services.Content.TableOfContents
 @using Microsoft.AspNetCore.Components.Sections
+@using MyLittleContentEngine.UI.Components
 @inherits LayoutComponentBase
 @inject ITableOfContentService TableOfContentService
 @inject NavigationManager NavigationManager
+@inject DocSiteOptions DocSiteOptions
 
 <div class="dark:scheme-dark box-content bg-base-100 dark:bg-base-950 text-base-900 dark:text-base-50">
     <!-- Mobile overlay -->
@@ -16,9 +18,24 @@
             <div class="sticky top-0 p-8 h-screen overflow-y-auto">
                 <div>
                     <div class="flex min-w-0 mb-8 font-display shrink items-center gap-x-2">
-                        @_headerIcon
-                        <span class="font-display tracking-tight  dark:text-base-50 text-base-900"> <RefLink
-                                Href="/index">My Little Content Engine</RefLink></span>
+                        @if (DocSiteOptions.HeaderIcon != null)
+                        {
+                            @DocSiteOptions.HeaderIcon
+                        }
+                        else
+                        {
+                            @_defaultHeaderIcon
+                        }
+                        <span class="font-display tracking-tight dark:text-base-50 text-base-900">
+                            @if (DocSiteOptions.HeaderContent != null)
+                            {
+                                @DocSiteOptions.HeaderContent
+                            }
+                            else
+                            {
+                                <RefLink Href="/index">@DocSiteOptions.SiteTitle</RefLink>
+                            }
+                        </span>
                     </div>
                 </div>
                 <TableOfContentsNavigation TableOfContents="_toc"/>
@@ -27,15 +44,32 @@
         <div class="flex-1 min-w-0 lg:ml-0">
             <header
                 class="sticky top-0 z-10 h-14 backdrop-blur-sm bg-base-50/90 dark:bg-base-950/90 flex items-center justify-between gap-x-8 border-b border-base-200 dark:border-base-800">
-                <nav class="mx-auto px-4 lg:px-8  max-w-6xl flex flex-row items-center gap-x-2 w-full">
+                <nav class="mx-auto px-4 lg:px-8 max-w-6xl flex flex-row items-center gap-x-2 w-full">
                     @_mobileMenuButton
                     <div
-                        class="lg:hidden flex flex-1 lg:flex-none min-w-0 shrink items-center place-content-center  gap-x-2 lg:gap-x-4">
-                        <div class="transition-all w-0 sm:w-5 overflow-hidden">@_headerIcon</div>
+                        class="lg:hidden flex flex-1 lg:flex-none min-w-0 shrink items-center place-content-center gap-x-2 lg:gap-x-4">
+                        <div class="transition-all w-0 sm:w-5 overflow-hidden">
+                            @if (DocSiteOptions.HeaderIcon != null)
+                            {
+                                @DocSiteOptions.HeaderIcon
+                            }
+                            else
+                            {
+                                @_defaultHeaderIcon
+                            }
+                        </div>
 
                         <span
-                            class="font-display dark:text-base-50 text-sm lg:text-base font-light  text-base-900 tracking-tighter"><RefLink
-                                Href="/index">My Little Content Engine</RefLink></span>
+                            class="font-display dark:text-base-50 text-sm lg:text-base font-light text-base-900 tracking-tighter">
+                            @if (DocSiteOptions.HeaderContent != null)
+                            {
+                                @DocSiteOptions.HeaderContent
+                            }
+                            else
+                            {
+                                <RefLink Href="/index">@DocSiteOptions.SiteTitle</RefLink>
+                            }
+                        </span>
                     </div>
 
                     <div class="lg:flex-1 max-w-lg">
@@ -52,8 +86,8 @@
                             <kbd class="hidden xl:inline-block ml-auto text-xs text-base-500 dark:text-base-400">
                                 <kbd class="font-sans">Ctrl </kbd>
                                 <kbd class="font-sans">K</kbd>
-                            </kbd></button>
-                        
+                            </kbd>
+                        </button>
                     </div>
 
                     <div class="flex items-center gap-x-2">
@@ -73,26 +107,30 @@
 
                             <!-- moon icon -->
                             <svg xmlns="http://www.w3.org/2000/svg"
-                                 class="hidden dark:block text-base-900 dark:text-base-200 h-5 w-5 " viewBox="0 0 24 24"
+                                 class="hidden dark:block text-base-900 dark:text-base-200 h-5 w-5" viewBox="0 0 24 24"
                                  stroke="currentColor" fill="none">
                                 <path
                                     d="M21.5 14.0784C20.3003 14.7189 18.9301 15.0821 17.4751 15.0821C12.7491 15.0821 8.91792 11.2509 8.91792 6.52485C8.91792 5.06986 9.28105 3.69968 9.92163 2.5C5.66765 3.49698 2.5 7.31513 2.5 11.8731C2.5 17.1899 6.8101 21.5 12.1269 21.5C16.6849 21.5 20.503 18.3324 21.5 14.0784Z"
                                     stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
                             </svg>
                         </button>
-                        <!-- github icon -->
-                        <a href="https://github.com/phil-scott-78/MyLittleContentEngine"
-                           aria-label="GitHub repository"
-                           class="hover:bg-base-200 dark:hover:bg-base-800 rounded-md p-1">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="text-base-900 dark:text-base-200 h-5 w-5"
-                                 viewBox="0 0 24 24" stroke="currentColor" fill="none">
-                                <path d="M10 20.5675C6.57143 21.7248 3.71429 20.5675 2 17" stroke-width="1"
-                                      stroke-linecap="round" stroke-linejoin="round"></path>
-                                <path
-                                    d="M10 22V18.7579C10 18.1596 10.1839 17.6396 10.4804 17.1699C10.6838 16.8476 10.5445 16.3904 10.1771 16.2894C7.13394 15.4528 5 14.1077 5 9.64606C5 8.48611 5.38005 7.39556 6.04811 6.4464C6.21437 6.21018 6.29749 6.09208 6.31748 5.9851C6.33746 5.87813 6.30272 5.73852 6.23322 5.45932C5.95038 4.32292 5.96871 3.11619 6.39322 2.02823C6.39322 2.02823 7.27042 1.74242 9.26698 2.98969C9.72282 3.27447 9.95075 3.41686 10.1515 3.44871C10.3522 3.48056 10.6206 3.41384 11.1573 3.28041C11.8913 3.09795 12.6476 3 13.5 3C14.3524 3 15.1087 3.09795 15.8427 3.28041C16.3794 3.41384 16.6478 3.48056 16.8485 3.44871C17.0493 3.41686 17.2772 3.27447 17.733 2.98969C19.7296 1.74242 20.6068 2.02823 20.6068 2.02823C21.0313 3.11619 21.0496 4.32292 20.7668 5.45932C20.6973 5.73852 20.6625 5.87813 20.6825 5.9851C20.7025 6.09207 20.7856 6.21019 20.9519 6.4464C21.6199 7.39556 22 8.48611 22 9.64606C22 14.1077 19.8661 15.4528 16.8229 16.2894C16.4555 16.3904 16.3162 16.8476 16.5196 17.1699C16.8161 17.6396 17 18.1596 17 18.7579V22"
-                                    stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
-                            </svg>
-                        </a>
+                        
+                        @if (!string.IsNullOrEmpty(DocSiteOptions.GitHubUrl))
+                        {
+                            <!-- github icon -->
+                            <a href="@DocSiteOptions.GitHubUrl"
+                               aria-label="GitHub repository"
+                               class="hover:bg-base-200 dark:hover:bg-base-800 rounded-md p-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="text-base-900 dark:text-base-200 h-5 w-5"
+                                     viewBox="0 0 24 24" stroke="currentColor" fill="none">
+                                    <path d="M10 20.5675C6.57143 21.7248 3.71429 20.5675 2 17" stroke-width="1"
+                                          stroke-linecap="round" stroke-linejoin="round"></path>
+                                    <path
+                                        d="M10 22V18.7579C10 18.1596 10.1839 17.6396 10.4804 17.1699C10.6838 16.8476 10.5445 16.3904 10.1771 16.2894C7.13394 15.4528 5 14.1077 5 9.64606C5 8.48611 5.38005 7.39556 6.04811 6.4464C6.21437 6.21018 6.29749 6.09208 6.31748 5.9851C6.33746 5.87813 6.30272 5.73852 6.23322 5.45932C5.95038 4.32292 5.96871 3.11619 6.39322 2.02823C6.39322 2.02823 7.27042 1.74242 9.26698 2.98969C9.72282 3.27447 9.95075 3.41686 10.1515 3.44871C10.3522 3.48056 10.6206 3.41384 11.1573 3.28041C11.8913 3.09795 12.6476 3 13.5 3C14.3524 3 15.1087 3.09795 15.8427 3.28041C16.3794 3.41384 16.6478 3.48056 16.8485 3.44871C17.0493 3.41686 17.2772 3.27447 17.733 2.98969C19.7296 1.74242 20.6068 2.02823 20.6068 2.02823C21.0313 3.11619 21.0496 4.32292 20.7668 5.45932C20.6973 5.73852 20.6625 5.87813 20.6825 5.9851C20.7025 6.09207 20.7856 6.21019 20.9519 6.4464C21.6199 7.39556 22 8.48611 22 9.64606C22 14.1077 19.8661 15.4528 16.8229 16.2894C16.4555 16.3904 16.3162 16.8476 16.5196 17.1699C16.8161 17.6396 17 18.1596 17 18.7579V22"
+                                        stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                            </a>
+                        }
                     </div>
                 </nav>
             </header>
@@ -101,10 +139,17 @@
                     <article class="flex-1 mt-4 lg:mt-8 ml-4 lg:ml-8 mr-4 xl:mr-0 min-w-0">
                         @Body
                     </article>
-                    <div class="hidden xl:block  sticky top-18 h-[calc(100vh-7rem)] overflow-y-auto w-80">
+                    <div class="hidden xl:block sticky top-18 h-[calc(100vh-7rem)] overflow-y-auto w-80">
                         <SectionOutlet SectionName="sidebar"></SectionOutlet>
                     </div>
                 </div>
+                
+                @if (DocSiteOptions.FooterContent != null)
+                {
+                    <div>
+                        @DocSiteOptions.FooterContent
+                    </div>
+                }
             </main>
         </div>
     </div>
@@ -124,7 +169,7 @@
             </svg>
         </button>;
 
-    private readonly RenderFragment _headerIcon =
+    private readonly RenderFragment _defaultHeaderIcon =
         @<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
               class="transition-all h-5 w-5 text-primary-600 dark:text-primary-400"
               stroke="currentColor">
@@ -135,9 +180,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // need to somehow standardize this to match what we think
         _toc = await TableOfContentService.GetNavigationTocAsync(NavigationManager.ToAbsoluteUri(NavigationManager.Uri).AbsolutePath);
         await base.OnInitializedAsync();
     }
-
 }

@@ -167,7 +167,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                     {
                         ChildRules =
                         [
-                            new CssRuleSet(":not(pre,table) > code", [new CssDeclaration(CssProperties.FontSize, "0.77em")]),
+                            new CssRuleSet(":not(pre,td) > code", [new CssDeclaration(CssProperties.FontSize, "0.77em")]),
                             new CssRuleSet("pre code", [new CssDeclaration(CssProperties.FontSize, "1em")]),
                             new CssRuleSet("table",
                             [
@@ -175,7 +175,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                             ]),
                             new CssRuleSet("table :not(pre) > code",
                             [
-                                new CssDeclaration(CssProperties.FontSize, ".95em"),
+                                new CssDeclaration(CssProperties.FontSize, ".95rem"),
                             ]),
                         ]
                     }
@@ -185,7 +185,10 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                     {
                         ChildRules =
                         [
-                            new CssRuleSet("pre code", [new CssDeclaration(CssProperties.FontSize, "1em")]),
+                            new CssRuleSet("code", [new CssDeclaration(CssProperties.FontSize, ".8rem")]),
+                            new CssRuleSet("pre code", [new CssDeclaration(CssProperties.FontSize, ".8rem")]),
+                            new CssRuleSet("td code", [new CssDeclaration(CssProperties.FontSize, ".9em")]),
+
                         ]
                     }
                 },

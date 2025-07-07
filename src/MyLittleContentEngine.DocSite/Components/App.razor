@@ -1,7 +1,10 @@
-﻿@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.AspNetCore.Hosting
+@using Microsoft.Extensions.Hosting
 @using MyLittleContentEngine.Services.Content
 @inject IWebHostEnvironment WebHostEnvironment
 @inject LinkService LinkService
+@inject DocSiteOptions DocSiteOptions
 
 <!DOCTYPE html>
 <html lang="en">
@@ -29,7 +32,7 @@
     <HeadOutlet/>
 </head>
 
-<body data-mobile-menu-open="false" class="data-[mobile-menu-open='true']:overflow-hidden ">
+<body data-mobile-menu-open="false" class="data-[mobile-menu-open=true]:overflow-hidden ">
 <div>
     <Routes/>
 </div>
@@ -38,7 +41,6 @@
 </html>
 
 @code{
-
     static readonly string Version = DateTime.Now.Ticks.ToString();
     
     string GetVersioned(string url) => WebHostEnvironment.IsDevelopment()

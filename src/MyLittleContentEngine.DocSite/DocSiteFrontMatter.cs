@@ -1,8 +1,11 @@
 using MyLittleContentEngine.Models;
 
-namespace MyLittleContentEngine.Docs;
+namespace MyLittleContentEngine.DocSite;
 
-internal class DocsFrontMatter : IFrontMatter
+/// <summary>
+/// Default front matter class for documentation sites
+/// </summary>
+public class DocSiteFrontMatter : IFrontMatter
 {
     /// <summary>Title of the blog post.</summary>
     public string Title { get; init; } = "Empty title";

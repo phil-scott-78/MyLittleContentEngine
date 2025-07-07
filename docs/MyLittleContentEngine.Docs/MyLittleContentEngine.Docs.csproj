@@ -16,8 +16,6 @@
     <DefaultItemExcludes>$(DefaultItemExcludes);**/*.cache</DefaultItemExcludes>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\MyLittleContentEngine.MonorailCss\MyLittleContentEngine.MonorailCss.csproj" />
-    <ProjectReference Include="..\..\src\MyLittleContentEngine.UI\MyLittleContentEngine.UI.csproj" />
-    <ProjectReference Include="..\..\src\MyLittleContentEngine\MyLittleContentEngine.csproj" />
+    <ProjectReference Include="..\..\src\MyLittleContentEngine.DocSite\MyLittleContentEngine.DocSite.csproj" />
   </ItemGroup>
 </Project>

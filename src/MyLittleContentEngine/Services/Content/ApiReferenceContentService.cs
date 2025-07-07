@@ -755,6 +755,18 @@ public class ApiReferenceContentService : IContentService, IDisposable
             case XElement element:
                 switch (element.Name.LocalName.ToLowerInvariant())
                 {
+                    case "see":
+                        var cref = element.Attribute("cref")?.Value;
+                        if (!string.IsNullOrEmpty(cref))
+                        {
+                            // Extract the last part of the cref, which is usually the type/member name
+                            var name = cref.Split('.').Last().Split('`').First();
+                            result.Append("<code>");
+                            result.Append(System.Net.WebUtility.HtmlEncode(name));
+                            result.Append("</code>");
+                        }
+                        break;
+                        
                     case "para":
                         result.Append("<p>");
                         foreach (var child in element.Nodes())

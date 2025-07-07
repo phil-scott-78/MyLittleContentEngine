@@ -6,8 +6,9 @@
 @using MyLittleContentEngine.Services.Content
 @using Microsoft.AspNetCore.Components.Sections
 @using MyLittleContentEngine.Services.Content.TableOfContents
+@using MyLittleContentEngine.UI.Components
 @inject ContentEngineOptions ContentEngineOptions
-@inject IMarkdownContentService<DocsFrontMatter> MarkdownContentService
+@inject IMarkdownContentService<DocSiteFrontMatter> MarkdownContentService
 @inject LinkService LinkService
 @inject ITableOfContentService TableOfContentService
 
@@ -61,7 +62,7 @@ else
 </SectionContent>
 
 @code {
-    private MarkdownContentPage<DocsFrontMatter>? _post;
+    private MarkdownContentPage<DocSiteFrontMatter>? _post;
     private string? _postContent;
     private OutlineEntry[]? _outline;
     private TableOfContentEntry? _previousPage;
@@ -116,5 +117,4 @@ else
 
         IsLoaded = true;
     }
-
 }
