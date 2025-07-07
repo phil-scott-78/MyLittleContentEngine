@@ -109,9 +109,13 @@ public static class DocSiteServiceExtensions
     /// <returns>The web application</returns>
     public static WebApplication UseDocSite(this WebApplication app)
     {
+        var options = app.Services.GetRequiredService<DocSiteOptions>();
+        
         app.UseAntiforgery();
         app.UseStaticFiles();
-        app.MapRazorComponents<App>();
+        app.MapRazorComponents<App>()
+            .AddAdditionalAssemblies(options.AdditionalRoutingAssemblies);
+
         app.UseMonorailCss();
         
         return app;

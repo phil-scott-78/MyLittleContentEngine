@@ -1,3 +1,4 @@
+using System.Reflection;
 using Microsoft.AspNetCore.Components;
 using MonorailCss;
 using MyLittleContentEngine.Services.Content.Roslyn;
@@ -88,4 +89,9 @@ public class DocSiteOptions
     /// Custom footer content (replaces the default site title)
     /// </summary>
     public RenderFragment? FooterContent { get; set; }
+    
+    /// <summary>
+    /// List of additional assemblies to scan for routing
+    /// </summary>
+    public Assembly[] AdditionalRoutingAssemblies { get; set; } = [];
 }

@@ -18,7 +18,7 @@ You'll create a simple blog-style website with:
 
 Before starting, ensure you have:
 
-- .NET 8 SDK or later installed
+- .NET 9 SDK or later installed
 - A code editor (Visual Studio, VS Code, or JetBrains Rider)
 - Familiarity with command-line tools
 
@@ -26,10 +26,10 @@ Before starting, ensure you have:
 <Step stepNumber="1">
 ## Create a New Blazor Project
 
-Start by creating a new empty Blazor Server project:
+Start by creating a new empty ASP.NET project:
 
 ```bash
-dotnet new blazorserver-empty -n MyFirstContentSite
+dotnet new web -n MyFirstContentSite
 cd MyFirstContentSite
 ```
 </Step>
@@ -37,11 +37,11 @@ cd MyFirstContentSite
 <Step stepNumber="2">
 
 ## Add MyLittleContentEngine
-Add the NuGet package references to your project:
+Add the NuGet package references to your project, ensuring you use the `--prerelease ` option:
 
 ```bash
-dotnet add package MyLittleContentEngine
-dotnet add package MyLittleContentEngine.MonorailCss
+dotnet add package MyLittleContentEngine --prerelease 
+dotnet add package MyLittleContentEngine.MonorailCss --prerelease 
 ```
 
 `MyLittleContentEngine` contains the core functionality for content management, while

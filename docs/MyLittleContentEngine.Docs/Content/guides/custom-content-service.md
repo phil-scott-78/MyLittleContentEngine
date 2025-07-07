@@ -116,10 +116,10 @@ Register your custom content service in `Program.cs`, both when the concrete typ
 an `IContentService`. You can use this pattern to ensure the same instance is used throughout the application:
 
 ```csharp
-services.AddSingleton<DatabaseContentService>();
+builder.Services.AddSingleton<DatabaseContentService>();
 
 // Register as IContentService (this allows multiple IContentService implementations)
-services.AddSingleton<IContentService>(provider => provider.GetRequiredService<DatabaseContentService>());
+builder.Services.AddSingleton<IContentService>(provider => provider.GetRequiredService<DatabaseContentService>());
 ```
 
 For multiple content services, the framework will combine results from all registered services for site generation and 
