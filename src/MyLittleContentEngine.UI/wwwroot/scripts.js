@@ -1112,7 +1112,7 @@ class SyntaxHighlighter {
     getRelevantCodeNodes() {
         const codeNodes = Array.from(document.body.querySelectorAll('code'));
         return codeNodes.filter(node =>
-            Array.from(node.classList).some(cls => cls.startsWith(this.prefix) && cls !== this.prefix + 'text' && cls !== this.prefix)
+            Array.from(node.classList).some(cls => cls.startsWith(this.prefix) && cls !== this.prefix + 'mermaid' && cls !== this.prefix + 'text' && cls !== this.prefix)
         );
     }
 

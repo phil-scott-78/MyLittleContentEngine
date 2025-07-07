@@ -19,7 +19,7 @@ The search system consists of three main components:
 ```mermaid
 graph TD
     A[Content Services] --> B[SearchIndexService]
-    B --> C[/search-index.json]
+    B --> C[search-indexjson]
     C --> D[FlexSearch Engine]
     D --> E[Search Results UI]
     
@@ -62,21 +62,10 @@ The search functionality is automatically included with the UI package - no addi
 Add a search input element to your layout with the `id="search-input"`:
 
 ```html
-<div class="lg:flex-1 max-w-lg">
-    <button type="button" 
-            id="search-input"
-            class="w-full px-4 py-2 pl-10 bg-base-50 dark:bg-base-800 border border-base-300 dark:border-base-600 rounded-md text-base-900 dark:text-base-100 placeholder-base-500 dark:placeholder-base-400 cursor-pointer hover:bg-base-100 dark:hover:bg-base-700 transition-colors">
-        <svg class="absolute left-3 top-2.5 h-5 w-5 text-base-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <circle cx="11" cy="11" r="8"></circle>
-            <path d="M21 21l-4.35-4.35"></path>
-        </svg>
-        Search documentation...
-        <div class="absolute right-3 top-2.5 hidden sm:flex items-center gap-1">
-            <kbd class="px-2 py-0.5 text-xs bg-base-200 dark:bg-base-700 text-base-600 dark:text-base-400 rounded border border-base-300 dark:border-base-600">Ctrl</kbd>
-            <kbd class="px-2 py-0.5 text-xs bg-base-200 dark:bg-base-700 text-base-600 dark:text-base-400 rounded border border-base-300 dark:border-base-600">K</kbd>
-        </div>
-    </button>
-</div>
+<button type="button" id="search-input" class="w-full rounded-md">
+    Search documentation...
+</button>
+
 ```
 
 The search system will automatically:
