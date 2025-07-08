@@ -49,4 +49,9 @@ public interface IContentService
     /// An ImmutableList of CrossReference objects, each representing a cross-reference in the content system.
     /// </returns>
     public Task<ImmutableList<CrossReference>> GetCrossReferencesAsync();
+
+    public Task<ImmutableList<ContentToCreate>> GetContentToCreateAsync()
+    {
+        return Task.FromResult(ImmutableList<ContentToCreate>.Empty);
+    }
 }
