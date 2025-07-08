@@ -9,8 +9,6 @@ tags:
 isDraft: false
 ---
 
-# Roslyn Integration Demo
-
 This page demonstrates how MyLittleContentEngine integrates with Roslyn to provide enhanced code highlighting and documentation features.
 
 ## Code Highlighting
@@ -42,13 +40,12 @@ T:MyLittleContentEngine.ContentEngineOptions
 Reference a specific method from the content service:
 
 ```csharp:xmldocid
-M:MyLittleContentEngine.Services.Content.MarkdownContentService.GetAllContentPagesAsync
+M:MyLittleContentEngine.ContentEngineExtensions.AddContentEngineService(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Func{System.IServiceProvider,MyLittleContentEngine.ContentEngineOptions})
 ```
-
 ### Excluding Declarations Syntax
 
 You can also exclude declarations from the documentation by using the `xmldocid` syntax with the `bodyonly` keyword:
 
 ```csharp:xmldocid,bodyonly
-M:MyLittleContentEngine.Services.Content.MarkdownContentService.GetAllContentPagesAsync
+M:MyLittleContentEngine.ContentEngineExtensions.AddContentEngineService(Microsoft.Extensions.DependencyInjection.IServiceCollection,System.Func{System.IServiceProvider,MyLittleContentEngine.ContentEngineOptions})
 ```

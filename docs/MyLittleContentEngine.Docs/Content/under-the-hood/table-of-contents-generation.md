@@ -31,16 +31,17 @@ Pages come from multiple sources:
 - **API documentation** automatically generated from your code
 - **Custom content sources** you've configured
 
-Each `IContentService` must implement `GetTocEntriesToGenerateAsync()` to provide the necessary metadata for TOC
+Each `IContentService` must implement `GetContentTocEntriesAsync()` to provide the necessary metadata for TOC
 generation.
 
 ### Required Information
 
-For each page, the system needs three pieces of information:
+For each page, the system needs four pieces of information:
 
 - **Title**: The display name for navigation (from the `title` property in front matter)
-- **URL**: The page's web address (determines hierarchy)
+- **URL**: The page's web address 
 - **Order**: A number for sorting (from the `order` property, defaults to a high number if not specified)
+- **Hierarchy Parts**: An array of strings that defines the navigation structure
 
 Pages without titles are automatically excluded from navigation menus.
 
@@ -49,18 +50,22 @@ Pages without titles are automatically excluded from navigation menus.
 
 ## Building the Hierarchy
 
-The system organizes pages into a tree structure based on their URL paths.
+The system organizes pages into a tree structure based on hierarchy parts provided by each content service.
 
-### URL-Based Organization
+### Hierarchy Parts Organization
 
-Each page's URL determines its position in the navigation hierarchy. For example:
+Each content service provides hierarchy parts that determine the page's position in the navigation. For example:
 
-- `/getting-started/installation` becomes a child of the "Getting Started" section
-- `/api/classes/ContentService` creates nested folders: API → Classes → ContentService
+- `["getting-started", "installation"]` becomes a child of the "Getting Started" section
+- `["api", "classes", "ContentService"]` creates nested folders: API → Classes → ContentService
+
+Content services have full control over their hierarchy structure and can customize it. 
+For example, the `MarkdownContentService` uses the folder structure to generate the hierarchy parts. 
+A service providing a product list might use product categories as hierarchy parts.
 
 ### Folder Structure Creation
 
-The system automatically creates folder-like navigation entries for URL segments that don't have corresponding pages.
+The system automatically creates folder-like navigation entries for hierarchy parts that don't have corresponding pages.
 These folders help organize related content even when there's no explicit index page.
 
 ### Index Page Handling
@@ -101,9 +106,9 @@ Folder Absorption
 
 When folders don't have explicit index pages, the system generates readable names from URL segments:
 
-### Converting URL Segments to Titles
+### Converting Hierarchy Parts to Titles
 
-URL segments like `getting-started` are automatically converted to proper titles like "Getting Started". The system:
+Hierarchy parts like `getting-started` are automatically converted to proper titles like "Getting Started". The system:
 
 - Converts dashes to spaces
 - Handles double dashes specially (preserves them as single dashes)
@@ -111,7 +116,7 @@ URL segments like `getting-started` are automatically converted to proper titles
 
 ### Title Case Rules
 
-The system uses academic-style title case:
+The system uses APA title case:
 
 - Always capitalizes the first word and important words
 - Keeps articles, conjunctions, and short prepositions lowercase (unless they start a title)

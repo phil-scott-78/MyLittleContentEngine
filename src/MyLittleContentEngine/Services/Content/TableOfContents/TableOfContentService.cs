@@ -3,14 +3,19 @@ using System.Collections.Immutable;
 
 namespace MyLittleContentEngine.Services.Content.TableOfContents;
 
-public class TableOfContentEntry
+public class NavigationTreeItem
 {
     public required string Name { get; init; }
     public required string? Href { get; init; }
-    public required TableOfContentEntry[] Items { get; init; }
+    public required NavigationTreeItem[] Items { get; init; }
     public required int Order { get; init; } = int.MaxValue;
     public required bool IsSelected { get; init; }
 }
+
+/// <summary>
+/// Represents a Table of Contents entry with hierarchy parts for building navigation structure
+/// </summary>
+public record ContentTocItem(string Title, string Url, int Order, string[] HierarchyParts);
 
 // Internal tree node class
 internal record TreeNode
@@ -26,7 +31,7 @@ internal record TreeNode
     public int Order { get; set; }
 }
 
-internal record PageWithOrder(string PageTitle, string Url, int Order);
+internal record PageWithOrder(string PageTitle, string Url, int Order, string[] HierarchyParts);
 
 /// <summary>
 /// Defines the contract for a service that generates and provides table of contents (TOC) data.
@@ -37,24 +42,24 @@ public interface ITableOfContentService
     /// Gets the navigation table of contents for all registered content services.
     /// </summary>
     /// <param name="currentUrl">The URL of the currently active page, used to mark the corresponding TOC entry as selected.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a list of root <see cref="TableOfContentEntry"/> objects.</returns>
-    Task<ImmutableList<TableOfContentEntry>> GetNavigationTocAsync(string currentUrl);
+    /// <returns>A task that represents the asynchronous operation. The task result contains a list of root <see cref="NavigationTreeItem"/> objects.</returns>
+    Task<ImmutableList<NavigationTreeItem>> GetNavigationTocAsync(string currentUrl);
 
     /// <summary>
     /// Gets the navigation table of contents for a specific content service type.
     /// </summary>
     /// <typeparam name="T">The type of the <see cref="IContentService"/> to generate the TOC for.</typeparam>
     /// <param name="currentUrl">The URL of the currently active page, used to mark the corresponding TOC entry as selected.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a list of root <see cref="TableOfContentEntry"/> objects for the specified content service.</returns>
-    Task<ImmutableList<TableOfContentEntry>> GetNavigationTocAsync<T>(string currentUrl)
+    /// <returns>A task that represents the asynchronous operation. The task result contains a list of root <see cref="NavigationTreeItem"/> objects for the specified content service.</returns>
+    Task<ImmutableList<NavigationTreeItem>> GetNavigationTocAsync<T>(string currentUrl)
         where T : IContentService;
 
     /// <summary>
     /// Gets the next and previous pages in the content sequence relative to the specified URL.
     /// </summary>
     /// <param name="currentUrl">The URL of the current page.</param>
-    /// <returns>A task that represents the asynchronous operation. The task result contains a tuple with the previous and next <see cref="TableOfContentEntry"/>, which may be null if not found.</returns>
-    Task<(TableOfContentEntry? Previous, TableOfContentEntry? Next)> GetNextPreviousAsync(
+    /// <returns>A task that represents the asynchronous operation. The task result contains a tuple with the previous and next <see cref="NavigationTreeItem"/>, which may be null if not found.</returns>
+    Task<(NavigationTreeItem? Previous, NavigationTreeItem? Next)> GetNextPreviousAsync(
         string currentUrl);
 }
 
@@ -63,7 +68,7 @@ internal class TableOfContentService(IEnumerable<IContentService> contentService
     private readonly ConcurrentDictionary<Type, IContentService> _contentServices =
         new(contentServices.ToDictionary(service => service.GetType(), service => service));
 
-    public async Task<(TableOfContentEntry? Previous, TableOfContentEntry? Next)> GetNextPreviousAsync(
+    public async Task<(NavigationTreeItem? Previous, NavigationTreeItem? Next)> GetNextPreviousAsync(
         string currentUrl)
     {
         var services = _contentServices.Values;
@@ -84,13 +89,13 @@ internal class TableOfContentService(IEnumerable<IContentService> contentService
             .OrderBy(p => p.Order)
             .FirstOrDefault();
 
-        return (AsTocEntry(previous), AsTocEntry(next));
+        return (AsNavigationTreeItem(previous), AsNavigationTreeItem(next));
 
-        TableOfContentEntry? AsTocEntry(PageWithOrder? page)
+        NavigationTreeItem? AsNavigationTreeItem(PageWithOrder? page)
         {
             if (page == null) return null;
 
-            return new TableOfContentEntry
+            return new NavigationTreeItem
             {
                 Name = page.PageTitle,
                 Href = page.Url.StartsWith('/') ? page.Url : '/' + page.Url,
@@ -101,14 +106,14 @@ internal class TableOfContentService(IEnumerable<IContentService> contentService
         }
     }
 
-    public async Task<ImmutableList<TableOfContentEntry>> GetNavigationTocAsync(string currentUrl)
+    public async Task<ImmutableList<NavigationTreeItem>> GetNavigationTocAsync(string currentUrl)
     {
         var services = _contentServices.Values;
 
         return await GetTableOfContentEntries(currentUrl, services);
     }
 
-    public async Task<ImmutableList<TableOfContentEntry>> GetNavigationTocAsync<T>(string currentUrl)
+    public async Task<ImmutableList<NavigationTreeItem>> GetNavigationTocAsync<T>(string currentUrl)
         where T : IContentService
     {
         if (!_contentServices.TryGetValue(typeof(T), out var contentService))
@@ -119,7 +124,7 @@ internal class TableOfContentService(IEnumerable<IContentService> contentService
         return await GetTableOfContentEntries(currentUrl, [contentService]);
     }
 
-    private async Task<ImmutableList<TableOfContentEntry>> GetTableOfContentEntries(string currentUrl,
+    private async Task<ImmutableList<NavigationTreeItem>> GetTableOfContentEntries(string currentUrl,
         ICollection<IContentService> services)
     {
         // Collect all pages (Title, Url, Order)
@@ -128,10 +133,10 @@ internal class TableOfContentService(IEnumerable<IContentService> contentService
         // Build the tree of URL segments
         var root = new TreeNode { Segment = "" };
 
-        foreach (var (pageTitle, url, order) in pageTitlesWithOrder)
+        foreach (var (pageTitle, url, order, hierarchyParts) in pageTitlesWithOrder)
         {
-            // Normalize and split the URL into segments
-            var segments = url.Trim('/').Split(['/'], StringSplitOptions.RemoveEmptyEntries);
+            // Use the provided hierarchy parts instead of parsing the URL
+            var segments = hierarchyParts;
 
             var currentNode = root;
             foreach (var segment in segments)
@@ -164,11 +169,10 @@ internal class TableOfContentService(IEnumerable<IContentService> contentService
 
         foreach (var contentService in services)
         {
-            var pages = await contentService.GetTocEntriesToGenerateAsync();
-            foreach (var page in pages)
+            var tocEntries = await contentService.GetContentTocEntriesAsync();
+            foreach (var tocEntry in tocEntries)
             {
-                if (page.Metadata?.Title == null) continue;
-                pageTitlesWithOrder.Add(new PageWithOrder(page.Metadata.Title, page.Url, page.Metadata.Order));
+                pageTitlesWithOrder.Add(new PageWithOrder(tocEntry.Title, tocEntry.Url, tocEntry.Order, tocEntry.HierarchyParts));
             }
         }
 
@@ -176,7 +180,7 @@ internal class TableOfContentService(IEnumerable<IContentService> contentService
     }
 
     // Recursive helper: build a single TOC entry (including its children)
-    private TableOfContentEntry BuildEntry(TreeNode node, string currentUrl)
+    private NavigationTreeItem BuildEntry(TreeNode node, string currentUrl)
     {
         // First, build entries for all of this node's children
         var childEntries = BuildEntries(node, currentUrl);
@@ -189,7 +193,7 @@ internal class TableOfContentService(IEnumerable<IContentService> contentService
         {
             var isSelected = HrefEquals(node.Url, currentUrl) ||
                              anyDescendantSelected;
-            return new TableOfContentEntry
+            return new NavigationTreeItem
             {
                 Name = node.Title!,
                 Href = node.Url,
@@ -204,7 +208,7 @@ internal class TableOfContentService(IEnumerable<IContentService> contentService
         {
             var isSelected = HrefEquals(node.Url, currentUrl) ||
                              anyDescendantSelected;
-            return new TableOfContentEntry
+            return new NavigationTreeItem
             {
                 Name = node.Title!,
                 Href = node.Url,
@@ -225,7 +229,7 @@ internal class TableOfContentService(IEnumerable<IContentService> contentService
             // The folder entry should adopt the index page's properties.
             // Its items should be the other children of this folder, plus any children of the index page itself.
 
-            TableOfContentEntry? indexChildTocEntry = null;
+            NavigationTreeItem? indexChildTocEntry = null;
             var indexOfIndexChildTocEntry = -1;
 
             for (var i = 0; i < childEntries.Count; i++)
@@ -251,7 +255,7 @@ internal class TableOfContentService(IEnumerable<IContentService> contentService
                 var isSelectedForAbsorbedFolder = HrefEquals(indexChildTreeNode.Url, currentUrl) ||
                                                   itemsForFolder.Any(item => item.IsSelected);
 
-                return new TableOfContentEntry
+                return new NavigationTreeItem
                 {
                     Name = indexChildTreeNode.Title!, // Use index page's title
                     Href = indexChildTreeNode.Url, // Use index page's URL
@@ -271,7 +275,7 @@ internal class TableOfContentService(IEnumerable<IContentService> contentService
             ? childEntries.Min(e => e.Order)
             : int.MaxValue;
 
-        return new TableOfContentEntry
+        return new NavigationTreeItem
         {
             Name = FolderToTitle(node),
             Href = null,
@@ -292,7 +296,7 @@ internal class TableOfContentService(IEnumerable<IContentService> contentService
     }
 
     // Recursive helper: build a list of TOC entries from a given tree node's children
-    private List<TableOfContentEntry> BuildEntries(TreeNode parentNode, string currentUrl)
+    private List<NavigationTreeItem> BuildEntries(TreeNode parentNode, string currentUrl)
     {
         var entries = parentNode.Children.Values.Select(childNode => BuildEntry(childNode, currentUrl)).ToList();
 

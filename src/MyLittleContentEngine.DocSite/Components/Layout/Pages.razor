@@ -65,8 +65,8 @@ else
     private MarkdownContentPage<DocSiteFrontMatter>? _post;
     private string? _postContent;
     private OutlineEntry[]? _outline;
-    private TableOfContentEntry? _previousPage;
-    private TableOfContentEntry? _nextPage;
+    private NavigationTreeItem? _previousPage;
+    private NavigationTreeItem? _nextPage;
 
     [MemberNotNull(nameof(_postContent))]
     [MemberNotNull(nameof(_outline))]
@@ -75,7 +75,7 @@ else
 
     [Parameter] public required string FileName { get; init; } = string.Empty;
 
-    private RenderFragment NextPreviousButton(TableOfContentEntry p, bool isNext) => 
+    private RenderFragment NextPreviousButton(NavigationTreeItem p, bool isNext) => 
         @<div class="flex flex-col items-@(isNext ? "end" : "start") @(isNext ? "ml-auto" : "") gap-3">
         <a class="inline-flex gap-0.5 justify-center overflow-hidden text-sm font-medium font-display transition rounded-xl bg-base-200 pt-1.5 pb-1 px-3 lg:pt-2 lg:pb.15 lg:px-4  hover:bg-base-300/75 dark:bg-base-800/40 text-base-800 dark:text-base-400 ring-1 dark:ring-inset ring-base-300/75 dark:ring-base-800 dark:hover:bg-base-800 dark:hover:text-base-300"
            aria-label="@(isNext ? "Next" : "Previous"): @p.Name" href="@LinkService.GetLink(p.Href!)">

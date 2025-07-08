@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content.Roslyn;
+using MyLittleContentEngine.Services.Content.TableOfContents;
 using MyLittleContentEngine.Services.Infrastructure;
 
 namespace MyLittleContentEngine.Services.Content;
@@ -99,20 +100,16 @@ public class ApiReferenceContentService : IContentService, IDisposable
     }
 
     /// <inheritdoc />
-    public Task<ImmutableList<PageToGenerate>> GetTocEntriesToGenerateAsync()
+    public Task<ImmutableList<ContentTocItem>> GetContentTocEntriesAsync()
     {
         // Only expose the root /api/ entry in the table of contents
-        var rootApiPage = new PageToGenerate(
-            Url: $"/{_options.BasePageUrl}/",
-            OutputFile: $"{_options.BasePageUrl}/index.html",
-            Metadata: new Models.Metadata
-            {
-                Title = "API Reference",
-                Description = "API Reference Documentation",
-                Order = int.MaxValue // Put it at the end of the TOC
-            });
+        var rootApiEntry = new ContentTocItem(
+            "API Reference",
+            $"/{_options.BasePageUrl}/",
+            int.MaxValue, // Put it at the end of the TOC
+            [_options.BasePageUrl]); // Single hierarchy part for API
 
-        return Task.FromResult(ImmutableList.Create(rootApiPage));
+        return Task.FromResult(ImmutableList.Create(rootApiEntry));
     }
 
     /// <inheritdoc />

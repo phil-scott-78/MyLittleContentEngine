@@ -14,7 +14,7 @@ The `IContentService` interface defines how MyLittleContentEngine discovers and 
 methods:
 
 - `GetPagesToGenerateAsync()` - Returns all pages that should be generated
-- `GetTocEntriesToGenerateAsync()` - Returns pages that should appear in navigation
+- `GetContentTocEntriesAsync()` - Returns table of contents entries with hierarchy information for navigation
 - `GetContentToCopyAsync()` - Returns static assets to copy
 - `GetCrossReferencesAsync()` - Returns cross-references for linking
 
@@ -31,6 +31,7 @@ Here's a minimal custom content service that loads content from a database:
 using System.Collections.Immutable;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content;
+using MyLittleContentEngine.Services.Content.TableOfContents;
 
 public class DatabaseContentService : IContentService
 {
@@ -67,20 +68,26 @@ public class DatabaseContentService : IContentService
         return pages;
     }
 
-    public async Task<ImmutableList<PageToGenerate>> GetTocEntriesToGenerateAsync()
+    public async Task<ImmutableList<ContentTocItem>> GetContentTocEntriesAsync()
     {
-        // Only show the articles index page in navigation
-        return [new PageToGenerate
-        {
-            Url = "/articles",
-            Title = "Articles",
-            Content = "<p>Browse our articles</p>",
-            FrontMatter = new ArticleFrontMatter
-            {
-                Title = "Articles",
-                Description = "Browse our collection of articles"
-            }
-        }];
+        // Example 1: Simple top-level entry
+        var articlesIndex = new ContentTocItem(
+            "Articles",
+            "/articles", 
+            100, // Order
+            ["articles"] // Hierarchy parts - creates top-level "Articles" section
+        );
+
+        // Example 2: Nested hierarchy with category grouping
+        var categories = await _dbContext.Categories.ToListAsync();
+        var categoryEntries = categories.Select(cat => new ContentTocItem(
+            cat.Name,
+            $"/articles/category/{cat.Slug}",
+            200 + cat.Order,
+            ["articles", "categories", cat.Slug] // Creates Articles -> Categories -> [Category Name]
+        ));
+
+        return [articlesIndex, ..categoryEntries];
     }
 
     public async Task<ImmutableList<ContentToCopy>> GetContentToCopyAsync()
@@ -124,6 +131,30 @@ builder.Services.AddSingleton<IContentService>(provider => provider.GetRequiredS
 
 For multiple content services, the framework will combine results from all registered services for site generation and 
 the table of contents.
+
+## Understanding Hierarchy Parts
+
+The `GetContentTocEntriesAsync()` method returns `ContentTocItem` objects that include hierarchy parts - an array of strings that defines where the entry appears in the navigation tree. This gives you complete control over the navigation structure independently of your URL structure.
+
+### Hierarchy Examples
+
+```csharp
+// Creates a top-level "Blog" entry
+new ContentTocItem("Blog", "/blog", 100, ["blog"])
+
+// Creates Blog -> Posts -> "My First Post" 
+new ContentTocItem("My First Post", "/blog/posts/first", 200, ["blog", "posts", "my-first-post"])
+
+// Creates Documentation -> API -> Classes -> "ContentService"
+new ContentTocItem("ContentService", "/api/contentservice", 300, ["documentation", "api", "classes", "contentservice"])
+```
+
+### Key Benefits
+
+- **Custom Organization**: Group content logically regardless of URL structure
+- **Multi-level Navigation**: Create deep hierarchies with unlimited nesting
+- **Content Service Independence**: Each service controls its own navigation structure
+- **Flexible Naming**: Hierarchy parts can differ from URL segments for better navigation labels
 
 ## Advanced Implementation Features
 

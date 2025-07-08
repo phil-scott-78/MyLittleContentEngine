@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content;
+using MyLittleContentEngine.Services.Content.TableOfContents;
 using System.IO.Abstractions.TestingHelpers;
 
 namespace MyLittleContentEngine.Tests.TestHelpers;
@@ -132,7 +133,7 @@ public class ContentEngineTestBuilder
 
         public int SearchPriority { get; } = 0;
         public Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync() => Task.FromResult(_pages);
-        public Task<ImmutableList<PageToGenerate>> GetTocEntriesToGenerateAsync() => Task.FromResult(_pages);
+        public Task<ImmutableList<ContentTocItem>> GetContentTocEntriesAsync() => Task.FromResult(_pages.Where(p => p.Metadata?.Title != null).Select(p => new ContentTocItem(p.Metadata!.Title!, p.Url, p.Metadata.Order, p.Url.Trim('/').Split(['/'], StringSplitOptions.RemoveEmptyEntries))).ToImmutableList());
         public Task<ImmutableList<ContentToCopy>> GetContentToCopyAsync() => Task.FromResult(ImmutableList<ContentToCopy>.Empty);
         public Task<ImmutableList<CrossReference>> GetCrossReferencesAsync() => Task.FromResult(ImmutableList<CrossReference>.Empty);
     }

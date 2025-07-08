@@ -33,8 +33,8 @@ public static class ServiceMockFactory
         mock.Setup(x => x.GetPagesToGenerateAsync())
             .ReturnsAsync(pageList);
         
-        mock.Setup(x => x.GetTocEntriesToGenerateAsync())
-            .ReturnsAsync(pageList);
+        mock.Setup(x => x.GetContentTocEntriesAsync())
+            .ReturnsAsync(pageList.Select(p => new ContentTocItem(p.Metadata!.Title!, p.Url, p.Metadata.Order, p.Url.Trim('/').Split(['/'], StringSplitOptions.RemoveEmptyEntries))).ToImmutableList());
         
         mock.Setup(x => x.GetContentToCopyAsync())
             .ReturnsAsync(ImmutableList<ContentToCopy>.Empty);
@@ -56,8 +56,8 @@ public static class ServiceMockFactory
         mock.Setup(x => x.GetPagesToGenerateAsync())
             .ReturnsAsync(ImmutableList<PageToGenerate>.Empty);
         
-        mock.Setup(x => x.GetTocEntriesToGenerateAsync())
-            .ReturnsAsync(ImmutableList<PageToGenerate>.Empty);
+        mock.Setup(x => x.GetContentTocEntriesAsync())
+            .ReturnsAsync(ImmutableList<ContentTocItem>.Empty);
         
         mock.Setup(x => x.GetContentToCopyAsync())
             .ReturnsAsync(ImmutableList<ContentToCopy>.Empty);

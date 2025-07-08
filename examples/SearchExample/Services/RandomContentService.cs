@@ -6,6 +6,7 @@ using Markdig;
 using Markdig.Extensions.AutoIdentifiers;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content;
+using MyLittleContentEngine.Services.Content.TableOfContents;
 
 namespace SearchExample.Services;
 
@@ -49,9 +50,9 @@ public class RandomContentService : IContentService
         return Task.FromResult(_items.ToImmutableList());
     }
 
-    public Task<ImmutableList<PageToGenerate>> GetTocEntriesToGenerateAsync()
+    public Task<ImmutableList<ContentTocItem>> GetContentTocEntriesAsync()
     {
-        return Task.FromResult(ImmutableList<PageToGenerate>.Empty);
+        return Task.FromResult(ImmutableList<ContentTocItem>.Empty);
     }
 
     public Task<ImmutableList<ContentToCopy>> GetContentToCopyAsync() 

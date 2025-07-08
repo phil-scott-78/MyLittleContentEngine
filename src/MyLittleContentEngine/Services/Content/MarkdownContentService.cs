@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions;
+using MyLittleContentEngine.Services.Content.TableOfContents;
 using MyLittleContentEngine.Services.Infrastructure;
 
 namespace MyLittleContentEngine.Services.Content;
@@ -149,10 +150,22 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
     }
 
     /// <inheritdoc />
-    async Task<ImmutableList<PageToGenerate>> IContentService.GetTocEntriesToGenerateAsync()
+    async Task<ImmutableList<ContentTocItem>> IContentService.GetContentTocEntriesAsync()
     {
-        // For markdown content, all generated pages should appear in the TOC
-        return await ((IContentService)this).GetPagesToGenerateAsync();
+        var pages = await ((IContentService)this).GetPagesToGenerateAsync();
+        return pages.Where(p => p.Metadata?.Title != null)
+            .Select(p => new ContentTocItem(
+                p.Metadata!.Title!,
+                p.Url,
+                p.Metadata.Order,
+                CreateHierarchyParts(p.Url)))
+            .ToImmutableList();
+    }
+
+    private static string[] CreateHierarchyParts(string url)
+    {
+        // Convert URL to hierarchy parts by splitting on '/' and removing empty entries
+        return url.Trim('/').Split(['/'], StringSplitOptions.RemoveEmptyEntries);
     }
 
     /// <inheritdoc />
