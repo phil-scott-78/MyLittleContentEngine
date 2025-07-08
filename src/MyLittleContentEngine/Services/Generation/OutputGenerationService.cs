@@ -148,6 +148,28 @@ internal class OutputGenerationService(
             CopyContent(pathToCopy.SourcePath, targetPath, ignoredPathsWithOutputFolder);
         }
 
+        // Collect content to create from all content services
+        var contentToCreate = ImmutableList<ContentToCreate>.Empty;
+        foreach (var content in contentServiceCollection)
+        {
+            contentToCreate = contentToCreate.AddRange(await content.GetContentToCreateAsync());
+        }
+
+        // Create content files in the output directory
+        foreach (var contentItem in contentToCreate)
+        {
+            var targetPath = _fileSystem.Path.Combine(options.OutputFolderPath, contentItem.TargetPath.TrimStart('/'));
+            
+            var directoryPath = _fileSystem.Path.GetDirectoryName(targetPath);
+            if (!string.IsNullOrEmpty(directoryPath))
+            {
+                _fileSystem.Directory.CreateDirectory(directoryPath);
+            }
+
+            logger.LogInformation("Creating content file at {targetPath}", targetPath);
+            await _fileSystem.File.WriteAllBytesAsync(targetPath, contentItem.Bytes);
+        }
+
         // Create an HTTP client for fetching rendered pages
         using HttpClient client = new();
         client.BaseAddress = new Uri(appUrl);
