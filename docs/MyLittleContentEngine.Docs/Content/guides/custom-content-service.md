@@ -10,13 +10,14 @@ other non-file sources.
 
 ## Understanding IContentService
 
-The `IContentService` interface defines how MyLittleContentEngine discovers and processes content. It provides four key
+The `IContentService` interface defines how MyLittleContentEngine discovers and processes content. It provides five key
 methods:
 
 - `GetPagesToGenerateAsync()` - Returns all pages that should be generated
 - `GetContentTocEntriesAsync()` - Returns table of contents entries with hierarchy information for navigation
 - `GetContentToCopyAsync()` - Returns static assets to copy
 - `GetCrossReferencesAsync()` - Returns cross-references for linking
+- `GetContentToCreateAsync()` - Returns content that should be created dynamically during generation
 
 `MarkdownContentService<TFrontMatter>` and `ApiReferenceContentService` are both built-in implementations of `IContentService` 
 that handle Markdown files and API references, respectively. You can create your own implementation to handle content
