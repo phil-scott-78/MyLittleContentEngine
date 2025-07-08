@@ -70,7 +70,7 @@ public static class DocSiteServiceExtensions
                         .Add("display", new FontFamilyDefinition("Lexend, sans-serif"))
                 },
             },
-            ExtraStyles = options.ExtraStyles ?? GoogleFonts.GetLexendStyles(),
+            ExtraStyles = $"{options.ExtraStyles ?? ""}{Environment.NewLine}{GoogleFonts.GetLexendStyles()}",
         });
 
         // Configure Roslyn service if solution path is provided

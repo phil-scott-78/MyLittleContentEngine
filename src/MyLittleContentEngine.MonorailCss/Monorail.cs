@@ -147,7 +147,6 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                             ]),
                             new CssRuleSet(":not(pre) > code",
                             [
-                                new CssDeclaration(CssProperties.FontSize, ".80em"),
                                 new CssDeclaration(CssProperties.Padding, "3px 8px"),
                                 new CssDeclaration(CssProperties.BoxShadow,
                                     "inset 0 0 0 1px oklch(87.1% .006 286.286)"),
@@ -167,16 +166,8 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                     {
                         ChildRules =
                         [
-                            new CssRuleSet(":not(pre,td) > code", [new CssDeclaration(CssProperties.FontSize, "0.77em")]),
-                            new CssRuleSet("pre code", [new CssDeclaration(CssProperties.FontSize, "1em")]),
-                            new CssRuleSet("table",
-                            [
-                                new CssDeclaration(CssProperties.FontSize, ".80em"),
-                            ]),
-                            new CssRuleSet("table :not(pre) > code",
-                            [
-                                new CssDeclaration(CssProperties.FontSize, ".95rem"),
-                            ]),
+                            new CssRuleSet(":not(pre) > code", [new CssDeclaration(CssProperties.FontSize, "0.8em")]),
+
                         ]
                     }
                 },
@@ -185,23 +176,8 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                     {
                         ChildRules =
                         [
-                            new CssRuleSet("code", [new CssDeclaration(CssProperties.FontSize, ".8rem")]),
-                            new CssRuleSet("pre code", [new CssDeclaration(CssProperties.FontSize, ".8rem")]),
-                            new CssRuleSet("td code", [new CssDeclaration(CssProperties.FontSize, ".9em")]),
+                            new CssRuleSet(":not(pre) > code", [new CssDeclaration(CssProperties.FontSize, "0.8em")]),
 
-                        ]
-                    }
-                },
-                {
-                    "lg", new CssSettings
-                    {
-                        ChildRules =
-                        [
-                            new CssRuleSet("code", [new CssDeclaration(CssProperties.FontSize, "0.8em")]),
-                            new CssRuleSet("table",
-                            [
-                                new CssDeclaration(CssProperties.FontSize, ".80em"),
-                            ]),
                         ]
                     }
                 },
