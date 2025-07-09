@@ -94,7 +94,9 @@ internal class RoutesHelperService
                 endpoint.DisplayName?.Contains("static files") != true &&
                 // FallbackMetadata isn't public, so check by name
                 endpoint.Metadata.All(metadata => metadata.GetType().Name != "FallbackMetadata"))
-            .Select(endpoint => endpoint.RoutePattern.RawText!);
+            .Select(endpoint => endpoint.RoutePattern.RawText!)
+            .Distinct()
+            .ToArray();
 
         foreach (var route in getRoutes)
         {

@@ -139,6 +139,12 @@ internal class OutputGenerationService(
             contentToCopy = contentToCopy.AddRange(adjustedAssets);
         }
 
+        // Remove duplicates based on target path - keep the first occurrence
+        contentToCopy = contentToCopy
+            .GroupBy(c => c.TargetPath)
+            .Select(g => g.First())
+            .ToImmutableList();
+
         // Copy all content to the output directory
         foreach (var pathToCopy in contentToCopy)
         {

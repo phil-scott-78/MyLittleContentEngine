@@ -47,7 +47,7 @@ builder.Services.AddMonorailCss();
 
 var app = builder.Build();
 app.UseAntiforgery();
-app.UseStaticFiles();
+app.MapStaticAssets();
 app.MapRazorComponents<App>();
 app.UseMonorailCss();
 

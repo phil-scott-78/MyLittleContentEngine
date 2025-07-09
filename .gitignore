@@ -484,7 +484,7 @@ $RECYCLE.BIN/
 *.swp
 
 
-docs/MyLittleContentEngine.Docs/output/
+output/
 
 # verify
 *.received.*
