@@ -46,20 +46,20 @@ public static class ContentEngineExtensions
         services.AddTransient(configureOptions);
 
         // Register specialized services
-        services.AddSingleton<TagService<TFrontMatter>>();
-        services.AddSingleton<ContentFilesService<TFrontMatter>>();
-        services.AddSingleton<MarkdownContentProcessor<TFrontMatter>>();
+        services.AddTransient<TagService<TFrontMatter>>();
+        services.AddTransient<ContentFilesService<TFrontMatter>>();
+        services.AddTransient<MarkdownContentProcessor<TFrontMatter>>();
 
         // Register the primary service
         services.AddSingleton<IMarkdownContentService<TFrontMatter>, MarkdownContentService<TFrontMatter>>();
-        services.AddSingleton<SitemapRssService>();
+        services.AddTransient<SitemapRssService>();
         services.AddHttpClient();
-        services.AddSingleton<SearchIndexService>();
+        services.AddTransient<SearchIndexService>();
 
         // Register interface implementations
         services.AddSingleton<IContentService>(provider =>
             provider.GetRequiredService<IMarkdownContentService<TFrontMatter>>());
-        services.AddSingleton<IContentOptions>(provider =>
+        services.AddTransient<IContentOptions>(provider =>
             provider.GetRequiredService<ContentEngineContentOptions<TFrontMatter>>());
 
         return services;
@@ -76,14 +76,14 @@ public static class ContentEngineExtensions
     {
         // Register the main options for the content engine
         services.AddTransient(configureOptions);
-        services.AddSingleton<OutputGenerationService>();
+        services.AddTransient<OutputGenerationService>();
         services.AddSingleton<IContentEngineFileWatcher, ContentEngineFileWatcher>();
-        services.AddSingleton<ITableOfContentService, TableOfContentService>();
-        services.AddSingleton<MarkdownParserService>();
-        services.AddSingleton<RoutesHelperService>();
+        services.AddTransient<ITableOfContentService, TableOfContentService>();
+        services.AddTransient<MarkdownParserService>();
+        services.AddTransient<RoutesHelperService>();
         services.AddSingleton<IFileSystem>(new FileSystem());
-        services.AddSingleton<FileSystemUtilities>();
-        services.AddSingleton<LinkService>();
+        services.AddTransient<FileSystemUtilities>();
+        services.AddTransient<LinkService>();
 
         return services;
     }
@@ -113,9 +113,9 @@ public static class ContentEngineExtensions
             var options = configureOptions.Invoke(services.BuildServiceProvider());
             if (options.ConnectedSolution != null)
             {
-                services.AddSingleton<IRoslynHighlighterService, RoslynHighlighterService>();
-                services.AddSingleton<IRoslynExampleCoordinator, RoslynExampleCoordinator>();
-                services.AddSingleton<CodeExecutionService>();
+                services.AddTransient<IRoslynHighlighterService, RoslynHighlighterService>();
+                services.AddTransient<IRoslynExampleCoordinator, RoslynExampleCoordinator>();
+                services.AddTransient<CodeExecutionService>();
                 services.AddSingleton<AssemblyLoaderService>();
             }
         }
@@ -138,10 +138,10 @@ public static class ContentEngineExtensions
     {
         services.AddTransient(func);
         // Register the API reference content service
-        services.AddSingleton<ApiReferenceContentService>();
+        services.AddTransient<ApiReferenceContentService>();
 
         // Register as IContentService (this allows multiple IContentService implementations)
-        services.AddSingleton<IContentService>(provider => provider.GetRequiredService<ApiReferenceContentService>());
+        services.AddTransient<IContentService>(provider => provider.GetRequiredService<ApiReferenceContentService>());
 
         return services;
     }

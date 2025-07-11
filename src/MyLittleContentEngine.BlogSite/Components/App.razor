@@ -1,0 +1,57 @@
+@using Microsoft.AspNetCore.WebUtilities
+@inject ContentEngineOptions Options
+@inject BlogSiteOptions BlogOptions
+@inject IWebHostEnvironment WebHostEnvironment
+@inject LinkService LinkService
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    
+    @if (BlogOptions.EnableRss)
+    {
+        <link type="application/rss+xml" rel="alternate" title="@Options.SiteTitle" href="@LinkService.GetLink("rss.xml")" />
+    }
+    <link rel="stylesheet" href="@LinkService.GetLink(GetVersioned("/styles.css"))">
+    <script src="@LinkService.GetLink(GetVersioned("/_content/MyLittleContentEngine.UI/scripts.js"))" defer></script>
+
+    @if (!string.IsNullOrEmpty(BlogOptions.AdditionalHtmlHeadContent))
+    {
+        @((MarkupString)BlogOptions.AdditionalHtmlHeadContent)
+    }
+    
+    <meta name="description" content="@Options.SiteDescription">
+
+    <script>
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+    <HeadOutlet/>
+    <PageTitle>@Options.SiteTitle</PageTitle>
+</head>
+
+<body>
+    <Routes/>
+</body>
+</html>
+
+@code{
+    private string _baseHref = null!;
+    static readonly string Version = DateTime.Now.Ticks.ToString();
+    
+    string GetVersioned(string url) => WebHostEnvironment.IsDevelopment()
+            ? url 
+            : QueryHelpers.AddQueryString(url, "v", Version);
+
+    protected override void OnInitialized()
+    {
+        _baseHref = Options.BaseUrl;
+        base.OnInitialized();
+    }
+
+}

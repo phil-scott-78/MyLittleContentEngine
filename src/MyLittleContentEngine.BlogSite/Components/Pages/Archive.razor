@@ -1,0 +1,42 @@
+@page "/archive"
+@inject IMarkdownContentService<BlogSiteFrontMatter> MarkdownContentService
+@inject ContentEngineOptions ContentEngineOptions
+
+@if (_posts == null)
+{
+    <div>Posts not found 🤷</div>
+    return;
+}
+
+<PageTitle>Archive - @ContentEngineOptions.SiteTitle</PageTitle>
+
+<div class="sm:px-8 mt-10 md:mt-14">
+    <div class="mx-auto w-full max-w-7xl lg:px-8">
+        <div class="relative px-4 sm:px-8 lg:px-12">
+            <div class="mx-auto max-w-2xl lg:max-w-5xl">
+                <header class="max-w-2xl">
+                    <h1 class="text-4xl font-bold tracking-tight text-base-800 sm:text-5xl dark:text-base-100">
+                        All Posts
+                    </h1>
+                    <p class="mt-6 text-base text-base-600 dark:text-base-400">
+                        A complete archive of all @_posts.Count blog posts, organized by most recent.
+                    </p>
+                </header>
+                <div class="mt-16 sm:mt-20">
+                    <div class="md:border-l md:border-base-100 md:pl-6 md:dark:border-base-700/40">
+                        <BlogSummary Posts="_posts" />
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private List<MarkdownContentPage<BlogSiteFrontMatter>>? _posts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _posts = (await MarkdownContentService.GetAllContentPagesAsync()).OrderByDescending(i => i.FrontMatter.Date).ToList();
+    }
+}

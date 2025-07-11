@@ -1,0 +1,63 @@
+@page "/"
+@inject IMarkdownContentService<BlogSiteFrontMatter> MarkdownContentService
+@inject ContentEngineOptions ContentEngineOptions
+@inject BlogSiteOptions BlogOptions
+
+@if (_posts == null)
+{
+    <div>Posts not found 🤷</div>
+    return;
+}
+<PageTitle>@ContentEngineOptions.SiteTitle - Recent Posts</PageTitle>
+
+<div class="sm:px-8 mt-10 md:mt-14">
+    <div class="mx-auto w-full max-w-7xl lg:px-8">
+        <div class="relative px-4 sm:px-8 lg:px-12">
+            <div>
+                @if (BlogOptions.HeroContent != null)
+                {
+                    <div class="prose lg:prose-lg dark:prose-invert prose-headings:font-display mb-8">
+                        @BlogOptions.HeroContent
+                    </div>
+                }
+                <div class="mx-auto grid max-w-xl grid-cols-1 gap-y-20 lg:max-w-none lg:grid-cols-2">
+                    <div class="flex flex-col flex-1">
+                        <BlogSummary Posts="_recentPosts" />
+                        
+                        @if (_posts.Count > 5)
+                        {
+                            <div class="mt-16">
+                                <a href="/archive" class="inline-flex items-center gap-2 justify-center rounded-md py-2 px-3 text-sm outline-offset-2 transition active:transition-none bg-base-50 font-medium text-base-900 hover:bg-base-100 active:bg-base-100 active:text-base-900/60 dark:bg-base-800/50 dark:text-base-300 dark:hover:bg-base-800 dark:hover:text-base-50 dark:active:bg-base-800/50 dark:active:text-base-50/70 group w-full">
+                                    View all @_posts.Count posts
+                                    <svg viewBox="0 0 16 16" fill="none" aria-hidden="true" class="h-4 w-4 stroke-base-400 transition group-active:stroke-base-600 dark:group-hover:stroke-base-50 dark:group-active:stroke-base-50">
+                                        <path d="M6.75 5.75 9.25 8l-2.5 2.25" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                                    </svg>
+                                </a>
+                            </div>
+                        }
+                    </div>
+                    <div class="space-y-10 lg:pl-16 xl:pl-24">
+                        @if (BlogOptions.WorkContent != null)
+                        {
+                            <div class="sticky top-14 rounded-2xl border border-base-100 dark:border-base-700/50  text-primary-600 dark:text-primary-50 p-6">
+                                @BlogOptions.WorkContent
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code{
+    [Parameter] public string? FileName { get; set; }
+    private List<MarkdownContentPage<BlogSiteFrontMatter>>? _posts;
+    private List<MarkdownContentPage<BlogSiteFrontMatter>>? _recentPosts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _posts = (await MarkdownContentService.GetAllContentPagesAsync()).OrderByDescending(i => i.FrontMatter.Date).ToList();
+        _recentPosts = _posts.Take(10).ToList();
+    }
+}

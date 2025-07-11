@@ -32,6 +32,7 @@ public static class DocSiteServiceExtensions
 
         // Add Mdazor with UI components
         services.AddMdazor()
+            .AddMdazorComponent<Badge>()
             .AddMdazorComponent<Card>()
             .AddMdazorComponent<CardGrid>()
             .AddMdazorComponent<LinkCard>()

@@ -19,7 +19,8 @@
       "Bash(cp:*)",
       "Bash(mv:*)",
       "Bash(dotnet run:*)",
-      "Bash(dotnet script:*)"
+      "Bash(dotnet script:*)",
+      "Bash(dotnet sln:*)"
     ]
   },
   "model": "sonnet",

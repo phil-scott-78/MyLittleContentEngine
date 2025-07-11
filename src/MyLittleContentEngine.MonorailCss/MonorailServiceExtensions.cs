@@ -19,7 +19,7 @@ public static class MonorailServiceExtensions
         }
         
         services.AddSingleton<CssClassCollector>();
-        services.AddSingleton<MonorailCssService>();
+        services.AddTransient<MonorailCssService>();
 
         return services;
     }

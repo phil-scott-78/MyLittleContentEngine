@@ -97,7 +97,6 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 .AddRange(TabApplies())
                 .AddRange(MarkdownAlertApplies())
                 .AddRange(HljsApplies())
-                .AddRange(DocSearchApplies())
                 .AddRange(SearchModalApplies())
         };
 
@@ -211,20 +210,6 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
         };
         return proseSettings;
     }
-
-    private static ImmutableDictionary<string, string> DocSearchApplies()
-    {
-        return ImmutableDictionary.Create<string, string>()
-            .AddRange(new Dictionary<string, string>
-            {
-                { ".DocSearch .cls-1, .DocSearch .cls-2", "fill-base-500 dark:fill-base-300" },
-                { ".DocSearch-Container", "backdrop-blur bg-base-200/75 dark:backdrop-blur dark:bg-base-800/75 " },
-                { ".DocSearch.DocSearch-Button", "w-8 md:w-32 lg:w-full m-0 max-w-lg h-8 transition-all" },
-                { ".DocSearch.DocSearch-Button .DocSearch-Search-Icon", "h-4 w-4" },
-                { ".DocSearch .DocSearch-Button-Keys", "hidden" },
-                { ".DocSearch .DocSearch-Button-Placeholder", "text-base-700 dark:text-base-300 text-sm font-normal hidden md:block" },
-            });
-    }
     
     private static ImmutableDictionary<string, string> CodeBlockApplies()
     {
@@ -233,7 +218,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
             {
                 {
                     ".code-highlight-wrapper .standalone-code-container",
-                    "bg-base-100 border border-base-300/75 shadow-xs rounded rounded-xl overflow-x-auto dark:bg-base-950/25 dark:border-base-700/50"
+                    "bg-white/50 border border-base-300/75 shadow-xs rounded rounded-xl overflow-x-auto dark:bg-black/20 dark:border-base-700/50"
                 },
                 {
                     ".code-highlight-wrapper pre ",

@@ -1,0 +1,38 @@
+@page "/tags/{TagEncodedName}"
+@using System.Collections.Immutable
+@inject IMarkdownContentService<BlogSiteFrontMatter> BlogService
+@inject ContentEngineOptions ContentEngineOptions
+
+@if (_tag == null)
+{
+    <div>Unknown tag</div>
+    return;
+}
+
+<PageTitle>@ContentEngineOptions.SiteTitle - @(_tag.Name)</PageTitle>
+<div>
+    <h1 class="text-3xl lg:text-5xl dark:text-primary-100 font-extrabold mt-4">@(_tag.Name)</h1>
+    <p class="my-4 text-base-900 dark:text-base-200">
+        Blog posts tagged by <span class="text-primary-800 dark:text-primary-300">@(_tag.Name)</span>
+    </p>
+    <BlogPostsList Posts="_posts"/>
+</div>
+
+@code {
+    [Parameter] public required string TagEncodedName { get; set; }
+
+    private MyLittleContentEngine.Models.Tag? _tag;
+    private ImmutableList<MarkdownContentPage<BlogSiteFrontMatter>>? _posts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (string.IsNullOrWhiteSpace(TagEncodedName)) return;
+        var tagAndPosts = await BlogService.GetTagByEncodedNameOrDefault(TagEncodedName);
+        if (tagAndPosts == null)
+        {
+            return;
+        }
+
+        (_tag, _posts) = tagAndPosts.Value;
+    }
+}

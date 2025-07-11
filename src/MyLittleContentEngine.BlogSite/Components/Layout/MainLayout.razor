@@ -1,0 +1,72 @@
+@inherits LayoutComponentBase
+@inject LinkService LinkService
+@inject BlogSiteOptions Options
+@inject ContentEngineOptions ContentOptions
+
+<div class="h-full font-sans ">
+    <div class="relative flex w-full flex-col bg-base-50 dark:bg-base-950">
+        <header class="mx-auto py-4 w-full max-w-7xl 16 bg-base-100 dark:bg-base-900 border-r border-l border-b border-base-200/50 dark:border-base-800/50">
+            <div class="mx-auto w-full max-w-5xl flex flex-row items-center gap-x-2 px-4 ">
+                <div class="text-base-800 uppercase dark:text-base-100 f text-2xl font-extrabold ">@Options.SiteTitle</div>
+                <div class="flex-1">
+                    <div class="flex flex-wrap justify-center gap-x-4 md:gap-x-6 lg:gap-x-12 text-base uppercase text-base-800 dark:text-base-100">
+                        @foreach (var link in Options.MainSiteLinks)
+                        {
+                            <a class="transition hover:text-primary-500 dark:hover:text-primary-400"
+                               href="@LinkService.GetLink(link.Url)">@link.Title</a>
+                        }
+                    </div>
+                </div>
+                <div>
+                    <button aria-label="Toggle Dark Mode" class="hover:bg-base-200 dark:hover:bg-base-800 rounded-md p-1"
+                            data-theme-toggle="">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="dark:hidden text-base-900 dark:text-base-200 h-5 w-5"
+                             viewBox="0 0 24 24" stroke="currentColor" fill="none">
+                            <path
+                                d="M17 12C17 14.7614 14.7614 17 12 17C9.23858 17 7 14.7614 7 12C7 9.23858 9.23858 7 12 7C14.7614 7 17 9.23858 17 12Z"
+                                stroke-width="1.5"></path>
+                            <path
+                                d="M11.9955 3H12.0045M11.9961 21H12.0051M18.3588 5.63599H18.3678M5.63409 18.364H5.64307M5.63409 5.63647H5.64307M18.3582 18.3645H18.3672M20.991 12.0006H21M3 12.0006H3.00898"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+
+
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                             class="hidden dark:block text-base-900 dark:text-base-200 h-5 w-5" viewBox="0 0 24 24"
+                             stroke="currentColor" fill="none">
+                            <path
+                                d="M21.5 14.0784C20.3003 14.7189 18.9301 15.0821 17.4751 15.0821C12.7491 15.0821 8.91792 11.2509 8.91792 6.52485C8.91792 5.06986 9.28105 3.69968 9.92163 2.5C5.66765 3.49698 2.5 7.31513 2.5 11.8731C2.5 17.1899 6.8101 21.5 12.1269 21.5C16.6849 21.5 20.503 18.3324 21.5 14.0784Z"
+                                stroke-width="1" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+        </header>
+        <div class="mx-auto w-full max-w-7xl transition-spacing pt-4 md:pt-6 lg:pt-16 bg-base-100 dark:bg-base-900 border-r border-l border-base-200/50 dark:border-base-800/50">
+            <main class="flex-auto">
+                <div class="relative px-4 sm:px-8 lg:px-12 mx-auto max-w-2xl lg:max-w-7xl">
+                    @Body
+                </div>
+            </main>
+            <footer class="mt-32 flex-none sm:px-8 mx-auto w-full max-w-7xl lg:px-8">
+                <div
+                    class="border-t border-base-100 pt-10 pb-16 dark:border-base-700/40 relative px-4 sm:px-8 lg:px-12 mx-auto max-w-2xl lg:max-w-5xl">
+                    <div class="flex flex-col items-center justify-between gap-6 md:flex-row">
+                        
+                        <div class="flex flex-wrap justify-center gap-x-6 gap-y-1 text-sm font-medium text-base-800 dark:text-base-200">
+                            @foreach (var link in Options.MainSiteLinks)
+                            {
+                                <a class="transition hover:text-primary-500 dark:hover:text-primary-400"
+                                   href="@LinkService.GetLink(link.Url)">@link.Title</a>
+                            }
+                        </div>
+                        <p class="text-sm text-base-400 dark:text-base-500">
+                            © @DateTime.Now.Year @(Options.AuthorName ?? ContentOptions.SiteTitle). All rights reserved.
+                        </p>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+</div>
