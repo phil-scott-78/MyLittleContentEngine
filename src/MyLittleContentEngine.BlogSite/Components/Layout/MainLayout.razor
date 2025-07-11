@@ -4,10 +4,14 @@
 @inject ContentEngineOptions ContentOptions
 
 <div class="h-full min-h-screen font-sans ">
-    <div class="relative flex w-full flex-col bg-base-50 dark:bg-base-950">
+    <div class="relative flex w-full h-full flex-col min-h-screen  bg-base-50 dark:bg-base-950">
         <header class="mx-auto py-4 w-full max-w-7xl 16 bg-base-100 dark:bg-base-900 border-r border-l border-b border-base-200/50 dark:border-base-800/50">
             <div class="mx-auto w-full max-w-5xl flex flex-row items-center gap-x-2 px-4 ">
-                <div class="text-base-800 uppercase dark:text-base-100 f text-2xl font-extrabold ">@Options.SiteTitle</div>
+                <div class="text-base-800 uppercase dark:text-base-100 text-2xl font-extrabold ">
+                    <RefLink Href="/">
+                        @Options.SiteTitle
+                    </RefLink>
+                </div>
                 <div class="flex-1">
                     <div class="flex flex-wrap justify-center gap-x-4 md:gap-x-6 lg:gap-x-12 text-base uppercase text-base-800 dark:text-base-100">
                         @foreach (var link in Options.MainSiteLinks)
