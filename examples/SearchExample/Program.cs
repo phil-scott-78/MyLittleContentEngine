@@ -6,17 +6,18 @@ using Random = SearchExample.Services.Random;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDocSite(options =>
+builder.Services.AddDocSite(_ => new DocSiteOptions()
 {
     // Basic site information
-    options.SiteTitle = "Random Content Site";
-    options.Description = "Random content site for demonstration purposes.";
-    options.CanonicalBaseUrl = "https://mydocs.example.com";
-    
+    SiteTitle = "Random Content Site",
+    Description = "Random content site for demonstration purposes.",
+    CanonicalBaseUrl = "https://mydocs.example.com",
+    BaseUrl = "/",
+
     // Styling and branding
-    options.PrimaryHue = 235; // Blue theme (0-360)
-    options.BaseColorName = ColorNames.Slate; // Base color palette
-    options.AdditionalRoutingAssemblies = [typeof(Random).Assembly];
+    PrimaryHue = 235, // Blue theme (0-360)
+    BaseColorName = ColorNames.Slate, // Base color palette
+    AdditionalRoutingAssemblies = [typeof(Random).Assembly]
 });
 
 builder.Services.AddSingleton<RandomContentService>();

@@ -1,8 +1,6 @@
 using Mdazor;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using MonorailCss;
 using MyLittleContentEngine.DocSite.Components;
 using MyLittleContentEngine.MonorailCss;
@@ -22,12 +20,10 @@ public static class DocSiteServiceExtensions
     /// <param name="services">The service collection</param>
     /// <param name="configureOptions">Configuration action for DocSiteOptions</param>
     /// <returns>The service collection</returns>
-    public static IServiceCollection AddDocSite(this IServiceCollection services, Action<DocSiteOptions> configureOptions)
+    public static IServiceCollection AddDocSite(this IServiceCollection services,
+        Func<IServiceProvider, DocSiteOptions> configureOptions)
     {
-        var options = new DocSiteOptions();
-        configureOptions(options);
-        
-        services.AddSingleton(options);
+        services.AddTransient(configureOptions);
         services.AddRazorComponents();
 
         // Add Mdazor with UI components
@@ -40,66 +36,89 @@ public static class DocSiteServiceExtensions
             .AddMdazorComponent<Steps>();
 
         // Configure content engine
-        services.AddContentEngineService(_ => new ContentEngineOptions
+        services.AddContentEngineService(sp =>
         {
-            SiteTitle = options.SiteTitle,
-            SiteDescription = options.Description,
-            BaseUrl = options.BaseUrl,
-            ContentRootPath = options.ContentRootPath,
-            CanonicalBaseUrl = options.CanonicalBaseUrl
+            var options = sp.GetRequiredService<DocSiteOptions>();
+            return new ContentEngineOptions
+            {
+                SiteTitle = options.SiteTitle,
+                SiteDescription = options.Description,
+                BaseUrl = options.BaseUrl,
+                ContentRootPath = options.ContentRootPath,
+                CanonicalBaseUrl = options.CanonicalBaseUrl
+            };
         });
 
         // Configure content service
-        services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<DocSiteFrontMatter>()
+        services.AddContentEngineStaticContentService(sp =>
         {
-            ContentPath = options.ContentRootPath,
-            BasePageUrl = string.Empty,
-            ExcludeSubfolders = false,
-            PostFilePattern = "*.md;*.mdx"
+            var options = sp.GetRequiredService<DocSiteOptions>();
+
+            return new ContentEngineContentOptions<DocSiteFrontMatter>()
+            {
+                ContentPath = options.ContentRootPath,
+                BasePageUrl = string.Empty,
+                ExcludeSubfolders = false,
+                PostFilePattern = "*.md;*.mdx"
+            };
         });
 
         // Configure MonorailCSS
-        services.AddMonorailCss(_ => new MonorailCssOptions
+        services.AddMonorailCss(sp =>
         {
-            PrimaryHue = () => options.PrimaryHue,
-            BaseColorName = () => options.BaseColorName,
-            CustomCssFrameworkSettings = defaultSettings => defaultSettings with
+            var options = sp.GetRequiredService<DocSiteOptions>();
+
+            return new MonorailCssOptions
             {
-                DesignSystem = defaultSettings.DesignSystem with
+                PrimaryHue = () => options.PrimaryHue,
+                BaseColorName = () => options.BaseColorName,
+                CustomCssFrameworkSettings = defaultSettings => defaultSettings with
                 {
-                    FontFamilies = defaultSettings.DesignSystem.FontFamilies
-                        .Add("display", new FontFamilyDefinition("Lexend, sans-serif"))
+                    DesignSystem = defaultSettings.DesignSystem with
+                    {
+                        FontFamilies = defaultSettings.DesignSystem.FontFamilies
+                            .Add("display", new FontFamilyDefinition("Lexend, sans-serif"))
+                    },
                 },
-            },
-            ExtraStyles = $"{options.ExtraStyles ?? ""}{Environment.NewLine}{GoogleFonts.GetLexendStyles()}",
+                ExtraStyles = $"{options.ExtraStyles ?? ""}{Environment.NewLine}{GoogleFonts.GetLexendStyles()}",
+            };
         });
 
         // Configure Roslyn service if solution path is provided
-        if (!string.IsNullOrEmpty(options.SolutionPath))
+        services.AddRoslynService(sp =>
         {
-            services.AddRoslynService(_ => new RoslynHighlighterOptions()
-            {
-                ConnectedSolution = new ConnectedDotNetSolution()
-                {
-                    SolutionPath = options.SolutionPath,
-                }
-            });
-        }
+            var o = sp.GetRequiredService<DocSiteOptions>();
 
-        // Configure API reference service if options are provided
-        if (options.ApiReferenceContentOptions != null)
+            if (string.IsNullOrWhiteSpace(o.SolutionPath))
+            {
+                return new RoslynHighlighterOptions();
+            }
+
+            return new RoslynHighlighterOptions
+            {
+                ConnectedSolution = new ConnectedDotNetSolution
+                {
+                    SolutionPath = o.SolutionPath,
+                }
+            };
+        });
+
+        // we need to resolve the options to see if we should add the rest.
+        var sp = services.BuildServiceProvider();
+        var tempOptions = sp.GetRequiredService<DocSiteOptions>();
+
+        if (tempOptions.ApiReferenceContentOptions != null)
         {
-            services.AddApiReferenceContentService(_ => options.ApiReferenceContentOptions);
+            services.AddApiReferenceContentService(_ => tempOptions.ApiReferenceContentOptions);
         }
-        else if (options.IncludeNamespaces != null || options.ExcludeNamespaces != null)
+        else if (tempOptions.IncludeNamespaces != null || tempOptions.ExcludeNamespaces != null)
         {
             services.AddApiReferenceContentService(_ => new ApiReferenceContentOptions()
             {
-                IncludeNamespace = options.IncludeNamespaces ?? [],
-                ExcludedNamespace = options.ExcludeNamespaces ?? [],
+                IncludeNamespace = tempOptions.IncludeNamespaces ?? [],
+                ExcludedNamespace = tempOptions.ExcludeNamespaces ?? [],
             });
         }
-
         return services;
     }
 
@@ -111,14 +130,14 @@ public static class DocSiteServiceExtensions
     public static WebApplication UseDocSite(this WebApplication app)
     {
         var options = app.Services.GetRequiredService<DocSiteOptions>();
-        
+
         app.UseAntiforgery();
         app.UseStaticFiles();
         app.MapRazorComponents<App>()
             .AddAdditionalAssemblies(options.AdditionalRoutingAssemblies);
 
         app.UseMonorailCss();
-        
+
         return app;
     }
 
@@ -132,5 +151,4 @@ public static class DocSiteServiceExtensions
     {
         await app.RunOrBuildContent(args);
     }
-
 }

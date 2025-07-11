@@ -32,12 +32,13 @@ builder.Services.AddBlogSite(_ => new BlogSiteOptions
                                 """,
     // Custom hero content
     HeroContent = BlogSnippets.HeroContent,
-    WorkContent = BlogSnippets.Work,
+    HomeSidebarContent = BlogSnippets.Work,
     MainSiteLinks =
     [
         new HeaderLink("About", "/about"),
         new HeaderLink("Sponsor Me", "https://github.com/fake-sponsor-link")
     ]
+    
 
 });
 

@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MonorailCss;
 using MyLittleContentEngine.BlogSite.Components;
 using MyLittleContentEngine.MonorailCss;
+using MyLittleContentEngine.Services.Content.Roslyn;
 
 namespace MyLittleContentEngine.BlogSite;
 
@@ -43,11 +44,11 @@ public static class BlogSiteServiceExtensions
         {
             var o = sp.GetRequiredService<BlogSiteOptions>();
 
-            return new ContentEngineContentOptions<BlogSiteFrontMatter>()
+            return new ContentEngineContentOptions<BlogSiteFrontMatter>
             {
                 ContentPath = Path.Combine(o.ContentRootPath, o.BlogContentPath),
                 BasePageUrl = o.BlogBaseUrl,
-                Tags = new TagsOptions()
+                Tags = new TagsOptions
                 {
                     TagsPageUrl = o.TagsPageUrl
                 },
@@ -56,6 +57,25 @@ public static class BlogSiteServiceExtensions
             };
         });
 
+        
+        services.AddRoslynService(sp =>
+        {
+            var o = sp.GetRequiredService<BlogSiteOptions>();
+
+            if (string.IsNullOrWhiteSpace(o.SolutionPath))
+            {
+                return new RoslynHighlighterOptions();
+            }
+            
+            return new RoslynHighlighterOptions
+            {
+                ConnectedSolution = new ConnectedDotNetSolution
+                {
+                    SolutionPath = o.SolutionPath,
+                }
+            };
+        });
+        
         // Configure MonorailCSS
         services.AddMonorailCss(sp =>
         {
@@ -70,11 +90,11 @@ public static class BlogSiteServiceExtensions
                     DesignSystem = defaultSettings.DesignSystem with
                     {
                         FontFamilies = defaultSettings.DesignSystem.FontFamilies
-                            .Add("display", new FontFamilyDefinition(o.DisplayFontFamily ?? "Lexend, sans-serif"))
-                            .SetItem("sans", new FontFamilyDefinition(o.BodyFontFamily ?? "Lexend, sans-serif"))
+                            .Add("display", new FontFamilyDefinition(o.DisplayFontFamily ?? "-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, Adwaita Sans, Cantarell, Ubuntu, roboto, noto, helvetica, arial, sans-serif;"))
+                            .SetItem("sans", new FontFamilyDefinition(o.BodyFontFamily ?? "-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, Adwaita Sans, Cantarell, Ubuntu, roboto, noto, helvetica, arial, sans-serif;"))
                     },
                 },
-                ExtraStyles = $"{o.ExtraStyles ?? ""}{Environment.NewLine}{GetFontStyles(o)}",
+                ExtraStyles = o.ExtraStyles ?? string.Empty
             };
         });
 
@@ -109,17 +129,5 @@ public static class BlogSiteServiceExtensions
     public static async Task RunBlogSiteAsync(this WebApplication app, string[] args)
     {
         await app.RunOrBuildContent(args);
-    }
-
-    private static string GetFontStyles(BlogSiteOptions options)
-    {
-        if (options.DisplayFontFamily?.Contains("Lexend") == true)
-        {
-            return """
-                   @import url('https://fonts.googleapis.com/css2?family=Lexend:wght@100..900&display=swap');
-                   """;
-        }
-
-        return string.Empty;
     }
 }
