@@ -42,7 +42,6 @@ builder.Services.AddBlogSite(_ => new BlogSiteOptions
 
 });
 
-Console.WriteLine("Here we go!");
 
 var app = builder.Build();
 app.UseBlogSite();
