@@ -1,4 +1,4 @@
-@layout ContentLayout
+@layout ContentWithProseLayout
 @page "/tags/{TagEncodedName}"
 @using System.Collections.Immutable
 @inject IMarkdownContentService<BlogSiteFrontMatter> BlogService
@@ -11,13 +11,19 @@
 }
 
 <PageTitle>@ContentEngineOptions.SiteTitle - @(_tag.Name)</PageTitle>
-<div>
-    <h1 class="text-3xl lg:text-5xl dark:text-primary-100 font-extrabold mt-4">@(_tag.Name)</h1>
-    <p class="my-4 text-base-900 dark:text-base-200">
-        Blog posts tagged by <span class="text-primary-800 dark:text-primary-300">@(_tag.Name)</span>
-    </p>
-    <BlogPostsList Posts="_posts"/>
-</div>
+
+
+
+    <header>
+        <h1>@(_tag.Name)</h1>
+        <p>
+            Blog posts tagged by <span class="text-primary-800 dark:text-primary-300">@(_tag.Name)</span>
+        </p>
+    </header>
+    <div class="not-prose">
+        <BlogPostsList Posts="_posts"/>
+    </div>
+
 
 @code {
     [Parameter] public required string TagEncodedName { get; set; }

@@ -1,11 +1,12 @@
-@layout ContentLayout
+@layout ContentWithProseLayout
 @page "/tags"
 @using System.Collections.Immutable
 @inject IMarkdownContentService<BlogSiteFrontMatter> BlogService
 @inject ContentEngineOptions ContentEngineOptions
 
 <PageTitle>@ContentEngineOptions.SiteTitle - Tags</PageTitle>
-<h1 class="text-3xl lg:text-5xl dark:text-primary-100 font-extrabold mt-4">All Tags</h1>
+
+<h1>All Tags</h1>
 
 @if (_tagsWithCount == null)
 {
@@ -13,26 +14,31 @@
     return;
 }
 
-<div class="flex flex-wrap justify-between gap-1">
+<ul>
     @{
         foreach (var tagGroup in _tagsWithCount)
         {
-            <RefLink CssClass="text-primary-500 hover:text-primary-400 mr-3 text-sm font-medium uppercase"
-               Href="@tagGroup.Tag.NavigateUrl"> @tagGroup.Tag.Name (@tagGroup.Count) </RefLink>
+            <li>
+                <RefLink Href="@tagGroup.Tag.NavigateUrl">@tagGroup.Tag.Name</RefLink>
+                <span class="text-xs text-base-600 dark:text-base-400"> (@tagGroup.Count)</span>
+            </li>
         }
     }
-</div>
+</ul>
+
 
 @code {
     private ImmutableList<(MyLittleContentEngine.Models.Tag Tag, int Count)>? _tagsWithCount;
 
     protected override async Task OnInitializedAsync()
     {
-        _tagsWithCount = (await BlogService.GetAllContentPagesAsync())
+        var allContentPages = await BlogService.GetAllContentPagesAsync();
+        _tagsWithCount = allContentPages
             .SelectMany(x => x.Tags)
             .GroupBy(x => x)
             .Select(group => (group.Key, group.Count()))
             .OrderByDescending(x => x.Item2)
             .ToImmutableList();
     }
+
 }

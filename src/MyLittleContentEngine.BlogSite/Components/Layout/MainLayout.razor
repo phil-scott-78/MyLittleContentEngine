@@ -12,16 +12,33 @@
                         @Options.SiteTitle
                     </RefLink>
                 </div>
+                
                 <div class="flex-1">
-                    <div class="flex flex-wrap justify-center gap-x-4 md:gap-x-6 lg:gap-x-12 text-base uppercase text-base-800 dark:text-base-100">
-                        @foreach (var link in Options.MainSiteLinks)
-                        {
-                            <a class="transition hover:text-primary-500 dark:hover:text-primary-400"
-                               href="@LinkService.GetLink(link.Url)">@link.Title</a>
-                        }
-                    </div>
+                    @if (Options.MainSiteLinks.Length > 0)
+                    {
+                        <!-- Desktop Navigation -->
+                        <div class="hidden md:flex flex-wrap justify-center gap-x-4 md:gap-x-6 lg:gap-x-12 text-sm uppercase text-base-800 dark:text-base-100">
+                            @foreach (var link in Options.MainSiteLinks)
+                            {
+                                <a class="transition hover:text-primary-500 dark:hover:text-primary-400"
+                                   href="@LinkService.GetLink(link.Url)">@link.Title</a>
+                            }
+                        </div>
+
+
+                    }
+                    
                 </div>
-                <div>
+                
+                <div class="flex flex-row gap-x-4">
+                    <div class="md:hidden flex justify-center">
+                        <button id="mobile-menu-button" class="p-2 rounded-md hover:bg-base-200 dark:hover:bg-base-800 transition" aria-label="Toggle mobile menu">
+                            <svg class="w-6 h-6 text-base-800 dark:text-base-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    
                     <button aria-label="Toggle Dark Mode" class="hover:bg-base-200 dark:hover:bg-base-800 rounded-md p-1"
                             data-theme-toggle="">
                         <svg xmlns="http://www.w3.org/2000/svg" class="dark:hidden text-base-900 dark:text-base-200 h-5 w-5"
@@ -45,8 +62,17 @@
                     </button>
                 </div>
             </div>
-
-        </header>
+            <!-- Mobile Dropdown Menu -->
+            <div id="mobile-menu" class="hidden data-[expanded=true]:block" data-expanded="false">
+                <div class="pt-4 space-y-3">
+                    @foreach (var link in Options.MainSiteLinks)
+                    {
+                        <a class="block px-4 py-2 uppercase text-base-800 text-xs dark:text-base-100  transition hover:text-primary-500 dark:hover:text-primary-400"
+                           href="@LinkService.GetLink(link.Url)">@link.Title</a>
+                    }
+                </div>
+            </div>
+            </header>
         <div class="mx-auto w-full max-w-7xl transition-spacing pt-4 md:pt-6 lg:pt-16 bg-base-100 dark:bg-base-900 border-r border-l border-base-200/50 dark:border-base-800/50">
             <main class="flex-auto">
                 <div class="relative px-4 sm:px-8 lg:px-12 mx-auto max-w-2xl lg:max-w-7xl">

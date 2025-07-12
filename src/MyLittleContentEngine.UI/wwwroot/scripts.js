@@ -22,6 +22,7 @@ class PageManager {
         this.syntaxHighlighter = new SyntaxHighlighter();
         this.mermaidManager = new MermaidManager();
         this.mobileNavManager = new MobileNavManager();
+        this.mainSiteNavManager = new MainSiteNavManager();
         this.searchManager = new SearchManager();
 
         // Initialize all components
@@ -30,6 +31,7 @@ class PageManager {
         this.syntaxHighlighter.init();
         this.mermaidManager.init();
         this.mobileNavManager.init();
+        this.mainSiteNavManager.init();
         this.searchManager.init();
     }
 }
@@ -678,6 +680,82 @@ class MobileNavManager {
         
         // Prevent body scrolling when menu is open
         document.body.setAttribute('data-mobile-menu-open', 'true');
+    }
+}
+
+/**
+ * Main Site Navigation Manager - Handles hamburger menu for main site links
+ */
+class MainSiteNavManager {
+    constructor() {
+        this.menuButton = null;
+        this.mobileMenu = null;
+    }
+
+    init() {
+        this.menuButton = document.getElementById('mobile-menu-button');
+        this.mobileMenu = document.getElementById('mobile-menu');
+        
+        if (this.menuButton && this.mobileMenu) {
+            this.setupEventListeners();
+        }
+    }
+
+    setupEventListeners() {
+        // Toggle menu on button click
+        this.menuButton.addEventListener('click', () => {
+            this.toggleMenu();
+        });
+        
+        // Close menu when clicking on a link
+        this.mobileMenu.addEventListener('click', (e) => {
+            if (e.target.tagName === 'A') {
+                this.closeMenu();
+            }
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!this.mobileMenu.contains(e.target) && 
+                !this.menuButton.contains(e.target) && 
+                this.isMenuOpen()) {
+                this.closeMenu();
+            }
+        });
+
+        // Close menu on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.isMenuOpen()) {
+                this.closeMenu();
+            }
+        });
+        
+        // Close menu when window is resized to desktop
+        window.addEventListener('resize', () => {
+            if (window.innerWidth >= 768) { // md breakpoint
+                this.closeMenu();
+            }
+        });
+    }
+
+    toggleMenu() {
+        if (this.isMenuOpen()) {
+            this.closeMenu();
+        } else {
+            this.openMenu();
+        }
+    }
+
+    isMenuOpen() {
+        return this.mobileMenu.dataset.expanded === 'true';
+    }
+
+    openMenu() {
+        this.mobileMenu.dataset.expanded = 'true';
+    }
+
+    closeMenu() {
+        this.mobileMenu.dataset.expanded = 'false';
     }
 }
 
