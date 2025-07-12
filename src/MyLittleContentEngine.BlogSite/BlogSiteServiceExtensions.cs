@@ -1,9 +1,11 @@
+using Mdazor;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using MonorailCss;
 using MyLittleContentEngine.BlogSite.Components;
 using MyLittleContentEngine.MonorailCss;
 using MyLittleContentEngine.Services.Content.Roslyn;
+using MyLittleContentEngine.UI.Components;
 
 namespace MyLittleContentEngine.BlogSite;
 
@@ -24,6 +26,15 @@ public static class BlogSiteServiceExtensions
         services.AddTransient(configureOptions);
         services.AddRazorComponents();
 
+        // Add Mdazor with UI components
+        services.AddMdazor()
+            .AddMdazorComponent<Badge>()
+            .AddMdazorComponent<Card>()
+            .AddMdazorComponent<CardGrid>()
+            .AddMdazorComponent<LinkCard>()
+            .AddMdazorComponent<Step>()
+            .AddMdazorComponent<Steps>();
+        
         // Configure content engine
         services.AddContentEngineService(sp =>
         {
