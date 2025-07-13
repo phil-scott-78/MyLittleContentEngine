@@ -43,13 +43,10 @@ internal class OutputGenerationService(
     /// </para>
     /// <list type="number">
     ///     <item>
-    ///         <description>Collects pages to generate from all registered content services</description>
+    ///         <description>Collects pages to generate from all registered content services (including RazorPageContentService)</description>
     ///     </item>
     ///     <item>
-    ///         <description>Optionally adds routes registered via MapGet based on configuration</description>
-    ///     </item>
-    ///     <item>
-    ///         <description>Optionally adds non-parametrized Razor pages based on configuration</description>
+    ///         <description>Adds routes registered via MapGet based on configuration</description>
     ///     </item>
     ///     <item>
     ///         <description>Clears and recreates the output directory</description>
@@ -78,11 +75,8 @@ internal class OutputGenerationService(
 
         }
 
-        // Optionally discover and add non-parametrized Razor pages
-        if (options.AddPagesWithoutParameters)
-        {
-            pagesToGenerate = pagesToGenerate.AddRange(routeHelper.GetRoutesToRender(), Priority.Normal);
-        }
+        // Note: Non-parametrized Razor pages are now handled by RazorPageContentService
+        // which is registered as an IContentService and processed above with other content services
 
         // add explicitly defined pages to generate
         pagesToGenerate = pagesToGenerate.AddRange(options.PagesToGenerate, Priority.Normal);

@@ -102,31 +102,6 @@ public class ContentEngineOptions
     public ImmutableList<PageToGenerate> PagesToGenerate { get; init; } = [];
 
     /// <summary>
-    /// Gets or sets whether to automatically include non-parameterized Razor pages in the generation process.
-    /// </summary>
-    /// <remarks>
-    /// <para>
-    /// When set to true, the system will automatically discover and generate static HTML
-    /// for all Razor pages that do not contain route parameters.
-    /// </para>
-    /// <para>
-    /// Examples of page types:
-    /// </para>
-    /// <list type="bullet">
-    ///     <item>
-    ///         <description>Non-parameterized (will be included): @page "/about"</description>
-    ///     </item>
-    ///     <item>
-    ///         <description>Parameterized (will not be included): @page "/docs/{slug}"</description>
-    ///     </item>
-    /// </list>
-    /// <para>
-    /// Default value is true.
-    /// </para>
-    /// </remarks>
-    public bool AddPagesWithoutParameters { get; init; } = true;
-
-    /// <summary>
     /// Gets or sets the filename to use for index pages.
     /// </summary>
     /// <remarks>

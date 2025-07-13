@@ -20,7 +20,8 @@
       "Bash(mv:*)",
       "Bash(dotnet run:*)",
       "Bash(dotnet script:*)",
-      "Bash(dotnet sln:*)"
+      "Bash(dotnet sln:*)",
+      "Bash(dotnet restore:*)"
     ]
   },
   "model": "sonnet",

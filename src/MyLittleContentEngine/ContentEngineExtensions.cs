@@ -85,6 +85,10 @@ public static class ContentEngineExtensions
         services.AddTransient<FileSystemUtilities>();
         services.AddTransient<LinkService>();
 
+        // Register the Razor page content service
+        services.AddTransient<RazorPageContentService>();
+        services.AddTransient<IContentService>(provider => provider.GetRequiredService<RazorPageContentService>());
+
         return services;
     }
 
