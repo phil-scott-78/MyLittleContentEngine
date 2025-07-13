@@ -2,6 +2,7 @@
 @inject ContentEngineOptions Options
 @inject BlogSiteOptions BlogOptions
 @inject IMarkdownContentService<BlogSiteFrontMatter> MarkdownContentService
+@inject LinkService LinkService 
 
 @if (_post == null)
 {
@@ -65,7 +66,7 @@
     private string GetSocialImageUrl()
     {
         if (_post == null || BlogOptions.SocialMediaImageUrlFactory == null) return "";
-        return BlogOptions.SocialMediaImageUrlFactory(_post);
+        return LinkService.GetCanonicalUrl(BlogOptions.SocialMediaImageUrlFactory(_post));
         
     }
     

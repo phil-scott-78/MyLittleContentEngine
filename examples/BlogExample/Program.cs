@@ -30,7 +30,7 @@ builder.Services.AddBlogSite(_ => new BlogSiteOptions
                                 """,
     HeroContent = new HeroContent(
         "Flavor profiler, endurance chewer, and part-time pterygoid philosopher",
-        "I'm <strong>Calvin</strong>, a gum performance analyst and recreational mandibularist based in New York City.\n            I’m the founder of ChewLab, where we develop equipment, training protocols, and apparel that help everyday people reach elite levels of chewing efficiency."
+        "I'm <strong>Calvin</strong>, a gum performance analyst and recreational mandibularist based in New York City. I’m the founder of ChewLab, where we develop equipment, training protocols, and apparel that help everyday people reach elite levels of chewing efficiency."
         ),
     MyWork = [
         new Project("gum-performance-benchmark", "Test chewing metrics with controlled mastication protocols.", "https://github.com/fake-calvin/gum-performance-benchmark"),
@@ -51,10 +51,8 @@ builder.Services.AddBlogSite(_ => new BlogSiteOptions
         new SocialLink(SocialIcons.BlueskyIcon, "#"),
     ],
     AuthorName = "Calvin",
-    AuthorBio = "I'm <strong>Calvin</strong>, a gum performance analyst and recreational mandibularist based in New York City.\n            I’m the founder\n            of ChewLab, where we develop equipment, training protocols, and apparel that help everyday people reach\n            elite levels of chewing efficiency."
-    
-    
-
+    AuthorBio = "I'm <strong>Calvin</strong>, a gum performance analyst and recreational mandibularist based in New York City. I’m the founde of ChewLab, where we develop equipment, training protocols, and apparel that help everyday people reach elite levels of chewing efficiency.",
+    SocialMediaImageUrlFactory = page => $"social-images/{page.Url.Replace("/", "-")}.png"
 });
 
 
