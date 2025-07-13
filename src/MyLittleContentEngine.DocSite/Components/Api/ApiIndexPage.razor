@@ -51,7 +51,7 @@ else
             _namespaces = await ApiService.GetNamespacesAsync();
             IsLoaded = true;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             IsLoaded = true;
         }
