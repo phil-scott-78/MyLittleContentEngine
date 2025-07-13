@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using System.Reflection;
 using MonorailCss;
+using MyLittleContentEngine.Models;
 
 namespace MyLittleContentEngine.BlogSite;
 
@@ -105,11 +106,6 @@ public class BlogSiteOptions
     public string? AuthorBio { get; init; }
 
     /// <summary>
-    /// Enable social images generation
-    /// </summary>
-    public bool EnableSocialImages { get; init; } = true;
-
-    /// <summary>
     /// Enable RSS feed generation
     /// </summary>
     public bool EnableRss { get; init; } = true;
@@ -120,7 +116,7 @@ public class BlogSiteOptions
     public bool EnableSitemap { get; init; } = true;
 
     /// <summary>
-    /// Projects to include in the home page sidebar.
+    /// Projects to include in the home page sidebar
     /// </summary>
     public Project[] MyWork { get; init; } = [];
 
@@ -133,6 +129,11 @@ public class BlogSiteOptions
     /// Path to the solution file for API documentation generation
     /// </summary>
     public string? SolutionPath { get; init; }
+
+    /// <summary>
+    /// Function to generate a URL to be used in social media metadata links 
+    /// </summary>
+    public Func<MarkdownContentPage<BlogSiteFrontMatter>, string>? SocialMediaImageUrlFactory { get; init; }
 }
 
 public record SocialLink(RenderFragment Icon, string Url);

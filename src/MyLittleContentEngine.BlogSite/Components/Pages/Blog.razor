@@ -12,8 +12,8 @@
 
 <HeadContent>
     <meta property="og:title" content="@_post.FrontMatter.Title" />
-    <meta property="og:description" content="@(_post.FrontMatter.Description ?? "")" />
-    @if (BlogOptions.EnableSocialImages)
+    <meta property="og:description" content="@_post.FrontMatter.Description" />
+    @if (BlogOptions.SocialMediaImageUrlFactory != null)
     {
         <meta property="og:image" content="@GetSocialImageUrl()" />
     }
@@ -25,7 +25,7 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="@_post.FrontMatter.Title" />
     <meta name="twitter:description" content="@(_post.FrontMatter.Description ?? "")" />
-    @if (BlogOptions.EnableSocialImages)
+    @if (BlogOptions.SocialMediaImageUrlFactory != null)
     {
         <meta name="twitter:image" content="@GetSocialImageUrl()" />
     }
@@ -64,21 +64,10 @@
     
     private string GetSocialImageUrl()
     {
-        if (_post == null || !BlogOptions.EnableSocialImages) return "";
+        if (_post == null || BlogOptions.SocialMediaImageUrlFactory == null) return "";
+        return BlogOptions.SocialMediaImageUrlFactory(_post);
         
-        var filename = GenerateFilename(_post.Url);
-        return $"{Options.CanonicalBaseUrl}/social-images/{filename}";
     }
     
-    private string GetFullUrl()
-    {
-        if (_post == null) return "";
-        return $"{Options.CanonicalBaseUrl}{BlogOptions.BlogBaseUrl}/{_post.Url}";
-    }
-    
-    private static string GenerateFilename(string url)
-    {
-        var sanitized = url.Replace("/", "-").Replace("\\", "-").Trim('-');
-        return string.IsNullOrEmpty(sanitized) ? "index.png" : $"{sanitized}.png";
-    }
+    private string GetFullUrl() => _post == null ? "" : $"{Options.CanonicalBaseUrl}{BlogOptions.BlogBaseUrl}/{_post.Url}";
 }

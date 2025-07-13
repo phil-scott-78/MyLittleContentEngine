@@ -1,8 +1,6 @@
-﻿using BlogExample;
-using MonorailCss;
+﻿using MonorailCss;
 using MyLittleContentEngine.BlogSite;
 using MyLittleContentEngine.BlogSite.Components;
-using MyLittleContentEngine.Services.Content;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,7 +20,6 @@ builder.Services.AddBlogSite(_ => new BlogSiteOptions
     TagsPageUrl = "/tags",
     DisplayFontFamily = "\"Noto Sans Display\", sans-serif",
     BodyFontFamily = "\"Inter\", sans-serif",
-    EnableSocialImages = true,
     EnableRss = true,
     EnableSitemap = true,
     AdditionalHtmlHeadContent = """
