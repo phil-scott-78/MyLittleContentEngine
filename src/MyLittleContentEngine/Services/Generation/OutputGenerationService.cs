@@ -127,7 +127,7 @@ internal class OutputGenerationService(
             // Adjust the target path to include the request path prefix
             var adjustedAssets = assets.Select(asset => new ContentToCopy(
                 asset.SourcePath,
-                string.IsNullOrEmpty(requestPath) ? asset.TargetPath : $"{requestPath.TrimStart('/')}/{asset.TargetPath}".TrimStart('/')
+                (string.IsNullOrEmpty(requestPath) ? asset.TargetPath : $"{requestPath.TrimStart('/')}/{asset.TargetPath}".TrimStart('/')).ToLowerInvariant()
             ));
             
             contentToCopy = contentToCopy.AddRange(adjustedAssets);
@@ -158,7 +158,7 @@ internal class OutputGenerationService(
         // Create content files in the output directory
         foreach (var contentItem in contentToCreate)
         {
-            var targetPath = _fileSystem.Path.Combine(options.OutputFolderPath, contentItem.TargetPath.TrimStart('/'));
+            var targetPath = _fileSystem.Path.Combine(options.OutputFolderPath, contentItem.TargetPath.TrimStart('/').ToLowerInvariant());
             
             var directoryPath = _fileSystem.Path.GetDirectoryName(targetPath);
             if (!string.IsNullOrEmpty(directoryPath))
@@ -203,7 +203,7 @@ internal class OutputGenerationService(
                     return;
                 }
 
-                var outFilePath = _fileSystem.Path.Combine(options.OutputFolderPath, page.OutputFile.TrimStart('/'));
+                var outFilePath = _fileSystem.Path.Combine(options.OutputFolderPath, page.OutputFile.TrimStart('/').ToLowerInvariant());
 
                 var directoryPath = _fileSystem.Path.GetDirectoryName(outFilePath);
                 if (!string.IsNullOrEmpty(directoryPath))
@@ -303,7 +303,7 @@ internal class OutputGenerationService(
             {
                 if (item.PhysicalPath is not null)
                 {
-                    yield return new ContentToCopy(item.PhysicalPath, fullPath);
+                    yield return new ContentToCopy(item.PhysicalPath, fullPath.ToLowerInvariant());
                 }
             }
         }
