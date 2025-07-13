@@ -1,6 +1,7 @@
 ﻿using BlogExample;
 using MonorailCss;
 using MyLittleContentEngine.BlogSite;
+using MyLittleContentEngine.BlogSite.Components;
 using MyLittleContentEngine.Services.Content;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -30,14 +31,31 @@ builder.Services.AddBlogSite(_ => new BlogSiteOptions
                                 <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Noto+Sans+Display:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
 
                                 """,
-    // Custom hero content
-    HeroContent = BlogSnippets.HeroContent,
-    HomeSidebarContent = BlogSnippets.Work,
+    HeroContent = new HeroContent(
+        "Flavor profiler, endurance chewer, and part-time pterygoid philosopher",
+        "I'm <strong>Calvin</strong>, a gum performance analyst and recreational mandibularist based in New York City.\n            I’m the founder of ChewLab, where we develop equipment, training protocols, and apparel that help everyday people reach elite levels of chewing efficiency."
+        ),
+    MyWork = [
+        new Project("gum-performance-benchmark", "Test chewing metrics with controlled mastication protocols.", "https://github.com/fake-calvin/gum-performance-benchmark"),
+        new Project("mandible-trainer-pro", "Interval training for serious jaw athletes.", "https://github.com/fake-calvin/mandible-trainer-pro"),
+        new Project("chew-jersey-detergent-lab", "Simulate washes for technical gum apparel.", "https://github.com/fake-calvin/chew-jersey-detergent-lab"),
+        new Project("bubble-capacity-visualizer", "Visualize bubble data with saliva overlays.", "https://github.com/fake-calvin/bubble-capacity-visualizer"),
+        new Project("gumbot-alpha", "Robotic jaw for automated gum stress testing.", "https://github.com/fake-calvin/gumbot-alpha")
+    ],
     MainSiteLinks =
     [
         new HeaderLink("About", "/about"),
         new HeaderLink("Sponsor Me", "https://github.com/fake-sponsor-link")
-    ]
+    ],
+    Socials = [
+        new SocialLink(SocialIcons.GithubIcon, "#"),
+        new SocialLink(SocialIcons.LinkedInIcon, "#"),
+        new SocialLink(SocialIcons.MastadonIcon, "#"),
+        new SocialLink(SocialIcons.BlueskyIcon, "#"),
+    ],
+    AuthorName = "Calvin",
+    AuthorBio = "I'm <strong>Calvin</strong>, a gum performance analyst and recreational mandibularist based in New York City.\n            I’m the founder\n            of ChewLab, where we develop equipment, training protocols, and apparel that help everyday people reach\n            elite levels of chewing efficiency."
+    
     
 
 });

@@ -72,7 +72,7 @@ public class BlogSiteOptions
     /// <summary>
     /// Custom hero content for the home page
     /// </summary>
-    public RenderFragment? HeroContent { get; init; }
+    public HeroContent? HeroContent { get; init; }
 
     /// <summary>
     /// Custom font family for display elements
@@ -120,9 +120,14 @@ public class BlogSiteOptions
     public bool EnableSitemap { get; init; } = true;
 
     /// <summary>
-    /// Content for the "Work" sidebar section
+    /// Projects to include in the home page sidebar.
     /// </summary>
-    public RenderFragment? HomeSidebarContent { get; init; }
+    public Project[] MyWork { get; init; } = [];
+
+    /// <summary>
+    /// Social Media Links
+    /// </summary>
+    public SocialLink[] Socials { get; init; } = [];
     
     /// <summary>
     /// Path to the solution file for API documentation generation
@@ -130,4 +135,10 @@ public class BlogSiteOptions
     public string? SolutionPath { get; init; }
 }
 
+public record SocialLink(RenderFragment Icon, string Url);
+
 public record HeaderLink(string Title, string Url);
+
+public record Project(string Title, string Description, string Url);
+
+public record HeroContent(string Title, string Description);
