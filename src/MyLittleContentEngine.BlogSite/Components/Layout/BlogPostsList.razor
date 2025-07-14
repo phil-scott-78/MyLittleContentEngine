@@ -1,8 +1,8 @@
 <div class="space-y-6 md:space-y-10 divide-y divide-base-200 dark:divide-primary-900/50">
-    @foreach (var post in Posts)
+    @foreach (var post in Posts.OrderByDescending(i => i.FrontMatter.Date))
     {
         <div class="pt-4 md:pt-8">
-            <BlogSummary Posts="Posts"></BlogSummary>
+            <BlogArticleCard Post="post"></BlogArticleCard>
         </div>
     }
 </div>
