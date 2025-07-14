@@ -1,6 +1,7 @@
 ---
 title: "Creating Your First Site"
 description: "Build a complete content site from scratch using MyLittleContentEngine"
+uid: "docs.getting-started.creating-first-site"
 order: 1001
 ---
 

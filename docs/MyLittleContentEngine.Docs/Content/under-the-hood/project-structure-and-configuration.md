@@ -1,6 +1,7 @@
 ---
 title: "Project Structure and Configuration"
 description: "Understanding the anatomy of a MyLittleContentEngine project and how components work together"
+uid: "docs.under-the-hood.project-structure-and-configuration"
 order: 3010
 ---
 

@@ -1,6 +1,7 @@
 ---
 title: "Using Markdown Extensions"
 description: "Learn about the powerful Markdown extensions supported by MyLittleContentEngine, including code highlighting, tabbed content, alerts, Mermaid diagrams, and Blazor components integration."
+uid: "docs.guides.markdown-extensions"
 order: 2040
 ---
 
@@ -295,7 +296,7 @@ Here's how to create a grid of link cards for navigation:
 
 ```````markdown
 <CardGrid>
-<LinkCard Title="Creating First Site" href="getting-started/creating-first-site">
+<LinkCard Title="Creating First Site" href="xref:docs.getting-started.creating-first-site">
 <Icon>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="2em" height="2em" stroke="currentColor">
     <path d="M8 4.5V3M16 4.5V3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -305,7 +306,7 @@ Here's how to create a grid of link cards for navigation:
 Build a complete content site from scratch using MyLittleContentEngine
 </LinkCard>
 
-<LinkCard Title="Connecting to Roslyn" href="getting-started/connecting-to-roslyn" Color="secondary">
+<LinkCard Title="Connecting to Roslyn" href="xref:docs.getting-started.connecting-to-roslyn" Color="secondary">
 <Icon>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="2em" height="2em">
     <path d="M4.51255 19.4866C7.02498 21.8794 10.016 20.9223 11.2124 19.9532" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>

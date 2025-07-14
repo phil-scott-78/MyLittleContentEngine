@@ -83,6 +83,7 @@ public static class ContentEngineExtensions
         services.AddTransient<RoutesHelperService>();
         services.AddSingleton<IFileSystem>(new FileSystem());
         services.AddTransient<FileSystemUtilities>();
+        services.AddSingleton<IXrefResolver, XrefResolver>();
 
         // Register the Razor page content service
         services.AddTransient<RazorPageContentService>();
@@ -117,7 +118,7 @@ public static class ContentEngineExtensions
             if (options.ConnectedSolution != null)
             {
                 services.AddTransient<IRoslynHighlighterService, RoslynHighlighterService>();
-                services.AddTransient<IRoslynExampleCoordinator, RoslynExampleCoordinator>();
+                services.AddSingleton<IRoslynExampleCoordinator, RoslynExampleCoordinator>();
                 services.AddTransient<CodeExecutionService>();
                 services.AddSingleton<AssemblyLoaderService>();
             }

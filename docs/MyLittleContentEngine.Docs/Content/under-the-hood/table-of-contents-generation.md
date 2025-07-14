@@ -1,6 +1,7 @@
 ---
 title: "Table of Contents Generation"
 description: "How MyLittleContentEngine builds hierarchical navigation from your content structure"
+uid: "docs.under-the-hood.table-of-contents-generation"
 order: 3020
 ---
 

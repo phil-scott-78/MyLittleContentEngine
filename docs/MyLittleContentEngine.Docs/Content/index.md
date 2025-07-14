@@ -1,6 +1,7 @@
 ---
 title: "Welcome"
 description: "A static site generator for .NET Blazor applications with markdown content management and strong typing"
+uid: "docs.index"
 order: 1
 ---
 
@@ -15,11 +16,13 @@ Everything you need to build a nice little documentation website for your .NET p
 
 ## Getting Started
 
+[Link](xref:docs.getting-started.creating-first-site)
+
 Learn how to set up your first content site with MyLittleContentEngine.
 
 
 <CardGrid>
-<LinkCard Title="Creating First Site" href="getting-started/creating-first-site" >
+<LinkCard Title="Creating First Site" href="xref:docs.getting-started.creating-first-site" >
 <Icon>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="2em" height="2em" stroke="currentColor">
     <path d="M8 4.5V3M16 4.5V3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
@@ -32,7 +35,7 @@ Learn how to set up your first content site with MyLittleContentEngine.
 Build a complete content site from scratch using MyLittleContentEngine
 </LinkCard>
 
-<LinkCard Title="Connecting to Roslyn" href="getting-started/connecting-to-roslyn" >
+<LinkCard Title="Connecting to Roslyn" href="xref:docs.getting-started.connecting-to-roslyn" >
 <Icon>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="2em" height="2em">
     <path d="M4.51255 19.4866C7.02498 21.8794 10.016 20.9223 11.2124 19.9532C11.8314 19.4518 12.1097 19.1277 12.3489 18.8884C13.1864 18.1107 13.1326 17.3331 12.5882 16.711C12.3704 16.462 10.9731 15.1198 9.63313 13.7439C8.93922 13.0499 8.46066 12.5595 8.05149 12.1647C7.50354 11.6185 7.02499 10.9922 6.30715 11.0101C5.64913 11.0101 5.17057 11.5904 4.57237 12.1886C3.88422 12.8767 3.37598 13.7439 3.19652 14.5216C2.65814 16.7947 3.49562 18.4098 4.51255 19.4866ZM4.51255 19.4866L2.00012 21.999" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"></path>
@@ -43,7 +46,7 @@ Integrate Roslyn for enhanced code highlighting and documentation in your conten
 </LinkCard>
 
 
-<LinkCard Title="Using UI Elements" href="getting-started/using-ui-elements" >
+<LinkCard Title="Using UI Elements" href="xref:docs.getting-started.using-ui-elements" >
 <Icon>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="2em" height="2em">
     <path d="M2.5 12C2.5 7.52166 2.5 5.28249 3.89124 3.89124C5.28249 2.5 7.52166 2.5 12 2.5C16.4783 2.5 18.7175 2.5 20.1088 3.89124C21.5 5.28249 21.5 7.52166 21.5 12C21.5 16.4783 21.5 18.7175 20.1088 20.1088C18.7175 21.5 16.4783 21.5 12 21.5C7.52166 21.5 5.28249 21.5 3.89124 20.1088C2.5 18.7175 2.5 16.4783 2.5 12Z" stroke="currentColor" stroke-width="1.5"></path>
@@ -59,7 +62,7 @@ Learn how to enhance your site with pre-built UI components from MyLittleContent
 </LinkCard>
 
 
-<LinkCard Title="Deploying to GitHub Pages" href="getting-started/deploying-to-github-pages" Color="primary">
+<LinkCard Title="Deploying to GitHub Pages" href="xref:docs.getting-started.deploying-to-github-pages" Color="primary">
 <Icon>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="2em" height="2em" >
     <path d="M6.51734 17.1132C6.91177 17.6905 8.10883 18.9228 9.74168 19.2333M9.86428 22C8.83582 21.8306 2 19.6057 2 12.0926C2 5.06329 8.0019 2 12.0008 2C15.9996 2 22 5.06329 22 12.0926C22 19.6057 15.1642 21.8306 14.1357 22C14.1357 22 13.9267 18.5826 14.0487 17.9969C14.1706 17.4113 13.7552 16.4688 13.7552 16.4688C14.7262 16.1055 16.2043 15.5847 16.7001 14.1874C17.0848 13.1032 17.3268 11.5288 16.2508 10.0489C16.2508 10.0489 16.5318 7.65809 15.9996 7.56548C15.4675 7.47287 13.8998 8.51192 13.8998 8.51192C13.4432 8.38248 12.4243 8.13476 12.0018 8.17939C11.5792 8.13476 10.5568 8.38248 10.1002 8.51192C10.1002 8.51192 8.53249 7.47287 8.00036 7.56548C7.46823 7.65809 7.74917 10.0489 7.74917 10.0489C6.67316 11.5288 6.91516 13.1032 7.2999 14.1874C7.79575 15.5847 9.27384 16.1055 10.2448 16.4688C10.2448 16.4688 9.82944 17.4113 9.95135 17.9969C10.0733 18.5826 9.86428 22 9.86428 22Z" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"></path>

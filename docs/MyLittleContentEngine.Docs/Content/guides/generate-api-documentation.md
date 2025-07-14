@@ -1,6 +1,7 @@
 ---
 title: "Generate API Documentation"
 description: "Automatically generate interactive API documentation from .NET assemblies using ApiReferenceContentService"
+uid: "docs.guides.generate-api-documentation"
 order: 2100
 ---
 

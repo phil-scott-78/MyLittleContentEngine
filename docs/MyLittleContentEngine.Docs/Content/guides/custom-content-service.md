@@ -1,6 +1,7 @@
 ---
 title: "Create Custom Content Service"
 description: "Implement a custom IContentService to handle specialized content sources and processing requirements"
+uid: "docs.guides.custom-content-service"
 order: 2100
 ---
 

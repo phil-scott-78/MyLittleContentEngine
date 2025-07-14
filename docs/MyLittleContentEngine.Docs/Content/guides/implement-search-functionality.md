@@ -1,6 +1,7 @@
 ---
 title: "Implement Search Functionality"
 description: "Add powerful client-side search to your content site with built-in indexing and FlexSearch"
+uid: "docs.guides.implement-search-functionality"
 order: 2060
 ---
 

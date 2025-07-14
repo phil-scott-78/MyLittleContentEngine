@@ -1,6 +1,7 @@
 ---
 title: "Linking Documents and Media"
 description: "Master BaseUrl configuration and automatic link rewriting for consistent links across deployment scenarios"
+uid: "docs.guides.linking-documents-and-media"
 order: 2010
 ---
 

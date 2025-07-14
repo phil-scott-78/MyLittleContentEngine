@@ -1,6 +1,7 @@
 ---
 title: "XmlDocId Format"
 description: "Complete reference for XML Documentation ID string format and usage in MyLittleContentEngine"
+uid: "docs.reference.xmldocid-format"
 order: 4003
 ---
 

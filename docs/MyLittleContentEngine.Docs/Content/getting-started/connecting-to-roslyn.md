@@ -1,6 +1,7 @@
 ---
 title: "Connecting to Roslyn"
 description: "Integrate Roslyn for enhanced code highlighting and documentation in your content site"
+uid: "docs.getting-started.connecting-to-roslyn"
 order: 1020
 ---
 

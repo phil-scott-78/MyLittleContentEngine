@@ -1,6 +1,7 @@
 ---
 title: "MonorailCSS Configuration"
 description: "Complete reference for configuring MonorailCSS options, color schemes, and styling in MyLittleContentEngine"
+uid: "docs.reference.monorail-css-configuration"
 order: 4020
 ---
 

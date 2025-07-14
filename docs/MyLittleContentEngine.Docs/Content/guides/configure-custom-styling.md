@@ -1,6 +1,7 @@
 ---
 title: "Configure Custom Styling"
 description: "Customize MonorailCSS colors, themes, and integrate with existing CSS frameworks"
+uid: "docs.guides.configure-custom-styling"
 order: 2050
 ---
 

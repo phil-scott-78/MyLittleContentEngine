@@ -1,12 +1,14 @@
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace MyLittleContentEngine.Services.Infrastructure;
 
 /// <summary>
-/// Middleware that rewrites root-relative URLs in HTML responses to include the configured BaseUrl.
+/// Middleware that rewrites URLs in HTML responses to handle both xref: cross-references and BaseUrl rewriting.
+/// First resolves xref: URLs to their actual targets, then rewrites root-relative URLs to include the configured BaseUrl.
 /// This ensures that links work correctly when the site is deployed to a subdirectory.
 /// </summary>
 public partial class BaseUrlRewritingMiddleware
@@ -36,6 +38,9 @@ public partial class BaseUrlRewritingMiddleware
         CssImportRegex()
     ];
 
+    // Pattern to match xref: URLs in href attributes
+    private static readonly Regex XrefPattern = XrefRegex();
+
     public BaseUrlRewritingMiddleware(RequestDelegate next, ContentEngineOptions options)
     {
         _next = next;
@@ -44,13 +49,6 @@ public partial class BaseUrlRewritingMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        // Only process if BaseUrl is set and not just "/"
-        if (string.IsNullOrWhiteSpace(_baseUrl) || _baseUrl == "/")
-        {
-            await _next(context);
-            return;
-        }
-
         // Capture the original response stream
         var originalBodyStream = context.Response.Body;
 
@@ -67,7 +65,7 @@ public partial class BaseUrlRewritingMiddleware
                 responseBody.Seek(0, SeekOrigin.Begin);
                 var responseContent = await new StreamReader(responseBody).ReadToEndAsync();
 
-                var rewrittenContent = RewriteUrls(responseContent);
+                var rewrittenContent = await RewriteUrlsAsync(responseContent, context.RequestServices);
 
                 var rewrittenBytes = Encoding.UTF8.GetBytes(rewrittenContent);
                 context.Response.ContentLength = rewrittenBytes.Length;
@@ -102,8 +100,16 @@ public partial class BaseUrlRewritingMiddleware
         return contentType.StartsWith("text/html", StringComparison.OrdinalIgnoreCase);
     }
 
-    private string RewriteUrls(string html)
+    private async Task<string> RewriteUrlsAsync(string html, IServiceProvider services)
     {
+        // First, resolve any xref: URLs
+        var xrefResolver = services.GetService<IXrefResolver>();
+        if (xrefResolver != null)
+        {
+            html = await ResolveXrefsAsync(html, xrefResolver);
+        }
+
+        // Then apply BaseUrl rewriting to the result
         return UrlPatterns.Aggregate(html, (current, pattern) => pattern.Replace(current, match =>
         {
             var prefix = match.Groups[1].Value;
@@ -120,6 +126,29 @@ public partial class BaseUrlRewritingMiddleware
             var rewrittenUrl = PrependBaseUrl(url);
             return prefix + rewrittenUrl + suffix;
         }));
+    }
+
+    private async Task<string> ResolveXrefsAsync(string html, IXrefResolver xrefResolver)
+    {
+        var matches = XrefPattern.Matches(html).Cast<Match>().Reverse().ToList();
+        
+        foreach (var match in matches)
+        {
+            var prefix = match.Groups[1].Value;
+            var xrefUid = match.Groups[2].Value;
+            var suffix = match.Groups[3].Value;
+
+            var resolvedUrl = await xrefResolver.ResolveAsync(xrefUid);
+            if (resolvedUrl != null)
+            {
+                // Replace the xref: URL with the resolved URL
+                var replacement = prefix + resolvedUrl + suffix;
+                html = html.Remove(match.Index, match.Length).Insert(match.Index, replacement);
+            }
+            // If not resolved, leave the original xref: URL intact
+        }
+
+        return html;
     }
 
     private string PrependBaseUrl(string path)
@@ -159,4 +188,6 @@ public partial class BaseUrlRewritingMiddleware
     private static partial Regex CssUrlRegex();
     [GeneratedRegex("""(@import\s+["'])(/[^"']*?)(["'])""", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-US")]
     private static partial Regex CssImportRegex();
+    [GeneratedRegex("""(<(?:a|link)\b[^>]*?\s+href\s*=\s*["'])xref:([^"']*?)(["'][^>]*?>)""", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-US")]
+    private static partial Regex XrefRegex();
 }

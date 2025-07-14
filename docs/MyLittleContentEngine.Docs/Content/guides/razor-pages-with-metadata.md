@@ -1,6 +1,7 @@
 ---
 title: "Razor Pages with Metadata"
 description: "Learn how to add metadata to Razor pages using sidecar .yml files for enhanced static site generation with custom titles, descriptions, and ordering."
+uid: "docs.guides.razor-pages-with-metadata"
 order: 2060
 ---
 

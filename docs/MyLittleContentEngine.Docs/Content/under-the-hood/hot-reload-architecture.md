@@ -1,6 +1,7 @@
 ---
 title: "Hot Reload Architecture"
 description: "Understanding the lazy caching and file watching system that powers MyLittleContentEngine's hot reload functionality"
+uid: "docs.under-the-hood.hot-reload-architecture"
 order: 3001
 ---
 

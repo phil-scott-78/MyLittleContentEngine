@@ -1,6 +1,7 @@
 ---
 title: "Using the DocSite Package"
 description: "Learn how to create a documentation site using the DocSite package with customizable branding and styling"
+uid: "docs.getting-started.using-docsite"
 order: 1002
 ---
 

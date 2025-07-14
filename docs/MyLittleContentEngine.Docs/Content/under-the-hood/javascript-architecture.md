@@ -1,6 +1,7 @@
 ---
 title: "JavaScript Architecture"
 description: "Understanding the modular JavaScript system that powers interactive features in MyLittleContentEngine"
+uid: "docs.under-the-hood.javascript-architecture"
 order: 3003
 ---
 

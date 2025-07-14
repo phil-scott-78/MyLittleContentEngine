@@ -1,6 +1,7 @@
 ---
 title: "Deploying to GitHub Pages"
 description: "Configure and deploy your MyLittleContentEngine site to GitHub Pages with automated builds"
+uid: "docs.getting-started.deploying-to-github-pages"
 order: 1090
 ---
 
