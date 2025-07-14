@@ -1,7 +1,6 @@
 @using System.Collections.Immutable
 @using MyLittleContentEngine.Services.Content
 @using MyLittleContentEngine.Services.Content.TableOfContents
-@inject LinkService LinkService
 
 @if (TableOfContents != null)
 {
@@ -33,7 +32,7 @@
             }
             else
             {
-                <a data-current="@tocEntry.IsSelected.ToString().ToLowerInvariant()" href="@LinkService.GetLink(tocEntry.Href)" class="@(tocEntry.Items.Length == 0 ? RootLinkStructureClass + " " + RootLinkColorClass : SectionHeaderStructureClass + " " + SectionHeaderColorClass)">@tocEntry.Name</a>
+                <a data-current="@tocEntry.IsSelected.ToString().ToLowerInvariant()" href="@tocEntry.Href" class="@(tocEntry.Items.Length == 0 ? RootLinkStructureClass + " " + RootLinkColorClass : SectionHeaderStructureClass + " " + SectionHeaderColorClass)">@tocEntry.Name</a>
             }
             @if (tocEntry.Items.Length > 0)
             {
@@ -41,7 +40,7 @@
                     @foreach (var childEntry in tocEntry.Items.OrderBy(i => i.Order).Where(i => i.Href != null))
                     {
                         <li class="block">
-                            <a data-current="@childEntry.IsSelected.ToString().ToLowerInvariant()" href="@LinkService.GetLink(childEntry.Href!)" class="@LinkStructureClass @LinkColorClass">@childEntry.Name</a>
+                            <a data-current="@childEntry.IsSelected.ToString().ToLowerInvariant()" href="@childEntry.Href" class="@LinkStructureClass @LinkColorClass">@childEntry.Name</a>
                         </li>
                     }
                 </ul>

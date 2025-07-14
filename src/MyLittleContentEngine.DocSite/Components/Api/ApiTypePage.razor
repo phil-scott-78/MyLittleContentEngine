@@ -21,7 +21,7 @@
             </span>
         </div>
         <p class="text-base-600 dark:text-base-400 mb-4 text-xs">Namespace: 
-        <RefLink Href=@($"/api/namespace/{_type.Namespace.ToLowerInvariant()}/")  CssClass="text-blue-600 dark:text-blue-400 hover:underline">@_type.Namespace</RefLink>
+        <a href=@($"/api/namespace/{_type.Namespace.ToLowerInvariant()}/") class="text-blue-600 dark:text-blue-400 hover:underline">@_type.Namespace</a>
         </p>
         @if (!string.IsNullOrEmpty(_type.Summary))
         {

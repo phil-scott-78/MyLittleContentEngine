@@ -175,6 +175,12 @@ internal class OutputGenerationService(
         client.BaseAddress = new Uri(appUrl);
 
         var sw = Stopwatch.StartNew();
+
+        pagesToGenerate = pagesToGenerate
+            .GroupBy(c => c.Page.OutputFile)
+            .Select(g => g.First())
+            .ToImmutableList();
+
         // Generate each page by making HTTP requests and saving the response
         foreach (var priority in pagesToGenerate.Select(i => i.Priority).Distinct().Order())
         {

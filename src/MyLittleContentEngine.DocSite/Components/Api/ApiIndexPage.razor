@@ -20,9 +20,9 @@
                 @foreach (var ns in _namespaces.OrderBy(n => n.Name))
                 {
                     <div class="border border-base-200 dark:border-base-800 rounded-lg p-4">
-                        <RefLink Href=@($"/api/namespace/{ns.Slug}/") CssClass="text-lg font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                        <a href=@($"/api/namespace/{ns.Slug}/") class="text-lg font-semibold text-blue-600 dark:text-blue-400 hover:underline">
                             @ns.Name
-                        </RefLink>
+                        </a>
                         @if (!string.IsNullOrWhiteSpace(ns.Summary))
                         {
                             <p class="text-base-600 dark:text-base-400 mt-1">

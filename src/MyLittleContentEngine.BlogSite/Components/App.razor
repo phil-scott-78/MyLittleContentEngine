@@ -2,7 +2,6 @@
 @inject ContentEngineOptions Options
 @inject BlogSiteOptions BlogOptions
 @inject IWebHostEnvironment WebHostEnvironment
-@inject LinkService LinkService
 <!DOCTYPE html>
 <html lang="en">
 
@@ -12,10 +11,10 @@
     
     @if (BlogOptions.EnableRss)
     {
-        <link type="application/rss+xml" rel="alternate" title="@Options.SiteTitle" href="@LinkService.GetLink("rss.xml")" />
+        <link type="application/rss+xml" rel="alternate" title="@Options.SiteTitle" href="rss.xml" />
     }
-    <link rel="stylesheet" href="@LinkService.GetLink(GetVersioned("/styles.css"))">
-    <script src="@LinkService.GetLink(GetVersioned("/_content/MyLittleContentEngine.UI/scripts.js"))" defer></script>
+    <link rel="stylesheet" href="@GetVersioned("/styles.css")">
+    <script src="@GetVersioned("/_content/MyLittleContentEngine.UI/scripts.js")" defer></script>
 
     @if (!string.IsNullOrEmpty(BlogOptions.AdditionalHtmlHeadContent))
     {

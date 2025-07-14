@@ -66,14 +66,14 @@ dotnet run --build-static
 
 ## Automatic Link Rewriting
 
-MyLittleContentEngine automatically processes all links in your content:
+MyLittleContentEngine automatically processes all links in your content using the `BaseUrlRewritingMiddleware`:
 
 ### In Markdown Content
 
 **Use relative or absolute links** - both are automatically processed:
 
 ```markdown
-<!-- Relative links - automatically rewritten -->
+<!-- Relative links - work as expected -->
 [Another Article](../guides/advanced-configuration)
 [Media File](./images/diagram.png)
 [Root Page](../../index)
@@ -86,54 +86,50 @@ MyLittleContentEngine automatically processes all links in your content:
 
 **How the rewriting works:**
 
-1. `LinkRewriter` processes all URLs during HTML generation
-2. Relative paths get resolved relative to the current page location
-3. Absolute paths get the `BaseUrl` automatically prepended
+1. `BaseUrlRewritingMiddleware` intercepts HTML responses before they're sent to the browser
+2. Root-relative URLs (starting with `/`) get the `BaseUrl` automatically prepended
+3. Relative paths work naturally without modification
 4. External URLs and anchor links remain unchanged
 
 **Example transformations** (with `BaseUrl = "/MyLittleContentEngine"`):
 
-| Original Link         | Current Page  | Result                                  |
-|-----------------------|---------------|-----------------------------------------|
-| `../api`              | `/docs/guide` | `/MyLittleContentEngine/docs/api`       |
-| `/docs/guide`         | Any page      | `/MyLittleContentEngine/docs/guide`     |
-| `image.png`           | `/docs/guide` | `/MyLittleContentEngine/docs/image.png` |
-| `https://example.com` | Any page      | `https://example.com` (unchanged)       |
+| Original Link         | Result                                  |
+|-----------------------|-----------------------------------------|
+| `/docs/guide`         | `/MyLittleContentEngine/docs/guide`     |
+| `/api`                | `/MyLittleContentEngine/api`            |
+| `/`                   | `/MyLittleContentEngine/`               |
+| `https://example.com` | `https://example.com` (unchanged)       |
+| `../api` (relative)   | `../api` (unchanged)                    |
 
 ### In Razor Pages and Components
 
-Use the `<RefLink>` component for consistent link handling. Not we swap the `class` 
-attribute to `CssClass`:
+Links in Razor pages and components are automatically processed by the middleware. Simply use standard HTML elements:
 
 ```razor
-@* Basic usage *@
-<RefLink Href="/docs/guide">Documentation</RefLink>
-<RefLink Href="../api">API Reference</RefLink>
+@* Basic usage - automatically rewritten *@
+<a href="/docs/guide">Documentation</a>
+<a href="../api">API Reference</a>
 
-@* With additional attributes *@
-<RefLink Href="https://example.com" Target="_blank" CssClass="external-link">
+@* External links remain unchanged *@
+<a href="https://example.com" target="_blank" class="external-link">
     External Site
-</RefLink>
+</a>
 
-@* For CSS/JS resources, inject LinkService *@
-@inject LinkService LinkService
-
-<link rel="stylesheet" href="@LinkService.GetLink("/styles.css")" />
-<script src="@LinkService.GetLink("/scripts/app.js")"></script>
+@* Asset references are also automatically rewritten *@
+<link rel="stylesheet" href="/styles.css" />
+<script src="/scripts/app.js"></script>
+<img src="/images/logo.png" alt="Logo" />
 ```
 
-### Manual Link Processing
+### What Gets Rewritten
 
-For advanced scenarios, you can use `LinkService` directly:
+The `BaseUrlRewritingMiddleware` automatically processes the following HTML elements and attributes:
 
-```csharp
-@inject LinkService LinkService
-
-@{
-    var processedUrl = LinkService.GetLink("/docs/guide");
-    var relativeUrl = LinkService.GetLink("../api", "/docs/current");
-}
-```
+- **Links**: `<a href="">` and `<link href="">`
+- **Resources**: `<img src="">`, `<script src="">`, `<iframe src="">`, `<embed src="">`, `<source src="">`, `<track src="">`
+- **Forms**: `<form action="">`
+- **Data attributes**: Any `data-*` attributes containing URLs
+- **CSS**: `url()` functions in style attributes and `@import` statements
 
 ## Static Files in `ContentRootPath`
 
@@ -150,8 +146,8 @@ processed:
 ### In Razor Components
 
 ```razor
-<img src="@LinkService.GetLink("/images/logo.png")" alt="Logo" />
-<RefLink Href="/documents/guide.pdf">Download Guide</RefLink>
+<img src="/images/logo.png" alt="Logo" />
+<a href="/documents/guide.pdf">Download Guide</a>
 ```
 
 ## Testing Static Deployment
@@ -197,26 +193,17 @@ BaseUrl="/mybase" dotnet run -- build
 dotnet serve -d output --path-base mybase --default-extensions:.html
 ```
 
-## Link Validation
-
-MyLittleContentEngine provides built-in link validation:
-
-- **Relative links** are resolved and validated against your content structure
-- **Absolute internal links** are checked for valid routes
-- **External links** are preserved without validation
-- **Missing targets** generate build warnings
-
 ## Best Practices
 
-1. **Prefer absolute paths** (`/docs/guide`) over relative paths (`../guide`) for cleaner, more predictable links
-2. **Use the `RefLink` component** in Razor pages for consistent behavior
+1. **Prefer absolute paths** (`/docs/guide`) over relative paths (`../guide`) for automatic BaseUrl rewriting
+2. **Use standard HTML elements** (`<a>`, `<img>`, `<link>`) - the middleware handles them automatically
 3. **Test with different BaseUrl values** to ensure deployment compatibility
-4. **Inject LinkService** for programmatic link generation
-5. **Avoid manual BaseUrl concatenation** - let the system handle it automatically
+4. **Avoid manual BaseUrl concatenation** - let the middleware handle it automatically
+5. **Use environment variables** for BaseUrl configuration to support different deployment scenarios
 
 ## Summary
 
-MyLittleContentEngine's automatic link rewriting eliminates the complexity of managing links across different deployment
-scenarios. By configuring `BaseUrl` appropriately and using the provided `RefLink` component and `LinkService`, your site
-will generate correct links whether deployed at the root or in a subdirectory, without requiring HTML `<base>` tags that
+MyLittleContentEngine's `BaseUrlRewritingMiddleware` eliminates the complexity of managing links across different deployment
+scenarios. By configuring `BaseUrl` in `ContentEngineOptions` and using standard HTML elements, your site will automatically
+generate correct links whether deployed at the root or in a subdirectory, without requiring HTML `<base>` tags that
 can interfere with crawlers and SEO.

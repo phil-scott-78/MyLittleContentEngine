@@ -905,8 +905,8 @@ class SearchManager {
                 this.flexSearchLoaded = true;
             }
 
-            // Fetch search index using base URL if available
-            let baseUrl = window.MyLittleContentEngineBaseUrl || '';
+            // Fetch search index using base URL from body data attribute
+            let baseUrl = document.body.getAttribute('data-base-url') || '';
             if (baseUrl.endsWith('/')) {
                 baseUrl = baseUrl.slice(0, -1);
             }
@@ -1087,7 +1087,7 @@ class SearchManager {
             // Get content snippet with simple highlighting
             const snippet = this.getContentSnippet(doc.content, query);
 
-            let baseUrl = window.MyLittleContentEngineBaseUrl || '';
+            let baseUrl = document.body.getAttribute('data-base-url') || '';
             if (baseUrl.endsWith('/')) {
                 baseUrl = baseUrl.slice(0, -1);
             }

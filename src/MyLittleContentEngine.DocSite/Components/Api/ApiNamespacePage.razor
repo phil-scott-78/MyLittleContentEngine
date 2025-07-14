@@ -36,8 +36,8 @@
                             <span class="text-xs bg-base-100 dark:bg-base-800 px-2 py-1 rounded text-base-600 dark:text-base-400">
                                 @type.TypeKind
                             </span>
-                            <RefLink Href=@($"/api/type/{type.Slug}/")
-                                     CssClass="text-lg font-semibold text-blue-600 dark:text-blue-400 hover:underline">@type.Name</RefLink>
+                            <a href=@($"/api/type/{type.Slug}/")
+                                     class="text-lg font-semibold text-blue-600 dark:text-blue-400 hover:underline">@type.Name</a>
                         </div>
                         @if (!string.IsNullOrEmpty(type.Summary))
                         {

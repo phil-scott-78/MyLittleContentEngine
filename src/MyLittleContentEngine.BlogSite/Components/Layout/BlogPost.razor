@@ -21,7 +21,7 @@
                         }
                         else
                         {
-                            <li><RefLink Href="@post.NavigateUrl" CssClass="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300">@post.FrontMatter.Title</RefLink></li>
+                            <li><a href="@post.NavigateUrl" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300">@post.FrontMatter.Title</a></li>
                         }
                     }
                 </ul>
@@ -35,7 +35,7 @@
         @if (_nextPost != null)
         {
             <div class="mt-8 p-6 bg-base-50 dark:bg-base-900/50 border border-base-200 dark:border-base-700 rounded-lg">
-                <RefLink Href="@_nextPost.NavigateUrl" CssClass="block group">
+                <a href="@_nextPost.NavigateUrl" class="block group">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-base-600 dark:text-base-400">Ready for the next article in the series?</p>
@@ -45,7 +45,7 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                         </svg>
                     </div>
-                </RefLink>
+                </a>
             </div>
         }
 
@@ -56,9 +56,9 @@
                 <div class="mt-2 flex flex-wrap gap-2">
                     @foreach (var tag in MarkdownContentPage.Tags)
                     {
-                        <RefLink Href="@tag.NavigateUrl" CssClass="inline-flex items-center px-3 py-1 text-sm font-medium text-primary-600 dark:text-primary-400 bg-base-100 dark:bg-base-800 rounded-full hover:bg-base-200 dark:hover:bg-base-700">
+                        <a href="@tag.NavigateUrl" class="inline-flex items-center px-3 py-1 text-sm font-medium text-primary-600 dark:text-primary-400 bg-base-100 dark:bg-base-800 rounded-full hover:bg-base-200 dark:hover:bg-base-700">
                             @tag.Name
-                        </RefLink>
+                        </a>
                     }
                 </div>
             </div>
@@ -77,9 +77,9 @@
         }
 
         <div class="mt-8 pt-8 border-t border-base-200 dark:border-base-700">
-            <RefLink Href="/" CssClass="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">
+            <a href="/" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 text-sm font-medium">
                 ← Back home
-            </RefLink>
+            </a>
         </div>
     </article>
 </div>

@@ -3,7 +3,6 @@
 @using Microsoft.Extensions.Hosting
 @using MyLittleContentEngine.Services.Content
 @inject IWebHostEnvironment WebHostEnvironment
-@inject LinkService LinkService
 @inject DocSiteOptions DocSiteOptions
 
 <!DOCTYPE html>
@@ -13,13 +12,11 @@
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     
-    <link rel="stylesheet" href="@LinkService.GetLink(GetVersioned("/styles.css"))">
-    <script src="@LinkService.GetLink(GetVersioned("/_content/MyLittleContentEngine.UI/scripts.js"))" defer></script>
+    <link rel="stylesheet" href="@GetVersioned("/styles.css")">
+    <script src="@GetVersioned("/_content/MyLittleContentEngine.UI/scripts.js")" defer></script>
     
     <script>
-        // Set global base URL for scripts to use
-        window.MyLittleContentEngineBaseUrl = '@LinkService.GetLink("/")';
-        
+       
         // this is actually duplicated in scripts.js, but we need it here to ensure the
         // theme is set before the page loads to avoid flash of unstyled content
         const isDarkMode = localStorage.theme === "dark" || (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches);
@@ -30,7 +27,7 @@
     <HeadOutlet/>
 </head>
 
-<body data-mobile-menu-open="false" class="data-[mobile-menu-open=true]:overflow-hidden ">
+<body data-base-url="/" data-mobile-menu-open="false" class="data-[mobile-menu-open=true]:overflow-hidden ">
 <div>
     <Routes/>
 </div>

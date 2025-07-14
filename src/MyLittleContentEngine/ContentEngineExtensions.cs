@@ -83,7 +83,6 @@ public static class ContentEngineExtensions
         services.AddTransient<RoutesHelperService>();
         services.AddSingleton<IFileSystem>(new FileSystem());
         services.AddTransient<FileSystemUtilities>();
-        services.AddTransient<LinkService>();
 
         // Register the Razor page content service
         services.AddTransient<RazorPageContentService>();
@@ -142,7 +141,7 @@ public static class ContentEngineExtensions
     {
         services.AddTransient(func);
         // Register the API reference content service
-        services.AddTransient<ApiReferenceContentService>();
+        services.AddSingleton<ApiReferenceContentService>();
 
         // Register as IContentService (this allows multiple IContentService implementations)
         services.AddTransient<IContentService>(provider => provider.GetRequiredService<ApiReferenceContentService>());
@@ -190,6 +189,7 @@ public static class ContentEngineExtensions
             });
         }
 
+        app.UseBaseUrlRewriting();
         app.UseWordBreaking();
         app.MapContentEngineSitemapRss();
     }
