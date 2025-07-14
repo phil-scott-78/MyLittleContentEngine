@@ -31,10 +31,20 @@
                 </div>
                 
                 <div class="flex flex-row gap-x-4">
+                    <button type="button"
+                            id="search-input"
+                            class="p-1 rounded-md hover:bg-base-200 dark:hover:bg-base-800 transition">
+                        <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" class="w-6 h-6 text-base-800 dark:text-base-100" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M12.01 12a4.25 4.25 0 1 0-6.02-6 4.25 4.25 0 0 0 6.02 6Zm0 0 3.24 3.25"></path>
+                        </svg>
+
+                    </button>
+                    
                     @if (Options.MainSiteLinks.Length > 0)
                     {
                         <div class="md:hidden flex justify-center">
-                            <button id="mobile-menu-button" class="p-2 rounded-md hover:bg-base-200 dark:hover:bg-base-800 transition" aria-label="Toggle mobile menu">
+                            <button id="mobile-menu-button" class="p-1 rounded-md hover:bg-base-200 dark:hover:bg-base-800 transition" aria-label="Toggle mobile menu">
                                 <svg class="w-6 h-6 text-base-800 dark:text-base-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
                                 </svg>
@@ -44,7 +54,7 @@
 
                     <button aria-label="Toggle Dark Mode" class="hover:bg-base-200 dark:hover:bg-base-800 rounded-md p-1"
                             data-theme-toggle="">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="dark:hidden text-base-900 dark:text-base-200 h-5 w-5"
+                        <svg xmlns="http://www.w3.org/2000/svg" class="dark:hidden text-base-900 dark:text-base-200 h-6 w-6"
                              viewBox="0 0 24 24" stroke="currentColor" fill="none">
                             <path
                                 d="M17 12C17 14.7614 14.7614 17 12 17C9.23858 17 7 14.7614 7 12C7 9.23858 9.23858 7 12 7C14.7614 7 17 9.23858 17 12Z"
@@ -56,7 +66,7 @@
 
 
                         <svg xmlns="http://www.w3.org/2000/svg"
-                             class="hidden dark:block text-base-900 dark:text-base-200 h-5 w-5" viewBox="0 0 24 24"
+                             class="hidden dark:block text-base-900 dark:text-base-200 h-6 w-6" viewBox="0 0 24 24"
                              stroke="currentColor" fill="none">
                             <path
                                 d="M21.5 14.0784C20.3003 14.7189 18.9301 15.0821 17.4751 15.0821C12.7491 15.0821 8.91792 11.2509 8.91792 6.52485C8.91792 5.06986 9.28105 3.69968 9.92163 2.5C5.66765 3.49698 2.5 7.31513 2.5 11.8731C2.5 17.1899 6.8101 21.5 12.1269 21.5C16.6849 21.5 20.503 18.3324 21.5 14.0784Z"
