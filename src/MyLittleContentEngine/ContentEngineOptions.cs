@@ -167,7 +167,7 @@ public class ContentEngineOptions
     /// </para>
     /// </remarks>
     public IDeserializer FrontMatterDeserializer { get; init; } = new DeserializerBuilder()
-        .WithNamingConvention(CamelCaseNamingConvention.Instance)
+        .WithNamingConvention(UnderscoredNamingConvention.Instance)
         .WithCaseInsensitivePropertyMatching()
         .IgnoreUnmatchedProperties()
         .Build();

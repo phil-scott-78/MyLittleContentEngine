@@ -10,6 +10,7 @@ public class DocsFrontMatter : IFrontMatter
     public string[] Tags { get; init; } = [];
     public int Order { get; init; } = int.MaxValue;
     public string? Uid { get; init; } = null;
+    public string? RedirectUrl { get; init; }
     
     public Metadata AsMetadata()
     {

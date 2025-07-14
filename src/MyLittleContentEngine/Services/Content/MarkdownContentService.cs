@@ -100,6 +100,27 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
         var page = await GetContentPageByUrlOrDefault(url);
         if (page == null) return null;
 
+        // Check if this is a redirect page
+        if (!string.IsNullOrEmpty(page.FrontMatter.RedirectUrl))
+        {
+            var redirectHtml = $"""
+                                 <!DOCTYPE html>
+                                 <html lang="en">
+                                   <head>
+                                     <meta charset="utf-8">
+                                     <meta http-equiv="refresh" content="0; URL='{page.FrontMatter.RedirectUrl}'">
+                                     <title>Redirecting...</title>
+                                     <meta name="robots" content="noindex">
+                                   </head>
+                                   <body>
+                                     <p>If you are not redirected automatically, <a href="{page.FrontMatter.RedirectUrl}">click here</a>.</p>
+                                   </body>
+                                 </html>
+                                 """;
+            
+            return (page, redirectHtml);
+        }
+
         // Use the parser service to render Markdown to HTML
         // Use the page's NavigateUrl as the base URL for link rewriting
         var lastSlash = page.NavigateUrl.LastIndexOf('/');
@@ -153,7 +174,15 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
     async Task<ImmutableList<ContentTocItem>> IContentService.GetContentTocEntriesAsync()
     {
         var pages = await ((IContentService)this).GetPagesToGenerateAsync();
+        var allContentPages = await GetAllContentPagesAsync();
+        
         return pages.Where(p => p.Metadata?.Title != null)
+            .Where(p => 
+            {
+                // Exclude redirect pages from table of contents
+                var contentPage = allContentPages.FirstOrDefault(cp => cp.NavigateUrl == p.Url);
+                return contentPage?.FrontMatter.RedirectUrl == null;
+            })
             .Select(p => new ContentTocItem(
                 p.Metadata!.Title!,
                 p.Url,

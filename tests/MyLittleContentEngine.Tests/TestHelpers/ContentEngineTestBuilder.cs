@@ -150,7 +150,8 @@ public class TestFrontMatter : IFrontMatter
     public string? Uid { get; init; }
     public int Order { get; set; }
     public DateTime? PublishDate { get; set; }
-
+    public string? RedirectUrl { get; init; }
+    
     public Metadata AsMetadata()
     {
         return new Metadata

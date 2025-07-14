@@ -9,6 +9,8 @@ public class ContentFrontMatter : IFrontMatter
     public string[] Tags { get; init; } = [];
     public bool IsDraft { get; init; }
     public string? Uid { get; init; }
+    public string? RedirectUrl { get; init; }
+    
     public Metadata AsMetadata()
     {
         return new Metadata()

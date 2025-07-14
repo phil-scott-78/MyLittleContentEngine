@@ -25,6 +25,8 @@ public interface IFrontMatter
     /// </summary>
     string? Uid { get; init; }
     
+    string? RedirectUrl { get; init; }
+    
     /// <summary>
     /// Converts the FrontMatter into structured metadata for RSS and SiteMap generation.
     /// </summary>

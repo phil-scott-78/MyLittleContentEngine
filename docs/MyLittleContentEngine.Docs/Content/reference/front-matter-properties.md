@@ -50,15 +50,42 @@ T:MyLittleContentEngine.Models.IFrontMatter
 - **Purpose**: Controls whether the content page will be generated
 - **Usage**: When `true`, the page is excluded from static generation
 - **Default**: `false`
-- **Example**: `isDraft: true`
+- **Example**: `is_draft: true`
+
+### RedirectUrl
+
+- **Type**: `string?` (nullable string)
+- **Purpose**: Creates an HTML redirect page that automatically redirects to another URL
+- **Usage**: When specified, generates an HTML page with `<meta http-equiv="refresh">` instead of rendering markdown content
+- **Default**: `null`
+- **Example**: `redirect_url: "config-runsettings"`
+- **Note**: Pages with redirect URLs are excluded from table of contents but are still included in static generation
 
 ## Required Methods
 
-## Metadata Properties
+All front matter must implement `GetMetadata` which returns a `Metadata` instance. This class contains fields that all
+content generations rely on being standard. The GetMetadata acts as a conversion from custom metadata to this standard
+format.
 
-The `Metadata` class provides additional computed information for RSS feeds and sitemaps.
+The `Metadata` class also provides additional computed information for RSS feeds and sitemaps.
 
-### Metadata Properties
+### The `GetMetadata` Method
+
+#### Title
+
+- **Type**: `string`
+- **Purpose**: The title of the content page
+- **Usage**: Used in page headers, metadata, RSS feeds, and navigation
+- **Example**: `title: "Getting Started with Blazor"`
+
+#### Description
+
+- **Type**: `string`
+- **Purpose**: The description of the content page
+- **Usage**: Used in page headers, metadata, RSS feeds, and navigation to describe the page
+- **Example**: `description: "A how-to guide on taking your first steps with Blazor"`
+
+
 
 #### LastMod
 
@@ -121,7 +148,7 @@ tags:
   - Blazor
   - .NET
   - Tutorial
-isDraft: false
+is_draft: false
 uid: "blazor-getting-started"
 ---
 ```
@@ -163,9 +190,75 @@ order: 4001
 tags:
   - Reference
   - API
-isDraft: false
+is_draft: false
 ---
 ```
+
+## YAML Naming Convention
+
+By default, MyLittleContentEngine uses YamlDotNet's `UnderscoredNamingConvention` for deserializing front matter properties. This means:
+
+- C# properties like `RedirectUrl` are mapped to YAML properties like `redirect_url`
+- C# properties like `IsDraft` are mapped to YAML properties like `is_draft`
+- C# properties like `PublishDate` are mapped to YAML properties like `publish_date`
+
+### Example Property Mapping
+
+```csharp
+public class BlogFrontMatter : IFrontMatter
+{
+    public string Title { get; init; } = "";           // maps to: title
+    public bool IsDraft { get; init; } = false;        // maps to: is_draft
+    public string? RedirectUrl { get; init; } = null;  // maps to: redirect_url
+    public DateTime PublishDate { get; init; };        // maps to: publish_date
+}
+```
+
+```yaml
+---
+title: "My Blog Post"
+is_draft: false
+redirect_url: "new-location"
+publish_date: 2024-01-15
+---
+```
+
+### Customizing YAML Naming Convention
+
+The naming convention can be customized by configuring the `FrontMatterDeserializer` in the `ContentEngineOptions` class found in `ContentOptions.cs`. You can replace the default `UnderscoredNamingConvention` with other YamlDotNet conventions like:
+
+- `CamelCaseNamingConvention` - maps `RedirectUrl` to `redirectUrl`
+- `PascalCaseNamingConvention` - maps `RedirectUrl` to `RedirectUrl`
+- `KebabCaseNamingConvention` - maps `RedirectUrl` to `redirect-url`
+
+## Redirection
+
+All front matter must implement redirect url. This field will be examined for a value. If it exists, a special redirection page will be written.
+
+```yml
+---
+redirect_url: page-one
+---
+```
+
+Will generate
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="refresh" content="0; URL='page-one'">
+  <title>Redirecting...</title>
+  <meta name="robots" content="noindex">
+</head>
+<body>
+<p>If you are not redirected automatically, <a href="page-one">click here</a>.</p>
+</body>
+</html>
+```
+
+This will cause a redirect 
 
 ## Best Practices
 
@@ -173,3 +266,4 @@ isDraft: false
 2. **Meaningful Defaults**: Provide sensible defaults for optional properties
 3. **Type Safety**: Leverage C# type system for validation
 4. **Required Properties**: Mark essential properties as required
+5. **Naming Convention**: Be aware of the YAML naming convention when writing front matter

@@ -11,7 +11,8 @@ public class BlogFrontMatter : IFrontMatter
     public DateTime Date { get; init; } = DateTime.Now;
     public bool IsDraft { get; init; } = false;
     public string[] Tags { get; init; } = [];
-
+    public string? RedirectUrl { get; init; }
+    
     public Metadata AsMetadata()
     {
         return new Metadata()
