@@ -36,9 +36,7 @@
         <aside class="sticky top-0 h-screen overflow-y-auto p-6">
             @if (_outline != null && _post != null)
             {
-                <OutlineNavigation 
-                    Outline="@_outline" 
-                    BaseUrl="@_post.NavigateUrl" />
+                <OutlineNavigation Outline="@_outline" />
             }
         </aside>
     </div>

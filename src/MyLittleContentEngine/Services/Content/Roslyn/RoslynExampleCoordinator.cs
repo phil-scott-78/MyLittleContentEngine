@@ -30,7 +30,7 @@ public interface IRoslynExampleCoordinator : IDisposable
     /// Gets all symbols from the workspace for API documentation generation
     /// </summary>
     /// <returns>A dictionary of XmlDocId to symbol information</returns>
-    Task<IReadOnlyDictionary<string, (ISymbol Symbol, Document Document, Assembly Assembly)>> GetAllSymbolsAsync();
+    Task<IReadOnlyDictionary<string, (ISymbol Symbol, Document Document)>> GetAllSymbolsAsync();
 
     void InvalidateFile(string filePath);
 }
@@ -261,16 +261,15 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
     /// Gets all symbols from the workspace for API documentation generation
     /// </summary>
     /// <returns>A dictionary of XmlDocId to symbol information</returns>
-    public async Task<IReadOnlyDictionary<string, (ISymbol Symbol, Document Document, Assembly Assembly)>>
+    public async Task<IReadOnlyDictionary<string, (ISymbol Symbol, Document Document)>>
         GetAllSymbolsAsync()
     {
         var data = await _roslynCache.Value;
-        var result = new Dictionary<string, (ISymbol Symbol, Document Document, Assembly Assembly)>();
+        var result = new Dictionary<string, (ISymbol Symbol, Document Document)>();
 
         foreach (var kvp in data)
         {
-            var assembly = await kvp.Value.LazyAssembly.Value;
-            result[kvp.Key] = (kvp.Value.Symbol, kvp.Value.Document, assembly);
+            result[kvp.Key] = (kvp.Value.Symbol, kvp.Value.Document);
         }
 
         return result;
@@ -365,8 +364,11 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
 
         var filteredProjects = FilterProjects(solution.Projects, _connectedSolution).ToArray();
         _logger.LogTrace("Processing {ProjectCount} projects after filtering", filteredProjects.Length);
-
-        await Parallel.ForEachAsync(filteredProjects, async (project, _) =>
+        var options = new ParallelOptions
+        {
+            MaxDegreeOfParallelism = Environment.ProcessorCount * 2
+        };
+        await Parallel.ForEachAsync(filteredProjects,options, async (project, _) =>
         {
             _logger.LogTrace("Getting types and methods {project}", project.FilePath);
 
@@ -415,7 +417,11 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
         ConcurrentBag<(string xmlDocId, ISymbol symbol, Document document, TextSpan textSpan, SourceText sourceText)>
             allValues = [];
         _logger.LogTrace("ProcessProjectDocumentsAsync started for {project}", project.FilePath);
-        await Parallel.ForEachAsync(project.Documents, async (document, token) =>
+        var options = new ParallelOptions
+        {
+            MaxDegreeOfParallelism = Environment.ProcessorCount * 4 // or a higher value for I/O
+        };
+        await Parallel.ForEachAsync(project.Documents,options, async (document, token) =>
         {
             // Skip documents that aren't C# code files
             if (!document.SupportsSyntaxTree)
