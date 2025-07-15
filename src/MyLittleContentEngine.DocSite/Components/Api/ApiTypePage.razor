@@ -85,9 +85,9 @@
 
                             @if (!string.IsNullOrEmpty(member.Summary))
                             {
-                                <div class="prose dark:prose-invert max-w-full prose-sm md:prose-base min-w-0">
+                                <Prose>
                                     @((MarkupString)member.Summary)
-                                </div>
+                                </Prose>
                             }
 
 
