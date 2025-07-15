@@ -8,7 +8,8 @@ on:
     - 'readme.md'
     - 'README.md'
     - 'tests/**'
-    - 'src/MyLittleContentEngine.Docs/**'
+    - 'docs/**'
+    - 'examples/**'
     branches: [main]
     
 
