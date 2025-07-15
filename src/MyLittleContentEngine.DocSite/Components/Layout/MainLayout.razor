@@ -20,7 +20,7 @@
                     <div class="flex min-w-0 mb-8 font-display shrink items-center gap-x-2">
                         @if (DocSiteOptions.HeaderIcon != null)
                         {
-                            @DocSiteOptions.HeaderIcon
+                            @((MarkupString) DocSiteOptions.HeaderIcon)
                         }
                         else
                         {
@@ -29,7 +29,7 @@
                         <span class="font-display tracking-tight dark:text-base-50 text-base-900">
                             @if (DocSiteOptions.HeaderContent != null)
                             {
-                                @DocSiteOptions.HeaderContent
+                                @((MarkupString) DocSiteOptions.HeaderContent)
                             }
                             else
                             {
@@ -51,7 +51,7 @@
                         <div class="transition-all w-0 sm:w-5 overflow-hidden">
                             @if (DocSiteOptions.HeaderIcon != null)
                             {
-                                @DocSiteOptions.HeaderIcon
+                                @((MarkupString) DocSiteOptions.HeaderIcon)
                             }
                             else
                             {
@@ -63,7 +63,7 @@
                             class="font-display dark:text-base-50 text-sm lg:text-base font-light text-base-900 tracking-tighter">
                             @if (DocSiteOptions.HeaderContent != null)
                             {
-                                @DocSiteOptions.HeaderContent
+                                @((MarkupString) DocSiteOptions.HeaderContent)
                             }
                             else
                             {
@@ -147,7 +147,7 @@
                 @if (DocSiteOptions.FooterContent != null)
                 {
                     <div>
-                        @DocSiteOptions.FooterContent
+                        @((MarkupString) DocSiteOptions.FooterContent)
                     </div>
                 }
             </main>

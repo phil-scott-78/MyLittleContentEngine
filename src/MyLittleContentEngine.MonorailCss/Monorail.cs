@@ -275,7 +275,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 { ".markdown-alert-warning", string.Format(alertFormatString, "rose") },
                 { ".markdown-alert-important", string.Format(alertFormatString, "sky") },
                 { ".markdown-alert-title span", "hidden" },
-                { ".markdown-alert svg", "h-4 w-4" },
+                { ".markdown-alert svg", "h-4 w-4 mt-0.5" },
             });
     }
 

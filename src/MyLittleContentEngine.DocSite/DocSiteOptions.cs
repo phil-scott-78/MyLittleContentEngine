@@ -1,5 +1,4 @@
-using System.Reflection;
-using Microsoft.AspNetCore.Components;
+﻿using System.Reflection;
 using MonorailCss;
 using MyLittleContentEngine.Services.Content.Roslyn;
 
@@ -41,9 +40,9 @@ public class DocSiteOptions
     public string? CanonicalBaseUrl { get; init; }
 
     /// <summary>
-    /// Custom logo/icon to display in the header
+    /// Custom logo/icon HTML to display in the header
     /// </summary>
-    public RenderFragment? HeaderIcon { get; init; }
+    public string? HeaderIcon { get; init; }
 
     /// <summary>
     /// URL to the GitHub repository (optional)
@@ -51,9 +50,9 @@ public class DocSiteOptions
     public string? GitHubUrl { get; init; }
 
     /// <summary>
-    /// Custom header content (replaces the default site title)
+    /// Custom header content HTML (replaces the default site title)
     /// </summary>
-    public RenderFragment? HeaderContent { get; init; }
+    public string? HeaderContent { get; init; }
 
     /// <summary>
     /// Base color name for the MonorailCSS theme
@@ -76,6 +75,11 @@ public class DocSiteOptions
     public string? ExtraStyles { get; init; }
 
     /// <summary>
+    /// Custom HTML for code to be injected into the head section, for example Google Fonts or DNS prefetch
+    /// </summary>
+    public string? AdditionalHtmlHeadContent { get; init; }
+
+    /// <summary>
     /// Namespaces to include in API documentation
     /// </summary>
     public string[]? IncludeNamespaces { get; init; }
@@ -86,9 +90,9 @@ public class DocSiteOptions
     public string[]? ExcludeNamespaces { get; init; }
     
     /// <summary>
-    /// Custom footer content (replaces the default site title)
+    /// Custom footer content HTML (replaces the default site title)
     /// </summary>
-    public RenderFragment? FooterContent { get; init; }
+    public string? FooterContent { get; init; }
     
     /// <summary>
     /// List of additional assemblies to scan for routing

@@ -246,8 +246,6 @@ in the sidebar.
 - <Badge text="New and improved" size="medium" />
 - <Badge text="New, improved, and bigger" size="large" />
 
-## In a Heading Too <Badge text="Wow!" variant="note" />
-
 ### Card Components
 
 MyLittleContentEngine.UI includes a set of card components that work together to create attractive content layouts. These components integrate seamlessly with Mdazor to provide flexible grid-based content organization.

@@ -33,7 +33,8 @@ public static class DocSiteServiceExtensions
             .AddMdazorComponent<CardGrid>()
             .AddMdazorComponent<LinkCard>()
             .AddMdazorComponent<Step>()
-            .AddMdazorComponent<Steps>();
+            .AddMdazorComponent<Steps>()
+            .AddMdazorComponent<BigTable>();
 
         // Configure content engine
         services.AddContentEngineService(sp =>

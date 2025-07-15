@@ -1,4 +1,4 @@
-using MyLittleContentEngine.Models;
+﻿using MyLittleContentEngine.Models;
 
 namespace MyLittleContentEngine.BlogSite;
 
@@ -18,7 +18,6 @@ public class BlogSiteFrontMatter : IFrontMatter
 
     public DateTime Date { get; init; } = DateTime.Now;
 
-    
     public bool IsDraft { get; init; } = false;
 
     public string[] Tags { get; init; } = [];

@@ -193,3 +193,38 @@ use in URLs for navigation.
 
 These methods allow you to build custom documentation pages or integrate API information into your application's UI
 components.
+
+## Cross-Referencing API Documentation
+
+MyLittleContentEngine provides automatic cross-referencing capabilities that allow you to create links to API documentation pages from any content. This ensures consistent navigation and reduces broken links as your API evolves.
+
+### Using XRef Links
+
+You can use the `xref` syntax to create automatic links to API documentation:
+
+```markdown
+<!-- Link to a namespace -->
+See the [MyLittleContentEngine](xref:MyLittleContentEngine) namespace for core functionality.
+
+<!-- Link to a specific type -->
+The [ContentService](xref:MyLittleContentEngine.ContentService) handles content processing.
+
+<!-- Link to a method -->
+Use [GetContentAsync](xref:MyLittleContentEngine.ContentService.GetContentAsync) to retrieve content.
+```
+
+### XRef Identifier Format
+
+XRef identifiers for API documentation follow the same format as the `Slug` property:
+
+- **Namespaces**: `MyLittleContentEngine.Services`
+- **Types**: `MyLittleContentEngine.Services.ContentService`
+- **Members**: `MyLittleContentEngine.Services.ContentService.GetContentAsync`
+
+### Benefits of XRef Links
+
+- **Automatic Updates**: Links are resolved dynamically, so they remain valid even if URLs change
+- **Consistent Navigation**: Provides a uniform way to reference API elements across all documentation
+- **IDE Support**: Many editors provide intellisense and validation for XRef links
+
+For more information about linking documents and configuring cross-references, see the [linking documents and media guide](xref:docs.guides.linking-documents-and-media).
