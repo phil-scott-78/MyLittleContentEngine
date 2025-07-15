@@ -16,8 +16,6 @@ Everything you need to build a nice little documentation website for your .NET p
 
 ## Getting Started
 
-[Link](xref:docs.getting-started.creating-first-site)
-
 Learn how to set up your first content site with MyLittleContentEngine.
 
 
