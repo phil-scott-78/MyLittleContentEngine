@@ -756,10 +756,54 @@ public class ApiReferenceContentService : IContentService, IDisposable
                         var cref = element.Attribute("cref")?.Value;
                         if (!string.IsNullOrEmpty(cref))
                         {
-                            // Extract the last part of the cref, which is usually the type/member name
+                            // Use xref syntax that will be handled by BaseUrlRewritingMiddleware
+                            result.Append("<a href=\"xref:");
+                            result.Append(System.Net.WebUtility.HtmlEncode(cref));
+                            result.Append("\">");
+                            
+                            // Extract the last part of the cref as display text
                             var name = cref.Split('.').Last().Split('`').First();
                             result.Append("<code>");
                             result.Append(System.Net.WebUtility.HtmlEncode(name));
+                            result.Append("</code>");
+                            
+                            result.Append("</a>");
+                        }
+                        break;
+                        
+                    case "seealso":
+                        var seealsoCref = element.Attribute("cref")?.Value;
+                        if (!string.IsNullOrEmpty(seealsoCref))
+                        {
+                            // Use xref syntax for seealso references
+                            result.Append("<a href=\"xref:");
+                            result.Append(System.Net.WebUtility.HtmlEncode(seealsoCref));
+                            result.Append("\">");
+                            
+                            // Extract the last part of the cref as display text
+                            var seealsoName = seealsoCref.Split('.').Last().Split('`').First();
+                            result.Append(System.Net.WebUtility.HtmlEncode(seealsoName));
+                            
+                            result.Append("</a>");
+                        }
+                        break;
+                        
+                    case "paramref":
+                        var paramName = element.Attribute("name")?.Value;
+                        if (!string.IsNullOrEmpty(paramName))
+                        {
+                            result.Append("<code>");
+                            result.Append(System.Net.WebUtility.HtmlEncode(paramName));
+                            result.Append("</code>");
+                        }
+                        break;
+                        
+                    case "typeparamref":
+                        var typeParamName = element.Attribute("name")?.Value;
+                        if (!string.IsNullOrEmpty(typeParamName))
+                        {
+                            result.Append("<code>");
+                            result.Append(System.Net.WebUtility.HtmlEncode(typeParamName));
                             result.Append("</code>");
                         }
                         break;

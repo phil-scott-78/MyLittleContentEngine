@@ -1,4 +1,4 @@
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MyLittleContentEngine.Models;
@@ -68,7 +68,7 @@ public class XrefResolver : IXrefResolver, IDisposable
         try
         {
             var crossReferences = await _crossReferencesCache.Value;
-            return crossReferences.TryGetValue(uid, out var url) ? url : null;
+            return CollectionExtensions.GetValueOrDefault(crossReferences, uid);
         }
         catch (Exception ex)
         {

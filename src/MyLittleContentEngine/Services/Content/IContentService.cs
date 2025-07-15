@@ -6,7 +6,7 @@ using MyLittleContentEngine.Services.Generation;
 namespace MyLittleContentEngine.Services.Content;
 
 /// <summary>
-/// A Content Service responsible for parsing and handling content.
+/// A Content Service responsible for parsing and handling content. <see cref="ContentEngineOptions"/>.
 /// </summary>
 public interface IContentService
 {

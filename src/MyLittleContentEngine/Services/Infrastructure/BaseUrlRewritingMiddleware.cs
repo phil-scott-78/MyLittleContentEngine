@@ -145,7 +145,20 @@ public partial class BaseUrlRewritingMiddleware
                 var replacement = prefix + resolvedUrl + suffix;
                 html = html.Remove(match.Index, match.Length).Insert(match.Index, replacement);
             }
-            // If not resolved, leave the original xref: URL intact
+            else
+            {
+                // Replace unresolved xref with a span containing error message
+                // Extract the content between the opening and closing tags from the suffix
+                var suffixValue = suffix; // This contains ">Unknown Documentation</a>"
+                var contentStartIndex = suffixValue.IndexOf('>') + 1;
+                var contentEndIndex = suffixValue.LastIndexOf('<');
+                var content = contentEndIndex > contentStartIndex ? 
+                    suffixValue.Substring(contentStartIndex, contentEndIndex - contentStartIndex) : 
+                    "Reference not found";
+                
+                var replacement = $"<span data-xref-error=\"Reference not found\" data-xref-uid=\"{xrefUid}\" style=\"color: red; text-decoration: line-through;\">{content}</span>";
+                html = html.Remove(match.Index, match.Length).Insert(match.Index, replacement);
+            }
         }
 
         return html;

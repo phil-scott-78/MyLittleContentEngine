@@ -52,7 +52,7 @@ public class BaseUrlRewritingMiddlewareTests
     }
 
     [Fact]
-    public async Task InvokeAsync_WithUnresolvedXref_LeavesXrefIntact()
+    public async Task InvokeAsync_WithUnresolvedXref_ShowsErrorSpan()
     {
         // Arrange
         var options = new ContentEngineOptions 
@@ -86,7 +86,12 @@ public class BaseUrlRewritingMiddlewareTests
         
         // Assert
         var responseContent = await ReadResponseContent(context);
-        Assert.Contains("""<a href="xref:UnknownType">Unknown Documentation</a>""", responseContent);
+        // Check that the original xref URL is no longer present
+        Assert.DoesNotContain("""<a href="xref:UnknownType">""", responseContent);
+        // Check that we have an error span with the xref UID
+        Assert.Contains(""""data-xref-uid="UnknownType"""", responseContent);
+        Assert.Contains(""""data-xref-error="Reference not found"""", responseContent);
+        Assert.Contains("Unknown Documentation", responseContent);
     }
 
     [Fact]

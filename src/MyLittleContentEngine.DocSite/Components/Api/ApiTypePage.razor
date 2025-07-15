@@ -26,7 +26,7 @@
         @if (!string.IsNullOrEmpty(_type.Summary))
         {
             <Prose class="mb-4">
-                @_type.Summary
+                @((MarkupString) _type.Summary)
             </Prose>
         }
     </header>

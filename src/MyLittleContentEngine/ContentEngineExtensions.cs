@@ -86,8 +86,8 @@ public static class ContentEngineExtensions
         services.AddSingleton<IXrefResolver, XrefResolver>();
 
         // Register the Razor page content service
-        services.AddTransient<RazorPageContentService>();
-        services.AddTransient<IContentService>(provider => provider.GetRequiredService<RazorPageContentService>());
+        services.AddSingleton<RazorPageContentService>();
+        services.AddSingleton<IContentService>(provider => provider.GetRequiredService<RazorPageContentService>());
 
         return services;
     }
@@ -145,7 +145,7 @@ public static class ContentEngineExtensions
         services.AddSingleton<ApiReferenceContentService>();
 
         // Register as IContentService (this allows multiple IContentService implementations)
-        services.AddTransient<IContentService>(provider => provider.GetRequiredService<ApiReferenceContentService>());
+        services.AddSingleton<IContentService>(provider => provider.GetRequiredService<ApiReferenceContentService>());
 
         return services;
     }
