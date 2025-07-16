@@ -25,11 +25,23 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
+        
+    # Cache .NET packages and NuGet cache
+    - name: Cache .NET packages
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.nuget/packages
+          ~/.dotnet
+        key: ${{ runner.os }}-dotnet-${{ hashFiles('**/*.csproj', '**/global.json', '**/packages.lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-dotnet-
 
     - name: Install .NET
       uses: actions/setup-dotnet@v4
       with:
         global-json-file: global.json
+        
     - name: Build, Test (Debug & Release), Publish (main only)
       shell: bash
       run: |
