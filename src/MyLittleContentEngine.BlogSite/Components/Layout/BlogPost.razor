@@ -21,7 +21,7 @@
                         }
                         else
                         {
-                            <li><a href="@post.NavigateUrl" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300">@post.FrontMatter.Title</a></li>
+                            <li><a href="@post.Url" class="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300">@post.FrontMatter.Title</a></li>
                         }
                     }
                 </ul>
@@ -35,7 +35,7 @@
         @if (_nextPost != null)
         {
             <div class="mt-8 p-6 bg-base-50 dark:bg-base-900/50 border border-base-200 dark:border-base-700 rounded-lg">
-                <a href="@_nextPost.NavigateUrl" class="block group">
+                <a href="@_nextPost.Url" class="block group">
                     <div class="flex items-center justify-between">
                         <div>
                             <p class="text-sm font-medium text-base-600 dark:text-base-400">Ready for the next article in the series?</p>
@@ -56,7 +56,7 @@
                 <div class="mt-2 flex flex-wrap gap-2">
                     @foreach (var tag in MarkdownContentPage.Tags)
                     {
-                        <a href="@tag.NavigateUrl" class="inline-flex items-center px-3 py-1 text-sm font-medium text-primary-600 dark:text-primary-400 bg-base-100 dark:bg-base-800 rounded-full hover:bg-base-200 dark:hover:bg-base-700">
+                        <a href="@tag.Url" class="inline-flex items-center px-3 py-1 text-sm font-medium text-primary-600 dark:text-primary-400 bg-base-100 dark:bg-base-800 rounded-full hover:bg-base-200 dark:hover:bg-base-700">
                             @tag.Name
                         </a>
                     }

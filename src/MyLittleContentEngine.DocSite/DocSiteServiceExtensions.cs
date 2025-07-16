@@ -78,10 +78,11 @@ public static class DocSiteServiceExtensions
                     DesignSystem = defaultSettings.DesignSystem with
                     {
                         FontFamilies = defaultSettings.DesignSystem.FontFamilies
-                            .Add("display", new FontFamilyDefinition("Lexend, sans-serif"))
+                            .Add("display", new FontFamilyDefinition(options.DisplayFontFamily ?? "-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, Adwaita Sans, Cantarell, Ubuntu, roboto, noto, helvetica, arial, sans-serif;"))
+                            .SetItem("sans", new FontFamilyDefinition(options.BodyFontFamily ?? "-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, Adwaita Sans, Cantarell, Ubuntu, roboto, noto, helvetica, arial, sans-serif;"))
                     },
                 },
-                ExtraStyles = $"{options.ExtraStyles ?? ""}{Environment.NewLine}{GoogleFonts.GetLexendStyles()}",
+                ExtraStyles = options.ExtraStyles ?? string.Empty
             };
         });
 

@@ -54,7 +54,7 @@ internal class MarkdownContentProcessor<TFrontMatter>
     internal async Task<ConcurrentDictionary<string, MarkdownContentPage<TFrontMatter>>> ProcessContentFiles()
     {
         var stopwatch = Stopwatch.StartNew();
-        var results = new ConcurrentDictionary<string, MarkdownContentPage<TFrontMatter>>();
+        var results = new ConcurrentDictionary<string, MarkdownContentPage<TFrontMatter>>(UrlComparer.Instance);
 
         try
         {
@@ -150,13 +150,13 @@ internal class MarkdownContentProcessor<TFrontMatter>
 
             // Create the content URL
             var contentUrl = _contentFilesService.CreateContentUrl(filePath, baseContentPath);
+            var navigationUrl = _contentFilesService.CreateNavigationUrl(contentUrl);
 
             // Create the content page with all required information
             return new MarkdownContentPage<TFrontMatter>
             {
                 FrontMatter = frontMatter,
-                Url = contentUrl,
-                NavigateUrl = _contentFilesService.CreateNavigationUrl(contentUrl),
+                Url = navigationUrl,
                 MarkdownContent = markdownContent,
                 Tags = tags,
                 Outline = outline
@@ -225,5 +225,24 @@ internal class MarkdownContentProcessor<TFrontMatter>
             // Return an empty list rather than throwing to avoid breaking the generation process
             return ImmutableList<PageToGenerate>.Empty;
         }
+    }
+}
+
+internal class UrlComparer : IEqualityComparer<string>
+{
+    public static UrlComparer Instance = new UrlComparer();
+    
+    public bool Equals(string? x, string? y)
+    {
+        if (x == null && y == null) return true;
+        if (x == null) return false;
+        if (y == null) return false;
+        
+        return x.TrimStart('/') == y.TrimStart('/');
+    }
+
+    public int GetHashCode(string obj)
+    {
+        return obj.Trim('/').GetHashCode();
     }
 }

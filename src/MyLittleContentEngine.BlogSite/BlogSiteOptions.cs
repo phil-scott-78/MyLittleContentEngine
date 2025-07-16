@@ -76,7 +76,7 @@ public class BlogSiteOptions
     public HeroContent? HeroContent { get; init; }
 
     /// <summary>
-    /// Custom font family for display elements
+    /// Custom font family for display elements such as headers and navigation elements
     /// </summary>
     public string? DisplayFontFamily { get; init; } 
 

@@ -15,6 +15,11 @@
     <link rel="stylesheet" href="@GetVersioned("/styles.css")">
     <script src="@GetVersioned("/_content/MyLittleContentEngine.UI/scripts.js")" defer></script>
     
+    @if (!string.IsNullOrEmpty(DocSiteOptions.AdditionalHtmlHeadContent))
+    {
+        @((MarkupString)DocSiteOptions.AdditionalHtmlHeadContent)
+    }
+    
     <script>
        
         // this is actually duplicated in scripts.js, but we need it here to ensure the

@@ -75,6 +75,16 @@ public class DocSiteOptions
     public string? ExtraStyles { get; init; }
 
     /// <summary>
+    /// Custom font family for display elements such as headers and navigation elements
+    /// </summary>
+    public string? DisplayFontFamily { get; init; } 
+
+    /// <summary>
+    /// Custom font family for body text
+    /// </summary>
+    public string? BodyFontFamily { get; init; }
+    
+    /// <summary>
     /// Custom HTML for code to be injected into the head section, for example Google Fonts or DNS prefetch
     /// </summary>
     public string? AdditionalHtmlHeadContent { get; init; }

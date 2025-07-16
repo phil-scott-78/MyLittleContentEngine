@@ -23,7 +23,6 @@ public class MarkdownContentServiceTests
         {
             FrontMatter = testFrontMatter,
             Url = "/redirect-test",
-            NavigateUrl = "/redirect-test",
             MarkdownContent = "",
             Outline = []
         };
@@ -75,7 +74,6 @@ public class MarkdownContentServiceTests
         {
             FrontMatter = testFrontMatter,
             Url = "/normal-test",
-            NavigateUrl = "/normal-test",
             MarkdownContent = "# Normal Content",
             Outline = []
         };
@@ -108,7 +106,6 @@ public class MarkdownContentServiceTests
                 Order = 1
             },
             Url = "/redirect",
-            NavigateUrl = "/redirect",
             MarkdownContent = "",
             Outline = []
         };
@@ -122,7 +119,6 @@ public class MarkdownContentServiceTests
                 Order = 2
             },
             Url = "/normal",
-            NavigateUrl = "/normal",
             MarkdownContent = "# Normal Content",
             Outline = []
         };
@@ -138,7 +134,7 @@ public class MarkdownContentServiceTests
         // Assert
         Assert.Single(filteredPages);
         Assert.Equal("Normal Page", filteredPages[0].FrontMatter.Title);
-        Assert.Equal("/normal", filteredPages[0].NavigateUrl);
+        Assert.Equal("/normal", filteredPages[0].Url);
     }
 
     [Fact]

@@ -11,9 +11,9 @@ public class Tag
     public required string Name { get; init; }
 
     /// <summary>
-    /// The URL to use for navigation. Includes the BaseUrl of the static content section.
+    /// The URL to use for navigation. Includes the leading slash and base page URL.
     /// </summary>
-    public required string NavigateUrl { get; init; }
+    public required string Url { get; init; }
 
     /// <summary>
     /// The URL-safe version of the tag name.

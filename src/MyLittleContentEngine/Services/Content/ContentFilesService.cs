@@ -79,7 +79,9 @@ internal class ContentFilesService<TFrontMatter>
 
         try
         {
-            return _fileSystemUtilities.FilePathToUrlPath(filePath, baseContentPath);
+            // Use custom URL creation function if provided, otherwise use default
+            return _engineContentOptions.CreateContentUrl?.Invoke(filePath, baseContentPath) 
+                ?? _fileSystemUtilities.FilePathToUrlPath(filePath, baseContentPath);
         }
         catch (Exception ex)
         {

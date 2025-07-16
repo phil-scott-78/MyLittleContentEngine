@@ -43,7 +43,7 @@ public class TagService<TFrontMatter>
             {
                 Name = tagName,
                 EncodedName = tagEncodedName,
-                NavigateUrl = $"{_engineContentOptions.Tags.TagsPageUrl}/{tagEncodedName}",
+                Url = $"/{_engineContentOptions.Tags.TagsPageUrl}/{tagEncodedName}",
             };
         }
         catch (Exception ex)

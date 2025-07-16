@@ -26,6 +26,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      # Cache .NET packages and NuGet cache
+      - name: Cache .NET packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.nuget/packages
+            ~/.dotnet
+          key: ${{ runner.os }}-dotnet-${{ hashFiles('**/*.csproj', '**/global.json', '**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-dotnet-
       
       - name: Install .NET
         uses: actions/setup-dotnet@v4
@@ -47,17 +58,17 @@ jobs:
 
       - name: Minify CSS and JavaScript files
         run: |
-          # Minify styles.css if it exists
-          if [ -f "${{ env.WEBAPP_PATH }}output/styles.css" ]; then
-            /usr/local/bin/minify -o "${{ env.WEBAPP_PATH }}output/styles.css" "${{ env.WEBAPP_PATH }}output/styles.css"
-            echo "Minified styles.css"
-          fi
-          
-          # Minify scripts.js if it exists
-          if [ -f "${{ env.WEBAPP_PATH }}output/_content/MyLittleContentEngine.UI/scripts.js" ]; then
-            /usr/local/bin/minify -o "${{ env.WEBAPP_PATH }}output/_content/MyLittleContentEngine.UI/scripts.js" "${{ env.WEBAPP_PATH }}output/_content/MyLittleContentEngine.UI/scripts.js"
-            echo "Minified scripts.js"
-          fi
+          # Find and minify all CSS files
+          find "${{ env.WEBAPP_PATH }}output" -type f -name "*.css" | while read cssfile; do
+            /usr/local/bin/minify -o "$cssfile" "$cssfile"
+            echo "Minified $cssfile"
+          done
+
+          # Find and minify all JavaScript files
+          find "${{ env.WEBAPP_PATH }}output" -type f -name "*.js" | while read jsfile; do
+            /usr/local/bin/minify -o "$jsfile" "$jsfile"
+            echo "Minified $jsfile"
+          done
           
       - name: Setup Pages
         uses: actions/configure-pages@v4

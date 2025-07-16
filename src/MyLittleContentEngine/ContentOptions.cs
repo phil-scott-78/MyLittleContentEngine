@@ -90,6 +90,16 @@ public class ContentEngineContentOptions<TFrontMatter> : IContentOptions
     /// Gets or sets the options related to tag functionality.
     /// </summary>
     public TagsOptions Tags { get; init; } = new();
+
+    /// <summary>
+    /// Gets or sets a function to create content URLs from file paths.
+    /// </summary>
+    /// <remarks>
+    /// This function takes a file path and base content path and returns a URL for the content.
+    /// The default implementation uses the FileSystemUtilities.FilePathToUrlPath method.
+    /// Override this to customize URL generation (e.g., to lowercase paths).
+    /// </remarks>
+    public Func<string, string, string>? CreateContentUrl { get; init; }
 }
 
 /// <summary>

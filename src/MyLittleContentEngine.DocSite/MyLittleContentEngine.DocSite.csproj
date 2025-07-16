@@ -27,5 +27,17 @@
     <PackageReference Include="Mdazor" Version="0.0.0-alpha.0.9" />
   </ItemGroup>
 
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="wwwroot\fonts\lexend-v25-latin-100.woff2" />
+    <_ContentIncludedByDefault Remove="wwwroot\fonts\lexend-v25-latin-200.woff2" />
+    <_ContentIncludedByDefault Remove="wwwroot\fonts\lexend-v25-latin-300.woff2" />
+    <_ContentIncludedByDefault Remove="wwwroot\fonts\lexend-v25-latin-500.woff2" />
+    <_ContentIncludedByDefault Remove="wwwroot\fonts\lexend-v25-latin-600.woff2" />
+    <_ContentIncludedByDefault Remove="wwwroot\fonts\lexend-v25-latin-700.woff2" />
+    <_ContentIncludedByDefault Remove="wwwroot\fonts\lexend-v25-latin-800.woff2" />
+    <_ContentIncludedByDefault Remove="wwwroot\fonts\lexend-v25-latin-900.woff2" />
+    <_ContentIncludedByDefault Remove="wwwroot\fonts\lexend-v25-latin-regular.woff2" />
+  </ItemGroup>
+
 
 </Project>

@@ -122,9 +122,9 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
         }
 
         // Use the parser service to render Markdown to HTML
-        // Use the page's NavigateUrl as the base URL for link rewriting
-        var lastSlash = page.NavigateUrl.LastIndexOf('/');
-        var pageUrl = lastSlash == -1 ? page.NavigateUrl : page.NavigateUrl[..lastSlash];
+        // Use the page's Url as the base URL for link rewriting
+        var lastSlash = page.Url.LastIndexOf('/');
+        var pageUrl = lastSlash == -1 ? page.Url : page.Url[..lastSlash];
 
         var html = _markdownParserService.RenderMarkdownToHtml(page.MarkdownContent, pageUrl);
         return (page, html);
@@ -180,7 +180,7 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
             .Where(p => 
             {
                 // Exclude redirect pages from table of contents
-                var contentPage = allContentPages.FirstOrDefault(cp => cp.NavigateUrl == p.Url);
+                var contentPage = allContentPages.FirstOrDefault(cp => cp.Url == p.Url);
                 return contentPage?.FrontMatter.RedirectUrl == null;
             })
             .Select(p => new ContentTocItem(
@@ -217,7 +217,7 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
         {
             Uid = i.FrontMatter.Uid,
             Title = i.FrontMatter.Title,
-            Url = i.NavigateUrl
+            Url = i.Url
         }).ToImmutableList();
     }
 

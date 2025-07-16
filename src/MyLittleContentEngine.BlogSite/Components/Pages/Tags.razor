@@ -19,7 +19,7 @@
         foreach (var tagGroup in _tagsWithCount)
         {
             <li>
-                <a href="@tagGroup.Tag.NavigateUrl">@tagGroup.Tag.Name</a>
+                <a href="@tagGroup.Tag.Url">@tagGroup.Tag.Name</a>
                 <span class="text-xs text-base-600 dark:text-base-400"> (@tagGroup.Count)</span>
             </li>
         }

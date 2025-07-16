@@ -31,6 +31,7 @@
                 
                 <div class="flex flex-row gap-x-4">
                     <button type="button"
+                            aria-label="Search"
                             id="search-input"
                             class="p-1 rounded-md hover:bg-base-200 dark:hover:bg-base-800 transition">
                         <svg viewBox="0 0 20 20" fill="none" aria-hidden="true" class="w-6 h-6 text-base-800 dark:text-base-100" stroke="currentColor">
@@ -106,7 +107,7 @@
                                    href="@link.Url">@link.Title</a>
                             }
                         </div>
-                        <p class="text-sm text-base-400 dark:text-base-500">
+                        <p class="text-sm text-base-400 dark:text-base-400">
                             © @DateTime.Now.Year @(Options.AuthorName ?? ContentOptions.SiteTitle). All rights reserved.
                         </p>
                     </div>

@@ -9,6 +9,7 @@ An inflexible and opinionated static content generator written in .NET.
 
 * No JSON or YAML configuration files
 * No Node.js or JavaScript build dependencies
+* Fast. This site requires less than 25 kb of JavaScript and CSS, combined.
 * Use Blazor for your layouts
 * Generate compact CSS at build time from only the styles used
 * Written with `dotnet watch` in mind, see changes immediately as you edit your markdown files

@@ -15,15 +15,10 @@ public class MarkdownContentPage<TFrontMatter> where TFrontMatter : class, IFron
 
     /// <summary>
     ///     The URL path where the page will be published.
-    ///     Derived from the file path (e.g., Content/Blog/subfolder/post-in-subfolder.md => blog/subfolder/post-in-subfolder).
-    ///     Used as a route parameter, e.g., "blog/{Url}".
+    ///     Derived from the file path (e.g., Content/Blog/subfolder/post-in-subfolder.md => /blog/subfolder/post-in-subfolder).
+    ///     Includes the leading slash and base page URL for navigation.
     /// </summary>
     public required string Url { get; init; }
-
-    /// <summary>
-    /// The URL to use for navigation. Includes the BaseUrl of the static content section.
-    /// </summary>
-    public required string NavigateUrl { get; init; }
 
     /// <summary>
     ///     The Markdown content of the page, rendered from Markdown, excluding the front matter section.
