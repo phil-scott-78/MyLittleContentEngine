@@ -7,6 +7,7 @@ builder.Services.AddDocSite(_ => new DocSiteOptions()
 {
     SiteTitle = "My Little Content Engine",
     Description = "An Inflexible Content Engine for .NET",
+    SocialImageUrl = "/social.jpg",
     PrimaryHue = 235,
     BaseColorName = ColorNames.Zinc,
     GitHubUrl = "https://github.com/phil-scott-78/MyLittleContentEngine",

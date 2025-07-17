@@ -10,6 +10,7 @@
 @inject ContentEngineOptions ContentEngineOptions
 @inject IMarkdownContentService<DocSiteFrontMatter> MarkdownContentService
 @inject ITableOfContentService TableOfContentService
+@inject DocSiteOptions DocSiteOptions
 
 @if (IsLoaded)
 {
@@ -17,9 +18,18 @@
     <HeadContent>
         @if (string.IsNullOrWhiteSpace(_post.FrontMatter.Description) == false)
         {
-            <meta name="description" content="@_post.FrontMatter.Description" />    
+            <meta name="description" content="@_post.FrontMatter.Description" />
+            <meta property="og:description" content="@_post.FrontMatter.Description" />
+            <meta name="twitter:description" content="@_post.FrontMatter.Description" />
         }
-        
+        <meta property="og:title" content="@_post.FrontMatter.Title" />
+        <meta name="twitter:title" content="@_post.FrontMatter.Title" />
+        <meta property="og:url" content="@(DocSiteOptions.CanonicalBaseUrl?.TrimEnd('/') + _post.Url)" />
+        @if (!string.IsNullOrEmpty(DocSiteOptions.SocialImageUrl))
+        {
+            <meta property="og:image" content="@(DocSiteOptions.CanonicalBaseUrl?.TrimEnd('/')  + '/' + DocSiteOptions.SocialImageUrl.TrimStart('/'))" />
+            <meta name="twitter:image" content="@(DocSiteOptions.CanonicalBaseUrl?.TrimEnd('/')  + '/' + DocSiteOptions.SocialImageUrl.TrimStart('/'))" />
+        }
     </HeadContent>
     <article>
         <header>

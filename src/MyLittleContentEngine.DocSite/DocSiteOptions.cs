@@ -108,4 +108,9 @@ public class DocSiteOptions
     /// List of additional assemblies to scan for routing
     /// </summary>
     public Assembly[] AdditionalRoutingAssemblies { get; init; } = [];
+    
+    /// <summary>
+    /// URL to the social media image for meta tags
+    /// </summary>
+    public string? SocialImageUrl { get; init; }
 }
