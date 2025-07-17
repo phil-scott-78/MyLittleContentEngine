@@ -1,11 +1,11 @@
 ---
 title: "Welcome"
-description: "A static site generator for .NET Blazor applications with markdown content management and strong typing"
+description: "An opinionated and inflexible static content generator, written in .NET."
 uid: "docs.index"
 order: 1
 ---
 
-An inflexible and opinionated static content generator written in .NET.
+An opinionated and inflexible static content generator, written in .NET.
 
 * No JSON or YAML configuration files
 * No Node.js or JavaScript build dependencies
