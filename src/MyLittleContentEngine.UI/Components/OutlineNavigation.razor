@@ -2,36 +2,39 @@
 
 @if (Outline is { Length: > 1 })
 {
-    <div data-role="page-outline" class="@ContainerStructureClass @ContainerColorClass">
-        <ul class="@ListStructureClass @ListColorClass">
-            @foreach (var entry in Outline)
-            {
-                @OutlineLink(entry, "")
-                @if (entry.Children.Length > 0)
+    <div data-role="page-outline" class="relative @ContainerStructureClass @ContainerColorClass">
+        <div data-role="page-outline-highlighter" class="absolute transition-all duration-500 opacity-0 left-[-1px] w-[1px] bg-primary-400"></div>
+        <div>
+            <ul class="@ListStructureClass @ListColorClass">
+                @foreach (var entry in Outline)
                 {
-                    <li>
-                    <ul class="pb-1px">
-                        @foreach (var childEntry in entry.Children)
-                        {
-                            @OutlineLink(childEntry, "pl-4")
-                        }
-                    </ul>
-                    </li>
+                    @OutlineLink(entry, "")
+                    @if (entry.Children.Length > 0)
+                    {
+                        <li>
+                            <ul class="pb-1px">
+                                @foreach (var childEntry in entry.Children)
+                                {
+                                    @OutlineLink(childEntry, "pl-4")
+                                }
+                            </ul>
+                        </li>
+                    }
                 }
-            }
-        </ul>
+            </ul>
+        </div>
     </div>
 }
 
 @code {
     [Parameter] public OutlineEntry[]? Outline { get; set; }
     [Parameter] public string Title { get; set; } = "On This Page";
-    [Parameter] public string ContainerStructureClass { get; set; } = "";
+    [Parameter] public string ContainerStructureClass { get; set; } = "border-l border-base-200 dark:border-base-800";
     [Parameter] public string ContainerColorClass { get; set; } = "";
-    [Parameter] public string ListStructureClass { get; set; } = "list-none text-xs";
-    [Parameter] public string ListColorClass { get; set; } = "text-neutral-900 dark:text-neutral-400";
-    [Parameter] public string OutlineLinkColorClass { get; set; } = "hover:text-primary-900 dark:hover:text-neutral-50/90 data-[selected=true]:text-primary-800 dark:data-[selected=true]:text-primary-400";
-    [Parameter] public string OutlineLinkStructureClass { get; set; } = "text-sm  pt-2 ";
+    [Parameter] public string ListStructureClass { get; set; } = "list-none pl-4" ;
+    [Parameter] public string ListColorClass { get; set; } = "text-neutral-500 dark:text-neutral-400";
+    [Parameter] public string OutlineLinkColorClass { get; set; } = "transition-colors duration-250 hover:text-base-900 dark:hover:text-base-50/90 data-[selected=true]:text-base-800 dark:data-[selected=true]:text-base-50";
+    [Parameter] public string OutlineLinkStructureClass { get; set; } = "py-1 ml-[calc(-1*(4em-1px))] pl-[calc(4em+1px)] ";
     
 
     private RenderFragment OutlineLink(OutlineEntry entry, string padding) =>

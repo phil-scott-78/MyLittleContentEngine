@@ -26,31 +26,33 @@
 
     <div class="flex flex-row min-h-screen w-full">
         <div id="nav-sidebar" data-expanded="false"
-             class="box-border transition-spacing ease-in-out duration-300 -ml-80 data-[expanded=true]:ml-0 lg:ml-0 w-80 flex-none border-r border-base-200 dark:border-base-800 fixed md:static lg:z-auto z-40 h-full lg:h-auto bg-base-100 dark:bg-base-950">
-            <div class="sticky top-0 p-8 h-screen overflow-y-auto">
-                <div>
-                    <div class="flex min-w-0 mb-8 font-display shrink items-center gap-x-2">
-                        @if (DocSiteOptions.HeaderIcon != null)
-                        {
-                            @((MarkupString) DocSiteOptions.HeaderIcon)
-                        }
-                        else
-                        {
-                            @_defaultHeaderIcon
-                        }
-                        <span class="font-display tracking-tight dark:text-base-50 text-base-900">
-                            @if (DocSiteOptions.HeaderContent != null)
+             class="box-border transition-spacing ease-in-out duration-300 -ml-80 data-[expanded=true]:ml-0 lg:ml-0 w-80 lg:min-w-80 xl:w-1/4 lg:max-w-80-120 flex-none border-r border-base-200 dark:border-base-800 fixed md:static lg:z-auto z-40 h-full lg:h-auto bg-base-100 dark:bg-base-950">
+            <div class="xl:w-max ml-auto">
+                <div class="sticky font-display tracking-tight top-0 p-8 h-screen overflow-y-auto">
+                    <div>
+                        <div class="flex min-w-0 mb-8 font-display shrink items-center gap-x-2">
+                            @if (DocSiteOptions.HeaderIcon != null)
                             {
-                                @((MarkupString) DocSiteOptions.HeaderContent)
+                                @((MarkupString) DocSiteOptions.HeaderIcon)
                             }
                             else
                             {
-                                <a href="/index">@DocSiteOptions.SiteTitle</a>
+                                @_defaultHeaderIcon
                             }
-                        </span>
+                            <span class="font-display tracking-tight dark:text-base-50 text-base-900">
+                                @if (DocSiteOptions.HeaderContent != null)
+                                {
+                                    @((MarkupString) DocSiteOptions.HeaderContent)
+                                }
+                                else
+                                {
+                                    <a href="/index">@DocSiteOptions.SiteTitle</a>
+                                }
+                            </span>
+                        </div>
                     </div>
+                    <TableOfContentsNavigation TableOfContents="_toc"/>
                 </div>
-                <TableOfContentsNavigation TableOfContents="_toc"/>
             </div>
         </div>
         <div class="flex-1 min-w-0 lg:ml-0">
@@ -146,12 +148,12 @@
                     </div>
                 </nav>
             </header>
-            <main class="mx-auto max-w-6xl">
-                <div class="flex lg:gap-x-8 xl:gap-x-16">
+            <main class="mx-auto max-w-7xl">
+                <div class="flex lg:gap-x-8 xl:gap-x-12">
                     <article class="flex-1 mt-4 lg:mt-8 ml-4 lg:ml-8 mr-4 xl:mr-0 min-w-0">
                         @Body
                     </article>
-                    <div class="hidden xl:block sticky top-18 h-[calc(100vh-7rem)] overflow-y-auto w-80">
+                    <div class="hidden xl:block sticky top-24 h-min  lg:max-h-[calc(100vh-7rem)] overflow-y-auto w-80  font-display tracking-tight text-sm">
                         <SectionOutlet SectionName="sidebar"></SectionOutlet>
                     </div>
                 </div>

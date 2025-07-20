@@ -122,7 +122,7 @@ class OutlineManager {
         this.observer = new IntersectionObserver(
             this.handleIntersection.bind(this),
             {
-                rootMargin: '-30px 0px -25%', // Very generous - catch sections with small margins
+                rootMargin: '-130px 0px -25%', // Very generous - catch sections with small margins
                 threshold: [1] // Just needs any part visible
             }
         );
@@ -176,30 +176,38 @@ class OutlineManager {
             top: section.getBoundingClientRect().top
         }));
         
-        // Rule 1: If only one is visible, highlight it
-        if (this.visibleSections.size === 1) {
-            return this.visibleSections.values().next().value;
+        // Define what "visible" means for our highlighting logic
+        const viewportTop = 130; // Account for fixed header
+        const viewportBottom = window.innerHeight;
+        const actuallyVisible = sectionPositions.filter(({section, top}) => {
+            const rect = section.getBoundingClientRect();
+            // Section is visible if any part is between header and bottom of viewport
+            return rect.bottom > viewportTop && rect.top < viewportBottom;
+        });
+        
+        // Rule 1: If only one section is actually visible, highlight it
+        if (actuallyVisible.length === 1) {
+            return actuallyVisible[0].section;
         }
         
-        // Rule 2: If multiple are visible, highlight the top-most visible item
-        if (this.visibleSections.size > 1) {
-            const visibleSectionPositions = sectionPositions.filter(({section}) => 
-                this.visibleSections.has(section)
-            );
-            // Sort by top position (ascending) to get the top-most
-            visibleSectionPositions.sort((a, b) => a.top - b.top);
-            return visibleSectionPositions[0].section;
+        // Rule 2: If multiple sections are actually visible, highlight the top-most
+        if (actuallyVisible.length > 1) {
+            actuallyVisible.sort((a, b) => a.top - b.top);
+            return actuallyVisible[0].section;
         }
         
-        // Rule 3: If none are visible, highlight the first item that is above the top of the screen
-        const sectionsAbove = sectionPositions.filter(({top}) => top < 0);
+        // Rule 3: If none are actually visible, highlight the last item that was scrolled past
+        const sectionsAbove = sectionPositions.filter(({section}) => {
+            const rect = section.getBoundingClientRect();
+            return rect.bottom <= viewportTop; // Completely above the viewport
+        });
         if (sectionsAbove.length > 0) {
-            // Sort by top position descending (closest to 0, meaning most recently passed)
+            // Sort by top position descending (closest to viewport from above)
             sectionsAbove.sort((a, b) => b.top - a.top);
             return sectionsAbove[0].section;
         }
         
-        // Rule 4: If none are visible and no item is above the top of the screen, highlight the first item
+        // Rule 4: If no sections are above the viewport, highlight the first item
         if (allSections.length > 0) {
             // Sort sections by document order (using their DOM position)
             const sortedSections = allSections.sort((a, b) => {
@@ -217,11 +225,42 @@ class OutlineManager {
             link.dataset.selected = 'false';
             link.parentElement?.classList.remove('active');
         });
+        this.hideHighlighter();
     }
 
     activateLink(link) {
         link.dataset.selected = 'true';
         link.parentElement?.classList.add('active');
+        this.updateHighlighter(link);
+    }
+
+    updateHighlighter(link) {
+        const highlighter = document.querySelector('[data-role="page-outline-highlighter"]');
+        if (!highlighter || !link) return;
+
+        const linkRect = link.getBoundingClientRect();
+        const outlineContainer = document.querySelector('[data-role="page-outline"]');
+        if (!outlineContainer) return;
+
+        const containerRect = outlineContainer.getBoundingClientRect();
+        
+        // Calculate position relative to the outline container
+        const top = linkRect.top - containerRect.top;
+        const height = linkRect.height;
+
+        // Update highlighter position and visibility
+        highlighter.style.top = `${top}px`;
+        highlighter.style.height = `${height}px`;
+        highlighter.classList.remove('opacity-0');
+        highlighter.classList.add('opacity-100');
+    }
+
+    hideHighlighter() {
+        const highlighter = document.querySelector('[data-role="page-outline-highlighter"]');
+        if (highlighter) {
+            highlighter.classList.remove('opacity-100');
+            highlighter.classList.add('opacity-0');
+        }
     }
 
     destroy() {
