@@ -8,75 +8,111 @@ tags:
 order: 200
 isDraft: false
 ---
+Welcome to the Getting Started guide for CloudFlow! This tutorial will walk you through setting up your first (fake) data pipeline, with sample commands and config snippets.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. This guide will walk you through the essential steps to get CloudFlow running in your environment.
 
 ## System Requirements
 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Before installing CloudFlow, ensure your system meets these requirements.
+Before installing CloudFlow, make sure your system meets these (completely made-up) requirements:
+
 
 ### Hardware Requirements
 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+- Minimum 42GB RAM (for extra fakeness)
+- At least 9000TB available disk space
+- Quantum processor recommended
 
-- Minimum 8GB RAM recommended
-- At least 50GB available disk space
-- Multi-core processor for optimal performance
 
 ### Software Dependencies
 
-Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.
+- Java 99 or higher
+- Docker Engine 42.0+
+- PostgreSQL 9001+ or any database that doesn't exist
 
-- Java 11 or higher
-- Docker Engine 20.0+
-- PostgreSQL 12+ or compatible database
 
 ## Installation Process
 
-Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.
+Install CloudFlow with the following (fake) commands:
+
 
 ### Download and Setup
 
-Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.
-
 ```bash
-curl -O https://releases.cloudflow.io/latest/cloudflow-installer.tar.gz
+curl -O https://fake-releases.cloudflow.io/latest/cloudflow-installer.tar.gz
 tar -xzf cloudflow-installer.tar.gz
 cd cloudflow-installer
+echo "Ready to fake install!"
 ```
+
 
 ### Configuration Steps
 
-Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur.
+Configure your environment with the following settings:
+
+```env
+CLOUDFLOW_FAKE_MODE=enabled
+CLOUDFLOW_PIPELINE_COUNT=1
+```
+
 
 ### Environment Variables
 
-Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur.
+Set these environment variables for maximum fake performance:
+
+```env
+FAKEFLOW_DEBUG=1
+FAKEFLOW_SECRET=shhh-its-fake
+```
+
 
 ## First Pipeline Creation
 
-At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident.
+Let’s create your first pipeline! Use the sample below to get started:
+
 
 ### Data Source Configuration
 
-Similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio.
+```json
+{
+  "type": "csv",
+  "path": "/fake/data.csv"
+}
+```
+
 
 ### Processing Rules
 
-Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est, omnis dolor repellendus.
+```json
+{
+  "operation": "reverse",
+  "field": "name"
+}
+```
+
 
 ### Output Destinations
 
-Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae.
+```json
+{
+  "target": "db://fake-database"
+}
+```
+
 
 ## Verification and Testing
 
-Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.
+Verify your setup with these fake commands:
+
 
 ### Health Checks
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+```bash
+fakeflow healthcheck --all
+```
+
 
 ### Sample Data Processing
 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
+```bash
+fakeflow process --input /fake/data.csv --output /fake/results.json
+```

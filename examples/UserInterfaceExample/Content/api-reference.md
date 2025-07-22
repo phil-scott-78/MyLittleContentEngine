@@ -8,91 +8,211 @@ tags:
 order: 300
 isDraft: false
 ---
+Welcome to the CloudFlow API Reference! Here you'll find everything you need to integrate, automate, and extend the CloudFlow data processing platform. All endpoints, authentication methods, and error codes are documented below, with sample requests and responses.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. The CloudFlow API provides programmatic access to all platform functionality.
 
 ## Authentication
 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. All API requests require proper authentication using API keys or OAuth tokens.
+All API requests must be authenticated. CloudFlow supports both API keys and OAuth 2.0 tokens. Unauthenticated requests will be rejected with a `401 Unauthorized` error.
+
 
 ### API Key Authentication
 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Include your API key in the Authorization header for all requests.
+To use API key authentication, include your key in the `Authorization` header:
+
+```http
+GET /api/v1/pipelines
+Authorization: ApiKey FAKE-API-KEY-123456
+```
+
 
 ### OAuth 2.0 Flow
 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. For applications requiring user-specific access, use OAuth 2.0 authentication flow.
+For user-specific access, use OAuth 2.0. Redirect users to `/auth/fake-oauth` and exchange the code for a token:
+
+```http
+POST /api/v1/oauth/token
+Content-Type: application/json
+{
+  "code": "FAKE-OAUTH-CODE-7890"
+}
+```
+
 
 ### Rate Limiting
 
-Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis.
+CloudFlow enforces rate limits to ensure fair usage. Exceeding limits returns:
+
+```json
+{
+  "error": "Rate limit exceeded",
+  "retry_after": 42
+}
+```
+
 
 ## Pipeline Management
 
-Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.
+Manage your data pipelines with these endpoints. Pipelines are the core units of data processing in CloudFlow.
+
 
 ### Create Pipeline
 
-Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt.
+Create a new pipeline by POSTing a JSON definition:
 
 ```http
 POST /api/v1/pipelines
 Content-Type: application/json
-Authorization: Bearer {token}
+Authorization: Bearer FAKE-TOKEN-ABCDEF
+
+{
+  "name": "MyFakePipeline",
+  "steps": [
+    { "type": "source", "config": { "path": "/fake/data.csv" } },
+    { "type": "transform", "config": { "operation": "uppercase" } },
+    { "type": "sink", "config": { "target": "db://fake-database" } }
+  ]
+}
 ```
+
 
 ### List Pipelines
 
-Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur.
+Retrieve all pipelines:
+
+```http
+GET /api/v1/pipelines
+Authorization: Bearer FAKE-TOKEN-ABCDEF
+```
+
 
 ### Update Pipeline Configuration
 
-Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur.
+Update a pipeline’s configuration:
+
+```http
+PUT /api/v1/pipelines/{pipelineId}
+Content-Type: application/json
+Authorization: Bearer FAKE-TOKEN-ABCDEF
+{
+  "steps": [ { "type": "transform", "config": { "operation": "reverse" } } ]
+}
+```
+
 
 ### Delete Pipeline
 
-At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi.
+Delete a pipeline:
+
+```http
+DELETE /api/v1/pipelines/{pipelineId}
+Authorization: Bearer FAKE-TOKEN-ABCDEF
+```
+
 
 ## Data Processing
 
-Similique sunt in culpa qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio.
+Submit jobs, monitor status, and retrieve results for your data pipelines.
+
 
 ### Submit Processing Job
 
-Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus, omnis voluptas assumenda est.
+Start a new processing job:
+
+```http
+POST /api/v1/jobs
+Content-Type: application/json
+Authorization: Bearer FAKE-TOKEN-ABCDEF
+{
+  "pipelineId": "fake-pipeline-123",
+  "input": "s3://fake-bucket/data.csv"
+}
+```
+
 
 ### Monitor Job Status
 
-Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet ut et voluptates repudiandae sint et molestiae non recusandae.
+Check job status:
+
+```http
+GET /api/v1/jobs/{jobId}/status
+Authorization: Bearer FAKE-TOKEN-ABCDEF
+```
+
 
 ### Retrieve Job Results
 
-Itaque earum rerum hic tenetur a sapiente delectus, ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat.
+Get job results:
+
+```http
+GET /api/v1/jobs/{jobId}/results
+Authorization: Bearer FAKE-TOKEN-ABCDEF
+```
+
 
 ## Data Sources
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+Configure and test connections to your data sources. Supported sources include fake databases, cloud buckets, and CSV files.
+
 
 ### Configure Data Source
 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit.
+Add a new data source:
+
+```json
+{
+  "type": "database",
+  "connectionString": "Server=fake-db;Database=fake;User Id=fake;Password=fake;"
+}
+```
+
 
 ### Test Connection
 
-In voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim.
+Test a data source connection:
+
+```http
+POST /api/v1/datasources/test
+Content-Type: application/json
+Authorization: Bearer FAKE-TOKEN-ABCDEF
+{
+  "connectionString": "Server=fake-db;Database=fake;User Id=fake;Password=fake;"
+}
+```
+
 
 ### Data Source Metadata
 
-Id est laborum. Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.
+Retrieve metadata for a data source:
+
+```http
+GET /api/v1/datasources/{id}/metadata
+Authorization: Bearer FAKE-TOKEN-ABCDEF
+```
+
 
 ## Error Handling
 
-Eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur.
+All errors are returned in a consistent format. See below for examples and common codes.
+
 
 ### Error Response Format
 
-Aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt, neque porro quisquam est.
+Example error response:
+
+```json
+{
+  "error": "Invalid pipeline configuration",
+  "code": 4001,
+  "details": "Step 'transform' missing required field 'operation'"
+}
+```
+
 
 ### Common Error Codes
 
-Qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore.
+- `4001`: Invalid pipeline configuration
+- `4010`: Unauthorized
+- `4040`: Resource not found
+- `4290`: Rate limit exceeded
+- `5000`: Internal server error

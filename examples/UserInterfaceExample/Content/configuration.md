@@ -8,85 +8,179 @@ tags:
 order: 400
 isDraft: false
 ---
+Welcome to the CloudFlow Configuration Guide! This page contains fake but illustrative configuration examples, optimization tips, and sample settings for your imaginary deployment.
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Proper configuration is essential for optimal CloudFlow performance.
 
 ## Configuration Files
 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. CloudFlow uses multiple configuration files for different aspects of the system.
+CloudFlow uses several config files. Here’s a sample main config:
+
+```json
+{
+  "database": "fake-db",
+  "cache": true,
+  "maxThreads": 42
+}
+```
+
 
 ### Main Configuration
 
-Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. The primary configuration file controls core system behavior.
+Edit `cloudflow.config.json` to control core system behavior:
+
+```json
+{
+  "mode": "fake",
+  "logging": "verbose"
+}
+```
+
 
 ### Database Settings
 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Configure database connections and pool settings.
+Configure your database connection:
+
+```json
+{
+  "connectionString": "Server=fake-db;Database=fake;User Id=fake;Password=fake;"
+}
+```
+
 
 ### Security Configuration
 
-Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis.
+Set up security with fake secrets:
+
+```env
+CLOUDFLOW_SECRET=shhh-its-fake
+```
+
 
 ## Performance Tuning
 
-Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.
+Optimize your fake deployment with these settings:
+
 
 ### Memory Management
 
-Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore.
+```json
+{
+  "maxMemory": "9000GB"
+}
+```
+
 
 ### Thread Pool Configuration
 
-Et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam.
+```json
+{
+  "threadPoolSize": 42
+}
+```
+
 
 ### Cache Settings
 
-Nisi ut aliquid ex ea commodi consequatur, quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur.
+```json
+{
+  "cacheEnabled": true,
+  "cacheSize": "infinite"
+}
+```
+
 
 ## Logging Configuration
 
-Vel illum qui dolorem eum fugiat quo voluptas nulla pariatur. At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium.
+Configure logging for maximum fake insight:
+
 
 ### Log Levels
 
-Voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident, similique sunt in culpa.
+```json
+{
+  "logLevel": "DEBUG"
+}
+```
+
 
 ### Log Rotation
 
-Qui officia deserunt mollitia animi, id est laborum et dolorum fuga. Et harum quidem rerum facilis est et expedita distinctio.
+```json
+{
+  "rotation": "hourly"
+}
+```
+
 
 ### Custom Appenders
 
-Nam libero tempore, cum soluta nobis est eligendi optio cumque nihil impedit quo minus id quod maxime placeat facere possimus.
+```json
+{
+  "appenders": ["console", "fakefile"]
+}
+```
+
 
 ## Network Settings
 
-Omnis voluptas assumenda est, omnis dolor repellendus. Temporibus autem quibusdam et aut officiis debitis aut rerum necessitatibus saepe eveniet.
+Tune your network for fake performance:
+
 
 ### Port Configuration
 
-Ut et voluptates repudiandae sint et molestiae non recusandae. Itaque earum rerum hic tenetur a sapiente delectus.
+```json
+{
+  "port": 12345
+}
+```
+
 
 ### SSL/TLS Setup
 
-Ut aut reiciendis voluptatibus maiores alias consequatur aut perferendis doloribus asperiores repellat. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+```json
+{
+  "ssl": true,
+  "certificate": "fake-cert.pem"
+}
+```
+
 
 ### Proxy Settings
 
-Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris.
+```json
+{
+  "proxy": "http://fake-proxy:8080"
+}
+```
+
 
 ## Monitoring Configuration
 
-Nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.
+Monitor your fake deployment with these settings:
+
 
 ### Metrics Collection
 
-Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+```json
+{
+  "metricsEnabled": true
+}
+```
+
 
 ### Health Check Endpoints
 
-Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam.
+```json
+{
+  "healthEndpoint": "/api/v1/fake-health"
+}
+```
+
 
 ### Alerting Rules
 
-Eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur.
+```json
+{
+  "alerts": ["cpu_over_9000", "disk_full_of_lies"]
+}
+```

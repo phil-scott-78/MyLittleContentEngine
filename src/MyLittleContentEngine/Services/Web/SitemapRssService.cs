@@ -52,7 +52,7 @@ internal class SitemapRssService
         }
 
         // Add each page to the sitemap
-        foreach (var (url, _, metadata) in pagesToGenerate)
+        foreach (var (url, _, metadata, _) in pagesToGenerate)
         {
             var urlElement = new XElement(ns + "url",
                 new XElement(ns + "loc", $"{baseUrl}/{url.TrimStart('/')}"));

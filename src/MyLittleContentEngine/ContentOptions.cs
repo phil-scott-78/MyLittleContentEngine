@@ -5,7 +5,7 @@ namespace MyLittleContentEngine;
 /// <summary>
 /// Defines the contract for Blazor Static content configuration options.
 /// </summary>
-internal interface IContentOptions
+public interface IContentOptions
 {
     /// <summary>
     /// Gets the path where content files are stored.

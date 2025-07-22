@@ -196,28 +196,59 @@ internal class OutputGenerationService(
 
             await Parallel.ForEachAsync(pagesToGenerateByPriority, async (page, ctx) =>
             {
-                string content;
-                try
+                if (page.IsBinary)
                 {
-                    content = await client.GetStringAsync(page.Url, ctx);
-                    logger.LogInformation("Generated {pageUrl} into {pageOutputFile}", page.Url, page.OutputFile);
+                    byte[] content;
+                    try
+                    {
+                        content = await client.GetByteArrayAsync(page.Url, ctx);
+                    
+                        logger.LogInformation("Generated binary {pageUrl} into {pageOutputFile}", page.Url, page.OutputFile);
 
+                    }
+                    catch (HttpRequestException ex)
+                    {
+                        logger.LogWarning("Failed to retrieve page at {pageUrl}. StatusCode:{statusCode}. Error: {exceptionMessage}", page.Url, ex.StatusCode, ex.Message);
+                        return;
+                    }
+
+                    var outFilePath = _fileSystem.Path.Combine(options.OutputFolderPath, page.OutputFile.TrimStart('/'));
+
+                    var directoryPath = _fileSystem.Path.GetDirectoryName(outFilePath);
+                    if (!string.IsNullOrEmpty(directoryPath))
+                    {
+                        _fileSystem.Directory.CreateDirectory(directoryPath);
+                    }
+
+                    await _fileSystem.File.WriteAllBytesAsync(outFilePath, content, ctx);
                 }
-                catch (HttpRequestException ex)
+                else
                 {
-                    logger.LogWarning("Failed to retrieve page at {pageUrl}. StatusCode:{statusCode}. Error: {exceptionMessage}", page.Url, ex.StatusCode, ex.Message);
-                    return;
+                    string content;
+                    try
+                    {
+                        content = await client.GetStringAsync(page.Url, ctx);
+                    
+                        logger.LogInformation("Generated {pageUrl} into {pageOutputFile}", page.Url, page.OutputFile);
+
+                    }
+                    catch (HttpRequestException ex)
+                    {
+                        logger.LogWarning("Failed to retrieve page at {pageUrl}. StatusCode:{statusCode}. Error: {exceptionMessage}", page.Url, ex.StatusCode, ex.Message);
+                        return;
+                    }
+
+                    var outFilePath = _fileSystem.Path.Combine(options.OutputFolderPath, page.OutputFile.TrimStart('/'));
+
+                    var directoryPath = _fileSystem.Path.GetDirectoryName(outFilePath);
+                    if (!string.IsNullOrEmpty(directoryPath))
+                    {
+                        _fileSystem.Directory.CreateDirectory(directoryPath);
+                    }
+
+                    await _fileSystem.File.WriteAllTextAsync(outFilePath, content, ctx);
                 }
-
-                var outFilePath = _fileSystem.Path.Combine(options.OutputFolderPath, page.OutputFile.TrimStart('/'));
-
-                var directoryPath = _fileSystem.Path.GetDirectoryName(outFilePath);
-                if (!string.IsNullOrEmpty(directoryPath))
-                {
-                    _fileSystem.Directory.CreateDirectory(directoryPath);
-                }
-
-                await _fileSystem.File.WriteAllTextAsync(outFilePath, content, ctx);
+                
             });
         }
 

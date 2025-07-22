@@ -1,0 +1,16 @@
+@* Responsive image component using srcset for optimal browser selection *@
+
+<img srcset="/images/@(FileName)-xs.webp 480w, /images/@(FileName)-sm.webp 768w, /images/@(FileName)-md.webp 1024w, /images/@(FileName)-lg.webp 1440w, /images/@(FileName)-xl.webp 1920w"
+     sizes="@Sizes"
+     src="/images/@(FileName)-md.webp" 
+     class="@("object-fit w-full " + CssClass)" 
+     alt="@AltText" 
+     loading="@Loading" />
+
+@code {
+    [Parameter, EditorRequired] public string FileName { get; set; } = string.Empty;
+    [Parameter] public string AltText { get; set; } = string.Empty;
+    [Parameter] public string CssClass { get; set; } = string.Empty;
+    [Parameter] public string Loading { get; set; } = "lazy";
+    [Parameter] public string Sizes { get; set; } = "(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 400px";
+}
