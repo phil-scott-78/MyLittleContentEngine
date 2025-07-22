@@ -1,10 +1,10 @@
 @* Recipe card component for home page grid *@
 @using RecipeExample.Models
 
-<article class="bg-white rounded-xl shadow-sm border border-base-200 overflow-hidden hover:shadow-md transition-shadow duration-200">
+<article class="bg-white rounded-xl shadow-sm border border-base-200 overflow-hidden hover:shadow-md transition-shadow duration-200 pb-6">
     <ResponsivePicture FileName="@(Recipe.Url.TrimStart('/').Replace("recipes/", ""))" AltText="@Recipe.DisplayName" />
-    <div class="p-6">
-        <h3 class="text-xl text-primary-950 mb-3">
+    <div class="p-6 flex flex-col gap-y-2">
+        <h3 class="text-xl text-primary-950">
             <a href="@Recipe.Url" class="hover:text-primary-600 transition-colors duration-200">
                 @Recipe.DisplayName
             </a>
@@ -12,10 +12,10 @@
         
         @if (!string.IsNullOrEmpty(Recipe.FrontMatter.Description))
         {
-            <p class="text-base-600 mb-4 line-clamp-2">@Recipe.FrontMatter.Description</p>
+            <p class="text-base-500 text-sm line-clamp-2">@Recipe.FrontMatter.Description</p>
         }
         
-        <div class="space-y-2 mb-4">
+        
             @if (!string.IsNullOrEmpty(Recipe.FrontMatter.Servings))
             {
                 <div class="flex items-center text-sm text-base-600">
@@ -50,11 +50,10 @@
                     </div>
                 }
             </div>
-        </div>
         
         @if (Recipe.FrontMatter.Tags.Any())
         {
-            <div class="flex flex-wrap gap-2 mt-4">
+            <div class="flex flex-wrap gap-2">
                 @foreach (var tag in Recipe.FrontMatter.Tags.Take(3))
                 {
                     <span class="bg-primary-100 text-primary-700 px-2 py-1 rounded-md text-xs font-medium">
@@ -71,7 +70,7 @@
         }
     </div>
     
-    <div class="px-6 pb-6">
+    <div class="px-6">
         <a href="@Recipe.Url" class="inline-flex items-center justify-center w-full px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors duration-200 font-medium">
             View Recipe
             <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

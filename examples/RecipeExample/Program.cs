@@ -38,7 +38,7 @@ builder.Services.AddResponsiveImageContentService(recipeOptions);
 
 builder.Services.AddMonorailCss(provider => new MonorailCssOptions()
 {
-    PrimaryHue = () => 310,
+    PrimaryHue = () => 55,
     BaseColorName = () => ColorNames.Neutral,
     CustomCssFrameworkSettings = settings => settings with
     {

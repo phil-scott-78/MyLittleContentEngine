@@ -24,6 +24,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Mdazor" Version="0.0.0-alpha.0.9" />
+    <PackageReference Include="Mdazor" Version="0.0.0-alpha.0.10" />
   </ItemGroup>
 </Project>

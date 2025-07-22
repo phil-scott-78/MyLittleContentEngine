@@ -13,7 +13,7 @@
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2024.3.0" />
     <PackageReference Include="Markdig" Version="0.41.3" />
-    <PackageReference Include="Mdazor" Version="0.0.0-alpha.0.9" />
+    <PackageReference Include="Mdazor" Version="0.0.0-alpha.0.10" />
     <PackageReference Include="Microsoft.Build.Locator" Version="1.9.1" />
     <PackageReference Include="Microsoft.CodeAnalysis" Version="4.14.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.14.0" />
