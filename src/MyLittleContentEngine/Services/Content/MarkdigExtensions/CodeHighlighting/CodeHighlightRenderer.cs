@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using System.Text.Encodings.Web;
 using static MyLittleContentEngine.Services.AsyncHelpers;
 using Markdig.Parsers;
 using Markdig.Renderers.Html;
@@ -84,7 +85,7 @@ internal sealed class CodeHighlightRenderer(
                 break;
             case "text" or "":
                 renderer.Write("<pre><code>");
-                renderer.Write(code);
+                renderer.Write(HtmlEncoder.Default.Encode(code));
                 renderer.Write("</code></pre>");
                 break;
             default:

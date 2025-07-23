@@ -18,7 +18,9 @@ internal static class LinkRewriter
         path.StartsWith("https://", StringComparison.OrdinalIgnoreCase) ||
         path.StartsWith("mailto:", StringComparison.OrdinalIgnoreCase) ||
         path.StartsWith("tel:", StringComparison.OrdinalIgnoreCase) ||
-        path.StartsWith("ftp:", StringComparison.OrdinalIgnoreCase);
+        path.StartsWith("ftp:", StringComparison.OrdinalIgnoreCase) ||
+        path.StartsWith("xref:", StringComparison.OrdinalIgnoreCase);
+    
 
     /// <summary>
     /// Determines if the given path is an anchor link

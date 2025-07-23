@@ -21,7 +21,8 @@
       "Bash(dotnet run:*)",
       "Bash(dotnet script:*)",
       "Bash(dotnet sln:*)",
-      "Bash(dotnet restore:*)"
+      "Bash(dotnet restore:*)",
+      "WebFetch(domain:github.com)"
     ]
   },
   "model": "sonnet",

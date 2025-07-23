@@ -12,18 +12,41 @@ monitoring.
 
 ## Architecture Overview
 
-The hot reload system operates on a simple but powerful principle: expensive operations (like parsing all markdown
-files) are cached until invalidated by file changes, at which point they are recomputed with debouncing to prevent
-excessive recalculation.
+All built in `IContentServices` adhere to the hot reload system operates on a simple but powerful principle:
+
+1. Process site wide on reload
+2. Process page wide on demand
+
+For example, when you edit a markdown file, it could cause many different things to update beyond just its content
+
+* The Home Page
+* Site navigation
+* Tag lists
+* xRef links
+* Next/Previous pages
+
+For example, in the Markdown `IContentService`, when a change is detected we reread every Markdown file and parse only
+the front matter.
+We will differ rendering the Markdown to HTML until the page is actually requested. This gives us two benefits
+
+1. Performance—not that Markdig is slow,
+   but between server-side syntax highlighting and Roslyn connected operations, things can start to add up
+2. Our Markdig extensions and link resolvers have a full site to reference when rendering.
+   This is critical for cross-references and other link rewriting operations. 
 
 ```mermaid
 graph TB
     A[File System Changes] --> B[ContentEngineFileWatcher]
-    B --> C[LazyAndForgetful Refresh]
-    C --> D[Debounced Refresh]
-    D --> E[Content Reprocessing]
-    E --> F[Updated Cache]
-    F --> G[UI Updates]
+    B --> C[LazyAndForgetful.Refresh]
+    C --> D[Debounced Refresh 50ms]
+    D --> E[PerformRefreshAsync]
+    E --> F[Factory Function Execution]
+    F --> G[Cache Update]
+    G --> H[Next Request Gets Updated Content]
+    
+    I[Blazor Hot Reload] --> J[MetadataUpdateHandler]
+    J --> K[ClearCache Called]
+    K --> C
 ```
 
 ## LazyAndForgetful: Smart Caching
@@ -71,13 +94,58 @@ when batch operations modify many files.
 
 ## ContentEngineFileWatcher: File System Monitoring
 
-The `ContentEngineFileWatcher` monitors specified directories for file changes and triggers refresh operations. It
-supports both specific file pattern watching and general directory monitoring.
+The `ContentEngineFileWatcher` monitors specified directories for file changes and triggers refresh operations.
+It supports both specific file pattern watching and general directory monitoring,
+with comprehensive integration into Blazor's hot reload system.
 
-The watcher includes special support for Blazor's hot reload mechanism through the
-[
-`MetadataUpdateHandler`](https://learn.microsoft.com/en-us/dotnet/api/system.reflection.metadata.metadataupdatehandlerattribute?view=net-9.0)
-attribute, enabling integration with IDE and `dotnet watch` tooling.
+### File System Watching Features
+
+- **Pattern-Based Watching**: Monitor specific file types (e.g., `*.md`, `*.razor`)
+- **Directory Watching**: Monitor entire directories for any file changes
+- **Subdirectory Support**: Optionally include subdirectories in watch operations
+- **Multiple Event Types**: Responds to file changes, creation, deletion, and renaming
+- **Duplicate Protection**: Prevents duplicate watchers for the same path/pattern combinations
+
+### Blazor Hot Reload Integration
+
+The watcher includes special support for Blazor's hot reload mechanism through
+the [`MetadataUpdateHandler`](https://learn.microsoft.com/en-us/dotnet/api/system.reflection.metadata.metadataupdatehandlerattribute?view=net-9.0) attribute:
+
+```csharp
+[assembly: MetadataUpdateHandler(typeof(ContentEngineFileWatcher))]
+```
+
+This integration provides:
+
+- **IDE Integration**: Works with Visual Studio and VS Code hot reload
+- **dotnet watch Support**: Automatic refresh when using `dotnet watch`
+- **Metadata Updates**: Responds to C# code changes that affect content processing
+- **Cache Clearing**: Automatically clears content caches when code changes
+
+### Watch Types
+
+The file watcher supports two primary watch patterns:
+
+#### 1. Specific File Pattern Watching
+```csharp
+// Watch for specific file types with path information
+fileWatcher.AddPathWatch(
+    path: "Content/Blog", 
+    filePattern: "*.md", 
+    onFileChanged: (filePath) => ProcessSpecificFile(filePath),
+    includeSubdirectories: true
+);
+```
+
+#### 2. General Directory Watching
+```csharp
+// Watch entire directories for any changes
+fileWatcher.AddPathsWatch(
+    paths: ["Content", "wwwroot"], 
+    onUpdate: () => RefreshAllContent(),
+    includeSubdirectories: true
+);
+```
 
 ## Integration in Content Services
 
@@ -126,4 +194,65 @@ public class MarkdownContentService<TFrontMatter> : IMarkdownContentService<TFro
 7. **Cache Update**: New content replaces cached values
 8. **UI Refresh**: Next page request gets updated content
 
+## Threading and Concurrency
 
+The hot reload system is designed for thread-safe operation in high-concurrency scenarios:
+
+### LazyAndForgetful Thread Safety
+
+- **SemaphoreSlim**: Ensures only one factory execution at a time
+- **Double-Checked Locking**: Optimizes the common case of reading cached values
+- **Volatile Fields**: Ensures proper memory visibility across threads
+- **CancellationToken**: Safely cancels debounced refresh operations
+
+### ContentEngineFileWatcher Thread Safety
+
+- **ConcurrentBag**: Thread-safe collection for update actions
+- **Static Methods**: MetadataUpdateHandler methods are thread-safe
+- **FileSystemWatcher Events**: Properly handles concurrent file system events
+
+## Performance Characteristics
+
+### LazyAndForgetful Performance
+
+- **First Access**: Full factory execution cost (expensive, but only once)
+- **Subsequent Access**: Minimal overhead (task completion check)
+- **Refresh Operations**: Debounced to prevent excessive computation
+- **Memory**: Single cached value per instance, minimal overhead
+
+### File Watching Performance
+
+- **Event Filtering**: Only processes relevant file changes
+- **Directory Existence**: Validates paths before creating watchers
+- **Resource Management**: Proper disposal prevents file handle leaks
+- **Debounced Updates**: Coalesces rapid changes to reduce CPU usage
+
+## Troubleshooting Hot Reload
+
+### Hot Reload Not Working
+
+**Problem**: Content changes aren't reflected in the browser.
+
+**Solutions**:
+1. Verify file watchers are properly configured:
+   ```csharp
+   // Check that paths exist and are being watched
+   fileWatcher.AddPathsWatch(["Content"], NeedsRefresh);
+   ```
+2. Check the `.csproj` file includes watch items:
+   ```xml
+   <ItemGroup>
+       <Watch Include="Content\**\*.*" />
+   </ItemGroup>
+   ```
+3. Ensure `dotnet watch` is being used for development
+4. Check console logs for file watcher errors
+
+## Best Practices
+
+1. **Use dotnet watch**: Leverage `dotnet watch` for optimal development experience
+2. **Configure Watch Items**: Properly configure `.csproj` watch items for your content
+3. **Test Hot Reload**: Verify hot reload works for your specific content types
+
+The hot reload architecture provides a solid foundation for productive development workflows 
+while maintaining excellent performance characteristics through intelligent caching and efficient file system monitoring.

@@ -196,11 +196,11 @@ builder.Services.AddBlogSite(options =>
     // Social media links
     options.Socials = [
         new SocialLink(
-            Icon: SocialIcons.Bluesky,
+            Icon: SocialIcons.BlueskyIcon,
             Url: "https://bsky.app/yourusername"
         ),
         new SocialLink(
-            Icon: SocialIcons.GithubIcon,,
+            Icon: SocialIcons.GithubIcon,
             Url: "https://github.com/yourusername"
         )
     ];
@@ -283,19 +283,35 @@ While the page is open, try editing your blog post. You should see the changes r
 
 ## Blog Post Front Matter
 
-Your blog posts support rich metadata in the front matter:
+Your blog posts support rich metadata in the front matter. The BlogSite package uses `BlogSiteFrontMatter` which includes:
 
 ```markdown
 ---
 title: "My Post Title"
 description: "A brief description of the post"
-uid: "unique-identifier-for-if-you-want-to-use-xref-links"
+author: "Author Name"
 date: 2024-01-15
 tags: ["tag1", "tag2", "tag3"]
-series: "options name of a series that this post is part of"
-draft: false
+series: "optional name of a series that this post is part of"
+repository: "optional repository link"
+uid: "unique-identifier-for-xref-links"
+is_draft: false
+redirect_url: "optional-redirect-target"
 ---
 ```
+
+### Front Matter Properties
+
+- **title**: The title of the blog post (required)
+- **description**: A brief description for SEO and summaries (required)
+- **author**: Author name for the post
+- **date**: Publication date (defaults to current time)
+- **tags**: Array of tags for categorization
+- **series**: Optional series name for grouping related posts
+- **repository**: Optional repository or project link
+- **uid**: Unique identifier for cross-referencing
+- **is_draft**: Set to true to exclude from generation
+- **redirect_url**: Optional URL to redirect this page to
 
 
 ## Available Configuration Options
@@ -304,15 +320,15 @@ The `BlogSiteOptions` class provides many customization options:
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `SiteTitle` | string | "Blog Site" | The title displayed in the header |
-| `Description` | string | "A blog site..." | Site description for SEO |
+| `SiteTitle` | string | required | The title displayed in the header |
+| `Description` | string | required | Site description for SEO |
+| `BaseUrl` | string | required | Base URL for routing |
 | `PrimaryHue` | int | 250 | Primary color hue (0-360) |
 | `BaseColorName` | string | "Slate" | Base color palette name |
 | `CanonicalBaseUrl` | string? | null | Canonical URL for SEO and RSS |
 | `MainSiteLinks` | HeaderLink[] | [] | Navigation links in header/footer |
 | `ContentRootPath` | string | "Content" | Path to content directory |
 | `BlogContentPath` | string | "Blog" | Path to blog content (relative to ContentRootPath) |
-| `BaseUrl` | string | "/" | Base URL for routing |
 | `BlogBaseUrl` | string | "/blog" | Base URL for blog posts |
 | `TagsPageUrl` | string | "/tags" | URL for the tags page |
 | `ExtraStyles` | string? | null | Additional CSS styles |
@@ -320,6 +336,7 @@ The `BlogSiteOptions` class provides many customization options:
 | `DisplayFontFamily` | string? | null | Custom font family for display elements |
 | `BodyFontFamily` | string? | null | Custom font family for body text |
 | `AdditionalHtmlHeadContent` | string? | null | Custom HTML for head section |
+| `AdditionalRoutingAssemblies` | Assembly[] | [] | List of additional assemblies to scan for routing |
 | `AuthorName` | string? | null | Author name for the blog |
 | `AuthorBio` | string? | null | Author bio for the blog |
 | `EnableRss` | bool | true | Enable RSS feed generation |
@@ -327,6 +344,7 @@ The `BlogSiteOptions` class provides many customization options:
 | `MyWork` | Project[] | [] | Projects to include in sidebar |
 | `Socials` | SocialLink[] | [] | Social media links |
 | `SolutionPath` | string? | null | Path to solution file for API docs |
+| `SocialMediaImageUrlFactory` | Func<MarkdownContentPage<BlogSiteFrontMatter>, string>? | null | Function to generate social media image URLs |
 
 
 ## Next Steps

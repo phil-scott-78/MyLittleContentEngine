@@ -130,7 +130,7 @@ public partial class BaseUrlRewritingMiddleware
 
     private async Task<string> ResolveXrefsAsync(string html, IXrefResolver xrefResolver)
     {
-        var matches = XrefPattern.Matches(html).Cast<Match>().Reverse().ToList();
+        var matches = XrefPattern.Matches(html).Reverse().ToList();
         
         foreach (var match in matches)
         {

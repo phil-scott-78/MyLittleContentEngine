@@ -2,7 +2,7 @@
 title: "JavaScript Architecture"
 description: "Understanding the modular JavaScript system that powers interactive features in MyLittleContentEngine"
 uid: "docs.under-the-hood.javascript-architecture"
-order: 3003
+order: 3050
 ---
 
 MyLittleContentEngine includes a comprehensive JavaScript system that provides interactive functionality for documentation sites. The architecture is built around a **modular class-based design** with centralized management and automatic initialization.

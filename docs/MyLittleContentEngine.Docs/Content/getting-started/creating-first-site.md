@@ -58,8 +58,6 @@ We'll use it in this example to keep things simple.
 
 Create a model to define the structure of your blog post metadata. Add a new file `BlogFrontMatter.cs`:
 
-
-
 ```csharp:xmldocid
 T:MinimalExample.BlogFrontMatter
 ```
@@ -67,8 +65,7 @@ T:MinimalExample.BlogFrontMatter
 <Step stepNumber="4">
 ## Configure the Content Engine
 
-Open `Program.cs` and configure MyLittleContentEngine. We'll break down what each components does bit by bit in the
-guides, but for now replace the existing content with:
+Open `Program.cs` and configure MyLittleContentEngine. Replace the existing content with:
 
 ```csharp:path
 examples/MinimalExample/Program.cs
@@ -98,9 +95,7 @@ examples/MinimalExample/Content/index.md
 ## Create Your Layout
 
 Create `Components/Layout/MainLayout.razor` to include basic styling. This uses Tailwind CSS like syntax for styling.
-Here we are defining a simple layout for our blog posts, centered in the middle of the page. It uses a flexbox layout
-which we can later use to extend the design with a sidebar or other components. For now, it will just center the
-content.
+Here we are defining a simple layout for our blog posts, centered in the middle of the page:
 
 ```razor:path
 examples/MinimalExample/Components/Layout/MainLayout.razor
@@ -109,19 +104,18 @@ examples/MinimalExample/Components/Layout/MainLayout.razor
 <Step stepNumber="8">
 ## Create the Home Page
 
-Create `Components/Home.razor` to display your blog posts. Here we are calling `GetAllContentPagesAsync` to retrieve all
-the blog posts and display them in a list. `NavLink` is used to link to each blog post page, taking into account the [rules
-around BaseUrl](../guides/linking-documents-and-media).
+Create `Components/Layout/Home.razor` to display your blog posts. Here we are calling `GetAllContentPagesAsync` to retrieve all
+the blog posts and display them in a list:
 
-```razor:path
+```razor:pa
 examples/MinimalExample/Components/Layout/Home.razor
 ```
 </Step>
 <Step stepNumber="9">
-## Create a Page Displaying Page
+## Create a Page Displaying Component
 
-Create `Components/Page.razor` to display your blog posts. Here we are calling `GetRenderedContentPageByUrlOrDefault`
-to retrieve the blog post by its URL.
+Create `Components/Layout/Pages.razor` to display individual blog posts. Here we are calling `GetRenderedContentPageByUrlOrDefault`
+to retrieve the blog post by its URL:
 
 ```razor:path
 examples/MinimalExample/Components/Layout/Pages.razor
@@ -135,9 +129,8 @@ Add the following to your `.csproj` file:
 
 ```xml
 <ItemGroup>
-    <Watch Include="Content\**\*.*"/>
+    <Watch Include="Content\**\*.*" />
 </ItemGroup>
-
 ```
 </Step>
 <Step stepNumber="11">
@@ -151,8 +144,10 @@ dotnet watch
 
 Navigate to `https://localhost:5001` (or the URL shown in your terminal) to see your site in action!
 
+
+</Step>
+</Steps>
+
 While the page is open, try editing the `Content/index.md` file. You should see the changes reflected
 immediately without needing to restart the server. Not just editing, but adding, renaming and deleting files
 should also work seamlessly.
-</Step>
-</Steps>

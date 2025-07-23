@@ -33,20 +33,20 @@ public class XrefResolver : IXrefResolver, IDisposable
     private bool _disposed;
 
     public XrefResolver(
-        IServiceProvider serviceProvider, 
-        IContentEngineFileWatcher fileWatcher, 
+        IServiceProvider serviceProvider,
+        IContentEngineFileWatcher fileWatcher,
         ILogger<XrefResolver> logger)
     {
         _serviceProvider = serviceProvider;
         _fileWatcher = fileWatcher;
         _logger = logger;
-        
+
         // Initialize the cache with debounced refresh
         _crossReferencesCache = new LazyAndForgetful<ImmutableDictionary<string, string>>(
             BuildCrossReferenceDictionaryAsync,
             TimeSpan.FromMilliseconds(200) // 200ms debounce for content changes
         );
-        
+
         // Subscribe to file changes to invalidate cache
         _fileWatcher.SubscribeToMetadataUpdate(() =>
         {
@@ -83,14 +83,14 @@ public class XrefResolver : IXrefResolver, IDisposable
     private async Task<ImmutableDictionary<string, string>> BuildCrossReferenceDictionaryAsync()
     {
         _logger.LogDebug("Building cross-reference dictionary from all content services");
-        
+
         var builder = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.OrdinalIgnoreCase);
-        
+
         try
         {
             // Get all registered content services
             var contentServices = _serviceProvider.GetServices<IContentService>();
-            
+
             // Collect cross-references from all services
             var tasks = contentServices.Select(async service =>
             {
@@ -101,14 +101,14 @@ public class XrefResolver : IXrefResolver, IDisposable
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Failed to get cross-references from content service {ServiceType}", 
+                    _logger.LogWarning(ex, "Failed to get cross-references from content service {ServiceType}",
                         service.GetType().Name);
                     return ImmutableList<CrossReference>.Empty;
                 }
             });
-            
+
             var allCrossRefLists = await Task.WhenAll(tasks);
-            
+
             // Flatten and build dictionary
             foreach (var crossRefList in allCrossRefLists)
             {
@@ -122,7 +122,7 @@ public class XrefResolver : IXrefResolver, IDisposable
                     }
                 }
             }
-            
+
             var result = builder.ToImmutable();
             _logger.LogDebug("Built cross-reference dictionary with {Count} entries", result.Count);
             return result;
@@ -137,7 +137,7 @@ public class XrefResolver : IXrefResolver, IDisposable
     public void Dispose()
     {
         if (_disposed) return;
-        
+        _fileWatcher.Dispose();
         _crossReferencesCache.Dispose();
         _disposed = true;
         GC.SuppressFinalize(this);
