@@ -261,14 +261,16 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
     private static ImmutableDictionary<string, string> MarkdownAlertApplies()
     {
         const string alertFormatString =
-            "fill-{0}-700 dark:fill-{0}-500 bg-{0}-100/75  border-{0}-500/20 dark:border-{0}-500/30 dark:bg-{0}-900/25 text-{0}-800 dark:text-{0}-200";
+            "fill-{0}-700 dark:fill-{0}-500 bg-{0}-100/75 border-{0}-500/20 dark:border-{0}-500/30 dark:bg-{0}-900/25 text-{0}-800 dark:text-{0}-200";
 
+         
         
         return ImmutableDictionary.Create<string, string>()
             .AddRange(new Dictionary<string, string>
             {
                 // Markdig Alert Styles
                 { ".markdown-alert", "my-6 p-4 flex flex-row gap-2.5 rounded-2xl border text-sm" },
+                { ".markdown-alert a", "underline" },
                 { ".markdown-alert-note", string.Format(alertFormatString, "emerald") },
                 { ".markdown-alert-tip", string.Format(alertFormatString, "blue") },
                 { ".markdown-alert-caution", string.Format(alertFormatString, "amber") },

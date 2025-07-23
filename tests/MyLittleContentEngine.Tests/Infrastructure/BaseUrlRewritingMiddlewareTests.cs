@@ -33,12 +33,14 @@ public class BaseUrlRewritingMiddlewareTests
         
         var serviceProvider = services.BuildServiceProvider();
         
+        var xrefResolver = serviceProvider.GetRequiredService<IXrefResolver>();
         var middleware = new BaseUrlRewritingMiddleware(
             next: async (context) => {
                 var htmlContent = """<a href="xref:System.String">String Documentation</a>""";
                 await WriteHtmlResponse(context, htmlContent);
             },
-            options: options
+            options: options,
+            xrefResolver: xrefResolver
         );
 
         var context = CreateHttpContext(serviceProvider);
@@ -71,12 +73,14 @@ public class BaseUrlRewritingMiddlewareTests
         
         var serviceProvider = services.BuildServiceProvider();
         
+        var xrefResolver = serviceProvider.GetRequiredService<IXrefResolver>();
         var middleware = new BaseUrlRewritingMiddleware(
             next: async (context) => {
                 var htmlContent = """<a href="xref:UnknownType">Unknown Documentation</a>""";
                 await WriteHtmlResponse(context, htmlContent);
             },
-            options: options
+            options: options,
+            xrefResolver: xrefResolver
         );
 
         var context = CreateHttpContext(serviceProvider);
@@ -116,6 +120,7 @@ public class BaseUrlRewritingMiddlewareTests
         
         var serviceProvider = services.BuildServiceProvider();
         
+        var xrefResolver = serviceProvider.GetRequiredService<IXrefResolver>();
         var middleware = new BaseUrlRewritingMiddleware(
             next: async (context) => {
                 var htmlContent = """
@@ -124,7 +129,8 @@ public class BaseUrlRewritingMiddlewareTests
                     """;
                 await WriteHtmlResponse(context, htmlContent);
             },
-            options: options
+            options: options,
+            xrefResolver: xrefResolver
         );
 
         var context = CreateHttpContext(serviceProvider);
@@ -139,9 +145,9 @@ public class BaseUrlRewritingMiddlewareTests
     }
 
     [Fact]
-    public async Task InvokeAsync_WithoutXrefResolver_SkipsXrefProcessing()
+    public async Task InvokeAsync_WithEmptyXrefResolver_ShowsUnresolvedReferences()
     {
-        // Arrange - Don't register XrefResolver
+        // Arrange - XrefResolver with no cross-references
         var options = new ContentEngineOptions 
         { 
             BaseUrl = "/myapp",
@@ -150,8 +156,15 @@ public class BaseUrlRewritingMiddlewareTests
         };
         var services = new ServiceCollection();
         services.AddLogging();
+        services.AddSingleton<IContentEngineFileWatcher, MockContentEngineFileWatcher>();
+        
+        // Add empty content service but no xref resolver
+        var mockContentService = ServiceMockFactory.CreateContentServiceWithCrossReferences();
+        services.AddSingleton<IContentService>(mockContentService.Object);
+        services.AddSingleton<IXrefResolver, XrefResolver>();
         
         var serviceProvider = services.BuildServiceProvider();
+        var xrefResolver = serviceProvider.GetRequiredService<IXrefResolver>();
         
         var middleware = new BaseUrlRewritingMiddleware(
             next: async (context) => {
@@ -161,7 +174,8 @@ public class BaseUrlRewritingMiddlewareTests
                     """;
                 await WriteHtmlResponse(context, htmlContent);
             },
-            options: options
+            options: options,
+            xrefResolver: xrefResolver
         );
 
         var context = CreateHttpContext(serviceProvider);
@@ -171,8 +185,185 @@ public class BaseUrlRewritingMiddlewareTests
         
         // Assert
         var responseContent = await ReadResponseContent(context);
-        Assert.Contains("""<a href="xref:System.String">String Documentation</a>""", responseContent);
+        // Since XrefResolver is present but has no cross-references, unresolved xrefs should show error spans
+        Assert.DoesNotContain("""<a href="xref:System.String">""", responseContent);
+        Assert.Contains(""""data-xref-uid="System.String"""", responseContent);
+        Assert.Contains(""""data-xref-error="Reference not found"""", responseContent);
         Assert.Contains("""<a href="/myapp/docs/guide">Regular Link</a>""", responseContent);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WithXrefTag_ConvertsToLinkWithTitle()
+    {
+        // Arrange
+        var options = new ContentEngineOptions 
+        { 
+            BaseUrl = "/myapp",
+            SiteTitle = "Test Site",
+            SiteDescription = "Test Description"
+        };
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddSingleton<IContentEngineFileWatcher, MockContentEngineFileWatcher>();
+        
+        var mockContentService = ServiceMockFactory.CreateContentServiceWithCrossReferences(
+            new CrossReference { Uid = "docs.guides.linking-documents-and-media", Title = "Linking Documents and Media", Url = "/docs/guides/linking" }
+        );
+        services.AddSingleton<IContentService>(mockContentService.Object);
+        services.AddSingleton<IXrefResolver, XrefResolver>();
+        
+        var serviceProvider = services.BuildServiceProvider();
+        
+        var xrefResolver = serviceProvider.GetRequiredService<IXrefResolver>();
+        var middleware = new BaseUrlRewritingMiddleware(
+            next: async (context) => {
+                var htmlContent = """<xref:docs.guides.linking-documents-and-media>""";
+                await WriteHtmlResponse(context, htmlContent);
+            },
+            options: options,
+            xrefResolver: xrefResolver
+        );
+
+        var context = CreateHttpContext(serviceProvider);
+        
+        // Act
+        await middleware.InvokeAsync(context);
+        
+        // Assert
+        var responseContent = await ReadResponseContent(context);
+        Assert.Contains("""<a href="/myapp/docs/guides/linking">Linking Documents and Media</a>""", responseContent);
+        Assert.DoesNotContain("<xref:", responseContent);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WithUnresolvedXrefTag_ShowsErrorSpan()
+    {
+        // Arrange
+        var options = new ContentEngineOptions 
+        { 
+            BaseUrl = "/myapp",
+            SiteTitle = "Test Site",
+            SiteDescription = "Test Description"
+        };
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddSingleton<IContentEngineFileWatcher, MockContentEngineFileWatcher>();
+        
+        var mockContentService = ServiceMockFactory.CreateContentServiceWithCrossReferences();
+        services.AddSingleton<IContentService>(mockContentService.Object);
+        services.AddSingleton<IXrefResolver, XrefResolver>();
+        
+        var serviceProvider = services.BuildServiceProvider();
+        
+        var xrefResolver = serviceProvider.GetRequiredService<IXrefResolver>();
+        var middleware = new BaseUrlRewritingMiddleware(
+            next: async (context) => {
+                var htmlContent = """<xref:unknown.reference>""";
+                await WriteHtmlResponse(context, htmlContent);
+            },
+            options: options,
+            xrefResolver: xrefResolver
+        );
+
+        var context = CreateHttpContext(serviceProvider);
+        
+        // Act
+        await middleware.InvokeAsync(context);
+        
+        // Assert
+        var responseContent = await ReadResponseContent(context);
+        Assert.Contains(""""data-xref-uid="unknown.reference"""", responseContent);
+        Assert.Contains(""""data-xref-error="Reference not found"""", responseContent);
+        Assert.Contains("Reference not found: unknown.reference", responseContent);
+        Assert.DoesNotContain("<xref:", responseContent);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WithMatchingXrefHrefAndContent_ConvertsToLinkWithTitle()
+    {
+        // Arrange
+        var options = new ContentEngineOptions 
+        { 
+            BaseUrl = "/myapp",
+            SiteTitle = "Test Site",
+            SiteDescription = "Test Description"
+        };
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddSingleton<IContentEngineFileWatcher, MockContentEngineFileWatcher>();
+        
+        var mockContentService = ServiceMockFactory.CreateContentServiceWithCrossReferences(
+            new CrossReference { Uid = "docs.guides.linking-documents-and-media", Title = "Linking Documents and Media", Url = "/docs/guides/linking" }
+        );
+        services.AddSingleton<IContentService>(mockContentService.Object);
+        services.AddSingleton<IXrefResolver, XrefResolver>();
+        
+        var serviceProvider = services.BuildServiceProvider();
+        
+        var xrefResolver = serviceProvider.GetRequiredService<IXrefResolver>();
+        var middleware = new BaseUrlRewritingMiddleware(
+            next: async (context) => {
+                var htmlContent = """<a href="xref:docs.guides.linking-documents-and-media">xref:docs.guides.linking-documents-and-media</a>""";
+                await WriteHtmlResponse(context, htmlContent);
+            },
+            options: options,
+            xrefResolver: xrefResolver
+        );
+
+        var context = CreateHttpContext(serviceProvider);
+        
+        // Act
+        await middleware.InvokeAsync(context);
+        
+        // Assert
+        var responseContent = await ReadResponseContent(context);
+        Assert.Contains("""<a href="/myapp/docs/guides/linking">Linking Documents and Media</a>""", responseContent);
+        Assert.DoesNotContain("xref:docs.guides.linking-documents-and-media", responseContent);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WithMismatchedXrefHrefAndContent_DoesNotProcess()
+    {
+        // Arrange
+        var options = new ContentEngineOptions 
+        { 
+            BaseUrl = "/myapp",
+            SiteTitle = "Test Site",
+            SiteDescription = "Test Description"
+        };
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddSingleton<IContentEngineFileWatcher, MockContentEngineFileWatcher>();
+        
+        var mockContentService = ServiceMockFactory.CreateContentServiceWithCrossReferences(
+            new CrossReference { Uid = "docs.guides.linking-documents-and-media", Title = "Linking Documents and Media", Url = "/docs/guides/linking" }
+        );
+        services.AddSingleton<IContentService>(mockContentService.Object);
+        services.AddSingleton<IXrefResolver, XrefResolver>();
+        
+        var serviceProvider = services.BuildServiceProvider();
+        
+        var xrefResolver = serviceProvider.GetRequiredService<IXrefResolver>();
+        var middleware = new BaseUrlRewritingMiddleware(
+            next: async (context) => {
+                var htmlContent = """<a href="xref:docs.guides.linking-documents-and-media">Different Content</a>""";
+                await WriteHtmlResponse(context, htmlContent);
+            },
+            options: options,
+            xrefResolver: xrefResolver
+        );
+
+        var context = CreateHttpContext(serviceProvider);
+        
+        // Act
+        await middleware.InvokeAsync(context);
+        
+        // Assert
+        var responseContent = await ReadResponseContent(context);
+        // Should not be processed by our new pattern because href and content don't match
+        // It should be processed by the existing XrefPattern instead
+        Assert.Contains("""<a href="/myapp/docs/guides/linking">Different Content</a>""", responseContent);
+        Assert.DoesNotContain("xref:docs.guides.linking-documents-and-media", responseContent);
     }
 
     private static HttpContext CreateHttpContext(IServiceProvider serviceProvider)

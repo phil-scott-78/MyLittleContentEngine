@@ -9,6 +9,9 @@ When deploying your MyLittleContentEngine site to hosting services like GitHub P
 
 MyLittleContentEngine includes the `BaseUrlRewritingMiddleware` that automatically handles this by rewriting root-relative URLs in your HTML responses to include the configured base path.
 
+> [!NOTE]
+> For comprehensive information about link types, BaseUrl concepts, and testing strategies, see <xref:docs.guides.linking-documents-and-media>.
+
 ## How BaseUrl Rewriting Works
 
 The BaseUrlRewritingMiddleware performs two main functions:

@@ -30,16 +30,16 @@ By the end of this tutorial, you'll be able to:
 
 Before starting, ensure you have:
 
-- Completed the [Creating Your First Site](creating-first-site) tutorial
+- Completed the [Getting Started](xref:docs.getting-started.creating-first-site) tutorial
 - A .NET solution with XML documentation comments
-- Familiarity with [XML documentation ID syntax](../reference/xmldocid-format)
+- Familiarity with [XmlDocId](xref:docs.reference.xmldocid-format)
 
 <Steps>
 <Step stepNumber="1">
 ## Start with a Basic Site
 
 We'll start by copying the MinimalExample to create a new site with Roslyn integration. If you don't have the
-MinimalExample, follow the [Creating Your First Site](creating-first-site) tutorial first.
+MinimalExample, follow the [Creating First Site](xref:docs.getting-started.creating-first-site) tutorial first.
 
 </Step>
 
@@ -113,7 +113,7 @@ T:MyLittleContentEngine.ContentEngineOptions
 ```
 ``````
 
-This syntax allows you to reference specific code elements using [XML documentation ID syntax](../reference/xmldocid-format).
+This syntax allows you to reference specific code elements using [XML documentation ID syntax](xref:docs.reference.xmldocid-format).
 
 
 `bodyonly` can be added to `xmldocid` for scenarios where you only want the body of the method or type without the

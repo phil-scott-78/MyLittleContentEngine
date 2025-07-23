@@ -12,6 +12,9 @@ while providing enhanced customization capabilities. You'll learn to modify colo
 and override default styling. It's not required for MyLittleContentEngine, but the `MyLittleContentEngine.UI` package
 makes assumptions that it is configured, or at least TailwindCSS is configured compatibly.
 
+> [!NOTE]
+> For complete MonorailCSS configuration options and component styles, see [Monorail CSS Configuration](xref:docs.reference.monorail-css-configuration).
+
 ## Prerequisites
 
 Before customizing styling, ensure you have MonorailCSS configured in your application:

@@ -78,7 +78,16 @@ For linking to documented APIs and types:
 <!-- Link to API documentation -->
 [ContentService](xref:MyLittleContentEngine.ContentService)
 [Configuration Guide](xref:docs.guides.configuration)
+
+<!-- Shorthand syntax using xref tags -->
+<xref:MyLittleContentEngine.ContentService>
+<xref:docs.guides.configuration>
 ```
+
+The `<xref:uid>` syntax provides a convenient shorthand that automatically uses the target's title as the link text. Both approaches resolve to the same output, but the tag syntax is more concise when you want to use the document's actual title.
+
+> [!NOTE]
+> Cross-reference syntax works in both Markdown files and Razor pages. The processing happens during HTML generation, so you can use these patterns anywhere in your content.
 
 ### External Links
 For referencing external resources:

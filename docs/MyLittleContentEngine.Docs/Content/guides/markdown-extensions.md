@@ -32,7 +32,7 @@ server-side.
 
 The following rules are followed:
 
-1. If the [roslyn is connected](../getting-started/connecting-to-roslyn) and the code block is C# or VB.NET,
+1. If the [roslyn is connected](xref:docs.getting-started.connecting-to-roslyn) and the code block is C# or VB.NET,
    then
    Roslyn's [Microsoft.CodeAnalysis.Classification.Classifier](https://learn.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.classification.classifier.getclassifiedspans?view=roslyn-dotnet-3.0)
    will be used to highlight the code block. This ensures

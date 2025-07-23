@@ -18,6 +18,13 @@ public interface IXrefResolver
     /// <param name="uid">The UID to resolve (e.g., "System.String")</param>
     /// <returns>The resolved URL if found, null otherwise</returns>
     Task<string?> ResolveAsync(string uid);
+
+    /// <summary>
+    /// Resolves an xref UID to its corresponding CrossReference containing both URL and title.
+    /// </summary>
+    /// <param name="uid">The UID to resolve (e.g., "System.String")</param>
+    /// <returns>The resolved CrossReference if found, null otherwise</returns>
+    Task<CrossReference?> ResolveToReferenceAsync(string uid);
 }
 
 /// <summary>
@@ -29,7 +36,7 @@ public class XrefResolver : IXrefResolver, IDisposable
     private readonly IServiceProvider _serviceProvider;
     private readonly IContentEngineFileWatcher _fileWatcher;
     private readonly ILogger<XrefResolver> _logger;
-    private readonly LazyAndForgetful<ImmutableDictionary<string, string>> _crossReferencesCache;
+    private readonly LazyAndForgetful<ImmutableDictionary<string, CrossReference>> _crossReferencesCache;
     private bool _disposed;
 
     public XrefResolver(
@@ -42,7 +49,7 @@ public class XrefResolver : IXrefResolver, IDisposable
         _logger = logger;
 
         // Initialize the cache with debounced refresh
-        _crossReferencesCache = new LazyAndForgetful<ImmutableDictionary<string, string>>(
+        _crossReferencesCache = new LazyAndForgetful<ImmutableDictionary<string, CrossReference>>(
             BuildCrossReferenceDictionaryAsync,
             TimeSpan.FromMilliseconds(200) // 200ms debounce for content changes
         );
@@ -68,6 +75,29 @@ public class XrefResolver : IXrefResolver, IDisposable
         try
         {
             var crossReferences = await _crossReferencesCache.Value;
+            var crossRef = CollectionExtensions.GetValueOrDefault(crossReferences, uid);
+            return crossRef?.Url;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to resolve xref: {Uid}", uid);
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Resolves an xref UID to its corresponding CrossReference containing both URL and title.
+    /// </summary>
+    /// <param name="uid">The UID to resolve</param>
+    /// <returns>The resolved CrossReference if found, null otherwise</returns>
+    public async Task<CrossReference?> ResolveToReferenceAsync(string uid)
+    {
+        if (string.IsNullOrWhiteSpace(uid))
+            return null;
+
+        try
+        {
+            var crossReferences = await _crossReferencesCache.Value;
             return CollectionExtensions.GetValueOrDefault(crossReferences, uid);
         }
         catch (Exception ex)
@@ -80,11 +110,11 @@ public class XrefResolver : IXrefResolver, IDisposable
     /// <summary>
     /// Builds the cross-reference dictionary by collecting from all registered IContentService instances.
     /// </summary>
-    private async Task<ImmutableDictionary<string, string>> BuildCrossReferenceDictionaryAsync()
+    private async Task<ImmutableDictionary<string, CrossReference>> BuildCrossReferenceDictionaryAsync()
     {
         _logger.LogDebug("Building cross-reference dictionary from all content services");
 
-        var builder = ImmutableDictionary.CreateBuilder<string, string>(StringComparer.OrdinalIgnoreCase);
+        var builder = ImmutableDictionary.CreateBuilder<string, CrossReference>(StringComparer.OrdinalIgnoreCase);
 
         try
         {
@@ -118,7 +148,7 @@ public class XrefResolver : IXrefResolver, IDisposable
                     {
                         // If there are duplicates, the last one wins
                         // This allows content services with higher priority to override others
-                        builder[crossRef.Uid] = crossRef.Url;
+                        builder[crossRef.Uid] = crossRef;
                     }
                 }
             }
@@ -130,7 +160,7 @@ public class XrefResolver : IXrefResolver, IDisposable
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to build cross-reference dictionary");
-            return ImmutableDictionary<string, string>.Empty;
+            return ImmutableDictionary<string, CrossReference>.Empty;
         }
     }
 

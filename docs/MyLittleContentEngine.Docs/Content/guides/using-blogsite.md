@@ -11,6 +11,9 @@ The `MyLittleContentEngine.BlogSite` package provides a complete blog site solut
 > While functional, the `BlogSite` package drives the documentation for my personal blog. It can and will
 > change as this site changes. It is better suited as inspiration or proof-of-concepts than a blog you want total control over.
 
+> [!TIP]  
+> For documentation-style sites, see [Using DocSite](xref:docs.getting-started.using-docsite). For custom styling options, see <xref:docs.guides.configure-custom-styling>.
+
 ## What You'll Build
 
 You'll create a blog site with:

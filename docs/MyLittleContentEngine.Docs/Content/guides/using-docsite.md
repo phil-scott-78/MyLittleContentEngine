@@ -11,6 +11,9 @@ The `MyLittleContentEngine.DocSite` package provides a complete documentation si
 > While functional, the `DocSite` package drives the documentation for MyLittleContentEngine. It can and will
 > change as this site changes. It is better suited as inspiration or proof-of-concepts than production documentation.
 
+> [!TIP]
+> For blog-style sites, see [Using Blogsite](xref:docs.getting-started.using-blogsite). For API documentation generation, see <xref:docs.guides.generate-api-documentation>.
+
 ## What You'll Build
 
 You'll create a documentation site with:

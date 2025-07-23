@@ -23,7 +23,7 @@ By the end of this tutorial, you'll be able to:
 
 Before starting, ensure you have:
 
-- Completed the [Creating Your First Site](creating-first-site) tutorial
+- Completed the [Creating Your First Site](xref:docs.getting-started.creating-first-site) tutorial
 - A working MyLittleContentEngine site with multiple content pages
 - Basic familiarity with Blazor components and CSS
 
@@ -58,7 +58,7 @@ Inject the `LinkService` at the top of your `Components/App.razor`:
 ```
 
 Add the required scripts to your `Components/App.razor` file in head the closing `<head>` tag, ensuring to use the
-[LinkService](../guides/linking-documents-and-media) to generate the correct paths:
+<xref:docs.guides.linking-documents-and-media> to generate the correct paths:
 ```razor
 <script src="@LinkService.GetLink("/_content/MyLittleContentEngine.UI/scripts.js")" defer></script>
 ```

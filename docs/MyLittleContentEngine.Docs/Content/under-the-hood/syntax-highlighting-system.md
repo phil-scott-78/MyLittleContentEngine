@@ -7,6 +7,9 @@ order: 3020
 
 MyLittleContentEngine features a sophisticated multi-layered syntax highlighting system that provides server-side highlighting for optimal performance while maintaining broad language compatibility. The system uses a cascading approach with four different highlighting engines, each optimized for specific use cases.
 
+> [!NOTE]
+> To enable Roslyn syntax highlighting for C# and VB.NET, see [Connecting to Roslyn](xref:docs.getting-started.connecting-to-roslyn). For information about styling syntax highlighting, see [Monorail CSS Configuration](xref:docs.reference.monorail-css-configuration).
+
 ## Architecture Overview
 
 The syntax highlighting system follows a priority-based cascade that maximizes accuracy and performance:

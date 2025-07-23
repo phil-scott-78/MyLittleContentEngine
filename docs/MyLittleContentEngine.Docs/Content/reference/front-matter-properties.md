@@ -1,6 +1,7 @@
 ---
 title: "Front Matter Properties"
 description: "Reference guide for all available front matter properties and their usage"
+uid: "docs.reference.front-matter-properties"
 order: 4002
 ---
 
