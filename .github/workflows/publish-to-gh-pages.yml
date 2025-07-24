@@ -48,7 +48,34 @@ jobs:
           DOTNET_CLI_TELEMETRY_OPTOUT: true
         run: |
           dotnet build
-          dotnet run --environment ASPNETCORE_ENVIRONMENT=Production --project ${{ env.WEBAPP_PATH }}${{env.WEBAPP_CSPROJ}} --configuration Release -- build "/MyLittleContentEngine/"
+          dotnet run --environment ASPNETCORE_ENVIRONMENT=Production --project ${{ env.WEBAPP_PATH }} --configuration Release -- build "/MyLittleContentEngine/"
+
+      - name: Create examples directory
+        run: mkdir -p ${{ env.WEBAPP_PATH }}output/examples
+
+      - name: Build all example projects
+        env:
+          DOTNET_CLI_TELEMETRY_OPTOUT: true
+        run: |
+          # Build each example project
+          for example_dir in examples/*/; do
+            if [ -d "$example_dir" ] && [ -f "${example_dir%/}/"*.csproj ]; then
+              example_name=$(basename "$example_dir")
+              echo "Building example: $example_name"
+              
+              # Skip SingleFileApp as it doesn't follow the standard pattern
+              if [ "$example_name" = "SingleFileApp" ]; then
+                echo "Skipping SingleFileApp (different build pattern)"
+                continue
+              fi
+              
+              # Create output directory for this example
+              mkdir -p "${{ env.WEBAPP_PATH }}output/examples/$example_name"
+              
+              # Build the example with custom baseUrl and output path
+              dotnet run --project "$example_dir" --configuration Release -- build "/MyLittleContentEngine/examples/$example_name/" "output/examples/$example_name/"
+            fi
+          done
 
       - name: Install minify
         run: |
@@ -57,13 +84,13 @@ jobs:
 
       - name: Minify CSS and JavaScript files
         run: |
-          # Find and minify all CSS files
+          # Find and minify all CSS files (including examples)
           find "${{ env.WEBAPP_PATH }}output" -type f -name "*.css" | while read cssfile; do
             /usr/local/bin/minify -o "$cssfile" "$cssfile"
             echo "Minified $cssfile"
           done
 
-          # Find and minify all JavaScript files
+          # Find and minify all JavaScript files (including examples)
           find "${{ env.WEBAPP_PATH }}output" -type f -name "*.js" | while read jsfile; do
             /usr/local/bin/minify -o "$jsfile" "$jsfile"
             echo "Minified $jsfile"
