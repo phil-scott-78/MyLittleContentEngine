@@ -51,29 +51,29 @@ The Roslyn highlighter provides the most accurate syntax highlighting for .NET l
 ### Special Roslyn Features
 
 #### XML Documentation Integration
-```markdown
+`````markdown
 ```csharp:xmldocid
 T:System.Collections.Generic.List<T>.Add
 ```
-```
+`````
 
 This extracts the actual implementation of `List<T>.Add` from the loaded assemblies and highlights it with full semantic information.
 
 #### File Path Loading
-```markdown
+`````markdown
 ```csharp:path
 examples/MinimalExample/Program.cs
 ```
-```
+`````
 
 Loads and highlights external files from your solution, ensuring documentation stays in sync with actual code.
 
 #### Body-Only Documentation
-```markdown
+`````markdown
 ```csharp:xmldocid,bodyonly
 M:MyNamespace.MyClass.MyMethod
 ```
-```
+`````
 
 Shows only the method body without class declaration context.
 
@@ -311,141 +311,6 @@ class SyntaxHighlighter {
 }
 ```
 
-## Integration and Configuration
-
-### Markdig Pipeline Integration
-
-The syntax highlighting system integrates with Markdig through the `ColorCodingHighlighter` extension:
-
-```csharp
-public void Setup(MarkdownPipeline pipeline, IMarkdownRenderer renderer)
-{
-    // Replace default CodeBlockRenderer
-    var codeBlockRenderer = htmlRenderer.ObjectRenderers.FindExact<CodeBlockRenderer>();
-    if (codeBlockRenderer != null)
-    {
-        htmlRenderer.ObjectRenderers.Remove(codeBlockRenderer);
-    }
-    
-    // Add enhanced CodeHighlightRenderer
-    htmlRenderer.ObjectRenderers.AddIfNotAlready(
-        new CodeHighlightRenderer(roslynHighlighter, options)
-    );
-}
-```
-
-### CSS Class Consistency
-
-All highlighting layers output CSS classes compatible with Highlight.js themes:
-
-| Purpose | CSS Class | Usage |
-|---------|-----------|-------|
-| Keywords | `hljs-keyword` | `public`, `class`, `if` |
-| Types | `hljs-type` | `string`, `MyClass` |
-| Strings | `hljs-string` | `"hello world"` |
-| Numbers | `hljs-number` | `42`, `3.14` |
-| Comments | `hljs-comment` | `// comment` |
-| Functions | `hljs-title` | Function names |
-| Variables | `hljs-variable` | Variable names |
-| Built-ins | `hljs-built_in` | `console.log` |
-
-### Configuration Options
-
-The system supports customization through `CodeHighlightRenderOptions`:
-
-```csharp
-public record CodeHighlightRenderOptions
-{
-    public string OuterWrapperCss { get; init; } = "code-highlight-wrapper not-prose";
-    public string StandaloneContainerCss { get; init; } = "standalone-code-container";
-    public string PreBaseCss { get; init; } = "";
-    public string PreStandaloneCss { get; init; } = "standalone-code-highlight";
-}
-```
-
-## Performance Optimization
-
-### Server-Side Benefits
-
-- **Reduced JavaScript**: No client-side highlighting for server-rendered code
-- **Faster Initial Load**: Pre-highlighted HTML renders immediately
-- **SEO Friendly**: Search engines can read highlighted code structure
-- **Consistent Rendering**: No flash of unstyled content
-
-### Lazy Loading Strategy
-
-```javascript
-// Only load Highlight.js when needed
-if (document.querySelector('pre code.language-unknown')) {
-    await import('./highlight-module.js');
-}
-```
-
-### Memory Management
-
-- **TextMate Grammar Cache**: Grammars cached after first use
-- **Regex Compilation**: Generated regex patterns for optimal performance
-- **Token Reuse**: Minimizes object allocation during tokenization
-
-## Error Handling and Resilience
-
-### Graceful Degradation
-
-1. **Roslyn Unavailable**: Falls back to TextMateSharp or custom highlighters
-2. **Grammar Not Found**: Falls back to client-side highlighting
-3. **Client-Side Failure**: Displays plain text with basic styling
-4. **File Loading Errors**: Shows error message instead of crashing
-
-### Security Considerations
-
-- **File Path Validation**: Restricts file access to solution directory
-- **Timeout Protection**: Prevents infinite loops in tokenization
-- **HTML Escaping**: All user content is properly escaped
-- **CDN Integrity**: Client-side libraries loaded with integrity checks
-
-## Extension Points
-
-### Adding Custom Highlighters
-
-```csharp
-// Custom highlighter example
-internal static class CustomLanguageHighlighter
-{
-    public static string Highlight(string code)
-    {
-        var tokens = Tokenize(code);
-        return GenerateHtml(tokens);
-    }
-}
-
-// Integration in CodeHighlightRenderer
-case "customlang":
-    renderer.Write(CustomLanguageHighlighter.Highlight(code));
-    break;
-```
-
-### Theme Integration
-
-The system is designed to work with any Highlight.js-compatible theme:
-
-```css
-/* Custom theme example */
-.hljs-keyword { color: #ff7b72; }
-.hljs-string { color: #a5d6ff; }
-.hljs-comment { color: #8b949e; }
-.hljs-type { color: #79c0ff; }
-```
-
 ## Summary
 
-MyLittleContentEngine's syntax highlighting system provides comprehensive language support through a carefully orchestrated multi-layer architecture:
-
-- **52+ server-side languages** for optimal performance
-- **190+ client-side languages** for maximum compatibility  
-- **Specialized handling** for domain-specific languages
-- **Semantic accuracy** for .NET languages via Roslyn
-- **Consistent theming** across all highlighting engines
-- **Progressive enhancement** from server-side to client-side
-- **Extensible architecture** for adding new languages and highlighters
-
-This approach ensures fast, accurate syntax highlighting while maintaining broad language compatibility and excellent user experience.
+MyLittleContentEngine's syntax highlighting system provides comprehensive language support through a multi-layer architecture with 52+ server-side languages and 190+ client-side languages for maximum compatibility.

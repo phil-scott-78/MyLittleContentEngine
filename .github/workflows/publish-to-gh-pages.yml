@@ -62,18 +62,19 @@ jobs:
             if [ -d "$example_dir" ] && [ -f "${example_dir%/}/"*.csproj ]; then
               example_name=$(basename "$example_dir")
               echo "Building example: $example_name"
-              
+
               # Skip SingleFileApp as it doesn't follow the standard pattern
               if [ "$example_name" = "SingleFileApp" ]; then
                 echo "Skipping SingleFileApp (different build pattern)"
                 continue
               fi
-              
+
               # Create output directory for this example
               mkdir -p "${{ env.WEBAPP_PATH }}output/examples/$example_name"
-              
+
               # Build the example with custom baseUrl and output path
               dotnet run --project "$example_dir" --configuration Release -- build "/MyLittleContentEngine/examples/$example_name/" "../../docs/MyLittleContentEngine.Docs/output/examples/$example_name/"
+            fi
           done
 
       - name: Install minify

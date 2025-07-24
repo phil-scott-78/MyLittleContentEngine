@@ -209,7 +209,7 @@ When a cross-reference cannot be resolved, the middleware:
 <!-- Unresolved xref becomes: -->
 <span data-xref-error="Reference not found"
       data-xref-uid="Unknown.Type"
-      style="color: red; text-decoration: line-through;">
+      class="text-red-500 line-through">
   Unknown Type
 </span>
 ```
