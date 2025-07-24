@@ -73,8 +73,7 @@ jobs:
               mkdir -p "${{ env.WEBAPP_PATH }}output/examples/$example_name"
               
               # Build the example with custom baseUrl and output path
-              dotnet run --project "$example_dir" --configuration Release -- build "/MyLittleContentEngine/examples/$example_name/" "output/examples/$example_name/"
-            fi
+              dotnet run --project "$example_dir" --configuration Release -- build "/MyLittleContentEngine/examples/$example_name/" "../../docs/MyLittleContentEngine.Docs/output/examples/$example_name/"
           done
 
       - name: Install minify
