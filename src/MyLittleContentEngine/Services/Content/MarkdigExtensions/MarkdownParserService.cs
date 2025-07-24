@@ -20,6 +20,7 @@ internal class MarkdownParserService
     private readonly IServiceProvider _serviceProvider;
     private readonly IFileSystem _fileSystem;
     private readonly ContentEngineOptions _options;
+    private readonly OutputOptions? _outputOptions;
     private readonly MarkdownPipeline _pipeline;
 
     /// <summary>
@@ -29,13 +30,15 @@ internal class MarkdownParserService
     /// <param name = "serviceProvider">Service provider for dependency resolution</param>
     /// <param name="fileSystem">The file system.</param>
     /// <param name = "options">Options for configuring the Markdown processing behavior</param>
+    /// <param name = "outputOptions">Options for output configuration including base URL</param>
     public MarkdownParserService(ILogger<MarkdownParserService> logger, IServiceProvider serviceProvider, IFileSystem fileSystem,
-        ContentEngineOptions options)
+        ContentEngineOptions options, OutputOptions? outputOptions)
     {
         _logger = logger;
         _serviceProvider = serviceProvider;
         _fileSystem = fileSystem;
         _options = options;
+        _outputOptions = outputOptions;
 
         _pipeline = options.MarkdownPipelineBuilder.Invoke(serviceProvider);
     }
@@ -147,7 +150,7 @@ internal class MarkdownParserService
         using var writer = new StringWriter();
         var htmlRenderer = new HtmlRenderer(writer)
         {
-            LinkRewriter = s => LinkRewriter.RewriteUrl(s, baseUrl, _options.BaseUrl)
+            LinkRewriter = s => LinkRewriter.RewriteUrl(s, baseUrl, _outputOptions?.BaseUrl ?? string.Empty)
         };
         _pipeline.Setup(htmlRenderer);
         htmlRenderer.Render(document);

@@ -3,6 +3,7 @@ using System.IO.Abstractions.TestingHelpers;
 using System.Reflection;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging.Abstractions;
+using MyLittleContentEngine;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Content.TableOfContents;
@@ -25,7 +26,6 @@ public class RazorPageContentServiceTests
         {
             SiteTitle = "Test Site",
             SiteDescription = "Test Description", 
-            BaseUrl = "",
             IndexPageHtml = "index.html",
             FrontMatterDeserializer = new DeserializerBuilder()
                 .WithNamingConvention(CamelCaseNamingConvention.Instance)

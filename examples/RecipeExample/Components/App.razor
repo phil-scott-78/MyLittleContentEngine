@@ -1,4 +1,6 @@
-﻿<!DOCTYPE html>
+﻿@inject OutputOptions? OutputOptions
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8"/>
@@ -10,7 +12,10 @@
     <HeadOutlet/>
 </head>
 
-<body>
+<body data-base-url="@(OutputOptions?.BaseUrl ?? string.Empty)">
     <Routes/>
 </body>
 </html>
+
+@code {
+}

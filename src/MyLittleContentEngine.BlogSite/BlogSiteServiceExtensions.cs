@@ -44,10 +44,16 @@ public static class BlogSiteServiceExtensions
             {
                 SiteTitle = o.SiteTitle,
                 SiteDescription = o.Description,
-                BaseUrl = o.BaseUrl,
                 ContentRootPath = o.ContentRootPath,
                 CanonicalBaseUrl = o.CanonicalBaseUrl
             };
+        });
+
+        // Register OutputOptions from BlogSiteOptions
+        services.AddSingleton<OutputOptions>(sp =>
+        {
+            var o = sp.GetRequiredService<BlogSiteOptions>();
+            return new OutputOptions { BaseUrl = o.BaseUrl, OutputFolderPath = o.OutputPath};
         });
 
         // Configure content service

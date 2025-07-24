@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using MyLittleContentEngine;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Infrastructure;
@@ -15,11 +16,9 @@ public class BaseUrlRewritingMiddlewareTests
     public async Task InvokeAsync_WithXrefUrl_ResolvesAndRewritesCorrectly()
     {
         // Arrange
-        var options = new ContentEngineOptions 
+        var outputOptions = new OutputOptions 
         { 
-            BaseUrl = "/myapp",
-            SiteTitle = "Test Site",
-            SiteDescription = "Test Description"
+            BaseUrl = "/myapp"
         };
         var services = new ServiceCollection();
         services.AddLogging();
@@ -39,7 +38,7 @@ public class BaseUrlRewritingMiddlewareTests
                 var htmlContent = """<a href="xref:System.String">String Documentation</a>""";
                 await WriteHtmlResponse(context, htmlContent);
             },
-            options: options,
+            outputOptions: outputOptions,
             xrefResolver: xrefResolver
         );
 
@@ -57,11 +56,9 @@ public class BaseUrlRewritingMiddlewareTests
     public async Task InvokeAsync_WithUnresolvedXref_ShowsErrorSpan()
     {
         // Arrange
-        var options = new ContentEngineOptions 
+        var outputOptions = new OutputOptions 
         { 
-            BaseUrl = "/myapp",
-            SiteTitle = "Test Site",
-            SiteDescription = "Test Description"
+            BaseUrl = "/myapp"
         };
         var services = new ServiceCollection();
         services.AddLogging();
@@ -79,7 +76,7 @@ public class BaseUrlRewritingMiddlewareTests
                 var htmlContent = """<a href="xref:UnknownType">Unknown Documentation</a>""";
                 await WriteHtmlResponse(context, htmlContent);
             },
-            options: options,
+            outputOptions: outputOptions,
             xrefResolver: xrefResolver
         );
 
@@ -102,11 +99,9 @@ public class BaseUrlRewritingMiddlewareTests
     public async Task InvokeAsync_WithXrefAndBaseUrl_AppliesBothTransformations()
     {
         // Arrange
-        var options = new ContentEngineOptions 
+        var outputOptions = new OutputOptions 
         { 
-            BaseUrl = "/myapp",
-            SiteTitle = "Test Site",
-            SiteDescription = "Test Description"
+            BaseUrl = "/myapp"
         };
         var services = new ServiceCollection();
         services.AddLogging();
@@ -129,7 +124,7 @@ public class BaseUrlRewritingMiddlewareTests
                     """;
                 await WriteHtmlResponse(context, htmlContent);
             },
-            options: options,
+            outputOptions: outputOptions,
             xrefResolver: xrefResolver
         );
 
@@ -148,11 +143,9 @@ public class BaseUrlRewritingMiddlewareTests
     public async Task InvokeAsync_WithEmptyXrefResolver_ShowsUnresolvedReferences()
     {
         // Arrange - XrefResolver with no cross-references
-        var options = new ContentEngineOptions 
+        var outputOptions = new OutputOptions 
         { 
-            BaseUrl = "/myapp",
-            SiteTitle = "Test Site",
-            SiteDescription = "Test Description"
+            BaseUrl = "/myapp"
         };
         var services = new ServiceCollection();
         services.AddLogging();
@@ -174,7 +167,7 @@ public class BaseUrlRewritingMiddlewareTests
                     """;
                 await WriteHtmlResponse(context, htmlContent);
             },
-            options: options,
+            outputOptions: outputOptions,
             xrefResolver: xrefResolver
         );
 
@@ -196,11 +189,9 @@ public class BaseUrlRewritingMiddlewareTests
     public async Task InvokeAsync_WithXrefTag_ConvertsToLinkWithTitle()
     {
         // Arrange
-        var options = new ContentEngineOptions 
+        var outputOptions = new OutputOptions 
         { 
-            BaseUrl = "/myapp",
-            SiteTitle = "Test Site",
-            SiteDescription = "Test Description"
+            BaseUrl = "/myapp"
         };
         var services = new ServiceCollection();
         services.AddLogging();
@@ -220,7 +211,7 @@ public class BaseUrlRewritingMiddlewareTests
                 var htmlContent = """<xref:docs.guides.linking-documents-and-media>""";
                 await WriteHtmlResponse(context, htmlContent);
             },
-            options: options,
+            outputOptions: outputOptions,
             xrefResolver: xrefResolver
         );
 
@@ -239,11 +230,9 @@ public class BaseUrlRewritingMiddlewareTests
     public async Task InvokeAsync_WithUnresolvedXrefTag_ShowsErrorSpan()
     {
         // Arrange
-        var options = new ContentEngineOptions 
+        var outputOptions = new OutputOptions 
         { 
-            BaseUrl = "/myapp",
-            SiteTitle = "Test Site",
-            SiteDescription = "Test Description"
+            BaseUrl = "/myapp"
         };
         var services = new ServiceCollection();
         services.AddLogging();
@@ -261,7 +250,7 @@ public class BaseUrlRewritingMiddlewareTests
                 var htmlContent = """<xref:unknown.reference>""";
                 await WriteHtmlResponse(context, htmlContent);
             },
-            options: options,
+            outputOptions: outputOptions,
             xrefResolver: xrefResolver
         );
 
@@ -282,11 +271,9 @@ public class BaseUrlRewritingMiddlewareTests
     public async Task InvokeAsync_WithMatchingXrefHrefAndContent_ConvertsToLinkWithTitle()
     {
         // Arrange
-        var options = new ContentEngineOptions 
+        var outputOptions = new OutputOptions 
         { 
-            BaseUrl = "/myapp",
-            SiteTitle = "Test Site",
-            SiteDescription = "Test Description"
+            BaseUrl = "/myapp"
         };
         var services = new ServiceCollection();
         services.AddLogging();
@@ -306,7 +293,7 @@ public class BaseUrlRewritingMiddlewareTests
                 var htmlContent = """<a href="xref:docs.guides.linking-documents-and-media">xref:docs.guides.linking-documents-and-media</a>""";
                 await WriteHtmlResponse(context, htmlContent);
             },
-            options: options,
+            outputOptions: outputOptions,
             xrefResolver: xrefResolver
         );
 
@@ -325,11 +312,9 @@ public class BaseUrlRewritingMiddlewareTests
     public async Task InvokeAsync_WithMismatchedXrefHrefAndContent_DoesNotProcess()
     {
         // Arrange
-        var options = new ContentEngineOptions 
+        var outputOptions = new OutputOptions 
         { 
-            BaseUrl = "/myapp",
-            SiteTitle = "Test Site",
-            SiteDescription = "Test Description"
+            BaseUrl = "/myapp"
         };
         var services = new ServiceCollection();
         services.AddLogging();
@@ -349,7 +334,7 @@ public class BaseUrlRewritingMiddlewareTests
                 var htmlContent = """<a href="xref:docs.guides.linking-documents-and-media">Different Content</a>""";
                 await WriteHtmlResponse(context, htmlContent);
             },
-            options: options,
+            outputOptions: outputOptions,
             xrefResolver: xrefResolver
         );
 

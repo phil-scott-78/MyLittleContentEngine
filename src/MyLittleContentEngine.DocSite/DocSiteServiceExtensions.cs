@@ -1,5 +1,6 @@
 using Mdazor;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using MonorailCss;
 using MyLittleContentEngine.DocSite.Components;
@@ -44,10 +45,16 @@ public static class DocSiteServiceExtensions
             {
                 SiteTitle = options.SiteTitle,
                 SiteDescription = options.Description,
-                BaseUrl = options.BaseUrl,
                 ContentRootPath = options.ContentRootPath,
                 CanonicalBaseUrl = options.CanonicalBaseUrl
             };
+        });
+
+        // Register OutputOptions from DocSiteOptions
+        services.AddSingleton<OutputOptions>(sp =>
+        {
+            var options = sp.GetRequiredService<DocSiteOptions>();
+            return new OutputOptions { BaseUrl = options.BaseUrl, OutputFolderPath = options.OutputPath};
         });
 
         // Configure content service

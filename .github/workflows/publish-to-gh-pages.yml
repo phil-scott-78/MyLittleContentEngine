@@ -45,11 +45,10 @@ jobs:
          
       - name: Run webapp and generate static files
         env:
-          BaseUrl: "/MyLittleContentEngine/"
           DOTNET_CLI_TELEMETRY_OPTOUT: true
         run: |
           dotnet build
-          dotnet run --environment ASPNETCORE_ENVIRONMENT=Production --project ${{ env.WEBAPP_PATH }}${{env.WEBAPP_CSPROJ}} --configuration Release -- build
+          dotnet run --environment ASPNETCORE_ENVIRONMENT=Production --project ${{ env.WEBAPP_PATH }}${{env.WEBAPP_CSPROJ}} --configuration Release -- build "/MyLittleContentEngine/"
 
       - name: Install minify
         run: |

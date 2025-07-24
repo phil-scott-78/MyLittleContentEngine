@@ -1,6 +1,7 @@
 @using Microsoft.AspNetCore.WebUtilities
 @inject ContentEngineOptions Options
 @inject BlogSiteOptions BlogOptions
+@inject OutputOptions? OutputOptions
 @inject IWebHostEnvironment WebHostEnvironment
 <!DOCTYPE html>
 <html lang="en">
@@ -34,7 +35,7 @@
     <PageTitle>@Options.SiteTitle</PageTitle>
 </head>
 
-<body>
+<body data-base-url="@(_baseHref)" data-mobile-menu-open="false" class="data-[mobile-menu-open=true]:overflow-hidden">
     <Routes/>
 </body>
 </html>
@@ -49,7 +50,7 @@
 
     protected override void OnInitialized()
     {
-        _baseHref = Options.BaseUrl;
+        _baseHref = OutputOptions?.BaseUrl ?? string.Empty;
         base.OnInitialized();
     }
 

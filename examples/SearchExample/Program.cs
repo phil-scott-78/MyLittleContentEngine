@@ -1,4 +1,5 @@
 ﻿using MonorailCss;
+using MyLittleContentEngine;
 using MyLittleContentEngine.DocSite;
 using MyLittleContentEngine.Services.Content;
 using SearchExample.Services;
@@ -6,13 +7,12 @@ using Random = SearchExample.Services.Random;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDocSite(_ => new DocSiteOptions()
+builder.Services.AddDocSite(_ => new DocSiteOptions(args)
 {
     // Basic site information
     SiteTitle = "Random Content Site",
     Description = "Random content site for demonstration purposes.",
     CanonicalBaseUrl = "https://mydocs.example.com",
-    BaseUrl = "/",
 
     // Styling and branding
     PrimaryHue = 235, // Blue theme (0-360)
@@ -54,6 +54,9 @@ builder.Services.AddDocSite(_ => new DocSiteOptions()
     
     AdditionalRoutingAssemblies = [typeof(Random).Assembly]
 });
+
+// Register OutputOptions to handle command line arguments and environment variables
+builder.Services.AddOutputOptions(args);
 
 builder.Services.AddSingleton<RandomContentService>();
 

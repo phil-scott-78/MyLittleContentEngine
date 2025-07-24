@@ -13,9 +13,11 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 {
     SiteTitle = "My Little Content Engine",
     SiteDescription = "An Inflexible Content Engine for .NET",
-    BaseUrl =  Environment.GetEnvironmentVariable("BaseUrl") ?? "/",
     ContentRootPath = "Content",
 });
+
+// Register OutputOptions to handle command line arguments and environment variables
+builder.Services.AddOutputOptions(args);
 
 builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<ContentFrontMatter>()
 {

@@ -4,6 +4,7 @@
 @using MyLittleContentEngine.Services.Content
 @inject IWebHostEnvironment WebHostEnvironment
 @inject DocSiteOptions DocSiteOptions
+@inject OutputOptions? OutputOptions
 
 <!DOCTYPE html>
 <html lang="en">
@@ -32,7 +33,7 @@
     <HeadOutlet/>
 </head>
 
-<body data-base-url="/" data-mobile-menu-open="false" class="data-[mobile-menu-open=true]:overflow-hidden ">
+<body data-base-url="@(OutputOptions?.BaseUrl ?? string.Empty)" data-mobile-menu-open="false" class="data-[mobile-menu-open=true]:overflow-hidden ">
 <div>
     <Routes/>
 </div>

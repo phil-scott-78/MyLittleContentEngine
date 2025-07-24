@@ -22,7 +22,8 @@
       "Bash(dotnet script:*)",
       "Bash(dotnet sln:*)",
       "Bash(dotnet restore:*)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "Bash(BaseHref=\"/env-base-url\" dotnet run)"
     ]
   },
   "model": "sonnet",

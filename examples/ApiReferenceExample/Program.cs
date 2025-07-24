@@ -14,9 +14,11 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 {
     SiteTitle = "API Reference Example",
     SiteDescription = "Demonstrating API Reference Content Service",
-    BaseUrl =  Environment.GetEnvironmentVariable("BaseUrl") ?? "/",
     ContentRootPath = "Content",
 });
+
+// Register OutputOptions to handle command line arguments and environment variables
+builder.Services.AddOutputOptions(args);
 
 // configures individual sections of the blog. PageUrl should match the configured razor pages route,
 // and contentPath should match the location on disk.

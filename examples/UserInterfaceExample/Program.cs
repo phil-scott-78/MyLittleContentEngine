@@ -13,9 +13,11 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 {
     SiteTitle = "Daily Life Hub",
     SiteDescription = "Your everyday life, simplified",
-    BaseUrl =  Environment.GetEnvironmentVariable("BaseUrl") ?? "/",
     ContentRootPath = "Content",
 });
+
+// Register OutputOptions to handle command line arguments and environment variables
+builder.Services.AddOutputOptions(args);
 
 builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<DocsFrontMatter>()
 {

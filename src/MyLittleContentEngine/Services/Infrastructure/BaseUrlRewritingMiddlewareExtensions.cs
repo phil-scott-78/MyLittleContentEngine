@@ -11,7 +11,7 @@ public static class BaseUrlRewritingMiddlewareExtensions
     /// <summary>
     /// Adds BaseUrlRewritingMiddleware to the application pipeline.
     /// This middleware automatically rewrites root-relative URLs in HTML responses
-    /// to include the configured BaseUrl from ContentEngineOptions.
+    /// to include the configured BaseUrl from OutputOptions.
     /// </summary>
     /// <param name="app">The application builder</param>
     /// <returns>The application builder for method chaining</returns>
@@ -23,7 +23,7 @@ public static class BaseUrlRewritingMiddlewareExtensions
     /// </para>
     /// <para>
     /// The middleware only processes HTML responses (Content-Type: text/html)
-    /// and only when ContentEngineOptions.BaseUrl is set to something other than "/".
+    /// and only when OutputOptions.BaseUrl is set to something other than an empty string.
     /// </para>
     /// <para>
     /// Example usage:

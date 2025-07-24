@@ -18,6 +18,7 @@ namespace MyLittleContentEngine.Services.Generation;
 /// <param name="contentServiceCollection">Collection of content services picroviding pages to generate and content to copy</param>
 /// <param name="routeHelper">Service for discovering configured ASP.NET routes.</param>
 /// <param name="options">Configuration options for the static generation process</param>
+/// <param name="outputOptions">Output configuration options including folder path</param>
 /// <param name="serviceProvider">Service provider for accessing registered content options</param>
 /// <param name="logger">Logger for diagnostic output</param>
 internal class OutputGenerationService(
@@ -26,6 +27,7 @@ internal class OutputGenerationService(
     IFileSystem fileSystem,
     RoutesHelperService routeHelper,
     ContentEngineOptions options,
+    OutputOptions outputOptions,
     IServiceProvider serviceProvider,
     ILogger<OutputGenerationService> logger)
 {
@@ -86,16 +88,16 @@ internal class OutputGenerationService(
         pagesToGenerate = pagesToGenerate.AddRange(routeHelper.GetMapGetRoutes(), Priority.MustBeLast);
 
         // Clear and recreate the output directory
-        if (_fileSystem.Directory.Exists(options.OutputFolderPath))
+        if (_fileSystem.Directory.Exists(outputOptions.OutputFolderPath))
         {
-            _fileSystem.Directory.Delete(options.OutputFolderPath, true);
+            _fileSystem.Directory.Delete(outputOptions.OutputFolderPath, true);
         }
-        _fileSystem.Directory.CreateDirectory(options.OutputFolderPath);
+        _fileSystem.Directory.CreateDirectory(outputOptions.OutputFolderPath);
 
         // Prepare paths to ignore during content copy
         var ignoredPathsWithOutputFolder = options
             .IgnoredPathsOnContentCopy
-            .Select(x => _fileSystem.Path.Combine(options.OutputFolderPath, x))
+            .Select(x => _fileSystem.Path.Combine(outputOptions.OutputFolderPath, x))
             .ToList();
 
         var contentToCopy = ImmutableList<ContentToCopy>.Empty;
@@ -142,7 +144,7 @@ internal class OutputGenerationService(
         // Copy all content to the output directory
         foreach (var pathToCopy in contentToCopy)
         {
-            var targetPath = _fileSystem.Path.Combine(options.OutputFolderPath, pathToCopy.TargetPath);
+            var targetPath = _fileSystem.Path.Combine(outputOptions.OutputFolderPath, pathToCopy.TargetPath);
 
             logger.LogInformation("Copying {sourcePath} to {targetPath}", pathToCopy.SourcePath, targetPath);
             CopyContent(pathToCopy.SourcePath, targetPath, ignoredPathsWithOutputFolder);
@@ -158,7 +160,7 @@ internal class OutputGenerationService(
         // Create content files in the output directory
         foreach (var contentItem in contentToCreate)
         {
-            var targetPath = _fileSystem.Path.Combine(options.OutputFolderPath, contentItem.TargetPath.TrimStart('/'));
+            var targetPath = _fileSystem.Path.Combine(outputOptions.OutputFolderPath, contentItem.TargetPath.TrimStart('/'));
             
             var directoryPath = _fileSystem.Path.GetDirectoryName(targetPath);
             if (!string.IsNullOrEmpty(directoryPath))
@@ -212,7 +214,7 @@ internal class OutputGenerationService(
                         return;
                     }
 
-                    var outFilePath = _fileSystem.Path.Combine(options.OutputFolderPath, page.OutputFile.TrimStart('/'));
+                    var outFilePath = _fileSystem.Path.Combine(outputOptions.OutputFolderPath, page.OutputFile.TrimStart('/'));
 
                     var directoryPath = _fileSystem.Path.GetDirectoryName(outFilePath);
                     if (!string.IsNullOrEmpty(directoryPath))
@@ -238,7 +240,7 @@ internal class OutputGenerationService(
                         return;
                     }
 
-                    var outFilePath = _fileSystem.Path.Combine(options.OutputFolderPath, page.OutputFile.TrimStart('/'));
+                    var outFilePath = _fileSystem.Path.Combine(outputOptions.OutputFolderPath, page.OutputFile.TrimStart('/'));
 
                     var directoryPath = _fileSystem.Path.GetDirectoryName(outFilePath);
                     if (!string.IsNullOrEmpty(directoryPath))

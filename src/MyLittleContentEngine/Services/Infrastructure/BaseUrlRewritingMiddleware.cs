@@ -48,11 +48,11 @@ public partial class BaseUrlRewritingMiddleware
     // Pattern to match <a href="xref:uid">xref:uid</a> where href and content must match
     private static readonly Regex XrefLinkPattern = XrefLinkRegex();
 
-    public BaseUrlRewritingMiddleware(RequestDelegate next, ContentEngineOptions options, IXrefResolver xrefResolver)
+    public BaseUrlRewritingMiddleware(RequestDelegate next, OutputOptions? outputOptions, IXrefResolver xrefResolver)
     {
         _next = next;
         _xrefResolver = xrefResolver;
-        _baseUrl = options.BaseUrl;
+        _baseUrl = outputOptions?.BaseUrl ?? string.Empty;
     }
 
     public async Task InvokeAsync(HttpContext context)

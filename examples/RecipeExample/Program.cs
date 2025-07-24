@@ -17,9 +17,11 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 {
     SiteTitle = "Recipe Collection",
     SiteDescription = "CookLang Recipe Website",
-    BaseUrl =  Environment.GetEnvironmentVariable("BaseUrl") ?? "/",
     ContentRootPath = "recipes",
 });
+
+// Register OutputOptions to handle command line arguments and environment variables
+builder.Services.AddOutputOptions(args);
 
 builder.Services.AddRecipeContentService(options =>
 {

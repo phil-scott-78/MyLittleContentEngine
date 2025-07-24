@@ -9,6 +9,22 @@ namespace MyLittleContentEngine.DocSite;
 /// </summary>
 public class DocSiteOptions
 {
+    public DocSiteOptions(string[] args)
+    {
+        if (args.Length <= 0) return;
+        if (args[0] != "build") return;
+        
+        if (args.Length > 1)
+        {
+            BaseUrl = args[1];
+        }
+
+        if (args.Length > 2)
+        {
+            OutputPath = args[2];
+        }
+    }
+
     /// <summary>
     /// The primary hue for the site's color scheme (0-360)
     /// </summary>
@@ -67,7 +83,12 @@ public class DocSiteOptions
     /// <summary>
     /// Base URL for the site (used for routing)
     /// </summary>
-    public required string BaseUrl { get; init; }
+    public string BaseUrl { get; } = "/";
+
+    /// <summary>
+    /// The output path for the static site generation. Default to output.
+    /// </summary>
+    public string OutputPath { get; } = "output";
 
     /// <summary>
     /// Additional CSS styles to include
