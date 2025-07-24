@@ -72,10 +72,10 @@ using MyLittleContentEngine.DocSite;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDocSite(options =>
+builder.Services.AddDocSite(_ => new DocSiteOptions(args)
 {
-    options.SiteTitle = "My Documentation Site";
-    options.Description = "Documentation for my project";
+    SiteTitle = "My Documentation Site",
+    Description = "Documentation for my project",
 });
 
 var app = builder.Build();
@@ -133,22 +133,22 @@ This is the home page of our documentation site. You can write content using Mar
 You can customize various aspects of your documentation site by modifying the options in `Program.cs`:
 
 ```csharp
-builder.Services.AddDocSite(options =>
+builder.Services.AddDocSite(_ => new DocSiteOptions(args)
 {
     // Basic site information
-    options.SiteTitle = "My Documentation Site";
-    options.Description = "Comprehensive documentation for my project";
-    options.CanonicalBaseUrl = "https://mydocs.example.com";
+    SiteTitle = "My Documentation Site",
+    Description = "Comprehensive documentation for my project",
+    CanonicalBaseUrl = "https://mydocs.example.com",
     
     // Styling and branding
-    options.PrimaryHue = 235; // Blue theme (0-360)
-    options.BaseColorName = "Zinc"; // Base color palette
-    options.GitHubUrl = "https://github.com/myuser/myproject";
+    PrimaryHue = 235, // Blue theme (0-360)
+    BaseColorName = "Zinc", // Base color palette
+    GitHubUrl = "https://github.com/myuser/myproject",
     
     // API Documentation (optional)
-    options.SolutionPath = "../../MySolution.sln";
-    options.IncludeNamespaces = ["MyProject", "MyProject.Core"];
-    options.ExcludeNamespaces = ["MyProject.Tests"];
+    SolutionPath = "../../MySolution.sln",
+    IncludeNamespaces = ["MyProject", "MyProject.Core"],
+    ExcludeNamespaces = ["MyProject.Tests"],
     
     // Advanced customization
     options.ExtraStyles = """

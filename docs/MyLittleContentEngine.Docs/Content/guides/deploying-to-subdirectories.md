@@ -5,12 +5,17 @@ uid: "docs.guides.deploying-to-subdirectories"
 order: 2200
 ---
 
-When deploying your MyLittleContentEngine site to hosting services like GitHub Pages, Azure Static Web Apps, or any other host where your site runs in a subdirectory (e.g., `https://mysite.com/my-app/`), you need to configure BaseUrl rewriting to ensure all links work correctly.
+When deploying your MyLittleContentEngine site to hosting services like GitHub Pages, Azure Static Web Apps, or any
+other host where your site runs in a subdirectory (e.g., `https://mysite.com/my-app/`), you need to configure BaseUrl
+rewriting to ensure all links work correctly.
 
-MyLittleContentEngine includes the `BaseUrlRewritingMiddleware` that automatically handles this by rewriting root-relative URLs in your HTML responses to include the configured base path.
+MyLittleContentEngine includes the `BaseUrlRewritingMiddleware` that automatically handles this by rewriting
+root-relative URLs in your HTML responses to include the configured base path. You can configure the BaseUrl either
+through command line arguments during build or programmatically in your application.
 
 > [!NOTE]
-> For comprehensive information about link types, BaseUrl concepts, and testing strategies, see <xref:docs.guides.linking-documents-and-media>.
+> For comprehensive information about link types, BaseUrl concepts, and testing strategies,
+> see <xref:docs.guides.linking-documents-and-media>.
 
 ## How BaseUrl Rewriting Works
 
@@ -50,18 +55,47 @@ With `BaseUrl = "/my-app"`, the middleware transforms:
 
 <Steps>
 <Step stepNumber="1">
-## Set BaseUrl in ContentEngineOptions
+## Configure BaseUrl Using Command Line Arguments
 
-Configure your BaseUrl in the `ContentEngineOptions`:
+The recommended approach is to configure BaseUrl using command line arguments during the build process. This allows you
+to specify different BaseUrl values for different deployment environments without modifying your code.
+
+### Using Build Command Arguments
+
+```bash
+# For subdirectory deployment
+dotnet run -- build "/my-app"
+
+# For custom output directory
+dotnet run -- build "/my-app" "custom-output"
+
+# For root deployment
+dotnet run -- build "/"
+```
+
+### Register OutputOptions (Recommended)
+
+Add OutputOptions to your Program.cs to support command line arguments:
 
 ```csharp
+// Register OutputOptions to support command line arguments
+builder.Services.AddOutputOptions(args);
+
 builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 {
     SiteTitle = "My Site",
     SiteDescription = "My awesome site",
-    BaseUrl = "/my-app", // Your subdirectory path
     ContentRootPath = "Content",
 });
+```
+
+### Alternative: Environment Variable Fallback
+
+If you need environment variable support as a fallback:
+
+```csharp
+// This will use command line args first, then fall back to BaseHref environment variable
+builder.Services.AddOutputOptions(args);
 ```
 
 ### BaseUrl Guidelines
@@ -69,28 +103,13 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 - **Include leading slash**: Use `/my-app`, not `my-app`
 - **No trailing slash**: Use `/my-app`, not `/my-app/`
 - **Root deployment**: Use `/` for root directory deployment
-- **Environment variables**: Use environment variables for different deployment targets
-
-```csharp
-BaseUrl = Environment.GetEnvironmentVariable("BaseUrl") ?? "/",
-```
-</Step>
+- **Command line takes precedence**: Command line arguments override environment variables
+  </Step>
 
 <Step stepNumber="2">
-## Configure Static Generation
+## Configure Static Generation with GitHub Actions
 
-For static site generation, ensure your build process uses the correct BaseUrl:
-
-```csharp
-// Use environment variable for different deployment targets
-builder.Services.AddContentEngineService(_ => new ContentEngineOptions
-{
-    SiteTitle = "My Site",
-    SiteDescription = "My awesome site",
-    BaseUrl = Environment.GetEnvironmentVariable("BaseUrl") ?? "/",
-    ContentRootPath = "Content",
-});
-```
+For static site generation, use command line arguments in your build process:
 
 ### GitHub Actions Example
 
@@ -98,70 +117,69 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 name: Build and publish to GitHub Pages
 
 on:
-   push:
-      branches: [ "*" ]
-   pull_request:
-      branches: [ "main" ]
+  push:
+    branches: [ "*" ]
+  pull_request:
+    branches: [ "main" ]
 
 env:
-   ASPNETCORE_ENVIRONMENT: Production
-   WEBAPP_PATH: ./src/MyContentSite/
-   WEBAPP_CSPROJ: MyContentSite.csproj
+  ASPNETCORE_ENVIRONMENT: Production
+  WEBAPP_PATH: ./src/MyContentSite/
+  WEBAPP_CSPROJ: MyContentSite.csproj
 
 permissions:
-   contents: read
-   pages: write
-   id-token: write
+  contents: read
+  pages: write
+  id-token: write
 
 # Allow only one concurrent deployment
 concurrency:
-   group: "pages"
-   cancel-in-progress: false
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
-   build:
-      runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest
 
-      steps:
-         - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-         - name: Install .NET
-           uses: actions/setup-dotnet@v4
-           with:
-              global-json-file: global.json
+      - name: Install .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
 
-         - name: Build the Project
-           run: |
-              dotnet build
+      - name: Build the Project
+        run: |
+          dotnet build
 
-         - name: Run webapp and generate static files
-           run: |
-              set BaseHref="/"
-              dotnet run --project ${{ env.WEBAPP_PATH }}${{env.WEBAPP_CSPROJ}} --configuration Release -- build
+      - name: Run webapp and generate static files
+        run: |
+          dotnet run --project ${{ env.WEBAPP_PATH }}${{env.WEBAPP_CSPROJ}} --configuration Release -- build "/your-repository-name/"
 
-         - name: Setup Pages
-           uses: actions/configure-pages@v4
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
 
-         - name: Upload artifact
-           uses: actions/upload-pages-artifact@v3
-           with:
-              path: ${{ env.WEBAPP_PATH }}output
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ${{ env.WEBAPP_PATH }}output
 
-   deploy:
-      environment:
-         name: github-pages
-         url: ${{ steps.deployment.outputs.page_url }}
-      runs-on: ubuntu-latest
-      needs: build
-      if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true)
-      steps:
-         - name: Deploy to GitHub Pages
-           id: deployment
-           uses: actions/deploy-pages@v4
-
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || (github.event_name == 'pull_request' && github.event.action == 'closed' && github.event.pull_request.merged == true)
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 ```
-</Step>
-</Steps>
+
+  </Step>
+  </Steps>
 
 ## Cross-Reference Resolution
 
@@ -184,13 +202,13 @@ When a cross-reference cannot be resolved, the middleware:
 1. **Preserves the link text** for user experience
 2. **Adds error styling** with red color and strikethrough
 3. **Includes debug attributes** for troubleshooting:
-   - `data-xref-error="Reference not found"`
-   - `data-xref-uid="the-unresolved-uid"`
+    - `data-xref-error="Reference not found"`
+    - `data-xref-uid="the-unresolved-uid"`
 
 ```html
 <!-- Unresolved xref becomes: -->
-<span data-xref-error="Reference not found" 
-      data-xref-uid="Unknown.Type" 
+<span data-xref-error="Reference not found"
+      data-xref-uid="Unknown.Type"
       style="color: red; text-decoration: line-through;">
   Unknown Type
 </span>
@@ -198,13 +216,16 @@ When a cross-reference cannot be resolved, the middleware:
 
 ## Best Practices
 
-1. **Use environment variables** for BaseUrl to support multiple deployment targets
-2. **Use root-relative URLs** in your content (`/page` not `page`)
-3. **Test locally** with different BaseUrl values to ensure functionality
-4. **Monitor for unresolved xrefs** using browser developer tools to check for error attributes
-5. **Use LinkService** in Blazor components for consistent URL generation
+1. **Use command line arguments** for BaseUrl to support multiple deployment targets
+2. **Register OutputOptions** in your Program.cs to support command line configuration
+3. **Use root-relative URLs** in your content (`/page` not `page`)
+4. **Test locally** with different BaseUrl values using: `dotnet run -- build "/test-path"`
+5. **Monitor for unresolved xrefs** using browser developer tools to check for error attributes
+6. **Use LinkService** in Blazor components for consistent URL generation
 
 > [!TIP]
-> For guidance on choosing the right link types and linking best practices, see the [Linking Documents and Media](xref:docs.guides.linking-documents-and-media) guide.
+> For guidance on choosing the right link types and linking best practices, see
+> the [Linking Documents and Media](xref:docs.guides.linking-documents-and-media) guide.
 
-The BaseUrlRewritingMiddleware makes subdirectory deployment seamless while maintaining the flexibility to deploy to different environments without code changes.
+The BaseUrlRewritingMiddleware makes subdirectory deployment seamless while maintaining the flexibility to deploy to
+different environments without code changes.

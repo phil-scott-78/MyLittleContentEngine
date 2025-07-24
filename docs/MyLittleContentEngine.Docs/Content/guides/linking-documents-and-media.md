@@ -23,16 +23,18 @@ rewriting handles this complexity for you.
 
 ## Understanding BaseUrl
 
-The `BaseUrl` setting in `ContentEngineOptions` tells MyLittleContentEngine where your site will be deployed. This is critical for ensuring links work across different deployment scenarios.
+The `BaseUrl` setting tells MyLittleContentEngine where your site will be deployed. This is critical for ensuring links work across different deployment scenarios and is now configured via command line arguments using OutputOptions.
 
 ### Quick BaseUrl Setup
 
 ```csharp
+// Register OutputOptions to handle BaseUrl from command line arguments
+builder.Services.AddOutputOptions(args);
+
 builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 {
     SiteTitle = "My Documentation Site",
     SiteDescription = "Technical documentation",
-    BaseUrl = Environment.GetEnvironmentVariable("BaseUrl") ?? "/",
     ContentRootPath = "Content",
 });
 ```

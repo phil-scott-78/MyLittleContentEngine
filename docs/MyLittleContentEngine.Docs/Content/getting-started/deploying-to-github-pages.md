@@ -99,11 +99,10 @@ jobs:
 
       - name: Run webapp and generate static files
         env:
-          BaseUrl: "/your-repository-name/"
           DOTNET_CLI_TELEMETRY_OPTOUT: true
         run: |
           dotnet build
-          dotnet run --project ${{ env.WEBAPP_PATH }}${{env.WEBAPP_CSPROJ}} --configuration Release -- build
+          dotnet run --project ${{ env.WEBAPP_PATH }}${{env.WEBAPP_CSPROJ}} --configuration Release -- build "/your-repository-name/"
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -131,11 +130,11 @@ jobs:
 
 ### Key Configuration Points
 
-**Environment Variables to Update:**
+**Variables to Update:**
 
 - `WEBAPP_PATH`: Path to your project directory
 - `WEBAPP_CSPROJ`: Your project file name
-- `BaseUrl`: Your repository name (for GitHub Pages subdirectory)
+- `"/your-repository-name/"`: Your repository name in the build command (for GitHub Pages subdirectory)
 
 **Important:** Replace `your-repository-name` and `YourProject` with your actual values.
 </Step>
@@ -160,17 +159,23 @@ MyLittleContentEngine handles links.
 
 ### Update Your Program.cs
 
-Modify your `Program.cs` to handle the base URL from environment variables:
+For basic usage, you typically don't need to configure anything special in your Program.cs for GitHub Pages deployment. The build command line arguments will handle the BaseUrl automatically.
+
+If you need environment variable fallback support, you can register OutputOptions explicitly:
 
 ```csharp
+// Register OutputOptions to support command line arguments
+builder.Services.AddOutputOptions(args);
+
 builder.Services.AddContentEngineService(() => new ContentEngineOptions
 {
     SiteTitle = "My Site",
     SiteDescription = "My site description",
-    BaseUrl = Environment.GetEnvironmentVariable("BaseUrl") ?? "/",
     ContentRootPath = "Content",
 });
 ```
+
+The BaseUrl is now configured via command line arguments during the build process instead of being hardcoded in your Program.cs.
 </Step>
 <Step stepNumber="4">
 ## Set Up GitHub Pages
@@ -238,8 +243,10 @@ Modify your workflow to use your custom domain:
 ```yaml
 - name: Run webapp and generate static files
   env:
-    BaseUrl: "/"  # Root path for custom domain
     DOTNET_CLI_TELEMETRY_OPTOUT: true
+  run: |
+    dotnet build
+    dotnet run --project ${{ env.WEBAPP_PATH }}${{env.WEBAPP_CSPROJ}} --configuration Release -- build "/"  # Root path for custom domain
 ```
 </Step>
 </Steps>

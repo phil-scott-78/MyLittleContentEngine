@@ -70,12 +70,11 @@ jobs:
       # Generate static site with all assets
       - name: Generate static files
         env:
-          BaseUrl: "/MyLittleContentEngine/"
           ASPNETCORE_ENVIRONMENT: Production
         run: |
           dotnet build
           dotnet run --project ${{ env.WEBAPP_PATH }}${{ env.WEBAPP_CSPROJ }} \
-            --configuration Release -- build
+            --configuration Release -- build "/MyLittleContentEngine/"
 
       # Install minification tool
       - name: Install minify

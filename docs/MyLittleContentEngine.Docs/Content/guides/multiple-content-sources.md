@@ -28,12 +28,14 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorComponents();
 
+// Register OutputOptions to support command line arguments
+builder.Services.AddOutputOptions(args);
+
 // Global site configuration
 builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 {
     SiteTitle = "Daily Life Hub",
     SiteDescription = "Your everyday life, simplified",
-    BaseUrl = Environment.GetEnvironmentVariable("BaseUrl") ?? "/",
     ContentRootPath = "Content",
 });
 

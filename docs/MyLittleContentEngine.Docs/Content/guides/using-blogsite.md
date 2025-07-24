@@ -66,11 +66,10 @@ using MyLittleContentEngine.BlogSite;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddBlogSite(options =>
+builder.Services.AddBlogSite(_ => new BlogSiteOptions(args)
 {
-    options.SiteTitle = "My Blog";
-    options.Description = "A blog about my adventures in coding";
-    options.BaseUrl = "/";
+    SiteTitle = "My Blog",
+    Description = "A blog about my adventures in coding",
 });
 
 var app = builder.Build();
