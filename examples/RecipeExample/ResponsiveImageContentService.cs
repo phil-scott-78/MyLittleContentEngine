@@ -12,6 +12,8 @@ namespace RecipeExample;
 public interface IResponsiveImageContentService : IContentService
 {
     Task<byte[]?> ProcessImageAsync(string filename, string size);
+    Task<byte[]?> GenerateLqipAsync(string filename);
+    Task<(int width, int height)?> GetOriginalImageDimensionsAsync(string filename);
 }
 
 internal class ResponsiveImageContentService : IResponsiveImageContentService
@@ -22,6 +24,7 @@ internal class ResponsiveImageContentService : IResponsiveImageContentService
     private readonly IFileSystem _fileSystem;
     
     private static readonly string[] ImageSizes = ["xs", "sm", "md", "lg", "xl"];
+    private static readonly string[] AllSizes = ["lqip", "xs", "sm", "md", "lg", "xl"];
 
     public ResponsiveImageContentService(RecipeContentOptions options, IFileSystem fileSystem)
     {
@@ -33,6 +36,7 @@ internal class ResponsiveImageContentService : IResponsiveImageContentService
     {
         return size.ToLowerInvariant() switch
         {
+            "lqip" => (width: 40, height: 30),
             "xs" => (width: 480, height: 360),
             "sm" => (width: 768, height: 576),
             "md" => (width: 1024, height: 768),
@@ -75,8 +79,14 @@ internal class ResponsiveImageContentService : IResponsiveImageContentService
                 FileFormat = WebpFileFormatType.Lossy,
                 FilterStrength = 60,
                 Method = WebpEncodingMethod.Level4,
-                Quality = 75,
+                Quality = size == "lqip" ? 20 : 75,
             };
+            
+            if (size == "lqip")
+            {
+                image.Mutate(x => x.GaussianBlur(2f));
+            }
+            
             await image.SaveAsWebpAsync(memoryStream, encoder);
             return memoryStream.ToArray();
         }
@@ -101,7 +111,7 @@ internal class ResponsiveImageContentService : IResponsiveImageContentService
         {
             var filename = _fileSystem.Path.GetFileNameWithoutExtension(imagePath);
             
-            foreach (var size in ImageSizes)
+            foreach (var size in AllSizes)
             {
                 var url = $"/images/{filename}-{size}.webp";
                 var outputPath = $"images/{filename}-{size}.webp";
@@ -126,5 +136,31 @@ internal class ResponsiveImageContentService : IResponsiveImageContentService
     public Task<ImmutableList<CrossReference>> GetCrossReferencesAsync()
     {
         return Task.FromResult(ImmutableList<CrossReference>.Empty);
+    }
+
+    public async Task<byte[]?> GenerateLqipAsync(string filename)
+    {
+        return await ProcessImageAsync(filename, "lqip");
+    }
+
+    public async Task<(int width, int height)?> GetOriginalImageDimensionsAsync(string filename)
+    {
+        var sourcePath = _fileSystem.Path.Combine(_options.RecipePath, $"{filename}.webp");
+        
+        if (!_fileSystem.File.Exists(sourcePath))
+        {
+            return null;
+        }
+
+        try
+        {
+            await using var sourceStream = _fileSystem.File.OpenRead(sourcePath);
+            using var image = await Image.LoadAsync(sourceStream);
+            return (image.Width, image.Height);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
     }
 }
