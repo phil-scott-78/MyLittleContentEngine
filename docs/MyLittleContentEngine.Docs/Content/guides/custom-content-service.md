@@ -23,7 +23,7 @@ methods:
 `MarkdownContentService<TFrontMatter>` and `ApiReferenceContentService` are both built-in implementations of `IContentService` 
 that handle Markdown files and API references, respectively. You can create your own implementation to handle content
 from other sources, such as a database or an external API. Keep in mind that during development, the content service might
-look dynamic, but it is designed to be static for production builds. 
+appear dynamic, but it's designed to be static for production builds. 
 
 ## Basic Implementation
 
@@ -121,7 +121,7 @@ public class DatabaseContentService : IContentService
 
 ## Service Registration
 
-Register your custom content service in `Program.cs`, both when the concrete type is used and when it is registered as
+Register your custom content service in `Program.cs`, both when the concrete type is used and when it's registered as
 an `IContentService`. You can use this pattern to ensure the same instance is used throughout the application:
 
 ```csharp
@@ -163,15 +163,15 @@ new ContentTocItem("ContentService", "/api/contentservice", 300, ["documentation
 ### Caching for Performance
 
 For content services that make expensive operations (API calls, database queries),
-consider implementing caching using [`LazyAndForgetful<T>`](../under-the-hood/hot-reload-architecture). The built in
+consider implementing caching using [`LazyAndForgetful<T>`](../under-the-hood/hot-reload-architecture). The built-in
 `IContentService` implementations use this pattern to cache results until a trigger occurs that requires a refresh.
 
 ### Content Transformation
 
 Transform external content formats into HTML on demand rather than at loading time. For larger sites, the development
 experience can be improved by only gathering the data needed to return the data for the `IContentService` methods. These
-are needed for things such as site-wide navigation, cross-references, and static assets. If there is work that is only
-presentation, wait until the user requests that to speed up the initial load time.
+are needed for things such as site-wide navigation, cross-references, and static assets. If there's work that's only
+presentation-related, wait until the user requests it to speed up the initial load time.
 
 ## Performance Considerations
 

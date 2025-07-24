@@ -44,8 +44,7 @@ Only non-parameterized routes are included (routes without `{parameter}` segment
 #### MapGet Endpoints
 
 The system also discovers HTTP GET endpoints registered via `app.MapGet()`. These are assigned `Priority.MustBeLast`
-because they often include dynamically generated content like CSS files that depend on other pages being processed
-first. This includes generating the MonorailCSS stylesheet if it has been registered.
+because they often include dynamically generated content like CSS files that depend on other pages being processed first. This includes generating the MonorailCSS stylesheet if it's been registered.
 
 ### Explicit Pages
 
@@ -56,8 +55,7 @@ Additionally, pages can be explicitly defined in configuration through the `Page
 
 ## Output Directory Preparation
 
-Before generation begins, the output directory is completely cleared and recreated. This ensures a clean slate for each
-generation run, preventing stale files from previous builds.
+Before generation begins, the output directory is completely cleared and recreated. This ensures a clean slate for each generation run, preventing stale files from previous builds.
 
 
 </Step>
@@ -72,13 +70,11 @@ Standard `wwwroot` files from the main application are automatically included.
 
 ### Razor Class Library Assets
 
-Static assets from referenced Razor Class Libraries are automatically included. This includes `scripts.js` from the
-`MyLittleContentEngine.UI` library, which is essential for the UI functionality.
+Static assets from referenced Razor Class Libraries are automatically included. This includes `scripts.js` from the `MyLittleContentEngine.UI` library, which is essential for the UI functionality.
 
 ### Content Engine Assets
 
-Custom content directories registered via `MapContentEngineStaticAssets` are included with their assets mapped to
-specific request paths.
+Custom content directories registered via `MapContentEngineStaticAssets` are included with their assets mapped to specific request paths.
 
 ### Content Service Assets
 
@@ -100,7 +96,6 @@ Within each priority level, pages are generated in parallel for optimal performa
 
 ### Page Rendering Process
 
-Each page is rendered by making an HTTP request to the running Blazor application. The rendered HTML is then saved to
-the appropriate location in the output directory, with directories created as needed.
+Each page is rendered by making an HTTP request to the running Blazor application. The rendered HTML is then saved to the appropriate location in the output directory, with directories created as needed.
 </Step>
 </Steps>

@@ -95,8 +95,7 @@ builder.Services.AddMonorailCss(options => new MonorailCssOptions
 
 ## Built-in Component Styles
 
-MonorailCSS includes pre-configured styles for common components. These can be modified using
-the CustomCssFrameworkSettings option.
+MonorailCSS includes pre-configured styles for common components. You can modify these using the `CustomCssFrameworkSettings` option.
 
 ```csharp
 builder.Services.AddMonorailCss(_ =>
@@ -165,7 +164,7 @@ M:MyLittleContentEngine.MonorailCss.MonorailCssService.DocSearchApplies
 
 ### CSS Variable Overrides
 
-These are currently hardcoded and cannot be modified.
+These are currently hardcoded and can't be modified.
 
 ```csharp:xmldocid,bodyonly
 M:MyLittleContentEngine.MonorailCss.MonorailCssService.GetDocsearchOverride

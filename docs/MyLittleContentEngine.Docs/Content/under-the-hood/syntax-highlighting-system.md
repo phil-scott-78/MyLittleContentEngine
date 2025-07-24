@@ -255,7 +255,7 @@ private static readonly List<Tuple<string, string>> ScopeMappings = [
 When a requested language isn't found:
 1. **Scope Name Generation**: Tries `source.{language}` pattern
 2. **Alias Resolution**: Attempts common language aliases
-3. **Plain Text Fallback**: Renders as plain code block if no grammar found
+3. **Plain Text Fallback**: Renders as plain code block if no grammar is found
 
 ## Layer 4: Client-Side Highlight.js (Fallback)
 
@@ -313,4 +313,4 @@ class SyntaxHighlighter {
 
 ## Summary
 
-MyLittleContentEngine's syntax highlighting system provides comprehensive language support through a multi-layer architecture with 52+ server-side languages and 190+ client-side languages for maximum compatibility.
+MyLittleContentEngine's syntax highlighting system provides comprehensive language support through a multi-layered architecture with 52+ server-side languages and 190+ client-side languages for maximum compatibility.

@@ -5,34 +5,27 @@ uid: "docs.under-the-hood.hot-reload-architecture"
 order: 3001
 ---
 
-MyLittleContentEngine provides seamless hot reload functionality during development, allowing content changes to be
-reflected immediately without restarting the application. This capability is built on two key infrastructure components
-working together: **LazyAndForgetful** for intelligent caching and **ContentEngineFileWatcher** for file system
-monitoring.
+MyLittleContentEngine provides seamless hot reload functionality during development, allowing content changes to be reflected immediately without restarting the application. This capability is built on two key infrastructure components working together: **LazyAndForgetful** for intelligent caching and **ContentEngineFileWatcher** for file system monitoring.
 
 ## Architecture Overview
 
-All built in `IContentServices` adhere to the hot reload system operates on a simple but powerful principle:
+All built-in `IContentServices` adhere to the hot reload system, which operates on a simple but powerful principle:
 
 1. Process site wide on reload
 2. Process page wide on demand
 
-For example, when you edit a markdown file, it could cause many different things to update beyond just its content
+For example, when you edit a markdown file, it could cause many different things to update beyond just its content:
 
-* The Home Page
-* Site navigation
-* Tag lists
-* xRef links
-* Next/Previous pages
+- The Home Page
+- Site navigation
+- Tag lists
+- xRef links
+- Next/Previous pages
 
-For example, in the Markdown `IContentService`, when a change is detected we reread every Markdown file and parse only
-the front matter.
-We will differ rendering the Markdown to HTML until the page is actually requested. This gives us two benefits
+For example, in the Markdown `IContentService`, when a change is detected, we reread every Markdown file and parse only the front matter. We'll defer rendering the Markdown to HTML until the page is actually requested. This gives us two benefits:
 
-1. Performance—not that Markdig is slow,
-   but between server-side syntax highlighting and Roslyn connected operations, things can start to add up
-2. Our Markdig extensions and link resolvers have a full site to reference when rendering.
-   This is critical for cross-references and other link rewriting operations. 
+1. **Performance**: Not that Markdig is slow, but between server-side syntax highlighting and Roslyn-connected operations, things can start to add up
+2. **Full site context**: Our Markdig extensions and link resolvers have a full site to reference when rendering. This is critical for cross-references and other link rewriting operations. 
 
 ```mermaid
 graph TB
@@ -51,13 +44,9 @@ graph TB
 
 ## LazyAndForgetful: Smart Caching
 
-The `LazyAndForgetful<T>` class is a thread-safe, lazy-loading cache that can "forget" its value and reload it on
-demand. It's designed specifically for expensive operations that need to be invalidated when dependencies change.
+The `LazyAndForgetful<T>` class is a thread-safe, lazy-loading cache that can "forget" its value and reload it on demand. It's designed specifically for expensive operations that need to be invalidated when dependencies change.
 
-For example, it is used to cache the results of processing markdown files into a dictionary of content pages. It is also
-used in the caching of the MSBuild workspace that drives the Roslyn interactions. This allows for these expensive
-operations
-to be performed once with the ability to refresh the cache when the underlying files change.
+For example, it's used to cache the results of processing markdown files into a dictionary of content pages. It's also used in the caching of the MSBuild workspace that drives the Roslyn interactions. This allows these expensive operations to be performed once with the ability to refresh the cache when the underlying files change.
 
 ### Key Features
 
@@ -89,14 +78,11 @@ The debouncing mechanism prevents excessive recomputation during rapid file chan
 - **Coalescing**: Multiple refresh calls within the debounce window are combined
 - **Cancellation**: New refresh requests cancel pending ones
 
-This is particularly important during development when editors might save files multiple times in quick succession or
-when batch operations modify many files.
+This is particularly important during development when editors might save files multiple times in quick succession or when batch operations modify many files.
 
 ## ContentEngineFileWatcher: File System Monitoring
 
-The `ContentEngineFileWatcher` monitors specified directories for file changes and triggers refresh operations.
-It supports both specific file pattern watching and general directory monitoring,
-with comprehensive integration into Blazor's hot reload system.
+The `ContentEngineFileWatcher` monitors specified directories for file changes and triggers refresh operations. It supports both specific file pattern watching and general directory monitoring, with comprehensive integration into Blazor's hot reload system.
 
 ### File System Watching Features
 
@@ -108,8 +94,7 @@ with comprehensive integration into Blazor's hot reload system.
 
 ### Blazor Hot Reload Integration
 
-The watcher includes special support for Blazor's hot reload mechanism through
-the [`MetadataUpdateHandler`](https://learn.microsoft.com/en-us/dotnet/api/system.reflection.metadata.metadataupdatehandlerattribute?view=net-9.0) attribute:
+The watcher includes special support for Blazor's hot reload mechanism through the [`MetadataUpdateHandler`](https://learn.microsoft.com/en-us/dotnet/api/system.reflection.metadata.metadataupdatehandlerattribute?view=net-9.0) attribute:
 
 ```csharp
 [assembly: MetadataUpdateHandler(typeof(ContentEngineFileWatcher))]
@@ -194,5 +179,4 @@ public class MarkdownContentService<TFrontMatter> : IMarkdownContentService<TFro
 7. **Cache Update**: New content replaces cached values
 8. **UI Refresh**: Next page request gets updated content
 
-The hot reload architecture provides a solid foundation for productive development workflows 
-while maintaining excellent performance characteristics through intelligent caching and efficient file system monitoring.
+The hot reload architecture provides a solid foundation for productive development workflows while maintaining excellent performance characteristics through intelligent caching and efficient file system monitoring.

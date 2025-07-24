@@ -11,7 +11,7 @@ interactive documentation pages that update automatically with your code.
 
 ## Prerequisites
 
-Before generating API documentation, ensure you have the core MyLittleContentEngine configured in your application and [Roslyn connected](../getting-started/connecting-to-roslyn)
+Before generating API documentation, ensure you have the core MyLittleContentEngine configured in your application and [Roslyn connected](../getting-started/connecting-to-roslyn).
 
 The ApiReferenceContentService is included in the core package and doesn't require additional dependencies.
 
@@ -49,14 +49,14 @@ builder.Services.AddApiReferenceContentService(_ => new ApiReferenceContentOptio
 });
 ```
 
-This will register a `ApiReferenceContentService` that can be used to generate API documentation for the specified
+This will register an `ApiReferenceContentService` that can be used to generate API documentation for the specified
 namespaces.
 
 ## URL Configuration
 
 The `ApiReferenceContentService` provides flexible URL configuration through the `ApiReferenceUrlOptions` class. This
 allows you to customize how API documentation URLs are structured and which types of pages are generated during static
-site generation. These URLs must match the routing configuration of your razor pages for proper static site generation.
+site generation. These URLs must match the routing configuration of your Razor pages for proper static site generation.
 
 ### Basic URL Configuration
 
@@ -196,7 +196,7 @@ components.
 
 ## Cross-Referencing API Documentation
 
-MyLittleContentEngine provides automatic cross-referencing capabilities that allow you to create links to API documentation pages from any content. This ensures consistent navigation and reduces broken links as your API evolves.
+MyLittleContentEngine provides automatic cross-referencing capabilities that let you create links to API documentation pages from any content. This ensures consistent navigation and reduces broken links as your API evolves.
 
 ### Using XRef Links
 

@@ -6,12 +6,12 @@ order: 1020
 ---
 
 Because MyLittleContentEngine is a .NET application itself, you can integrate it with Roslyn. By adding the Roslyn
-service, we will use Roslyn to provide enhanced code syntax highlighting and access our application's code directly
+service, you'll use Roslyn to provide enhanced code syntax highlighting and access your application's code directly
 for documentation.
 
-Once we have Roslyn added, we can also attach a solution file to the Roslyn Service. This allows you 
+Once you have Roslyn added, you can also attach a solution file to the Roslyn Service. This allows you 
 to use your application's demos and unit tests as documentation, ensuring that your content is always up to date 
-with the latest syntax. No longer do you need to copy and paste code snippets into your documentation, instead, 
+with the latest syntax. No longer do you need to copy and paste code snippets into your documentation — instead, 
 you can reference your code directly in your code blocks. Changes to your sample apps will be directly displayed.
 
 In this tutorial, you'll learn how to integrate Roslyn with MyLittleContentEngine to enable enhanced code syntax
@@ -151,5 +151,5 @@ The changes should be reflected automatically without restarting the server.
 When using Roslyn integration:
 
 * **Use meaningful examples** - Reference code that's relevant to your content
-* **Watch performance** - Roslyn analysis is going to be resource-intensive for large solutions
+* **Watch performance** - Roslyn analysis can be resource-intensive for large solutions
 * **Test regularly** - Ensure your content updates correctly when code changes

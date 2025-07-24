@@ -6,7 +6,7 @@ order: 1030
 ---
 
 MyLittleContentEngine includes a set of pre-built UI components that make it easy to create responsive layouts for your
-content sites. These components handle common patterns like navigation, page outlines and user components.
+content sites. These components handle common patterns like navigation, page outlines, and user components.
 
 In this tutorial, you'll learn how to integrate and use the UI components to create a documentation or blog site with
 sidebar navigation, page outlines, and responsive design.
@@ -57,7 +57,7 @@ Inject the `LinkService` at the top of your `Components/App.razor`:
 
 ```
 
-Add the required scripts to your `Components/App.razor` file in head the closing `<head>` tag, ensuring to use the
+Add the required scripts to your `Components/App.razor` file in the closing `<head>` tag, ensuring to use the
 <xref:docs.guides.linking-documents-and-media> to generate the correct paths:
 ```razor
 <script src="@LinkService.GetLink("/_content/MyLittleContentEngine.UI/scripts.js")" defer></script>

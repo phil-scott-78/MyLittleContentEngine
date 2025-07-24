@@ -9,8 +9,8 @@ This guide shows you how to customize the visual appearance of your MyLittleCont
 MonorailCSS is a [TailwindCSS](https://tailwindcss.com/) compatible utility-first CSS framework that aims for syntax
 compatibility with Tailwind
 while providing enhanced customization capabilities. You'll learn to modify color palettes, implement theme switching,
-and override default styling. It's not required for MyLittleContentEngine, but the `MyLittleContentEngine.UI` package
-makes assumptions that it is configured, or at least TailwindCSS is configured compatibly.
+and override default styling. It isn't required for MyLittleContentEngine, but the `MyLittleContentEngine.UI` package
+makes assumptions that it's configured, or at least TailwindCSS is configured compatibly.
 
 > [!NOTE]
 > For complete MonorailCSS configuration options and component styles, see [Monorail CSS Configuration](xref:docs.reference.monorail-css-configuration).
@@ -36,7 +36,7 @@ app.UseMonorailCss();
 
 ### MonorailCSS Services
 
-MonorailCSS registers several services in the dependency injection container
+MonorailCSS registers several services in the dependency injection container:
 
 ```csharp
 builder.Services.AddMonorailCss();
@@ -156,8 +156,8 @@ All colors follow TailwindCSS naming conventions, so you can use them like:
 <button class="bg-accent-500 hover:bg-accent-600">
 ```
 
-All colors supported by TailwindCSS are available, but it is recommend to stick to `base`, `primary`, and `accent`
-for your primary design system colors, as these are the ones that will be used by the MonorailCSS components.
+All colors supported by TailwindCSS are available, but it's recommended to stick to `base`, `primary`, and `accent`
+for your primary design system colors, as these are the ones that'll be used by the MonorailCSS components.
 
 ## Implementing Dark/Light Theme Switching
 
@@ -202,11 +202,11 @@ MonorailCSS supports TailwindCSS dark mode syntax using the `dark:` prefix:
 <button class="bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-400">
 ```
 
-### Settings the Default Dark/Light Theme
+### Setting the Default Dark/Light Theme
 
-By default, our pages will display in light mode unless we have set the `dark` class on the `<html>` element.
+By default, your pages will display in light mode unless you've set the `dark` class on the `<html>` element.
 
-We can make this more dynamic by adding a small script in the `<head>` section of our HTML to check the user's
+You can make this more dynamic by adding a small script in the `<head>` section of your HTML to check the user's
 preference:
 
 ```html
@@ -220,10 +220,10 @@ preference:
 </script>
 ```
 
-This script checks the user's preference and applies the dark theme if they have set it
-or if their system preference is for dark mode. We do not want to do this in the scripts.js file,
-as it will not be executed until the page has loaded, which will cause a flash of unstyled content (FOUC).
-Instead, we can place this script in the `<head>` section of our HTML to ensure it runs before the page is rendered.
+This script checks the user's preference and applies the dark theme if they've set it
+or if their system preference is for dark mode. You don't want to do this in the scripts.js file,
+as it won't be executed until the page has loaded, which will cause a flash of unstyled content (FOUC).
+Instead, you can place this script in the `<head>` section of your HTML to ensure it runs before the page is rendered.
 
 ## Custom CSS Framework Settings
 
@@ -273,7 +273,7 @@ CustomCssFrameworkSettings = defaultSettings => defaultSettings with
 
 The `Applies` dictionary lets you define reusable component classes using the full range of TailwindCSS utilities that
 MonorailCSS supports. This is especially useful when integrating with JavaScript frameworks. These apply elements are
-used, for example, to style the syntax highlighting in the code blocks
+used, for example, to style the syntax highlighting in the code blocks.
 
 ## Complete Example
 
@@ -318,7 +318,7 @@ builder.Services.AddMonorailCss(_ => new MonorailCssOptions
 
 ## Troubleshooting
 
-* **No Styling Applied:** Ensure you are using the LinkService for resolving the CSS file properly
+* **No Styling Applied:** Ensure you're using the LinkService for resolving the CSS file properly
 
   ```razor
   @inject LinkService LinkService

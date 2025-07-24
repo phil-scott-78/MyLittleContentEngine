@@ -1,7 +1,7 @@
 ---
 title: "Word Breaking Middleware"
 description: "Improve responsive design with automatic word break opportunities for long technical terms"
-uid: "docs.guides.word-breaking-middleware"
+uid: "docs.under-the-hood.word-breaking-middleware"
 order: 3590
 ---
 

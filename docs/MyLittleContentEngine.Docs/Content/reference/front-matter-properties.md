@@ -49,7 +49,7 @@ T:MyLittleContentEngine.Models.IFrontMatter
 
 - **Type**: `bool`
 - **Purpose**: Controls whether the content page will be generated
-- **Usage**: When `true`, the page is excluded from static generation
+- **Usage**: When `true`, the page's excluded from static generation
 - **Default**: `false`
 - **Example**: `is_draft: true`
 
@@ -60,13 +60,11 @@ T:MyLittleContentEngine.Models.IFrontMatter
 - **Usage**: When specified, generates an HTML page with `<meta http-equiv="refresh">` instead of rendering markdown content
 - **Default**: `null`
 - **Example**: `redirect_url: "config-runsettings"`
-- **Note**: Pages with redirect URLs are excluded from table of contents but are still included in static generation
+- **Note**: Pages with redirect URLs are excluded from the table of contents but are still included in static generation
 
 ## Required Methods
 
-All front matter must implement `GetMetadata` which returns a `Metadata` instance. This class contains fields that all
-content generations rely on being standard. The GetMetadata acts as a conversion from custom metadata to this standard
-format.
+All front matter must implement `GetMetadata`, which returns a `Metadata` instance. This class contains fields that all content generations rely on being standard. The `GetMetadata` method acts as a conversion from custom metadata to this standard format.
 
 The `Metadata` class also provides additional computed information for RSS feeds and sitemaps.
 
@@ -97,7 +95,7 @@ The `Metadata` class also provides additional computed information for RSS feeds
 #### RssItem
 
 - **Type**: `bool`
-- **Purpose**: Controls whether page should be included in RSS feed
+- **Purpose**: Controls whether the page should be included in RSS feeds
 - **Usage**: RSS feed filtering
 - **Default**: `true`
 
@@ -105,7 +103,7 @@ The `Metadata` class also provides additional computed information for RSS feeds
 
 - **Type**: `int`
 - **Purpose**: Controls page order in navigation or table of contents
-- **Usage**: Navigation ordering, TOC generation
+- **Usage**: Navigation ordering and TOC generation
 - **Default**: `int.MaxValue`
 
 
@@ -138,7 +136,7 @@ public class BlogFrontMatter : IFrontMatter
 }
 ```
 
-Each post would have a front matter like this:
+Each post would have front matter like this:
 
 ```yaml
 ---
@@ -226,7 +224,7 @@ publish_date: 2024-01-15
 
 ### Customizing YAML Naming Convention
 
-The naming convention can be customized by configuring the `FrontMatterDeserializer` in the `ContentEngineOptions` class found in `ContentOptions.cs`. You can replace the default `UnderscoredNamingConvention` with other YamlDotNet conventions like:
+You can customize the naming convention by configuring the `FrontMatterDeserializer` in the `ContentEngineOptions` class found in `ContentOptions.cs`. You can replace the default `UnderscoredNamingConvention` with other YamlDotNet conventions like:
 
 - `CamelCaseNamingConvention` - maps `RedirectUrl` to `redirectUrl`
 - `PascalCaseNamingConvention` - maps `RedirectUrl` to `RedirectUrl`
@@ -234,7 +232,7 @@ The naming convention can be customized by configuring the `FrontMatterDeseriali
 
 ## Redirection
 
-All front matter must implement redirect url. This field will be examined for a value. If it exists, a special redirection page will be written.
+All front matter must implement the redirect URL. This field will be examined for a value. If it exists, a special redirection page will be written.
 
 ```yml
 ---
@@ -242,7 +240,7 @@ redirect_url: page-one
 ---
 ```
 
-Will generate
+This will generate:
 
 ```html
 <!DOCTYPE html>
@@ -259,12 +257,12 @@ Will generate
 </html>
 ```
 
-This will cause a redirect 
+This will cause a redirect.
 
 ## Best Practices
 
 1. **Consistent Naming**: Use consistent property names across your content
 2. **Meaningful Defaults**: Provide sensible defaults for optional properties
-3. **Type Safety**: Leverage C# type system for validation
+3. **Type Safety**: Leverage the C# type system for validation
 4. **Required Properties**: Mark essential properties as required
 5. **Naming Convention**: Be aware of the YAML naming convention when writing front matter

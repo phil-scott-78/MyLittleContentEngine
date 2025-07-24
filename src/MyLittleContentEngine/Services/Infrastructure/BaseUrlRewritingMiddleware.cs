@@ -39,6 +39,9 @@ public partial class BaseUrlRewritingMiddleware
         CssImportRegex()
     ];
 
+    // Special pattern for srcset attributes which contain multiple URLs with descriptors
+    private static readonly Regex SrcsetPattern = SrcsetRegex();
+
     // Pattern to match xref: URLs in href attributes
     private static readonly Regex XrefPattern = XrefRegex();
     
@@ -113,7 +116,10 @@ public partial class BaseUrlRewritingMiddleware
         // First, resolve any xref: URLs
         html = await ResolveXrefsAsync(html);
 
-        // Then apply BaseUrl rewriting to the result
+        // Handle srcset attributes separately since they contain multiple URLs
+        html = RewriteSrcsetUrls(html);
+
+        // Then apply BaseUrl rewriting to the result for other URL patterns
         return UrlPatterns.Aggregate(html, (current, pattern) => pattern.Replace(current, match =>
         {
             var prefix = match.Groups[1].Value;
@@ -227,6 +233,51 @@ public partial class BaseUrlRewritingMiddleware
         return html;
     }
 
+    private string RewriteSrcsetUrls(string html)
+    {
+        return SrcsetPattern.Replace(html, match =>
+        {
+            var prefix = match.Groups[1].Value; // Everything before srcset value
+            var srcsetValue = match.Groups[2].Value; // The srcset attribute value
+            var suffix = match.Groups[3].Value; // Everything after srcset value
+
+            // Process each URL in the srcset value
+            var rewrittenSrcset = RewriteSrcsetValue(srcsetValue);
+            
+            return prefix + rewrittenSrcset + suffix;
+        });
+    }
+
+    private string RewriteSrcsetValue(string srcsetValue)
+    {
+        // Split by comma to get individual source entries
+        var sources = srcsetValue.Split(',');
+        var rewrittenSources = new List<string>();
+
+        foreach (var source in sources)
+        {
+            var trimmedSource = source.Trim();
+            if (string.IsNullOrEmpty(trimmedSource)) continue;
+
+            // Split by whitespace to separate URL from descriptor (e.g., "480w", "2x")
+            var parts = trimmedSource.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 0) continue;
+
+            var url = parts[0];
+            var descriptor = parts.Length > 1 ? " " + string.Join(" ", parts[1..]) : "";
+
+            // Only rewrite root-relative URLs that don't already contain the base URL
+            if (url.StartsWith('/') && !url.StartsWith(_baseUrl, StringComparison.OrdinalIgnoreCase))
+            {
+                url = PrependBaseUrl(url);
+            }
+
+            rewrittenSources.Add(url + descriptor);
+        }
+
+        return string.Join(", ", rewrittenSources);
+    }
+
     private string PrependBaseUrl(string path)
     {
         // Normalize BaseUrl: ensure it starts with / but doesn't end with /
@@ -270,4 +321,6 @@ public partial class BaseUrlRewritingMiddleware
     private static partial Regex XrefTagRegex();
     [GeneratedRegex("""<a\b[^>]*?\s+href\s*=\s*["']xref:([^"']*?)["'][^>]*?>xref:\1</a>""", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-US")]
     private static partial Regex XrefLinkRegex();
+    [GeneratedRegex("""(<img\b[^>]*?\s+srcset\s*=\s*["'])([^"']*?)(['"][^>]*?>)""", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-US")]
+    private static partial Regex SrcsetRegex();
 }

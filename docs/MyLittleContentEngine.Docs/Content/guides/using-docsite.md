@@ -253,4 +253,4 @@ The `DocSiteOptions` class provides many customization options:
 The DocSite package allows you to get up and running quickly, but there are no promises made
 that the design or functionality of the site will remain consistent. It's what drives the documentation
 for my personal projects, so as my whims change so will the package. Use it for quick proof-of-concepts, demos, or inspiration
-for your own blog directly using the `MyLittleContentEngine` services directly.
+for your own documentation site using the `MyLittleContentEngine` services directly.

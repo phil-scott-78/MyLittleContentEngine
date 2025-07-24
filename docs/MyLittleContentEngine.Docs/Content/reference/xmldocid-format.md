@@ -5,13 +5,11 @@ uid: "docs.reference.xmldocid-format"
 order: 4003
 ---
 
-XML Documentation ID strings (XmlDocId) are used to uniquely identify types, members, and other constructs in .NET
-assemblies. MyLittleContentEngine uses these identifiers for API documentation generation and cross-referencing.
+XML Documentation ID strings (XmlDocId) are used to uniquely identify types, members, and other constructs in .NET assemblies. MyLittleContentEngine uses these identifiers for API documentation generation and cross-referencing.
 
 ## Format Specification
 
-XML Documentation ID strings follow a specific format defined by the .NET documentation system. Each ID string consists
-of a prefix character followed by a fully qualified name.
+XML Documentation ID strings follow a specific format defined by the .NET documentation system. Each ID string consists of a prefix character followed by a fully qualified name.
 
 ### Prefix Characters
 
@@ -110,7 +108,7 @@ M:MyMethod(System.Int32[][]) // Jagged array
 
 ### Code Block References
 
-XmlDocId strings are commonly used in code blocks to reference specific API elements:
+You'll commonly use XmlDocId strings in code blocks to reference specific API elements:
 
 ````markdown
 ```csharp:xmldocid
@@ -128,7 +126,7 @@ MyLittleContentEngine automatically generates API documentation using XmlDocId s
 
 1. **Right-click** on the type, method, or member you want to reference
 2. Select **"Copy Code Reference"** from the context menu
-3. The XmlDocId will be copied to your clipboard
+3. The XmlDocId gets copied to your clipboard
 
 **Alternative method:**
 

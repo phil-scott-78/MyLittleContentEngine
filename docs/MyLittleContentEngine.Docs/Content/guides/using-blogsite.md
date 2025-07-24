@@ -354,4 +354,4 @@ The `BlogSiteOptions` class provides many customization options:
 The BlogSite package allows you to get up and running quickly, but there are no promises made
 that the design or functionality of the site will remain consistent. It's what drives my personal
 blog, so as my whims change so will the package. Use it for quick proof-of-concepts, demos, or inspiration
-for your own blog directly using the `MyLittleContentEngine` services directly.
+for your own blog using the `MyLittleContentEngine` services directly.

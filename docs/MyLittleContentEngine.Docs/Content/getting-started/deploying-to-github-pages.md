@@ -154,7 +154,7 @@ work correctly.
 Without proper BaseUrl configuration, your site will have broken links, missing CSS, and non-functional navigation when
 deployed to GitHub Pages.
 
-See the [Linking Documents and Media(xref:docs.guides.linking-documents-and-media) guide for more details on how
+See the [Linking Documents and Media](xref:docs.guides.linking-documents-and-media) guide for more details on how
 MyLittleContentEngine handles links.
 
 ### Update Your Program.cs

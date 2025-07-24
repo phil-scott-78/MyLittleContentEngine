@@ -10,7 +10,7 @@ extensible Markdown parser for .NET. It supports a wide range of Markdown featur
 for various content needs.
 
 MyLittleContentEngine supports several Markdown extensions to enhance your content. These extensions provide additional
-formatting options and features that are not part of standard Markdig. These extensions merely generate HTML, you'll
+formatting options and features that aren't part of standard Markdig. These extensions merely generate HTML, so you'll
 still need to style them with CSS to match your site's design. However, `MyLittleContentEngine.MonorailCss` provides some
 default values.
 
@@ -32,21 +32,21 @@ server-side.
 
 The following rules are followed:
 
-1. If the [roslyn is connected](xref:docs.getting-started.connecting-to-roslyn) and the code block is C# or VB.NET,
+1. If [Roslyn is connected](xref:docs.getting-started.connecting-to-roslyn) and the code block is C# or VB.NET,
    then
    Roslyn's [Microsoft.CodeAnalysis.Classification.Classifier](https://learn.microsoft.com/en-us/dotnet/api/microsoft.codeanalysis.classification.classifier.getclassifiedspans?view=roslyn-dotnet-3.0)
    will be used to highlight the code block. This ensures
-   the the latest language features are highlighted correctly.
-2. If the code block is bash or shell, a built-in highlighter will be used to highlight command and their options.
-3. If the code block a language is supported by [TextMateSharp](https://github.com/danipen/TextMateSharp)'s Grammar
+   the latest language features are highlighted correctly.
+2. If the code block is bash or shell, a built-in highlighter will be used to highlight commands and their options.
+3. If the code block language is supported by [TextMateSharp](https://github.com/danipen/TextMateSharp)'s Grammar
    package,
    then TextMateSharp will be used to highlight the code
    block. [Current Grammars](https://github.com/danipen/TextMateSharp/tree/master/src/TextMateSharp.Grammars/Resources/Grammars)
-4. If those rules are not met, then the code block will be rendered with the language set on the code block. Within the
+4. If those rules aren't met, then the code block will be rendered with the language set on the code block. Within the
    `MyLittleContentEngine.UI`
    `scripts.js` file, a `highlightCode` function will be used to highlight the code block using
-   the [Hightlight.JS](https://highlightjs.org/). This library will only be
-   loaded if the code block is not highlighted by the previous rules. This ensures that the page does not load
+   [Highlight.JS](https://highlightjs.org/). This library will only be
+   loaded if the code block isn't highlighted by the previous rules. This ensures that the page doesn't load
    unnecessary JavaScript.
 
 ## Code Tabs

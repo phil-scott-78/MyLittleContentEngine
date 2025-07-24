@@ -80,13 +80,13 @@ Is this app bug-free and ready for production?
 :   Not even close.
 
 Is there a migration tool from my favorite documentation tool?
-:   No
+:   No.
 
 Is this an appropriate tool for my non-.NET project?
-:   Probably not, but knock yourself out
+:   Probably not, but knock yourself out.
 
 Can I submit a pull request?
-:   Yeah, but hop on the [github discussions](https://github.com/phil-scott-78/MyLittleContentEngine/discussions) first before getting too far ahead of yourself.
+:   Yeah, but hop on the [GitHub discussions](https://github.com/phil-scott-78/MyLittleContentEngine/discussions) first before getting too far ahead of yourself.
 
-There is a missing feature my company critically needs, it is costing us $1000 a day! 
-:   I will add it for $999 a day.
+There's a missing feature my company critically needs — it's costing us $1000 a day! 
+:   I'll add it for $999 a day.

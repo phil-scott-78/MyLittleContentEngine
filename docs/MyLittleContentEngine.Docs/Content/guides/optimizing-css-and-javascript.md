@@ -6,7 +6,7 @@ order: 2300
 ---
 
 MyLittleContentEngine generates CSS dynamically at runtime using MonorailCSS and includes JavaScript from the UI
-package. While this provides an excellent development experience, you may want to optimize these assets for production
+package. While this provides an excellent development experience, you might want to optimize these assets for production
 deployments to improve load times and user experience.
 
 > [!IMPORTANT]

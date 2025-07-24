@@ -95,7 +95,7 @@ class ThemeManager {
 - **Automatic Binding**: Finds elements with `data-theme-toggle` attribute
 - **Persistence**: Saves theme preference to localStorage
 - **Component Integration**: Notifies other managers of theme changes
-- **Backwards Compatibility**: Maintains global `swapTheme()` function
+- **Backward Compatibility**: Maintains global `swapTheme()` function
 
 ### OutlineManager: Table of Contents Navigation
 
@@ -271,7 +271,7 @@ class SearchManager {
 
 **Features:**
 - **Configuration Detection**: Reads settings from data attributes
-- **Progressive Enhancement**: Graceful fallback when search is unavailable
+- **Progressive Enhancement**: Graceful fallback when search isn't available
 - **Parallel Loading**: Loads JS and CSS concurrently for performance
 - **Error Handling**: Comprehensive error handling and logging
 
@@ -355,7 +355,7 @@ swapTheme() {
 
 ### Lazy Loading Pattern
 
-Most external libraries are loaded dynamically only when needed:
+Most external libraries are loaded dynamically only when they're needed:
 
 ```javascript
 // Pattern used across multiple managers
