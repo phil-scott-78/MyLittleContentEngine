@@ -267,9 +267,25 @@ public partial class BaseUrlRewritingMiddleware
             var descriptor = parts.Length > 1 ? " " + string.Join(" ", parts[1..]) : "";
 
             // Only rewrite root-relative URLs that don't already contain the base URL
-            if (url.StartsWith('/') && !url.StartsWith(_baseUrl, StringComparison.OrdinalIgnoreCase))
+            // Use the same logic as PrependBaseUrl to normalize the base URL for comparison
+            if (url.StartsWith('/'))
             {
-                url = PrependBaseUrl(url);
+                var normalizedBaseUrl = _baseUrl.StartsWith('/') ? _baseUrl : "/" + _baseUrl;
+                if (normalizedBaseUrl.EndsWith('/') && normalizedBaseUrl.Length > 1)
+                {
+                    normalizedBaseUrl = normalizedBaseUrl[..^1];
+                }
+                
+                // Only skip rewriting if the URL already starts with the normalized base URL
+                // and the base URL is not just "/" (root)
+                if (normalizedBaseUrl != "/" && url.StartsWith(normalizedBaseUrl, StringComparison.OrdinalIgnoreCase))
+                {
+                    // URL already contains base URL, don't rewrite
+                }
+                else
+                {
+                    url = PrependBaseUrl(url);
+                }
             }
 
             rewrittenSources.Add(url + descriptor);

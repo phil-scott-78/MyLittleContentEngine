@@ -375,4 +375,109 @@ public class BaseUrlRewritingMiddlewareTests
         using var reader = new StreamReader(context.Response.Body);
         return await reader.ReadToEndAsync();
     }
+
+    [Fact]
+    public async Task InvokeAsync_WithSrcsetAttribute_RewritesAllUrls()
+    {
+        // Arrange
+        var outputOptions = new OutputOptions 
+        { 
+            BaseUrl = "/MyLittleContentEngine"
+        };
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddSingleton<IContentEngineFileWatcher, MockContentEngineFileWatcher>();
+        
+        var mockContentService = ServiceMockFactory.CreateContentServiceWithCrossReferences();
+        services.AddSingleton<IContentService>(mockContentService.Object);
+        services.AddSingleton<IXrefResolver, XrefResolver>();
+        
+        var serviceProvider = services.BuildServiceProvider();
+        
+        var xrefResolver = serviceProvider.GetRequiredService<IXrefResolver>();
+        var middleware = new BaseUrlRewritingMiddleware(
+            next: async (context) => {
+                var htmlContent = """
+                    <img srcset="/images/beer-cheese-xs.webp 480w, 
+                     /images/beer-cheese-sm.webp 768w, 
+                     /images/beer-cheese-md.webp 1024w, 
+                     /images/beer-cheese-lg.webp 1440w, 
+                     /images/beer-cheese-xl.webp 1920w" 
+                     sizes="100vw" 
+                     src="/images/beer-cheese-md.webp" 
+                     alt="picture of Beer Cheese">
+                    """;
+                await WriteHtmlResponse(context, htmlContent);
+            },
+            outputOptions: outputOptions,
+            xrefResolver: xrefResolver
+        );
+
+        var context = CreateHttpContext(serviceProvider);
+        
+        // Act
+        await middleware.InvokeAsync(context);
+        
+        // Assert
+        var responseContent = await ReadResponseContent(context);
+        
+        // All srcset URLs should be rewritten
+        Assert.Contains("/MyLittleContentEngine/images/beer-cheese-xs.webp 480w", responseContent);
+        Assert.Contains("/MyLittleContentEngine/images/beer-cheese-sm.webp 768w", responseContent);
+        Assert.Contains("/MyLittleContentEngine/images/beer-cheese-md.webp 1024w", responseContent);
+        Assert.Contains("/MyLittleContentEngine/images/beer-cheese-lg.webp 1440w", responseContent);
+        Assert.Contains("/MyLittleContentEngine/images/beer-cheese-xl.webp 1920w", responseContent);
+        
+        // The src attribute should also be rewritten
+        Assert.Contains(@"src=""/MyLittleContentEngine/images/beer-cheese-md.webp""", responseContent);
+    }
+
+    [Fact]
+    public async Task InvokeAsync_WithSrcsetAttribute_SkipsAlreadyRewrittenUrls()
+    {
+        // Arrange
+        var outputOptions = new OutputOptions 
+        { 
+            BaseUrl = "/MyLittleContentEngine"
+        };
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddSingleton<IContentEngineFileWatcher, MockContentEngineFileWatcher>();
+        
+        var mockContentService = ServiceMockFactory.CreateContentServiceWithCrossReferences();
+        services.AddSingleton<IContentService>(mockContentService.Object);
+        services.AddSingleton<IXrefResolver, XrefResolver>();
+        
+        var serviceProvider = services.BuildServiceProvider();
+        
+        var xrefResolver = serviceProvider.GetRequiredService<IXrefResolver>();
+        var middleware = new BaseUrlRewritingMiddleware(
+            next: async (context) => {
+                var htmlContent = """
+                    <img srcset="/MyLittleContentEngine/images/already-rewritten.webp 480w, 
+                     /images/needs-rewriting.webp 768w" 
+                     src="/images/needs-rewriting.webp" 
+                     alt="test image">
+                    """;
+                await WriteHtmlResponse(context, htmlContent);
+            },
+            outputOptions: outputOptions,
+            xrefResolver: xrefResolver
+        );
+
+        var context = CreateHttpContext(serviceProvider);
+        
+        // Act
+        await middleware.InvokeAsync(context);
+        
+        // Assert
+        var responseContent = await ReadResponseContent(context);
+        
+        // Already rewritten URL should remain unchanged
+        Assert.Contains("/MyLittleContentEngine/images/already-rewritten.webp 480w", responseContent);
+        // New URL should be rewritten
+        Assert.Contains("/MyLittleContentEngine/images/needs-rewriting.webp 768w", responseContent);
+        // The src attribute should also be rewritten
+        Assert.Contains(@"src=""/MyLittleContentEngine/images/needs-rewriting.webp""", responseContent);
+    }
 }
