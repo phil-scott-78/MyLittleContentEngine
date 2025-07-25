@@ -250,8 +250,12 @@ public partial class BaseUrlRewritingMiddleware
 
     private string RewriteSrcsetValue(string srcsetValue)
     {
+        // Normalize line endings and whitespace to prevent HTML encoding issues
+        // Replace any sequence of whitespace that includes newlines with a single space
+        var normalizedSrcset = System.Text.RegularExpressions.Regex.Replace(srcsetValue, @"\s*\n\s*", " ");
+        
         // Split by comma to get individual source entries
-        var sources = srcsetValue.Split(',');
+        var sources = normalizedSrcset.Split(',');
         var rewrittenSources = new List<string>();
 
         foreach (var source in sources)
