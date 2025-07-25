@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Net;
+using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -252,8 +253,8 @@ public partial class BaseUrlRewritingMiddleware
     {
         // Normalize line endings and whitespace to prevent HTML encoding issues
         // Replace any sequence of whitespace that includes newlines with a single space
-        var normalizedSrcset = System.Text.RegularExpressions.Regex.Replace(srcsetValue, @"\s*\n\s*", " ");
-        
+        var normalizedSrcset = WebUtility.HtmlDecode(srcsetValue).ReplaceLineEndings(" ");
+
         // Split by comma to get individual source entries
         var sources = normalizedSrcset.Split(',');
         var rewrittenSources = new List<string>();
@@ -271,22 +272,10 @@ public partial class BaseUrlRewritingMiddleware
             var descriptor = parts.Length > 1 ? " " + string.Join(" ", parts[1..]) : "";
 
             // Only rewrite root-relative URLs that don't already contain the base URL
-            // Use the same logic as PrependBaseUrl to normalize the base URL for comparison
             if (url.StartsWith('/'))
             {
-                var normalizedBaseUrl = _baseUrl.StartsWith('/') ? _baseUrl : "/" + _baseUrl;
-                if (normalizedBaseUrl.EndsWith('/') && normalizedBaseUrl.Length > 1)
-                {
-                    normalizedBaseUrl = normalizedBaseUrl[..^1];
-                }
-                
-                // Only skip rewriting if the URL already starts with the normalized base URL
-                // and the base URL is not just "/" (root)
-                if (normalizedBaseUrl != "/" && url.StartsWith(normalizedBaseUrl, StringComparison.OrdinalIgnoreCase))
-                {
-                    // URL already contains base URL, don't rewrite
-                }
-                else
+                // Skip if it already contains the base URL
+                if (!url.StartsWith(_baseUrl, StringComparison.OrdinalIgnoreCase))
                 {
                     url = PrependBaseUrl(url);
                 }

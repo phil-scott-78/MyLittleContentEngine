@@ -10,7 +10,7 @@
              /images/@(FileName)-xl.webp 1920w"
          sizes="@Sizes"
          src="/images/@(FileName)-md.webp"
-         class="w-full h-full object-cover bg-primary-300/25 backdrop-blur-sm" 
+         class="@($"w-full h-full object-cover bg-primary-300/25 aspect-[{AspectRatio}] backdrop-blur-sm")" 
          alt="@AltText" 
          loading="@Loading"
          width="@Width"
