@@ -32,19 +32,40 @@ internal class ResponsiveImageContentService : IResponsiveImageContentService
         _fileSystem = fileSystem;
     }
 
-    public (int width, int height) GetImageDimensions(string size)
+    public (int width, int height) GetImageDimensions(string size, int originalWidth = 0, int originalHeight = 0)
     {
-        return size.ToLowerInvariant() switch
+        var maxWidth = size.ToLowerInvariant() switch
         {
-            "lqip" => (width: 40, height: 30),
-            "xs" => (width: 480, height: 360),
-            "sm" => (width: 768, height: 576),
-            "md" => (width: 1024, height: 768),
-            "lg" => (width: 1440, height: 1080),
-            "xl" => (width: 1920, height: 1440),
-            "full" => (width: 0, height: 0), // Original size
-            _ => (width: 1024, height: 768) // Default to md
+            "lqip" => 40,
+            "xs" => 480,
+            "sm" => 768,
+            "md" => 1024,
+            "lg" => 1440,
+            "xl" => 1920,
+            "full" => 0, // Original size
+            _ => 1024 // Default to md
         };
+
+        if (maxWidth == 0 || originalWidth == 0 || originalHeight == 0)
+        {
+            return size.ToLowerInvariant() switch
+            {
+                "lqip" => (width: 40, height: 30),
+                "xs" => (width: 480, height: 360),
+                "sm" => (width: 768, height: 576),
+                "md" => (width: 1024, height: 768),
+                "lg" => (width: 1440, height: 1080),
+                "xl" => (width: 1920, height: 1440),
+                "full" => (width: 0, height: 0),
+                _ => (width: 1024, height: 768)
+            };
+        }
+
+        // Calculate height maintaining aspect ratio
+        var aspectRatio = (double)originalWidth / originalHeight;
+        var calculatedHeight = (int)(maxWidth / aspectRatio);
+        
+        return (width: maxWidth, height: calculatedHeight);
     }
 
     public async Task<byte[]?> ProcessImageAsync(string filename, string size)
@@ -56,12 +77,12 @@ internal class ResponsiveImageContentService : IResponsiveImageContentService
             return null;
         }
 
-        var dimensions = GetImageDimensions(size);
-
         try
         {
             await using var sourceStream = _fileSystem.File.OpenRead(sourcePath);
             using var image = await Image.LoadAsync(sourceStream);
+            
+            var dimensions = GetImageDimensions(size, image.Width, image.Height);
             
             if (dimensions is { width: > 0, height: > 0 })
             {

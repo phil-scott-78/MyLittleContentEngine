@@ -2,25 +2,19 @@
 @using RecipeExample
 @inject IResponsiveImageContentService ResponsiveImageService
 
-<div class="relative @CssClass" style="@(AspectRatio != null ? $"aspect-ratio: {AspectRatio}" : "")">
-    @if (!string.IsNullOrEmpty(LqipDataUrl))
-    {
-        <img src="@LqipDataUrl" 
-             class="absolute inset-0 w-full h-full object-cover blur-sm transition-opacity duration-300" 
-             style="filter: blur(8px);" 
-             alt="" 
-             aria-hidden="true" />
-    }
-    
-    <img srcset="/images/@(FileName)-xs.webp 480w, /images/@(FileName)-sm.webp 768w, /images/@(FileName)-md.webp 1024w, /images/@(FileName)-lg.webp 1440w, /images/@(FileName)-xl.webp 1920w"
+<div class="relative bg-cover bg-center bg-no-repeat @CssClass" style="background-image: url('@LqipDataUrl')">
+    <img srcset="/images/@(FileName)-xs.webp 480w, 
+             /images/@(FileName)-sm.webp 768w, 
+             /images/@(FileName)-md.webp 1024w, 
+             /images/@(FileName)-lg.webp 1440w, 
+             /images/@(FileName)-xl.webp 1920w"
          sizes="@Sizes"
-         src="/images/@(FileName)-md.webp" 
-         class="relative w-full h-full object-cover" 
+         src="/images/@(FileName)-md.webp"
+         class="w-full h-full object-cover bg-primary-300/25 backdrop-blur-sm" 
          alt="@AltText" 
          loading="@Loading"
          width="@Width"
-         height="@Height"
-         onload="this.previousElementSibling?.style.setProperty('opacity', '0')" />
+         height="@Height" />
 </div>
 
 @code {
