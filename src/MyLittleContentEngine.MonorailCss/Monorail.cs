@@ -155,6 +155,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                                     designSystem.Colors["base"][ColorLevels._200].AsStringWithOpacity(".50")),
                                 new CssDeclaration(CssProperties.Color,
                                     designSystem.Colors["base"][ColorLevels._700].AsString()),
+                                new CssDeclaration(CssProperties.WordBreak, "break-word")
                             ]),
 
                         ]

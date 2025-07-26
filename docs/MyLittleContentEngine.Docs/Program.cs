@@ -1,5 +1,6 @@
 ﻿using MonorailCss;
 using MyLittleContentEngine.DocSite;
+using WordbreakMiddleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,5 +32,6 @@ builder.Services.AddDocSite(_ => new DocSiteOptions(args)
 
 var app = builder.Build();
 app.UseDocSite();
+app.UseWordBreak();
 
 await app.RunDocSiteAsync(args);

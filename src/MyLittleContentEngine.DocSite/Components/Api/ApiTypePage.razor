@@ -1,4 +1,5 @@
 @page "/api/type/{slug}/"
+@using System.Net
 @using System.Web
 @using MyLittleContentEngine.Services.Content
 @inject ContentEngineOptions ContentEngineOptions
@@ -21,17 +22,17 @@
             </span>
         </div>
         <p class="text-base-600 dark:text-base-400 mb-4 text-xs">Namespace: 
-        <a href=@($"/api/namespace/{_type.Namespace.ToLowerInvariant()}/") class="text-blue-600 dark:text-blue-400 hover:underline">@_type.Namespace</a>
+        <a href=@($"/api/namespace/{_type.Namespace.ToLowerInvariant()}/") class="text-breaker text-blue-600 dark:text-blue-400 hover:underline">@_type.Namespace</a>
         </p>
         @if (!string.IsNullOrEmpty(_type.Summary))
         {
-            <Prose class="mb-4">
+            <Prose class="text-break mb-4">
                 @((MarkupString) _type.Summary)
             </Prose>
         }
     </header>
 
-    <div>
+    <div class="text-break">
        <Prose>
             <h2>Declaration</h2>
             <CodeSnippet Code="@_type.Declaration"/>
@@ -52,7 +53,7 @@
             <ul>
                 @foreach (var iface in _type.Interfaces)
                 {
-                    <li><code>@iface</code></li>
+                    <li><code class="text-break">@iface</code></li>
                 }
             </ul>
             </Prose>

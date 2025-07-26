@@ -191,7 +191,6 @@ public static class ContentEngineExtensions
         }
 
         app.UseBaseUrlRewriting();
-        app.UseWordBreaking();
 
         if (app.Services.GetService<SitemapRssService>() != null)
         {

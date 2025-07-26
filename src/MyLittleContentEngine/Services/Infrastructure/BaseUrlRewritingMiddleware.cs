@@ -80,7 +80,6 @@ public partial class BaseUrlRewritingMiddleware
                 var rewrittenContent = await RewriteUrlsAsync(responseContent);
 
                 var rewrittenBytes = Encoding.UTF8.GetBytes(rewrittenContent);
-                context.Response.ContentLength = rewrittenBytes.Length;
 
                 await originalBodyStream.WriteAsync(rewrittenBytes);
             }

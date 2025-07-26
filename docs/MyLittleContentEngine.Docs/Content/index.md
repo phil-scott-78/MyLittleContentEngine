@@ -5,6 +5,8 @@ uid: "docs.index"
 order: 1
 ---
 
+This.is.a.really.long.single.word.that.we.want.to.break.up
+
 An opinionated and inflexible static content generator, written in .NET.
 
 * No JSON or YAML configuration files
