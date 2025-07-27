@@ -5,16 +5,13 @@ uid: "docs.index"
 order: 1
 ---
 
-This.is.a.really.long.single.word.that.we.want.to.break.up
-
 An opinionated and inflexible static content generator, written in .NET.
 
+* Written with `dotnet watch` in mind, see changes immediately as you edit your Markdown files
 * No JSON or YAML configuration files
 * No Node.js or JavaScript build dependencies
 * Fast. This site requires less than 25 kb of JavaScript and CSS, combined.
 * Use Blazor for your layouts
-* Generate compact CSS at build time from only the styles used
-* Written with `dotnet watch` in mind, see changes immediately as you edit your markdown files
 * Easy publishing to GitHub Pages, Azure Static Web Apps, or any other static hosting service
 
 ## Getting Started
