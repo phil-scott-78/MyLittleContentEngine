@@ -10,13 +10,13 @@
 }
 <PageTitle>@ContentEngineOptions.SiteTitle - Recent Posts</PageTitle>
 
-<div class="sm:px-8 mt-10 md:mt-14">
+<div class="md:px-4  border-box">
     <div class="mx-auto w-full max-w-7xl lg:px-8">
-        <div class="relative px-4 sm:px-8 lg:px-12">
+        <div class="relative sm:px-8 lg:px-12">
             <div>
                 @if (BlogOptions.HeroContent != null)
                 {
-                    <div class="prose lg:prose-lg dark:prose-invert prose-sm lg:prose-base prose-headings:font-display mb-8 lg:mb-24">
+                    <div class="prose lg:prose-lg dark:prose-invert prose-sm lg:prose-base prose-headings:font-display mb-16 lg:mb-24">
                         <h1>@BlogOptions.HeroContent.Title</h1>
                         <p>@((MarkupString) BlogOptions.HeroContent.Description)</p>
                     </div>
