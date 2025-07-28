@@ -54,6 +54,7 @@ public static class ContentEngineExtensions
         services.AddSingleton<IMarkdownContentService<TFrontMatter>, MarkdownContentService<TFrontMatter>>();
         services.AddTransient<SitemapRssService>();
         services.AddHttpClient();
+        services.AddTransient<ILocalHttpClient, LocalHttpClient>();
         services.AddTransient<SearchIndexService>();
 
         // Register interface implementations

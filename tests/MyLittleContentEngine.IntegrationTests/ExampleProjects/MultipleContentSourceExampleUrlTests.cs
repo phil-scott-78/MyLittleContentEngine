@@ -15,7 +15,7 @@ public class MultipleContentSourceExampleUrlTests : IClassFixture<MultipleConten
     [MemberData(nameof(GetMultipleContentSourceExampleUrls))]
     public async Task MultipleContentSourceExample_Urls_ShouldReturnSuccessStatusCodes(string url, string expectedContent)
     {
-        var response = await _client.GetAsync(url);
+        var response = await _client.GetAsync(url, TestContext.Current.CancellationToken);
         await response.ShouldReturnSuccessWithContent(expectedContent);
     }
 

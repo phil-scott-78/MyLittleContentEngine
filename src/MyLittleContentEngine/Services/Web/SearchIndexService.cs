@@ -1,9 +1,7 @@
-﻿using System.Collections.Immutable;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.RegularExpressions;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using MyLittleContentEngine.Services.Infrastructure;
 
@@ -17,22 +15,19 @@ public partial class SearchIndexService
     private static readonly JsonSerializerOptions _jsonSerializerOptions;
     private string _searchIndexCache = string.Empty;
     private readonly IEnumerable<IContentService> _contentServices;
-    private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ILocalHttpClient _localHttpClient;
     private readonly ILogger<SearchIndexService> _logger;
 
     /// <summary>
     /// Service for generating search index data for client-side searching
     /// </summary>
     public SearchIndexService(IEnumerable<IContentService> contentServices,
-        IHttpContextAccessor httpContextAccessor,
-        IHttpClientFactory httpClientFactory,
+        ILocalHttpClient localHttpClient,
         IContentEngineFileWatcher fileWatcher,
         ILogger<SearchIndexService> logger)
     {
         _contentServices = contentServices;
-        _httpContextAccessor = httpContextAccessor;
-        _httpClientFactory = httpClientFactory;
+        _localHttpClient = localHttpClient;
         _logger = logger;
 
         fileWatcher.SubscribeToMetadataUpdate(() => _searchIndexCache = string.Empty);
@@ -61,18 +56,17 @@ public partial class SearchIndexService
 
         var searchIndex = new SearchIndex();
 
-        using var httpClient = _httpClientFactory.CreateClient();
-        httpClient.BaseAddress = new Uri(baseUrl);
+        _localHttpClient.BaseAddress = new Uri(baseUrl);
 
         foreach (var contentService in _contentServices)
         {
             var pages = await contentService.GetPagesToGenerateAsync();
 
-            foreach (var page in pages)
+            await Parallel.ForEachAsync(pages, async (page, _) => 
             {
                 try
                 {
-                    var document = await ProcessPageAsync(httpClient, page, contentService.SearchPriority);
+                    var document = await ProcessPageAsync(_localHttpClient, page, contentService.SearchPriority);
                     if (document != null)
                     {
                         searchIndex.Documents.Add(document);
@@ -82,14 +76,15 @@ public partial class SearchIndexService
                 {
                     _logger.LogWarning(ex, "Failed to process page {Url} for search index", page.Url);
                 }
-            }
+
+            });
         }
 
         _searchIndexCache = JsonSerializer.Serialize(searchIndex, _jsonSerializerOptions);
         return _searchIndexCache;
     }
 
-    private async Task<SearchIndexDocument?> ProcessPageAsync(HttpClient httpClient, PageToGenerate page,
+    private async Task<SearchIndexDocument?> ProcessPageAsync(ILocalHttpClient httpClient, PageToGenerate page,
         int searchPriority)
     {
         try

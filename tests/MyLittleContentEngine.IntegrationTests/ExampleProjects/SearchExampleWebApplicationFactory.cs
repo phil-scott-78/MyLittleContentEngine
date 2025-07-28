@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MyLittleContentEngine.DocSite;
+using MyLittleContentEngine.Services.Infrastructure;
+using MyLittleContentEngine.IntegrationTests.Infrastructure;
 
 namespace MyLittleContentEngine.IntegrationTests.ExampleProjects;
 
@@ -19,7 +21,7 @@ public class SearchExampleWebApplicationFactory : WebApplicationFactory<SearchEx
         
         builder.UseContentRoot(exampleProjectPath);
         
-        // Override DocSiteOptions configuration
+        // Override DocSiteOptions configuration and ILocalHttpClient
         builder.ConfigureServices(services =>
         {
             // Find and replace DocSiteOptions
@@ -36,6 +38,18 @@ public class SearchExampleWebApplicationFactory : WebApplicationFactory<SearchEx
                     {
                         ContentRootPath = Path.Combine(exampleProjectPath, "Content")
                     };
+                });
+            }
+
+            // Replace ILocalHttpClient with TestServer implementation
+            var localHttpClientDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(ILocalHttpClient));
+            if (localHttpClientDescriptor != null)
+            {
+                services.Remove(localHttpClientDescriptor);
+                services.AddTransient<ILocalHttpClient>(serviceProvider =>
+                {
+                    var httpClient = CreateClient();
+                    return new TestServerLocalHttpClient(httpClient);
                 });
             }
         });

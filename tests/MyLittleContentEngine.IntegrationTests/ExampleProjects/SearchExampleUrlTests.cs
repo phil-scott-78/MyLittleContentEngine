@@ -15,7 +15,7 @@ public class SearchExampleUrlTests : IClassFixture<SearchExampleWebApplicationFa
     [MemberData(nameof(GetSearchExampleUrls))]
     public async Task SearchExample_Urls_ShouldReturnSuccessStatusCodes(string url, string expectedContent)
     {
-        var response = await _client.GetAsync(url);
+        var response = await _client.GetAsync(url, TestContext.Current.CancellationToken);
         await response.ShouldReturnSuccessWithContent(expectedContent);
     }
 
@@ -25,6 +25,6 @@ public class SearchExampleUrlTests : IClassFixture<SearchExampleWebApplicationFa
         
         // this should work, but the search service uses the HttpClient to request to the current app for a url 
         // which fails under a test load
-        //        yield return new object[] { "/search-index.json", "/random" };
+        yield return ["/search-index.json", "/random"];
     }
 }
