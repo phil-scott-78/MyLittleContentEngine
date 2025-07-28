@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet test:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(ls:*)",
+      "Bash(dotnet new:*)",
+      "Bash(dotnet sln add:*)",
+      "Bash(mkdir:*)",
+      "Bash(rm:*)",
+      "Bash(dotnet build)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet clean:*)",
+      "Bash(rg:*)",
+      "Bash(timeout:*)",
+      "Bash(git reset:*)",
+      "Bash(git add:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(dotnet run:*)",
+      "Bash(dotnet script:*)",
+      "Bash(dotnet sln:*)",
+      "Bash(dotnet restore:*)",
+      "WebFetch(domain:github.com)",
+      "Bash(BaseHref=\"/env-base-url\" dotnet run)"
+    ]
+  },
+  "model": "sonnet",
+  "enableAllProjectMcpServers": false
+}

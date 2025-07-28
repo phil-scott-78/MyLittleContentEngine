@@ -17,6 +17,7 @@ public partial class SearchIndexService
     private static readonly JsonSerializerOptions _jsonSerializerOptions;
     private string _searchIndexCache = string.Empty;
     private readonly IEnumerable<IContentService> _contentServices;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ILogger<SearchIndexService> _logger;
 
@@ -24,11 +25,13 @@ public partial class SearchIndexService
     /// Service for generating search index data for client-side searching
     /// </summary>
     public SearchIndexService(IEnumerable<IContentService> contentServices,
+        IHttpContextAccessor httpContextAccessor,
         IHttpClientFactory httpClientFactory,
         IContentEngineFileWatcher fileWatcher,
         ILogger<SearchIndexService> logger)
     {
         _contentServices = contentServices;
+        _httpContextAccessor = httpContextAccessor;
         _httpClientFactory = httpClientFactory;
         _logger = logger;
 

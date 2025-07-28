@@ -3,7 +3,7 @@
 namespace MultipleContentSourceExample;
 
 
-internal class DocsFrontMatter : IFrontMatter
+public class DocsFrontMatter : IFrontMatter
 {
     /// <summary>Title of the blog post.</summary>
     public string Title { get; init; } = "Empty title";

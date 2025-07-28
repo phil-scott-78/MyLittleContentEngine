@@ -1,0 +1,66 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <IsPackable>false</IsPackable>
+        <IsTestProject>true</IsTestProject>
+        <RootNamespace>MyLittleContentEngine.IntegrationTests</RootNamespace>
+        <TargetFramework>net9.0</TargetFramework>
+        <!--
+        To enable the Microsoft Testing Platform 'dotnet test' experience, add property:
+          <TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
+    
+        To enable the Microsoft Testing Platform native command line experience, add property:
+          <UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+    
+        For more information on Microsoft Testing Platform support in xUnit.net, please visit:
+          https://xunit.net/docs/getting-started/v3/microsoft-testing-platform
+        -->
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Using Include="Xunit"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.13.0"/>
+        <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.0"/>
+        <PackageReference Include="xunit.v3" Version="3.0.0"/>
+        <PackageReference Include="xunit.runner.visualstudio" Version="3.1.2"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\docs\MyLittleContentEngine.Docs\MyLittleContentEngine.Docs.csproj" />
+        <ProjectReference Include="..\..\src\MyLittleContentEngine.MonorailCss\MyLittleContentEngine.MonorailCss.csproj" />
+        <ProjectReference Include="..\..\examples\MinimalExample\MinimalExample.csproj">
+            <Aliases>MinimalExample</Aliases>
+        </ProjectReference>
+        <ProjectReference Include="..\..\examples\BlogExample\BlogExample.csproj">
+            <Aliases>BlogExample</Aliases>
+        </ProjectReference>
+        <ProjectReference Include="..\..\examples\ApiReferenceExample\ApiReferenceExample.csproj">
+            <Aliases>ApiReferenceExample</Aliases>
+        </ProjectReference>
+        <ProjectReference Include="..\..\examples\RecipeExample\RecipeExample.csproj">
+            <Aliases>RecipeExample</Aliases>
+        </ProjectReference>
+        <ProjectReference Include="..\..\examples\UserInterfaceExample\UserInterfaceExample.csproj">
+            <Aliases>UserInterfaceExample</Aliases>
+        </ProjectReference>
+        <ProjectReference Include="..\..\examples\RoslynIntegrationExample\RoslynIntegrationExample.csproj">
+            <Aliases>RoslynIntegrationExample</Aliases>
+        </ProjectReference>
+        <ProjectReference Include="..\..\examples\SearchExample\SearchExample.csproj">
+            <Aliases>SearchExample</Aliases>
+        </ProjectReference>
+        <ProjectReference Include="..\..\examples\MultipleContentSourceExample\MultipleContentSourceExample.csproj">
+            <Aliases>MultipleContentSourceExample</Aliases>
+        </ProjectReference>
+    </ItemGroup>
+
+</Project>

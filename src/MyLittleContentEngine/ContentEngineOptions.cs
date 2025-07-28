@@ -21,7 +21,7 @@ namespace MyLittleContentEngine;
 /// content processing, and generation behavior.
 /// </para>
 /// </remarks>
-public class ContentEngineOptions
+public record ContentEngineOptions
 {
     /// <summary>
     /// Gets or sets the title of the blog or website.

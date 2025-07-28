@@ -8,7 +8,7 @@ namespace MyLittleContentEngine.BlogSite;
 /// <summary>
 /// Configuration options for a blog site
 /// </summary>
-public class BlogSiteOptions
+public record BlogSiteOptions
 {
     public BlogSiteOptions(string[] args)
     {

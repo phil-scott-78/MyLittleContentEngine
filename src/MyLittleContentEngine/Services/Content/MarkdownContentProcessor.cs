@@ -54,7 +54,7 @@ internal class MarkdownContentProcessor<TFrontMatter>
     internal async Task<ConcurrentDictionary<string, MarkdownContentPage<TFrontMatter>>> ProcessContentFiles()
     {
         var stopwatch = Stopwatch.StartNew();
-        var results = new ConcurrentDictionary<string, MarkdownContentPage<TFrontMatter>>(UrlComparer.Instance);
+        var results = new ConcurrentDictionary<string, MarkdownContentPage<TFrontMatter>>(new UrlComparer(_engineContentOptions.BasePageUrl));
 
         try
         {
@@ -228,21 +228,43 @@ internal class MarkdownContentProcessor<TFrontMatter>
     }
 }
 
-internal class UrlComparer : IEqualityComparer<string>
+internal class UrlComparer(string baseUrl = "/") : IEqualityComparer<string>
 {
-    public static UrlComparer Instance = new UrlComparer();
-    
+    private readonly string _normalizedBaseUrl = baseUrl.Trim('/');
+
+    public static UrlComparer Instance { get; } = new UrlComparer();
+
     public bool Equals(string? x, string? y)
     {
         if (x == null && y == null) return true;
         if (x == null) return false;
         if (y == null) return false;
-        
-        return x.TrimStart('/') == y.TrimStart('/');
+
+        string normalizedX = NormalizeUrl(x);
+        string normalizedY = NormalizeUrl(y);
+
+        return normalizedX == normalizedY;
     }
 
     public int GetHashCode(string obj)
     {
-        return obj.Trim('/').GetHashCode();
+        return NormalizeUrl(obj).GetHashCode();
+    }
+
+    private string NormalizeUrl(string url)
+    {
+        var trimmedUrl = url.Trim('/');
+
+        if (string.IsNullOrEmpty(_normalizedBaseUrl))
+        {
+            return trimmedUrl;
+        }
+
+        if (trimmedUrl.StartsWith(_normalizedBaseUrl, StringComparison.OrdinalIgnoreCase))
+        {
+            return trimmedUrl[_normalizedBaseUrl.Length..].TrimStart('/');
+        }
+
+        return trimmedUrl;
     }
 }

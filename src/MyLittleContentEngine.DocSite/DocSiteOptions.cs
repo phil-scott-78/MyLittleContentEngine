@@ -7,7 +7,7 @@ namespace MyLittleContentEngine.DocSite;
 /// <summary>
 /// Configuration options for a documentation site
 /// </summary>
-public class DocSiteOptions
+public record DocSiteOptions
 {
     public DocSiteOptions(string[] args)
     {

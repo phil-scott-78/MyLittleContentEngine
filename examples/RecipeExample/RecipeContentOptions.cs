@@ -2,7 +2,7 @@ using MyLittleContentEngine;
 
 namespace RecipeExample;
 
-public class RecipeContentOptions : IContentOptions
+public record RecipeContentOptions : IContentOptions
 {
     public string RecipePath { get; set; } = "recipes";
     public string FilePattern { get; set; } = "*.cook";
