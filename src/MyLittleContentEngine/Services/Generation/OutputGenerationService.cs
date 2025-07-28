@@ -129,7 +129,8 @@ internal class OutputGenerationService(
             // Adjust the target path to include the request path prefix
             var adjustedAssets = assets.Select(asset => new ContentToCopy(
                 asset.SourcePath,
-                string.IsNullOrEmpty(requestPath) ? asset.TargetPath : $"{requestPath.TrimStart('/')}/{asset.TargetPath}".TrimStart('/')
+                string.IsNullOrEmpty(requestPath) ? asset.TargetPath : $"{requestPath.TrimStart('/')}/{asset.TargetPath}".TrimStart('/'),
+                asset.ExcludedExtensions
             ));
             
             contentToCopy = contentToCopy.AddRange(adjustedAssets);
@@ -147,7 +148,7 @@ internal class OutputGenerationService(
             var targetPath = _fileSystem.Path.Combine(outputOptions.OutputFolderPath, pathToCopy.TargetPath);
 
             logger.LogInformation("Copying {sourcePath} to {targetPath}", pathToCopy.SourcePath, targetPath);
-            CopyContent(pathToCopy.SourcePath, targetPath, ignoredPathsWithOutputFolder);
+            CopyContent(pathToCopy.SourcePath, targetPath, ignoredPathsWithOutputFolder, pathToCopy.ExcludedExtensions);
         }
 
         // Collect content to create from all content services
@@ -357,7 +358,8 @@ internal class OutputGenerationService(
     /// <param name="sourcePath">The source file or directory path</param>
     /// <param name="targetPath">The target file or directory path</param>
     /// <param name="ignoredPaths">List of paths to ignore during copying</param>
-    private void CopyContent(string sourcePath, string targetPath, List<string> ignoredPaths)
+    /// <param name="excludedExtensions">File extensions to exclude during copying (e.g., [".md", ".txt"])</param>
+    private void CopyContent(string sourcePath, string targetPath, List<string> ignoredPaths, string[]? excludedExtensions = null)
     {
         // Check if the target is in ignored paths
         if (ignoredPaths.Contains(targetPath))
@@ -370,7 +372,7 @@ internal class OutputGenerationService(
             // Handle single file copy
             if (_fileSystem.File.Exists(sourcePath))
             {
-                CopySingleFile(sourcePath, targetPath);
+                CopySingleFile(sourcePath, targetPath, excludedExtensions);
                 return;
             }
 
@@ -381,7 +383,7 @@ internal class OutputGenerationService(
                 return;
             }
 
-            CopyDirectory(sourcePath, targetPath, ignoredPaths);
+            CopyDirectory(sourcePath, targetPath, ignoredPaths, excludedExtensions);
         }
         catch (Exception ex)
         {
@@ -392,8 +394,22 @@ internal class OutputGenerationService(
     /// <summary>
     /// Copies a single file, creating the target directory if needed
     /// </summary>
-    private void CopySingleFile(string sourceFile, string targetFile)
+    /// <param name="sourceFile">The source file path</param>
+    /// <param name="targetFile">The target file path</param>
+    /// <param name="excludedExtensions">File extensions to exclude during copying</param>
+    private void CopySingleFile(string sourceFile, string targetFile, string[]? excludedExtensions = null)
     {
+        // Check if the file extension should be excluded
+        if (excludedExtensions != null)
+        {
+            var fileExtension = _fileSystem.Path.GetExtension(sourceFile);
+            if (excludedExtensions.Contains(fileExtension, StringComparer.OrdinalIgnoreCase))
+            {
+                logger.LogDebug("Skipping file {SourceFile} due to excluded extension {Extension}", sourceFile, fileExtension);
+                return;
+            }
+        }
+
         var targetDir = _fileSystem.Path.GetDirectoryName(targetFile);
         if (string.IsNullOrEmpty(targetDir))
         {
@@ -407,7 +423,11 @@ internal class OutputGenerationService(
     /// <summary>
     /// Copies a directory and its contents to the target location, respecting ignored paths
     /// </summary>
-    private void CopyDirectory(string sourceDir, string targetDir, List<string> ignoredPaths)
+    /// <param name="sourceDir">The source directory path</param>
+    /// <param name="targetDir">The target directory path</param>
+    /// <param name="ignoredPaths">List of paths to ignore during copying</param>
+    /// <param name="excludedExtensions">File extensions to exclude during copying</param>
+    private void CopyDirectory(string sourceDir, string targetDir, List<string> ignoredPaths, string[]? excludedExtensions = null)
     {
         _fileSystem.Directory.CreateDirectory(targetDir);
 
@@ -426,7 +446,7 @@ internal class OutputGenerationService(
             _fileSystem.Directory.CreateDirectory(newDirPath);
         }
 
-        // Copy all files (except those in ignored paths)
+        // Copy all files (except those in ignored paths or with excluded extensions)
         foreach (var filePath in _fileSystem.Directory.GetFiles(sourceDir, "*.*", SearchOption.AllDirectories))
         {
             var targetFilePath = GetTargetPath(filePath, sourceDir, targetDir);
@@ -437,6 +457,18 @@ internal class OutputGenerationService(
             {
                 continue;
             }
+
+            // Check if the file extension should be excluded
+            if (excludedExtensions != null)
+            {
+                var fileExtension = _fileSystem.Path.GetExtension(filePath);
+                if (excludedExtensions.Contains(fileExtension, StringComparer.OrdinalIgnoreCase))
+                {
+                    logger.LogDebug("Skipping file {FilePath} due to excluded extension {Extension}", filePath, fileExtension);
+                    continue;
+                }
+            }
+
             _fileSystem.File.Copy(filePath, targetFilePath, overwrite: true);
         }
     }

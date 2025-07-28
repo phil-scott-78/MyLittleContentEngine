@@ -143,7 +143,7 @@ internal class ContentFilesService<TFrontMatter>
 
             return new[]
             {
-                new ContentToCopy(_markdownContentOptions.ContentPath, _markdownContentOptions.BasePageUrl)
+                new ContentToCopy(_markdownContentOptions.ContentPath, _markdownContentOptions.BasePageUrl, [".md"])
             }.ToImmutableList();
         }
         catch (DirectoryNotFoundException ex)

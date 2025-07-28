@@ -141,32 +141,3 @@ MonorailCSS provides a complete syntax highlighting theme using the generated co
 ```csharp:xmldocid,bodyonly
 M:MyLittleContentEngine.MonorailCss.MonorailCssService.HljsApplies
 ```
-
-## DocSearch Integration
-
-MonorailCSS includes pre-configured styles for DocSearch (Algolia search):
-
-### Search Container
-- **Backdrop**: Blur effect with base colors
-- **Modal**: Consistent with site theme
-- **Responsive**: Optimized for mobile and desktop
-
-### Search Elements
-- **Input**: Styled to match site theme
-- **Results**: Hover states and selection highlighting
-- **Icons**: Consistent sizing and colors
-
-### DocSearch Element Overrides
-
-```csharp:xmldocid,bodyonly
-M:MyLittleContentEngine.MonorailCss.MonorailCssService.DocSearchApplies
-```
-
-### CSS Variable Overrides
-
-These are currently hardcoded and can't be modified.
-
-```csharp:xmldocid,bodyonly
-M:MyLittleContentEngine.MonorailCss.MonorailCssService.GetDocsearchOverride
-```
-
