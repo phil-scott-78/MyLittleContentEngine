@@ -61,32 +61,31 @@ internal sealed class CodeHighlightRenderer(
 
     private static void WriteCode(HtmlRenderer renderer, CodeBlock codeBlock, string languageId, string code, IRoslynHighlighterService roslynHighlighter)
     {
-        switch (languageId.Trim())
+        string highlightedCode;
+
+        var languageTrimmed = languageId.Trim();
+        switch (languageTrimmed)
         {
             case "vb" or "vbnet":
-                renderer.Write(roslynHighlighter.Highlight(code, Language.VisualBasic));
+                highlightedCode = roslynHighlighter.Highlight(code, Language.VisualBasic);
                 break;
             case "csharp" or "c#" or "cs":
-                renderer.Write(roslynHighlighter.Highlight(code));
+                highlightedCode = roslynHighlighter.Highlight(code);
                 break;
             case "csharp:xmldocid,bodyonly":
-                var bodyOnlySample = RunSync(async () => await roslynHighlighter.HighlightExampleAsync(code, true));
-                renderer.Write(bodyOnlySample);
+                highlightedCode = RunSync(async () => await roslynHighlighter.HighlightExampleAsync(code, true));
                 break;
             case "csharp:xmldocid":
-                var fullSample = RunSync(async () => await roslynHighlighter.HighlightExampleAsync(code, false));
-                renderer.Write(fullSample);
+                highlightedCode = RunSync(async () => await roslynHighlighter.HighlightExampleAsync(code, false));
                 break;
             case "gbnf":
-                renderer.Write(GbnfHighlighter.Highlight(code));
+                highlightedCode = GbnfHighlighter.Highlight(code);
                 break;
             case "bash" or "shell":
-                renderer.Write(ShellSyntaxHighlighter.Highlight(code));
+                highlightedCode = ShellSyntaxHighlighter.Highlight(code);
                 break;
             case "text" or "":
-                renderer.Write("<pre><code>");
-                renderer.Write(HtmlEncoder.Default.Encode(code));
-                renderer.Write("</code></pre>");
+                highlightedCode = "<pre><code>" + HtmlEncoder.Default.Encode(code) + "</code></pre>";
                 break;
             default:
             {
@@ -101,6 +100,7 @@ internal sealed class CodeHighlightRenderer(
 
                     var newCode = RunSync(async () => await roslynHighlighter.GetCodeOutputAsync(code, arg));
                     WriteCode(renderer, codeBlock, newLanguage, newCode,  roslynHighlighter);
+                    return;
                 }
                 else if (languageId.Contains(":path"))
                 {
@@ -109,44 +109,56 @@ internal sealed class CodeHighlightRenderer(
                     {
                         var fileContent = RunSync(async () => await roslynHighlighter.GetFileContentAsync(code.Trim()));
                         WriteCode(renderer, codeBlock, newLanguage, fileContent, roslynHighlighter);
+                        return;
                     }
                     catch (Exception ex)
                     {
-                        // If file reading fails, display an error message
-                        renderer.Write($"<pre><code>Error loading file '{code.Trim()}': {ex.Message}</code></pre>");
+                        highlightedCode = $"<pre><code>Error loading file '{code.Trim()}': {ex.Message}</code></pre>";
                     }
                 }
                 else
                 {
-                    renderer.Write(TextMateHighlighter.Highlight(code, languageId));
+                    highlightedCode = TextMateHighlighter.Highlight(code, languageId);
                 }
 
                 break;
             }
         }
+
+        // Apply code transformations for notation comments
+        if (languageTrimmed != "markdown" && languageTrimmed != "md")
+        {
+            highlightedCode = CodeTransformer.Transform(highlightedCode);
+        }
+
+        renderer.Write(highlightedCode);
     }
 
     private static void WriteCodeWithoutRoslyn(HtmlRenderer renderer, string languageId, string code)
     {
+        string highlightedCode;
+        
         switch (languageId.Trim())
         {
             case "gbnf":
-                renderer.Write(GbnfHighlighter.Highlight(code));
+                highlightedCode = GbnfHighlighter.Highlight(code);
                 break;
             case "bash" or "shell":
-                renderer.Write(ShellSyntaxHighlighter.Highlight(code));
+                highlightedCode = ShellSyntaxHighlighter.Highlight(code);
                 break;
             case "text" or "":
-                renderer.Write("<pre><code>");
-                renderer.Write(code);
-                renderer.Write("</code></pre>");
+                highlightedCode = "<pre><code>" + code + "</code></pre>";
                 break;
             default:
             {
-                renderer.Write(TextMateHighlighter.Highlight(code, languageId));
+                highlightedCode = TextMateHighlighter.Highlight(code, languageId);
                 break;
             }
         }
+        
+        // Apply code transformations for notation comments
+        var transformedCode = CodeTransformer.Transform(highlightedCode);
+        renderer.Write(transformedCode);
     }
 
     private static string ExtractCode(LeafBlock leafBlock)

@@ -82,6 +82,89 @@ This will render as:
 
 Code blocks will be highlighted according to the rules mentioned above.
 
+## Code Transformations
+
+MyLittleContentEngine supports Shiki-style code transformations that allow you to highlight specific lines, show differences, create focus effects, and add error/warning indicators to your code blocks. These transformations use special comment notations that are automatically processed and removed from the rendered output.
+
+### Line Highlighting
+
+You can highlight specific lines in your code blocks by adding `// [!code highlight]` or `// [!code hl]` comments:
+
+``````markdown
+```javascript
+function calculateSum(numbers) {
+    let total = 0; // [!code highlight]
+    for (const num of numbers) {
+        total += num;
+    }
+    return total; // [!code hl] return the total
+}
+```
+``````
+
+This will render as:
+
+```javascript
+function calculateSum(numbers) {
+    let total = 0; // [!code highlight]
+    for (const num of numbers) {
+        total += num;
+    }
+    return total; // [!code hl] return the total
+}
+```
+
+### Diff Notation
+
+Show additions and deletions in your code using `// [!code ++]` for additions and `// [!code --]` for deletions:
+
+``````markdown
+```javascript
+function greetUser(name) {
+    console.log("Hello " + name); // [!code --]
+    console.log(`Hello ${name}!`); // [!code ++]
+}
+```
+``````
+
+This will render as:
+
+```javascript
+function greetUser(name) {
+    console.log("Hello " + name); // [!code --]
+    console.log(`Hello ${name}!`); // [!code ++]
+}
+```
+
+### Error and Warning Indicators
+
+Mark lines that contain errors or warnings using `// [!code error]` and `// [!code warning]`:
+
+``````markdown
+```javascript
+function divide(a, b) {
+    if (b = 0) { // [!code error]
+        console.warn("Division by zero detected"); // [!code warning]
+        return null;
+    }
+    return a / b;
+}
+```
+``````
+
+this will render as:
+
+```javascript
+function divide(a, b) {
+    if (b = 0) { // [!code error]
+        console.warn("Division by zero detected"); // [!code warning]
+        return null;
+    }
+    return a / b;
+}
+```
+
+
 ## Enhanced Alerts
 
 The Markdig AlertBlock has been tweaked to play nicer with Monorail and Tailwind styling.
