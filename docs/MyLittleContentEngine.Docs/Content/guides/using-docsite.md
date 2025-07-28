@@ -72,8 +72,9 @@ using MyLittleContentEngine.DocSite;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDocSite(_ => new DocSiteOptions(args)
+builder.Services.AddDocSite(_ => new DocSiteOptions
 {
+    ApplicationArgs = args,
     SiteTitle = "My Documentation Site",
     Description = "Documentation for my project",
 });
@@ -133,8 +134,9 @@ This is the home page of our documentation site. You can write content using Mar
 You can customize various aspects of your documentation site by modifying the options in `Program.cs`:
 
 ```csharp
-builder.Services.AddDocSite(_ => new DocSiteOptions(args)
+builder.Services.AddDocSite(_ => new DocSiteOptions
 {
+    ApplicationArgs = args,
     // Basic site information
     SiteTitle = "My Documentation Site",
     Description = "Comprehensive documentation for my project",
@@ -151,11 +153,11 @@ builder.Services.AddDocSite(_ => new DocSiteOptions(args)
     ExcludeNamespaces = ["MyProject.Tests"],
     
     // Advanced customization
-    options.ExtraStyles = """
+    ExtraStyles = """
         .custom-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-        """;
+        """
 });
 ```
 </Step>
@@ -167,31 +169,32 @@ builder.Services.AddDocSite(_ => new DocSiteOptions(args)
 For advanced customization, you can add custom header content or logos:
 
 ```csharp
-builder.Services.AddDocSite(options =>
+builder.Services.AddDocSite(_ => new DocSiteOptions
 {
-    options.SiteTitle = "My Documentation Site";
+    ApplicationArgs = args,
+    SiteTitle = "My Documentation Site",
     
     // Custom header with logo
-    options.HeaderContent = """
+    HeaderContent = """
         <div class="flex items-center gap-2">
             <img src="/logo.png" alt="Logo" class="h-8 w-8" />
             <span class="text-xl font-bold">My Docs</span>
         </div>
-        """;
+        """,
     
     // Custom footer
-    options.FooterContent = """
+    FooterContent = """
         <div class="text-center text-sm text-base-600 dark:text-base-400">
             © 2024 My Company. All rights reserved.
         </div>
-        """;
+        """,
     
     // Additional HTML for the head section
-    options.AdditionalHtmlHeadContent = """
+    AdditionalHtmlHeadContent = """
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-        """;
+        """
 });
 ```
 </Step>
@@ -241,7 +244,7 @@ The `DocSiteOptions` class provides many customization options:
 | `IncludeNamespaces` | string[]? | null | Namespaces to include in API docs |
 | `ExcludeNamespaces` | string[]? | null | Namespaces to exclude from API docs |
 | `ContentRootPath` | string | "Content" | Path to content directory |
-| `BaseUrl` | string | "/" | Base URL for routing |
+| `ApplicationArgs` | string[] | required | Command line arguments for BaseUrl handling |
 | `ExtraStyles` | string? | null | Additional CSS styles |
 | `HeaderIcon` | string? | null | Custom header icon HTML |
 | `HeaderContent` | string? | null | Custom header content HTML |

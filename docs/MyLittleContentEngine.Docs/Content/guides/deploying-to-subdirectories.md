@@ -73,9 +73,31 @@ dotnet run -- build "/my-app" "custom-output"
 dotnet run -- build "/"
 ```
 
-### Register OutputOptions (Recommended)
+### For BlogSite and DocSite (Automatic)
 
-Add OutputOptions to your Program.cs to support command line arguments:
+If you're using BlogSite or DocSite packages, BaseUrl configuration is handled automatically through the `ApplicationArgs` property:
+
+```csharp
+// BlogSite - BaseUrl handled automatically
+builder.Services.AddBlogSite(_ => new BlogSiteOptions
+{
+    ApplicationArgs = args, // Handles BaseUrl automatically
+    SiteTitle = "My Blog",
+    Description = "My awesome blog",
+});
+
+// DocSite - BaseUrl handled automatically  
+builder.Services.AddDocSite(_ => new DocSiteOptions
+{
+    ApplicationArgs = args, // Handles BaseUrl automatically
+    SiteTitle = "My Documentation",
+    Description = "My awesome docs",
+});
+```
+
+### For Custom Sites (Manual Registration)
+
+If you're building a custom site without BlogSite/DocSite packages, register OutputOptions manually:
 
 ```csharp
 // Register OutputOptions to support command line arguments
@@ -89,15 +111,6 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 });
 ```
 
-### Alternative: Environment Variable Fallback
-
-If you need environment variable support as a fallback:
-
-```csharp
-// This will use command line args first, then fall back to BaseHref environment variable
-builder.Services.AddOutputOptions(args);
-```
-
 ### BaseUrl Guidelines
 
 - **Include leading slash**: Use `/my-app`, not `my-app`
@@ -109,7 +122,7 @@ builder.Services.AddOutputOptions(args);
 <Step stepNumber="2">
 ## Configure Static Generation with GitHub Actions
 
-For static site generation, use command line arguments in your build process:
+For static site generation, use command line arguments in your build process. The examples below work for both BlogSite/DocSite and custom implementations:
 
 ### GitHub Actions Example
 
@@ -217,7 +230,7 @@ When a cross-reference cannot be resolved, the middleware:
 ## Best Practices
 
 1. **Use command line arguments** for BaseUrl to support multiple deployment targets
-2. **Register OutputOptions** in your Program.cs to support command line configuration
+2. **Use BlogSite/DocSite packages** for automatic BaseUrl handling, or register OutputOptions manually for custom sites
 3. **Use root-relative URLs** in your content (`/page` not `page`)
 4. **Test locally** with different BaseUrl values using: `dotnet run -- build "/test-path"`
 5. **Monitor for unresolved xrefs** using browser developer tools to check for error attributes

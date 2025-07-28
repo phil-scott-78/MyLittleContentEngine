@@ -66,8 +66,9 @@ using MyLittleContentEngine.BlogSite;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddBlogSite(_ => new BlogSiteOptions(args)
+builder.Services.AddBlogSite(_ => new BlogSiteOptions
 {
+    ApplicationArgs = args,
     SiteTitle = "My Blog",
     Description = "A blog about my adventures in coding",
 });
@@ -142,38 +143,38 @@ using MyLittleContentEngine.BlogSite;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddBlogSite(options =>
+builder.Services.AddBlogSite(_ => new BlogSiteOptions
 {
+    ApplicationArgs = args,
     // Basic site information
-    options.SiteTitle = "My Coding Blog";
-    options.Description = "Adventures in software development";
-    options.BaseUrl = "/";
-    options.CanonicalBaseUrl = "https://myblog.example.com";
+    SiteTitle = "My Coding Blog",
+    Description = "Adventures in software development",
+    CanonicalBaseUrl = "https://myblog.example.com",
     
     // Styling and branding
-    options.PrimaryHue = 250; // Purple theme (0-360)
-    options.BaseColorName = ColorNames.Slate;
-    options.DisplayFontFamily = "Inter";
-    options.BodyFontFamily = "Inter";
+    PrimaryHue = 250, // Purple theme (0-360)
+    BaseColorName = ColorNames.Slate,
+    DisplayFontFamily = "Inter",
+    BodyFontFamily = "Inter",
     
     // Blog configuration
-    options.AuthorName = "Your Name";
-    options.AuthorBio = "Software developer passionate about clean code";
-    options.EnableRss = true;
-    options.EnableSitemap = true;
+    AuthorName = "Your Name",
+    AuthorBio = "Software developer passionate about clean code",
+    EnableRss = true,
+    EnableSitemap = true,
     
     // Navigation links
-    options.MainSiteLinks = [
+    MainSiteLinks = [
         new HeaderLink("About", "/about"),
         new HeaderLink("Contact", "/contact")
-    ];
+    ],
     
     // Advanced customization
-    options.ExtraStyles = """
+    ExtraStyles = """
         .blog-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-        """;
+        """
 });
 
 var app = builder.Build();
@@ -189,14 +190,14 @@ await app.RunBlogSiteAsync(args);
 For social media features, you can add social links and project showcases:
 
 ```csharp
-builder.Services.AddBlogSite(options =>
+builder.Services.AddBlogSite(_ => new BlogSiteOptions
 {
-    options.SiteTitle = "My Coding Blog";
-    options.Description = "Adventures in software development";
-    options.BaseUrl = "/";
+    ApplicationArgs = args,
+    SiteTitle = "My Coding Blog",
+    Description = "Adventures in software development",
     
     // Social media links
-    options.Socials = [
+    Socials = [
         new SocialLink(
             Icon: SocialIcons.BlueskyIcon,
             Url: "https://bsky.app/yourusername"
@@ -205,10 +206,10 @@ builder.Services.AddBlogSite(options =>
             Icon: SocialIcons.GithubIcon,
             Url: "https://github.com/yourusername"
         )
-    ];
+    ],
     
     // Project showcase
-    options.MyWork = [
+    MyWork = [
         new Project(
             Title: "Awesome Library",
             Description: "A useful library for developers",
@@ -219,13 +220,13 @@ builder.Services.AddBlogSite(options =>
             Description: "An innovative web application",
             Url: "https://coolapp.example.com"
         )
-    ];
+    ],
     
     // Custom hero content for home page
-    options.HeroContent = new HeroContent(
+    HeroContent = new HeroContent(
         Title: "Welcome to My Blog",
         Description: "Sharing my journey in software development"
-    );
+    )
 });
 ```
 </Step>
@@ -237,19 +238,19 @@ builder.Services.AddBlogSite(options =>
 For advanced customization, you can add custom HTML to the head section:
 
 ```csharp
-builder.Services.AddBlogSite(options =>
+builder.Services.AddBlogSite(_ => new BlogSiteOptions
 {
-    options.SiteTitle = "My Blog";
-    options.Description = "A blog about coding";
-    options.BaseUrl = "/";
+    ApplicationArgs = args,
+    SiteTitle = "My Blog",
+    Description = "A blog about coding",
     
     // Custom HTML for head section
-    options.AdditionalHtmlHeadContent = """
+    AdditionalHtmlHeadContent = """
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
         <meta name="author" content="Your Name">
-        """;
+        """
 });
 ```
 </Step>
@@ -324,7 +325,7 @@ The `BlogSiteOptions` class provides many customization options:
 |--------|------|---------|-------------|
 | `SiteTitle` | string | required | The title displayed in the header |
 | `Description` | string | required | Site description for SEO |
-| `BaseUrl` | string | required | Base URL for routing |
+| `ApplicationArgs` | string[] | required | Command line arguments for BaseUrl handling |
 | `PrimaryHue` | int | 250 | Primary color hue (0-360) |
 | `BaseColorName` | string | "Slate" | Base color palette name |
 | `CanonicalBaseUrl` | string? | null | Canonical URL for SEO and RSS |
