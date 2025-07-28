@@ -18,7 +18,7 @@ public class ContentEngineTestBuilder
     private readonly MockFileSystem _fileSystem = new();
     private readonly List<(string path, string content)> _markdownFiles = [];
     private readonly List<PageToGenerate> _pages = [];
-    private ContentEngineContentOptions<TestFrontMatter>? _contentOptions;
+    private MarkdownContentOptions<TestFrontMatter>? _contentOptions;
 
     /// <summary>
     /// Adds markdown files to the mock file system.
@@ -40,9 +40,9 @@ public class ContentEngineTestBuilder
     /// </summary>
     /// <param name="configure">Action to configure the ContentOptions.</param>
     /// <returns>The builder instance for method chaining.</returns>
-    public ContentEngineTestBuilder WithContentOptions(Action<ContentEngineContentOptions<TestFrontMatter>> configure)
+    public ContentEngineTestBuilder WithContentOptions(Action<MarkdownContentOptions<TestFrontMatter>> configure)
     {
-        _contentOptions = new ContentEngineContentOptions<TestFrontMatter>
+        _contentOptions = new MarkdownContentOptions<TestFrontMatter>
         {
             ContentPath = "/content"
         };
@@ -81,7 +81,7 @@ public class ContentEngineTestBuilder
     /// Gets the configured content options.
     /// </summary>
     /// <returns>The ContentOptions instance or null if not configured.</returns>
-    public ContentEngineContentOptions<TestFrontMatter>? GetContentOptions() => _contentOptions;
+    public MarkdownContentOptions<TestFrontMatter>? GetContentOptions() => _contentOptions;
 
     /// <summary>
     /// Creates a builder pre-configured with common test markdown files and corresponding pages.

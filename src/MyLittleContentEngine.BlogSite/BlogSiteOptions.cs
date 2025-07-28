@@ -10,22 +10,10 @@ namespace MyLittleContentEngine.BlogSite;
 /// </summary>
 public record BlogSiteOptions
 {
-    public BlogSiteOptions(string[] args)
-    {
-        if (args.Length <= 0) return;
-        if (args[0] != "build") return;
-    
-        if (args.Length > 1)
-        {
-            BaseUrl = args[1];
-        }
-
-        if (args.Length > 2)
-        {
-            OutputPath = args[2];
-        }
-        
-    }
+    /// <summary>
+    /// The args the app was launched with
+    /// </summary>
+    public required string[] ApplicationArgs { get; init; }
 
     /// <summary>
     /// The primary hue for the site's color scheme (0-360)
@@ -66,16 +54,6 @@ public record BlogSiteOptions
     /// Path to the blog content directory (relative to ContentRootPath)
     /// </summary>
     public string BlogContentPath { get; init; } = "Blog";
-
-    /// <summary>
-    /// Base URL for the site (used for routing)
-    /// </summary>
-    public string BaseUrl { get; } = "/";
-
-    /// <summary>
-    /// The output path for the static site generation. Default to output.
-    /// </summary>
-    public string OutputPath { get; } = "output";
 
     /// <summary>
     /// Base URL for blog posts (used for routing)

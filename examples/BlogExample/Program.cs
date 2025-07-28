@@ -6,8 +6,9 @@ using MyLittleContentEngine.BlogSite.Components;
 var builder = WebApplication.CreateBuilder(args);
 
 
-builder.Services.AddBlogSite(_ => new BlogSiteOptions(args)
+builder.Services.AddBlogSite(_ => new BlogSiteOptions()
 {
+    ApplicationArgs = args,
     SiteTitle = "Calvin's Chewing Chronicles",
     Description = "A sophisticated publication for the serious gum enthusiast",
     CanonicalBaseUrl = Environment.GetEnvironmentVariable("CanonicalBaseHref") ?? "https://calvins-chewing-chronicles.example.com",

@@ -28,18 +28,6 @@ public static class OutputOptionsExtensions
     }
 
     /// <summary>
-    /// Adds OutputOptions to the service collection with specific values.
-    /// </summary>
-    /// <param name="services">The service collection to add the options to.</param>
-    /// <param name="baseUrl">The base URL to use.</param>
-    /// <param name="outputFolderPath">The output folder path to use. Defaults to "output" if null.</param>
-    /// <returns>The service collection for chaining.</returns>
-    public static IServiceCollection AddOutputOptions(this IServiceCollection services, string baseUrl, string? outputFolderPath = null)
-    {
-        return services.AddSingleton<OutputOptions>(_ => new OutputOptions { BaseUrl = baseUrl, OutputFolderPath = outputFolderPath ?? "output" });
-    }
-
-    /// <summary>
     /// Extracts the output options from command line arguments or environment variables.
     /// </summary>
     /// <param name="args">Command line arguments array.</param>
@@ -49,16 +37,18 @@ public static class OutputOptionsExtensions
         string baseUrl = string.Empty;
         string outputFolderPath = "output";
 
-        // Check if first argument is "build"
+        // Check if the first argument is "build"
         if (args.Length >= 1 && args[0].Equals("build", StringComparison.OrdinalIgnoreCase))
         {
-            // Second argument is BaseUrl
+            // The second argument is BaseUrl
             if (args.Length >= 2)
             {
                 baseUrl = args[1];
+                if (!baseUrl.StartsWith('/')) baseUrl = '/' + baseUrl; // Ensure leading slash
+                if (!baseUrl.EndsWith('/')) baseUrl += '/'; // Ensure trailing slash
             }
 
-            // Third argument is OutputFolderPath
+            // The third argument is OutputFolderPath
             if (args.Length >= 3)
             {
                 outputFolderPath = args[2];

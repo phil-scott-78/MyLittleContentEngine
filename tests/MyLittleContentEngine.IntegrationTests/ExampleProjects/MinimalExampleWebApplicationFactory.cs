@@ -41,13 +41,13 @@ public class MinimalExampleWebApplicationFactory : WebApplicationFactory<Minimal
             }
             
             // Find and replace ContentEngineOptions
-            var contentOptionsDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(ContentEngineContentOptions<BlogFrontMatter>));
+            var contentOptionsDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(MarkdownContentOptions<BlogFrontMatter>));
             if (contentOptionsDescriptor != null)
             {
                 services.Remove(contentOptionsDescriptor);
-                services.AddTransient<ContentEngineContentOptions<BlogFrontMatter>>(serviceProvider =>
+                services.AddTransient<MarkdownContentOptions<BlogFrontMatter>>(serviceProvider =>
                 {
-                    var originalFactory = (Func<IServiceProvider, ContentEngineContentOptions<BlogFrontMatter>>)contentOptionsDescriptor.ImplementationFactory!;
+                    var originalFactory = (Func<IServiceProvider, MarkdownContentOptions<BlogFrontMatter>>)contentOptionsDescriptor.ImplementationFactory!;
                     var originalOptions = originalFactory(serviceProvider);
                     
                     return originalOptions with

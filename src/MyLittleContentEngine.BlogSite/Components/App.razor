@@ -35,23 +35,15 @@
     <PageTitle>@Options.SiteTitle</PageTitle>
 </head>
 
-<body data-base-url="@(_baseHref)" data-mobile-menu-open="false" class="data-[mobile-menu-open=true]:overflow-hidden">
+<body data-mobile-menu-open="false" class="data-[mobile-menu-open=true]:overflow-hidden">
     <Routes/>
 </body>
 </html>
 
 @code{
-    private string _baseHref = null!;
     static readonly string Version = DateTime.Now.Ticks.ToString();
     
     string GetVersioned(string url) => WebHostEnvironment.IsDevelopment()
             ? url 
             : QueryHelpers.AddQueryString(url, "v", Version);
-
-    protected override void OnInitialized()
-    {
-        _baseHref = OutputOptions?.BaseUrl ?? string.Empty;
-        base.OnInitialized();
-    }
-
 }

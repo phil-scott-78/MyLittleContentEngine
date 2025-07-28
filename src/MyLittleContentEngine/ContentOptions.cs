@@ -28,7 +28,7 @@ public interface IContentOptions
 /// and how they're transformed before being rendered by Blazor components.
 /// </para>
 /// </remarks>
-public record ContentEngineContentOptions<TFrontMatter> : IContentOptions
+public record MarkdownContentOptions<TFrontMatter> : IContentOptions
     where TFrontMatter : class, IFrontMatter
 {
     /// <summary>

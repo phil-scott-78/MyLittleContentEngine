@@ -9,22 +9,11 @@ namespace MyLittleContentEngine.DocSite;
 /// </summary>
 public record DocSiteOptions
 {
-    public DocSiteOptions(string[] args)
-    {
-        if (args.Length <= 0) return;
-        if (args[0] != "build") return;
-        
-        if (args.Length > 1)
-        {
-            BaseUrl = args[1];
-        }
-
-        if (args.Length > 2)
-        {
-            OutputPath = args[2];
-        }
-    }
-
+    /// <summary>
+    /// The args the app was launched with
+    /// </summary>
+    public required string[] ApplicationArgs { get; init; }
+    
     /// <summary>
     /// The primary hue for the site's color scheme (0-360)
     /// </summary>
@@ -79,16 +68,6 @@ public record DocSiteOptions
     /// Path to the content directory
     /// </summary>
     public string ContentRootPath { get; init; } = "Content";
-
-    /// <summary>
-    /// Base URL for the site (used for routing)
-    /// </summary>
-    public string BaseUrl { get; } = "/";
-
-    /// <summary>
-    /// The output path for the static site generation. Default to output.
-    /// </summary>
-    public string OutputPath { get; } = "output";
 
     /// <summary>
     /// Additional CSS styles to include

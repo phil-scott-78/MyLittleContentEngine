@@ -11,19 +11,19 @@ namespace MyLittleContentEngine.Services.Content;
 public class TagService<TFrontMatter>
     where TFrontMatter : class, IFrontMatter
 {
-    private readonly ContentEngineContentOptions<TFrontMatter> _engineContentOptions;
+    private readonly MarkdownContentOptions<TFrontMatter> _markdownContentOptions;
     private readonly ILogger<TagService<TFrontMatter>> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TagService{TFrontMatter}"/> class.
     /// </summary>
-    /// <param name="engineContentOptions">Content options containing tag configuration.</param>
+    /// <param name="markdownContentOptions">Content options containing tag configuration.</param>
     /// <param name="logger">Logger for diagnostic information.</param>
     public TagService(
-        ContentEngineContentOptions<TFrontMatter> engineContentOptions,
+        MarkdownContentOptions<TFrontMatter> markdownContentOptions,
         ILogger<TagService<TFrontMatter>> logger)
     {
-        _engineContentOptions = engineContentOptions;
+        _markdownContentOptions = markdownContentOptions;
         _logger = logger;
     }
 
@@ -37,13 +37,13 @@ public class TagService<TFrontMatter>
 
         try
         {
-            var tagEncodedName = _engineContentOptions.Tags.TagEncodeFunc(tagName);
+            var tagEncodedName = _markdownContentOptions.Tags.TagEncodeFunc(tagName);
 
             return new Tag
             {
                 Name = tagName,
                 EncodedName = tagEncodedName,
-                Url = $"/{_engineContentOptions.Tags.TagsPageUrl}/{tagEncodedName}",
+                Url = $"/{_markdownContentOptions.Tags.TagsPageUrl}/{tagEncodedName}",
             };
         }
         catch (Exception ex)

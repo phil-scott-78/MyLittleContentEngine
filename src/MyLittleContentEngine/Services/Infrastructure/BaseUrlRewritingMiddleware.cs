@@ -51,6 +51,9 @@ public partial class BaseUrlRewritingMiddleware
     
     // Pattern to match <a href="xref:uid">xref:uid</a> where href and content must match
     private static readonly Regex XrefLinkPattern = XrefLinkRegex();
+    
+    // Pattern to match body tag to add data-base-url attribute
+    private static readonly Regex BodyTagPattern = BodyTagRegex();
 
     public BaseUrlRewritingMiddleware(RequestDelegate next, OutputOptions? outputOptions, IXrefResolver xrefResolver)
     {
@@ -115,6 +118,9 @@ public partial class BaseUrlRewritingMiddleware
     {
         // First, resolve any xref: URLs
         html = await ResolveXrefsAsync(html);
+
+        // Add data-base-url attribute to body tag if not already present
+        html = AddDataBaseUrlToBody(html);
 
         // Handle srcset attributes separately since they contain multiple URLs
         html = RewriteSrcsetUrls(html);
@@ -233,6 +239,27 @@ public partial class BaseUrlRewritingMiddleware
         return html;
     }
 
+    private string AddDataBaseUrlToBody(string html)
+    {
+        return BodyTagPattern.Replace(html, match =>
+        {
+            var openingTag = match.Groups[1].Value; // "<body"
+            var attributes = match.Groups[2].Value; // existing attributes (could be empty)
+            var closingBracket = match.Groups[3].Value; // ">"
+            
+            // Check if data-base-url attribute already exists in the attributes
+            if (attributes.Contains("data-base-url", StringComparison.OrdinalIgnoreCase))
+            {
+                // Already has the attribute, return unchanged
+                return match.Value;
+            }
+            
+            // Add data-base-url attribute while preserving existing attributes
+            var dataBaseUrlAttr = string.IsNullOrEmpty(_baseUrl) ? "" : $" data-base-url=\"{_baseUrl}\"";
+            return $"{openingTag}{attributes}{dataBaseUrlAttr}{closingBracket}";
+        });
+    }
+
     private string RewriteSrcsetUrls(string html)
     {
         return SrcsetPattern.Replace(html, match =>
@@ -331,4 +358,6 @@ public partial class BaseUrlRewritingMiddleware
     private static partial Regex XrefLinkRegex();
     [GeneratedRegex("""(<img\b[^>]*?\s+srcset\s*=\s*["'])([^"']*?)(['"][^>]*?>)""", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-US")]
     private static partial Regex SrcsetRegex();
+    [GeneratedRegex("""(<body)([^>]*)(>)""", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-US")]
+    private static partial Regex BodyTagRegex();
 }

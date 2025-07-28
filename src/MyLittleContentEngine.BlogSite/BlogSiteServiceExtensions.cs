@@ -49,19 +49,12 @@ public static class BlogSiteServiceExtensions
             };
         });
 
-        // Register OutputOptions from BlogSiteOptions
-        services.AddSingleton<OutputOptions>(sp =>
-        {
-            var o = sp.GetRequiredService<BlogSiteOptions>();
-            return new OutputOptions { BaseUrl = o.BaseUrl, OutputFolderPath = o.OutputPath};
-        });
-
         // Configure content service
         services.AddContentEngineStaticContentService(sp =>
         {
             var o = sp.GetRequiredService<BlogSiteOptions>();
 
-            return new ContentEngineContentOptions<BlogSiteFrontMatter>
+            return new MarkdownContentOptions<BlogSiteFrontMatter>
             {
                 ContentPath = Path.Combine(o.ContentRootPath, o.BlogContentPath),
                 BasePageUrl = o.BlogBaseUrl,
@@ -115,6 +108,12 @@ public static class BlogSiteServiceExtensions
             };
         });
 
+        
+        // add the output options
+        var sp = services.BuildServiceProvider();
+        var tempOptions = sp.GetRequiredService<BlogSiteOptions>();
+        services.AddOutputOptions(tempOptions.ApplicationArgs);
+        
         return services;
     }
 

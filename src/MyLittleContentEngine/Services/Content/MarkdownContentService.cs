@@ -49,14 +49,14 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
     /// <summary>
     ///     Initializes a new instance of the MarkdownContentService.
     /// </summary>
-    /// <param name="engineContentOptions">Configuration options specific to content handling</param>
+    /// <param name="markdownContentOptions">Configuration options specific to content handling</param>
     /// <param name="fileWatcher">File watcher for hot-reload functionality</param>
     /// <param name="tagService">Service for handling tags</param>
     /// <param name="contentFilesService">Service for handling content files</param>
     /// <param name="markdownParserService">Service for handling Markdown parsing</param>
     /// <param name="contentProcessor">Service for processing Markdown content</param>
     public MarkdownContentService(
-        ContentEngineContentOptions<TFrontMatter> engineContentOptions,
+        MarkdownContentOptions<TFrontMatter> markdownContentOptions,
         IContentEngineFileWatcher fileWatcher,
         TagService<TFrontMatter> tagService,
         ContentFilesService<TFrontMatter> contentFilesService,
@@ -74,7 +74,7 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
                 await _contentProcessor.ProcessContentFiles());
 
         // Set up file watching
-        fileWatcher.AddPathsWatch([engineContentOptions.ContentPath], NeedsRefresh);
+        fileWatcher.AddPathsWatch([markdownContentOptions.ContentPath], NeedsRefresh);
     }
 
     /// <summary>

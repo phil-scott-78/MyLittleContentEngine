@@ -41,13 +41,13 @@ public class MultipleContentSourceExampleWebApplicationFactory : WebApplicationF
             }
             
             // Override ContentEngineContentOptions services (only public types accessible)
-            var contentOptionsDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(ContentEngineContentOptions<ContentFrontMatter>));
+            var contentOptionsDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(MarkdownContentOptions<ContentFrontMatter>));
             if (contentOptionsDescriptor != null)
             {
                 services.Remove(contentOptionsDescriptor);
-                services.AddTransient<ContentEngineContentOptions<ContentFrontMatter>>(serviceProvider =>
+                services.AddTransient<MarkdownContentOptions<ContentFrontMatter>>(serviceProvider =>
                 {
-                    var originalFactory = (Func<IServiceProvider, ContentEngineContentOptions<ContentFrontMatter>>)contentOptionsDescriptor.ImplementationFactory!;
+                    var originalFactory = (Func<IServiceProvider, MarkdownContentOptions<ContentFrontMatter>>)contentOptionsDescriptor.ImplementationFactory!;
                     var originalOptions = originalFactory(serviceProvider);
                     
                     return originalOptions with
@@ -57,13 +57,13 @@ public class MultipleContentSourceExampleWebApplicationFactory : WebApplicationF
                 });
             }
             
-            var blogOptionsDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(ContentEngineContentOptions<BlogFrontMatter>));
+            var blogOptionsDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(MarkdownContentOptions<BlogFrontMatter>));
             if (blogOptionsDescriptor != null)
             {
                 services.Remove(blogOptionsDescriptor);
-                services.AddTransient<ContentEngineContentOptions<BlogFrontMatter>>(serviceProvider =>
+                services.AddTransient<MarkdownContentOptions<BlogFrontMatter>>(serviceProvider =>
                 {
-                    var originalFactory = (Func<IServiceProvider, ContentEngineContentOptions<BlogFrontMatter>>)blogOptionsDescriptor.ImplementationFactory!;
+                    var originalFactory = (Func<IServiceProvider, MarkdownContentOptions<BlogFrontMatter>>)blogOptionsDescriptor.ImplementationFactory!;
                     var originalOptions = originalFactory(serviceProvider);
                     
                     return originalOptions with
@@ -73,13 +73,13 @@ public class MultipleContentSourceExampleWebApplicationFactory : WebApplicationF
                 });
             }
             
-            var docOptionsDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(ContentEngineContentOptions<DocsFrontMatter>));
+            var docOptionsDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(MarkdownContentOptions<DocsFrontMatter>));
             if (docOptionsDescriptor != null)
             {
                 services.Remove(docOptionsDescriptor);
-                services.AddTransient<ContentEngineContentOptions<DocsFrontMatter>>(serviceProvider =>
+                services.AddTransient<MarkdownContentOptions<DocsFrontMatter>>(serviceProvider =>
                 {
-                    var originalFactory = (Func<IServiceProvider, ContentEngineContentOptions<DocsFrontMatter>>)docOptionsDescriptor.ImplementationFactory!;
+                    var originalFactory = (Func<IServiceProvider, MarkdownContentOptions<DocsFrontMatter>>)docOptionsDescriptor.ImplementationFactory!;
                     var originalOptions = originalFactory(serviceProvider);
                     
                     return originalOptions with

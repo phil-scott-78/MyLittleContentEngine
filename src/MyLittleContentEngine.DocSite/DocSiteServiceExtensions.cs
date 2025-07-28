@@ -50,19 +50,13 @@ public static class DocSiteServiceExtensions
             };
         });
 
-        // Register OutputOptions from DocSiteOptions
-        services.AddSingleton<OutputOptions>(sp =>
-        {
-            var options = sp.GetRequiredService<DocSiteOptions>();
-            return new OutputOptions { BaseUrl = options.BaseUrl, OutputFolderPath = options.OutputPath};
-        });
 
         // Configure content service
         services.AddContentEngineStaticContentService(sp =>
         {
             var options = sp.GetRequiredService<DocSiteOptions>();
 
-            return new ContentEngineContentOptions<DocSiteFrontMatter>()
+            return new MarkdownContentOptions<DocSiteFrontMatter>()
             {
                 ContentPath = options.ContentRootPath,
                 BasePageUrl = string.Empty,
@@ -128,6 +122,10 @@ public static class DocSiteServiceExtensions
                 ExcludedNamespace = tempOptions.ExcludeNamespaces ?? [],
             });
         }
+
+        // add the output options
+        services.AddOutputOptions(tempOptions.ApplicationArgs);
+        
         return services;
     }
 

@@ -15,7 +15,7 @@ namespace MyLittleContentEngine.Services.Content;
 internal class MarkdownContentProcessor<TFrontMatter>
     where TFrontMatter : class, IFrontMatter, new()
 {
-    private readonly ContentEngineContentOptions<TFrontMatter> _engineContentOptions;
+    private readonly MarkdownContentOptions<TFrontMatter> _markdownContentOptions;
     private readonly MarkdownParserService _markdownParserService;
     private readonly TagService<TFrontMatter> _tagService;
     private readonly ContentFilesService<TFrontMatter> _contentFilesService;
@@ -25,21 +25,21 @@ internal class MarkdownContentProcessor<TFrontMatter>
     /// <summary>
     /// Initializes a new instance of the <see cref="MarkdownContentProcessor{TFrontMatter}"/> class.
     /// </summary>
-    /// <param name="engineContentOptions">Content options.</param>
+    /// <param name="markdownContentOptions">Content options.</param>
     /// <param name="markdownParserService">Markdown service for parsing and rendering.</param>
     /// <param name="tagService">Tag service for handling tags.</param>
     /// <param name="contentFilesService">Content files service for file operations.</param>
     /// <param name="fileSystem">The file system.</param>
     /// <param name="logger">Logger instance.</param>
     public MarkdownContentProcessor(
-        ContentEngineContentOptions<TFrontMatter> engineContentOptions,
+        MarkdownContentOptions<TFrontMatter> markdownContentOptions,
         MarkdownParserService markdownParserService,
         TagService<TFrontMatter> tagService,
         ContentFilesService<TFrontMatter> contentFilesService,
         IFileSystem fileSystem,
         ILogger<MarkdownContentProcessor<TFrontMatter>> logger)
     {
-        _engineContentOptions = engineContentOptions;
+        _markdownContentOptions = markdownContentOptions;
         _markdownParserService = markdownParserService;
         _tagService = tagService;
         _contentFilesService = contentFilesService;
@@ -54,7 +54,7 @@ internal class MarkdownContentProcessor<TFrontMatter>
     internal async Task<ConcurrentDictionary<string, MarkdownContentPage<TFrontMatter>>> ProcessContentFiles()
     {
         var stopwatch = Stopwatch.StartNew();
-        var results = new ConcurrentDictionary<string, MarkdownContentPage<TFrontMatter>>(new UrlComparer(_engineContentOptions.BasePageUrl));
+        var results = new ConcurrentDictionary<string, MarkdownContentPage<TFrontMatter>>(new UrlComparer(_markdownContentOptions.BasePageUrl));
 
         try
         {
@@ -135,7 +135,7 @@ internal class MarkdownContentProcessor<TFrontMatter>
             // Parse Markdown and extract front matter
             var (frontMatter, markdownContent, outline) = await _markdownParserService.ParseMarkdownFileAsync<TFrontMatter>(
                 filePath,
-                preProcessFile: _engineContentOptions.PreProcessMarkdown
+                preProcessFile: _markdownContentOptions.PreProcessMarkdown
             );
 
             // Skip draft content pages
@@ -199,10 +199,10 @@ internal class MarkdownContentProcessor<TFrontMatter>
             foreach (var post in allPosts)
             {
                 var outputFile = _contentFilesService.GetOutputFilePath(post.Url);
-                var pageUrl = _contentFilesService.GetPageUrl(post.Url);
+                // var pageUrl = _contentFilesService.GetPageUrl(post.Url);
 
                 pageToGenerates = pageToGenerates.Add(
-                    new PageToGenerate(pageUrl, outputFile, post.FrontMatter.AsMetadata()));
+                    new PageToGenerate(post.Url, outputFile, post.FrontMatter.AsMetadata()));
             }
 
             // Extract all unique tags from posts
@@ -211,8 +211,8 @@ internal class MarkdownContentProcessor<TFrontMatter>
             // Generate tag pages - one for each unique tag
             foreach (var tag in allTags)
             {
-                var outputFile = _fileSystem.Path.Combine(_engineContentOptions.Tags.TagsPageUrl, $"{tag.EncodedName}.html");
-                var pageUrl = $"{_engineContentOptions.Tags.TagsPageUrl}/{tag.EncodedName}";
+                var outputFile = _fileSystem.Path.Combine(_markdownContentOptions.Tags.TagsPageUrl, $"{tag.EncodedName}.html");
+                var pageUrl = $"{_markdownContentOptions.Tags.TagsPageUrl}/{tag.EncodedName}";
 
                 pageToGenerates = pageToGenerates.Add(new PageToGenerate(pageUrl, outputFile));
             }

@@ -1,7 +1,5 @@
 ﻿@using MyLittleContentEngine
 @using MyLittleContentEngine.Services.Content
-@inject OutputOptions? OutputOptions
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -13,7 +11,7 @@
     <HeadOutlet/>
 </head>
 
-<body data-base-url="@(OutputOptions?.BaseUrl ?? string.Empty)">
+<body>
     <Routes/>
 </body>
 </html>

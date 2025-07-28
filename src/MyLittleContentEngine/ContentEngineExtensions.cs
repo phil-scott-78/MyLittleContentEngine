@@ -30,12 +30,12 @@ public static class ContentEngineExtensions
     /// <returns>The updated service collection for method chaining.</returns>
     public static IServiceCollection AddContentEngineStaticContentService<TFrontMatter>(
         this IServiceCollection services,
-        Func<IServiceProvider, ContentEngineContentOptions<TFrontMatter>>? configureOptions)
+        Func<IServiceProvider, MarkdownContentOptions<TFrontMatter>>? configureOptions)
         where TFrontMatter : class, IFrontMatter, new()
     {
         if (configureOptions == null)
         {
-            configureOptions = _ => new ContentEngineContentOptions<TFrontMatter>
+            configureOptions = _ => new MarkdownContentOptions<TFrontMatter>
             {
                 ContentPath = "Content",
                 BasePageUrl = string.Empty,
@@ -61,7 +61,7 @@ public static class ContentEngineExtensions
         services.AddSingleton<IContentService>(provider =>
             provider.GetRequiredService<IMarkdownContentService<TFrontMatter>>());
         services.AddTransient<IContentOptions>(provider =>
-            provider.GetRequiredService<ContentEngineContentOptions<TFrontMatter>>());
+            provider.GetRequiredService<MarkdownContentOptions<TFrontMatter>>());
 
         return services;
     }

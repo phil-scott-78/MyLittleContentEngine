@@ -19,7 +19,7 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 // Register OutputOptions to handle command line arguments and environment variables
 builder.Services.AddOutputOptions(args);
 
-builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<DocsFrontMatter>()
+builder.Services.AddContentEngineStaticContentService(_ => new MarkdownContentOptions<DocsFrontMatter>()
 {
     ContentPath = "Content",
     BasePageUrl = ""

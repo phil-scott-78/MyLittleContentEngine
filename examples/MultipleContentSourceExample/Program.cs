@@ -19,20 +19,20 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 // Register OutputOptions to handle command line arguments and environment variables
 builder.Services.AddOutputOptions(args);
 
-builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<ContentFrontMatter>()
+builder.Services.AddContentEngineStaticContentService(_ => new MarkdownContentOptions<ContentFrontMatter>()
 {
     ContentPath = "Content",
     BasePageUrl = "",
     ExcludeSubfolders = true,
 });
 
-builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<BlogFrontMatter>()
+builder.Services.AddContentEngineStaticContentService(_ => new MarkdownContentOptions<BlogFrontMatter>()
 {
     ContentPath = "Content/blog",
     BasePageUrl = "/blog"
 });
 
-builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<DocsFrontMatter>()
+builder.Services.AddContentEngineStaticContentService(_ => new MarkdownContentOptions<DocsFrontMatter>()
 {
     ContentPath = "Content/docs",
     BasePageUrl = "/docs"

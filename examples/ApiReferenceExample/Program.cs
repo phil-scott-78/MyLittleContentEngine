@@ -23,7 +23,7 @@ builder.Services.AddOutputOptions(args);
 // configures individual sections of the blog. PageUrl should match the configured razor pages route,
 // and contentPath should match the location on disk.
 // you can have multiple of these per site.
-builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<BlogFrontMatter>()
+builder.Services.AddContentEngineStaticContentService(_ => new MarkdownContentOptions<BlogFrontMatter>()
 {
     ContentPath = "Content",
     BasePageUrl = string.Empty

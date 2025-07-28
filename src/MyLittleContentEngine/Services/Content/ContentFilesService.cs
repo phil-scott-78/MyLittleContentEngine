@@ -12,22 +12,22 @@ namespace MyLittleContentEngine.Services.Content;
 internal class ContentFilesService<TFrontMatter>
     where TFrontMatter : class, IFrontMatter
 {
-    private readonly ContentEngineContentOptions<TFrontMatter> _engineContentOptions;
+    private readonly MarkdownContentOptions<TFrontMatter> _markdownContentOptions;
     private readonly FileSystemUtilities _fileSystemUtilities;
     private readonly ILogger<ContentFilesService<TFrontMatter>> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ContentFilesService{TFrontMatter}"/> class.
     /// </summary>
-    /// <param name="engineContentOptions">Content options.</param>
+    /// <param name="markdownContentOptions">Content options.</param>
     /// <param name="fileSystemUtilities">Path utilities service.</param>
     /// <param name="logger">Logger instance.</param>
     public ContentFilesService(
-        ContentEngineContentOptions<TFrontMatter> engineContentOptions,
+        MarkdownContentOptions<TFrontMatter> markdownContentOptions,
         FileSystemUtilities fileSystemUtilities,
         ILogger<ContentFilesService<TFrontMatter>> logger)
     {
-        _engineContentOptions = engineContentOptions;
+        _markdownContentOptions = markdownContentOptions;
         _fileSystemUtilities = fileSystemUtilities;
         _logger = logger;
     }
@@ -42,26 +42,26 @@ internal class ContentFilesService<TFrontMatter>
         try
         {
             // Validate the content path exists
-            var absoluteContentPath = _fileSystemUtilities.ValidateDirectoryPath(_engineContentOptions.ContentPath);
+            var absoluteContentPath = _fileSystemUtilities.ValidateDirectoryPath(_markdownContentOptions.ContentPath);
 
             return _fileSystemUtilities.GetFilesInDirectory(
                 absoluteContentPath,
-                _engineContentOptions.PostFilePattern, !_engineContentOptions.ExcludeSubfolders);
+                _markdownContentOptions.PostFilePattern, !_markdownContentOptions.ExcludeSubfolders);
         }
         catch (DirectoryNotFoundException ex)
         {
-            _logger.LogError(ex, "Content directory not found: {ContentPath}", _engineContentOptions.ContentPath);
+            _logger.LogError(ex, "Content directory not found: {ContentPath}", _markdownContentOptions.ContentPath);
             throw new FileOperationException(
                 "Content directory not found",
-                _engineContentOptions.ContentPath,
+                _markdownContentOptions.ContentPath,
                 ex);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting content files from {ContentPath}", _engineContentOptions.ContentPath);
+            _logger.LogError(ex, "Error getting content files from {ContentPath}", _markdownContentOptions.ContentPath);
             throw new FileOperationException(
                 "Failed to retrieve content files",
-                _engineContentOptions.ContentPath,
+                _markdownContentOptions.ContentPath,
                 ex);
         }
     }
@@ -80,7 +80,7 @@ internal class ContentFilesService<TFrontMatter>
         try
         {
             // Use custom URL creation function if provided, otherwise use default
-            return _engineContentOptions.CreateContentUrl?.Invoke(filePath, baseContentPath) 
+            return _markdownContentOptions.CreateContentUrl?.Invoke(filePath, baseContentPath) 
                 ?? _fileSystemUtilities.FilePathToUrlPath(filePath, baseContentPath);
         }
         catch (Exception ex)
@@ -102,7 +102,7 @@ internal class ContentFilesService<TFrontMatter>
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(contentUrl);
 
-        return FileSystemUtilities.CombineUrl(_engineContentOptions.BasePageUrl, contentUrl);
+        return FileSystemUtilities.CombineUrl(_markdownContentOptions.BasePageUrl, contentUrl);
     }
 
     /// <summary>
@@ -114,8 +114,9 @@ internal class ContentFilesService<TFrontMatter>
     {
         ArgumentException.ThrowIfNullOrEmpty(contentUrl);
 
-        var relativePath = contentUrl.Replace('/', Path.DirectorySeparatorChar);
-        return _fileSystemUtilities.Combine(_engineContentOptions.BasePageUrl, $"{relativePath}.html");
+        var relativePath = contentUrl.Replace('/', Path.DirectorySeparatorChar).TrimStart(Path.DirectorySeparatorChar);
+        return relativePath;
+        // return _fileSystemUtilities.Combine(_markdownContentOptions.BasePageUrl, $"{relativePath}.html");
     }
 
     /// <summary>
@@ -127,7 +128,7 @@ internal class ContentFilesService<TFrontMatter>
     {
         ArgumentException.ThrowIfNullOrEmpty(contentUrl);
 
-        return FileSystemUtilities.CombineUrl(_engineContentOptions.BasePageUrl, contentUrl);
+        return FileSystemUtilities.CombineUrl(_markdownContentOptions.BasePageUrl, contentUrl);
     }
 
     /// <summary>
@@ -139,21 +140,21 @@ internal class ContentFilesService<TFrontMatter>
         try
         {
             // Validate the content path exists
-            _fileSystemUtilities.ValidateDirectoryPath(_engineContentOptions.ContentPath);
+            _fileSystemUtilities.ValidateDirectoryPath(_markdownContentOptions.ContentPath);
 
             return new[]
             {
-                new ContentToCopy(_engineContentOptions.ContentPath, _engineContentOptions.BasePageUrl)
+                new ContentToCopy(_markdownContentOptions.ContentPath, _markdownContentOptions.BasePageUrl)
             }.ToImmutableList();
         }
         catch (DirectoryNotFoundException ex)
         {
-            _logger.LogWarning(ex, "Content directory not found: {ContentPath}", _engineContentOptions.ContentPath);
+            _logger.LogWarning(ex, "Content directory not found: {ContentPath}", _markdownContentOptions.ContentPath);
             return ImmutableList<ContentToCopy>.Empty;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting content to copy from {ContentPath}", _engineContentOptions.ContentPath);
+            _logger.LogError(ex, "Error getting content to copy from {ContentPath}", _markdownContentOptions.ContentPath);
             return ImmutableList<ContentToCopy>.Empty;
         }
     }

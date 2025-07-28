@@ -41,13 +41,13 @@ public class UserInterfaceExampleWebApplicationFactory : WebApplicationFactory<U
             }
             
             // Find and replace ContentEngineContentOptions
-            var contentOptionsDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(ContentEngineContentOptions<DocsFrontMatter>));
+            var contentOptionsDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(MarkdownContentOptions<DocsFrontMatter>));
             if (contentOptionsDescriptor != null)
             {
                 services.Remove(contentOptionsDescriptor);
-                services.AddTransient<ContentEngineContentOptions<DocsFrontMatter>>(serviceProvider =>
+                services.AddTransient<MarkdownContentOptions<DocsFrontMatter>>(serviceProvider =>
                 {
-                    var originalFactory = (Func<IServiceProvider, ContentEngineContentOptions<DocsFrontMatter>>)contentOptionsDescriptor.ImplementationFactory!;
+                    var originalFactory = (Func<IServiceProvider, MarkdownContentOptions<DocsFrontMatter>>)contentOptionsDescriptor.ImplementationFactory!;
                     var originalOptions = originalFactory(serviceProvider);
                     
                     return originalOptions with
