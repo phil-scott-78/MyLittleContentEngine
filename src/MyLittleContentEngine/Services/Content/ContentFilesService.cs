@@ -115,8 +115,7 @@ internal class ContentFilesService<TFrontMatter>
         ArgumentException.ThrowIfNullOrEmpty(contentUrl);
 
         var relativePath = contentUrl.Replace('/', Path.DirectorySeparatorChar).TrimStart(Path.DirectorySeparatorChar);
-        return relativePath;
-        // return _fileSystemUtilities.Combine(_markdownContentOptions.BasePageUrl, $"{relativePath}.html");
+        return  $"{relativePath}.html";
     }
 
     /// <summary>
