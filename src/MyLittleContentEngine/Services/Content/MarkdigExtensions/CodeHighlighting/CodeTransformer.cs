@@ -49,7 +49,7 @@ internal static class CodeTransformer
             }
         }
 
-        ApplyTransformationsToDom(lineElements, transformations);
+        ApplyTransformationsToDom(preElement, lineElements, transformations);
 
         return preElement.OuterHtml;
     }
@@ -405,17 +405,16 @@ internal static class CodeTransformer
         return true;
     }
 
-    private static void ApplyTransformationsToDom(List<IElement> lineElements, List<LineTransformation> transformations)
+    private static void ApplyTransformationsToDom(IElement preElement, List<IElement> lineElements, List<LineTransformation> transformations)
     {
         if (transformations.Count == 0) return;
 
-        var focusedLineNumbers = transformations
-            .Where(t => t.Notation == "focus")
-            .Select(t => t.LineNumber)
-            .ToHashSet();
+        // Group transformations by type for easier processing
+        var transformationsByType = transformations
+            .GroupBy(t => t.Notation)
+            .ToDictionary(g => g.Key, g => g.Select(t => t.LineNumber).ToHashSet());
 
-        var hasFocusedLines = focusedLineNumbers.Count != 0;
-
+        // Apply line-level classes
         foreach (var transform in transformations)
         {
             var lineElement = lineElements[transform.LineNumber];
@@ -426,8 +425,13 @@ internal static class CodeTransformer
             }
         }
 
-        if (hasFocusedLines)
+        // Handle focused lines - add blurred class to non-focused lines
+        if (transformationsByType.TryGetValue("focus", out var focusedLineNumbers))
         {
+            // Add the has-focused class to the pre element
+            preElement.ClassList.Add("has-focused");
+            
+            // Add blurred class to non-focused lines
             for (var i = 0; i < lineElements.Count; i++)
             {
                 if (!focusedLineNumbers.Contains(i))
@@ -435,6 +439,28 @@ internal static class CodeTransformer
                     lineElements[i].ClassList.Add("blurred");
                 }
             }
+        }
+
+        // Add pre-level classes for other transformations as needed
+        // This makes it easy to add new transformations in the future
+        if (transformationsByType.ContainsKey("highlight") || transformationsByType.ContainsKey("hl"))
+        {
+            preElement.ClassList.Add("has-highlighted");
+        }
+        
+        if (transformationsByType.ContainsKey("++") || transformationsByType.ContainsKey("--"))
+        {
+            preElement.ClassList.Add("has-diff");
+        }
+        
+        if (transformationsByType.ContainsKey("error"))
+        {
+            preElement.ClassList.Add("has-errors");
+        }
+        
+        if (transformationsByType.ContainsKey("warning"))
+        {
+            preElement.ClassList.Add("has-warnings");
         }
     }
 

@@ -237,8 +237,18 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 // Code transformation line containers
                 {
                     ".code-highlight-wrapper .line",
-                    "inline-block px-2 md:px-4 -mx-2 md:-mx-4 w-[calc(100%+2rem)] md:w-[calc(100%+2rem)] relative"
+                    "inline-block transition-all duration-300 px-2 md:px-4 -mx-2 md:-mx-4 w-[calc(100%+2rem)] md:w-[calc(100%+2rem)] relative"
                 },
+                {
+                    ".code-highlight-wrapper pre.has-focused .line",
+                    "blur-[0.095rem] opacity-75"
+                },
+                
+                {
+                    ".code-highlight-wrapper pre.has-focused:hover .line",
+                    "blur-[0] opacity-100"
+                },
+
                 
                 // Line highlighting
                 {
@@ -258,14 +268,10 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 
                 // Focus and blur
                 {
-                    ".code-highlight-wrapper .line.focused",
-                    "bg-blue-50/30 dark:bg-blue-900/10"
+                    ".code-highlight-wrapper pre.has-focused  .line.focused",
+                    "blur-[0] opacity-100"
                 },
-                {
-                    ".code-highlight-wrapper .line.blurred",
-                    "blur-[1px] opacity-75"
-                },
-                
+
                 // Error and warning states
                 {
                     ".code-highlight-wrapper .line.error",

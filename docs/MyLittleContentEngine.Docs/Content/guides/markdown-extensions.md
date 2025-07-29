@@ -164,6 +164,29 @@ function divide(a, b) {
 }
 ```
 
+### Focus and Blur
+
+Draw attention to specific lines by using `// [!code focus]`. This will highlight the focused lines and dim all other lines:
+
+``````markdown
+```csharp
+public async Task<User> GetUserAsync(int id)
+{
+  return await _repository.FindByIdAsync(id); // [!code focus]
+}
+```
+``````
+
+This will render as:
+
+```csharp
+public async Task<User> GetUserAsync(int id)
+{
+  return await _repository.FindByIdAsync(id); // [!code focus]
+}
+```
+
+
 ## Enhanced Alerts
 
 The Markdig AlertBlock has been tweaked to play nicer with Monorail and Tailwind styling.
