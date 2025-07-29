@@ -164,7 +164,6 @@ function divide(a, b) {
 }
 ```
 
-
 ## Enhanced Alerts
 
 The Markdig AlertBlock has been tweaked to play nicer with Monorail and Tailwind styling.

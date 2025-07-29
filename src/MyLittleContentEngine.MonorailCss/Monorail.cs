@@ -223,11 +223,11 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 },
                 {
                     ".code-highlight-wrapper pre ",
-                    "p-1 overflow-x-auto font-mono text-xs md:text-sm  dark:font-light leading-relaxed w-full dark:scheme-dark"
+                    "py-2 px-4 md:px-4  overflow-x-auto  font-mono text-xs md:text-sm  dark:font-light leading-relaxed w-full dark:scheme-dark"
                 },
                 {
                     ".code-highlight-wrapper .standalone-code-highlight pre",
-                    "text-base-900/90 py-2 px-2 md:px-4 dark:text-base-100/90"
+                    "text-base-900/90 dark:text-base-100/90"
                 },
                 {
                     ".code-highlight-wrapper pre code",
@@ -237,7 +237,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 // Code transformation line containers
                 {
                     ".code-highlight-wrapper .line",
-                    "inline-block px-2 md:px-4 -mx-2 md:-mx-4 w-full"
+                    "inline-block px-2 md:px-4 -mx-2 md:-mx-4 w-[calc(100%+2rem)] md:w-[calc(100%+2rem)] relative"
                 },
                 
                 // Line highlighting
@@ -249,11 +249,11 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 // Diff notation
                 {
                     ".code-highlight-wrapper .line.diff-add",
-                    "bg-green-600/20 dark:bg-green-900/20"
+                    "bg-green-600/20 dark:bg-green-900/20 before:font-bold before:content-['+'] before:hidden md:before:block before:text-sm before:absolute before:left-1 before:green:text-green-500 before:text-green-700"
                 },
                 {
                     ".code-highlight-wrapper .line.diff-remove",
-                    "bg-red-600/20 dark:bg-red-900/20 opacity-50"
+                    "bg-red-600/20 dark:bg-red-900/20 opacity-50 before:font-bold before:content-['-'] before:hidden md:before:block before:text-sm before:absolute before:left-1 before:dark:text-red-500 before:text-red-700"
                 },
                 
                 // Focus and blur
@@ -289,14 +289,14 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 },
                 { 
                     ".tab-list", 
-                    "flex flex-row flex-wrap px-4 pt-1 bg-base-200/90 gap-x-2 lg:gap-x-3 dark:bg-base-800/50" },
+                    "flex flex-row flex-wrap px-4 pt-1 bg-base-200/90 gap-x-2 lg:gap-x-4 dark:bg-base-800/50" },
                 {
                     ".tab-button",
                     "whitespace-nowrap border-b border-transparent py-2 text-xs text-base-900/90 font-medium transition-colors hover:text-accent-500 disabled:pointer-events-none disabled:opacity-50 data-[selected=true]:text-accent-700 data-[selected=true]:border-accent-700 dark:text-base-100/90 dark:hover:text-accent-300 dark:data-[selected=true]:text-accent-400 dark:data-[selected=true]:border-accent-400"
                 },
                 {
                     ".tab-panel", 
-                    "hidden data-[selected=true]:block py-3 px-2 md:px-4"
+                    "hidden data-[selected=true]:block py-3 "
                 },
             });
     }
