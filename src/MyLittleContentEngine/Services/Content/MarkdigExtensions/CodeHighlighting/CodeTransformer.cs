@@ -61,7 +61,7 @@ internal static partial class CodeTransformer
         var lineElements = new List<IElement>();
 
         // Split the original content into lines.
-        var lines = codeElement.InnerHtml.Split('\n');
+        var lines = codeElement.InnerHtml.ReplaceLineEndings("\n").Split('\n');
 
         // Clear the <code> element to rebuild it with a proper structure.
         codeElement.InnerHtml = "";
@@ -75,7 +75,9 @@ internal static partial class CodeTransformer
 
             var lineSpan = document.CreateElement("span");
             lineSpan.ClassName = "line";
-            lineSpan.InnerHtml = lines[i];
+            lineSpan.InnerHtml = string.IsNullOrWhiteSpace(lines[i]) 
+                ? "  " 
+                : lines[i];
             codeElement.AppendChild(lineSpan);
             lineElements.Add(lineSpan);
 
@@ -185,7 +187,7 @@ internal static partial class CodeTransformer
                     if (preserveCommentMarker && firstNodeInDirective)
                     {
                         // Insert the comment marker at the position where the directive starts
-                        beforeDirective = beforeDirective + commentMarkerToPreserve;
+                        beforeDirective += commentMarkerToPreserve;
                         firstNodeInDirective = false;
                     }
                     
@@ -216,7 +218,7 @@ internal static partial class CodeTransformer
         // First pass: Remove empty spans (but keep spans that only contain whitespace between other content)
         foreach (var span in spans)
         {
-            if (string.IsNullOrWhiteSpace(span.TextContent) && 
+            if (string.IsNullOrWhiteSpace(span.TextContent) &&
                 span.ChildNodes.Length == 0)
             {
                 // Check if this span is between other content
@@ -237,27 +239,22 @@ internal static partial class CodeTransformer
         spans = lineElement.QuerySelectorAll("span").ToList();
         foreach (var span in spans)
         {
-            var content = span.TextContent?.Trim();
+            var content = span.TextContent.Trim();
             if (content != null && Regex.IsMatch(content, @"^(//|#|--|<!--|\*|%|'|REM|;|/\*|\*/|<!--|-->)$", RegexOptions.IgnoreCase))
             {
                 // This span only contains a comment marker, check if the next span continues the comment
-                var nextElement = span.NextElementSibling;
                 var hasCommentContent = false;
                 
                 // Check if any following sibling has content (not just whitespace)
                 var sibling = span.NextSibling;
                 while (sibling != null)
                 {
-                    if (sibling is IElement elem && elem.TextContent?.Trim().Length > 0)
+                    if ((sibling is IElement elem && elem.TextContent?.Trim().Length > 0) || (sibling is IText textNode && textNode.Text?.Trim().Length > 0))
                     {
                         hasCommentContent = true;
                         break;
                     }
-                    else if (sibling is IText textNode && textNode.Text?.Trim().Length > 0)
-                    {
-                        hasCommentContent = true;
-                        break;
-                    }
+
                     sibling = sibling.NextSibling;
                 }
                 

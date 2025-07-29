@@ -273,4 +273,41 @@ public class CodeTransformerTests
         result.ShouldNotContain("<span class=\"hljs-comment\">/*</span>");
         result.ShouldNotContain("<span class=\"hljs-comment\">*/</span>");
     }
+
+    [Fact]
+    public void Transform_PreservesEmptyLines()
+    {
+        // Note: This input has exactly 8 lines (no trailing newline in the code element):
+        // 1. <!-- Before -->
+        // 2. <a href="/docs/getting-started">Getting Started</a>
+        // 3. <img src="/images/logo.png" alt="Logo">
+        // 4. <script src="/scripts/app.js"></script>
+        // 5. (empty line)
+        // 6. <!-- After -->
+        // 7. <a href="/my-app/docs/getting-started">Getting Started</a>
+        // 8. <img src="/my-app/images/logo.png" alt="Logo">
+        // 9. <script src="/my-app/scripts/app.js"></script>
+        const string input = """
+            <pre><code><span class="hljs-comment">&lt;!--</span><span class="hljs-comment"> Before </span><span class="hljs-comment">--&gt;</span>
+            <span class="hljs-tag">&lt;</span><span class="hljs-tag">a</span><span class="hljs-tag"> </span><span class="hljs-attr">href</span><span class="hljs-punctuation">=</span><span class="hljs-string">"</span><span class="hljs-string">/docs/getting-started</span><span class="hljs-string">"</span><span class="hljs-tag">&gt;</span>Getting Started<span class="hljs-tag">&lt;/</span><span class="hljs-tag">a</span><span class="hljs-tag">&gt;</span>
+            <span class="hljs-tag">&lt;</span><span class="hljs-tag">img</span><span class="hljs-tag"> </span><span class="hljs-attr">src</span><span class="hljs-punctuation">=</span><span class="hljs-string">"</span><span class="hljs-string">/images/logo.png</span><span class="hljs-string">"</span><span class="hljs-tag"> </span><span class="hljs-attr">alt</span><span class="hljs-punctuation">=</span><span class="hljs-string">"</span><span class="hljs-string">Logo</span><span class="hljs-string">"</span><span class="hljs-tag">&gt;</span>
+            <span class="hljs-tag">&lt;</span><span class="hljs-tag">script</span><span class="hljs-tag"> </span><span class="hljs-attr">src</span><span class="hljs-punctuation">=</span><span class="hljs-string">"</span><span class="hljs-string">/scripts/app.js</span><span class="hljs-string">"</span><span class="hljs-tag">&gt;</span><span class="hljs-tag">&lt;</span><span class="hljs-tag">/</span><span class="hljs-tag">script</span><span class="hljs-tag">&gt;</span>
+            
+            <span class="hljs-comment">&lt;!--</span><span class="hljs-comment"> After </span><span class="hljs-comment">--&gt;</span>
+            <span class="hljs-tag">&lt;</span><span class="hljs-tag">a</span><span class="hljs-tag"> </span><span class="hljs-attr">href</span><span class="hljs-punctuation">=</span><span class="hljs-string">"</span><span class="hljs-string">/my-app/docs/getting-started</span><span class="hljs-string">"</span><span class="hljs-tag">&gt;</span>Getting Started<span class="hljs-tag">&lt;/</span><span class="hljs-tag">a</span><span class="hljs-tag">&gt;</span>
+            <span class="hljs-tag">&lt;</span><span class="hljs-tag">img</span><span class="hljs-tag"> </span><span class="hljs-attr">src</span><span class="hljs-punctuation">=</span><span class="hljs-string">"</span><span class="hljs-string">/my-app/images/logo.png</span><span class="hljs-string">"</span><span class="hljs-tag"> </span><span class="hljs-attr">alt</span><span class="hljs-punctuation">=</span><span class="hljs-string">"</span><span class="hljs-string">Logo</span><span class="hljs-string">"</span><span class="hljs-tag">&gt;</span>
+            <span class="hljs-tag">&lt;</span><span class="hljs-tag">script</span><span class="hljs-tag"> </span><span class="hljs-attr">src</span><span class="hljs-punctuation">=</span><span class="hljs-string">"</span><span class="hljs-string">/my-app/scripts/app.js</span><span class="hljs-string">"</span><span class="hljs-tag">&gt;</span><span class="hljs-tag">&lt;</span><span class="hljs-tag">/</span><span class="hljs-tag">script</span><span class="hljs-tag">&gt;</span></code></pre>
+            """;
+
+        var result = CodeTransformer.Transform(input);
+
+        // Count the number of line spans
+        var lineCount = result.Split("<span class=\"line\">").Length - 1;
+        lineCount.ShouldBe(9); // Should have 9 lines including the empty line
+
+        // Check that the result contains an empty line span
+        result.ShouldContain("""
+                             <span class="line">  </span>
+                             """);
+    }
 }
