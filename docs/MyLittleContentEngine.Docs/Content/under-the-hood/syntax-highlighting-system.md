@@ -41,12 +41,6 @@ This layered approach ensures that:
 
 The Roslyn highlighter provides the most accurate syntax highlighting for .NET languages by leveraging Microsoft's actual C# and VB.NET compilers.
 
-### Supported Languages
-
-| Language | Identifiers | Engine |
-|----------|-------------|---------|
-| C# | `csharp`, `c#`, `cs` | Microsoft.CodeAnalysis.Classification |
-| Visual Basic | `vb`, `vbnet` | Microsoft.CodeAnalysis.Classification |
 
 ### Special Roslyn Features
 
@@ -60,6 +54,7 @@ T:System.Collections.Generic.List<T>.Add
 This extracts the actual implementation of `List<T>.Add` from the loaded assemblies and highlights it with full semantic information.
 
 #### File Path Loading
+
 `````markdown
 ```csharp:path
 examples/MinimalExample/Program.cs
@@ -67,6 +62,9 @@ examples/MinimalExample/Program.cs
 `````
 
 Loads and highlights external files from your solution, ensuring documentation stays in sync with actual code.
+
+> [!TIP]  
+> This will work for non-C# files too, but they have to be part of the .NET solution.
 
 #### Body-Only Documentation
 `````markdown
@@ -85,10 +83,6 @@ The Roslyn highlighter operates by:
 3. **Classification**: Applies precise token classification (keywords, types, literals, etc.)
 4. **HTML Generation**: Outputs semantic HTML with CSS classes matching Highlight.js conventions
 
-**Key Classes:**
-- `RoslynHighlighterService`: Main highlighting service
-- `RoslynExampleCoordinator`: Handles XML documentation extraction
-- `CodeExecutionService`: Manages assembly loading and reflection
 
 ## Layer 2: Custom Highlighters
 
@@ -114,13 +108,6 @@ number ::= [0-9]+
 - **Character Ranges**: Highlights bracket notation `[a-z]`
 - **Comments**: Supports `//` line comments
 
-**Token Types:**
-- `RuleName` → `hljs-variable`
-- `StringLiteral` → `hljs-string`
-- `CharRange` → `hljs-regexp`
-- `Operator` → `hljs-operator`
-- `Comment` → `hljs-comment`
-
 ### Shell/Bash Highlighter
 
 **Languages**: `bash`, `shell`
@@ -140,12 +127,6 @@ dotnet build --configuration Release
 - **Comment Support**: Highlights `#` and `REM` comments
 - **Shebang Support**: Recognizes script interpreters
 
-**Token Mapping:**
-- Commands → `hljs-built_in`
-- Flags/Options → `hljs-params`
-- Strings → `hljs-string`
-- Comments → `hljs-comment`
-
 ### Plain Text Handler
 
 **Languages**: `text`, `` (empty string)
@@ -153,28 +134,9 @@ dotnet build --configuration Release
 
 Simply wraps content in `<pre><code>` tags with HTML escaping, providing a fallback for content that shouldn't be highlighted.
 
-### Implementation Architecture
-
-```csharp
-// Custom highlighter interface pattern
-internal static class GbnfHighlighter
-{
-    public static string Highlight(string gbnfText)
-    {
-        var tokens = TokenizeGbnf(gbnfText);
-        return ConvertTokensToHtml(tokens);
-    }
-    
-    private static List<Token> TokenizeGbnf(string text)
-    {
-        // Custom tokenization logic using regex patterns
-    }
-}
-```
-
 ## Layer 3: TextMateSharp Integration
 
-TextMateSharp provides broad language support using Visual Studio Code's grammar definitions, offering server-side highlighting for 49+ programming languages.
+[TextMateSharp](https://github.com/danipen/TextMateSharp) provides broad language support using Visual Studio Code's grammar definitions, offering server-side highlighting for 49+ programming languages.
 
 ### Language Coverage
 
@@ -212,44 +174,6 @@ TextMateSharp provides broad language support using Visual Studio Code's grammar
 - **Groovy**: JVM scripting
 - **Dockerfile**: Container definitions
 
-### TextMate to Highlight.js Mapping
-
-The system maps TextMate token scopes to Highlight.js CSS classes for consistent styling:
-
-```csharp
-private static readonly List<Tuple<string, string>> ScopeMappings = [
-    // Comments
-    Tuple.Create("comment.line.double-slash", "hljs-comment"),
-    Tuple.Create("comment.block.documentation", "hljs-comment"),
-    
-    // Keywords and Storage
-    Tuple.Create("keyword.control", "hljs-keyword"),
-    Tuple.Create("storage.type", "hljs-keyword"), 
-    Tuple.Create("storage.modifier", "hljs-keyword"),
-    
-    // Strings and Literals
-    Tuple.Create("string.quoted.interpolated", "hljs-string"),
-    Tuple.Create("constant.numeric", "hljs-number"),
-    Tuple.Create("constant.language", "hljs-literal"),
-    
-    // Types and Functions
-    Tuple.Create("entity.name.function", "hljs-title"),
-    Tuple.Create("entity.name.type", "hljs-type"),
-    Tuple.Create("support.function", "hljs-built_in"),
-    
-    // Variables and Members
-    Tuple.Create("variable.parameter", "hljs-variable"),
-    Tuple.Create("variable.other.member", "hljs-attr")
-];
-```
-
-### Performance Characteristics
-
-- **Thread Safety**: Registry access is synchronized with locks
-- **Timeout Protection**: 5-second limit on tokenization to prevent hangs
-- **Grammar Caching**: TextMate grammars are loaded and cached on first use
-- **Scope Resolution**: Attempts multiple scope name patterns for maximum compatibility
-
 ### Fallback Behavior
 
 When a requested language isn't found:
@@ -270,19 +194,6 @@ High-frequency languages loaded immediately:
 - **Data**: `sql`, `markdown`
 - **.NET**: `csharp`
 
-### Language Aliases
-
-```javascript
-const languageAliases = {
-    'js': 'javascript',
-    'ts': 'typescript',
-    'cs': 'csharp',
-    'py': 'python',
-    'sh': 'bash',
-    'yml': 'yaml'
-};
-```
-
 ### Dynamic Loading
 
 For uncommon languages, Highlight.js loads additional grammars from CDN:
@@ -293,23 +204,6 @@ const response = await fetch(`https://cdn.jsdelivr.net/npm/highlight.js@11/lib/l
 ```
 
 This provides access to 190+ languages without increasing initial bundle size.
-
-### Client-Side Implementation
-
-```javascript
-class SyntaxHighlighter {
-    async highlightCodeBlocks() {
-        const codeBlocks = document.querySelectorAll('pre code:not(.hljs)');
-        for (const block of codeBlocks) {
-            const language = this.detectLanguage(block);
-            if (language && !hljs.getLanguage(language)) {
-                await this.loadLanguage(language);
-            }
-            hljs.highlightElement(block);
-        }
-    }
-}
-```
 
 ## Summary
 

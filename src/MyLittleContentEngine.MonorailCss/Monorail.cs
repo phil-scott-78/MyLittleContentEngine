@@ -116,7 +116,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                         [
                             new CssRuleSet("a",
                             [
-                                new CssDeclaration(CssProperties.FontWeight, "inherit"),
+                                new CssDeclaration(CssProperties.FontWeight, "700"),
                                 new CssDeclaration(CssProperties.TextDecoration, "none"),]
                             ),
                             new CssRuleSet("a:not(:has(> code))",
@@ -237,7 +237,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 // Code transformation line containers
                 {
                     ".code-highlight-wrapper .line",
-                    "inline-block transition-all duration-300 px-2 md:px-4 -mx-2 md:-mx-4 w-[calc(100%+2rem)] md:w-[calc(100%+2rem)] relative"
+                    "inline-block transition-all duration-300 px-4  -mx-4  w-[calc(100%+2rem)] relative"
                 },
                 {
                     ".code-highlight-wrapper pre.has-focused .line",
@@ -259,7 +259,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 // Diff notation
                 {
                     ".code-highlight-wrapper .line.diff-add",
-                    "bg-green-600/20 dark:bg-green-900/20 before:font-bold before:content-['+'] before:hidden md:before:block before:text-sm before:absolute before:left-1 before:green:text-green-500 before:text-green-700"
+                    "bg-emerald-600/20 dark:bg-emerald-900/20 before:font-bold before:content-['+'] before:hidden md:before:block before:text-sm before:absolute before:left-1 before:green:text-green-500 before:text-green-700"
                 },
                 {
                     ".code-highlight-wrapper .line.diff-remove",
