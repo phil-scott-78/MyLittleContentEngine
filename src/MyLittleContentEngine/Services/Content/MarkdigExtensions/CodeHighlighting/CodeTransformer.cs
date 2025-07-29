@@ -1,13 +1,21 @@
 ﻿using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
-using System.Text.RegularExpressions;
 
 namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
 
-internal static partial class CodeTransformer
+internal static class CodeTransformer
 {
-    [GeneratedRegex("""(?:\/\/|#|--|<!--|\*|%|'|REM\s+|;|\/\*)\s*\[!code\s+([^\]]+)\]\s*(?:-->|\*\/)?""", RegexOptions.IgnoreCase | RegexOptions.Compiled)]
-    private static partial Regex CommentDirectiveRegex();
+    // Comment markers that we support
+    private static readonly string[] CommentMarkers = ["//", "#", "--", "<!--", "*", "%", "'", "REM", ";", "/*"];
+    private static readonly string[] BlockCommentEndings = ["-->", "*/"];
+
+    // Empty comment patterns
+    private static readonly string[] EmptyCommentPatterns =
+    [
+        "//", "#", "--", "<!--", "*", "%", "'", "REM", ";", "/*", "*/", "-->"
+    ];
+
+    private record DirectiveMatch(string FullMatch, string Notation, int Index, int EndIndex);
 
     public static string Transform(string highlightedHtml)
     {
@@ -23,7 +31,6 @@ internal static partial class CodeTransformer
         var codeElement = preElement.QuerySelector("code");
         if (codeElement == null) return highlightedHtml;
 
-        // This is the key method that has been fixed.
         var lineElements = StructureCodeIntoLines(codeElement);
         if (lineElements.Count == 0) return highlightedHtml;
 
@@ -33,16 +40,12 @@ internal static partial class CodeTransformer
         {
             var lineElement = lineElements[i];
             var lineText = lineElement.TextContent;
-            var match = CommentDirectiveRegex().Match(lineText);
+            var directive = FindDirective(lineText);
 
-            if (match.Success)
+            if (directive != null)
             {
-                var notation = match.Groups[1].Value.Trim();
-                transformations.Add(new LineTransformation { LineNumber = i, Notation = notation });
-                
-                // For syntax-highlighted code, we need to handle the directive differently
-                // because it might be split across multiple text nodes
-                RemoveDirectiveFromLine(lineElement, match.Value, lineText);
+                transformations.Add(new LineTransformation { LineNumber = i, Notation = directive.Notation });
+                RemoveDirectiveFromLine(lineElement, directive, lineText);
             }
         }
 
@@ -52,32 +55,25 @@ internal static partial class CodeTransformer
     }
 
     /// <summary>
-    /// Structures the raw content of a &lt;code&gt; element into lines and, crucially,
-    /// preserves the newline characters between them in the DOM.
+    /// Structures the raw content of a &lt;code&gt; element into lines and preserves newlines.
     /// </summary>
     private static List<IElement> StructureCodeIntoLines(IElement codeElement)
     {
         var document = codeElement.Owner;
         var lineElements = new List<IElement>();
 
-        // Split the original content into lines.
         var lines = codeElement.InnerHtml.ReplaceLineEndings("\n").Split('\n');
-
-        // Clear the <code> element to rebuild it with a proper structure.
         codeElement.InnerHtml = "";
 
         for (var i = 0; i < lines.Length; i++)
         {
-            // Edge case: Don't process a final, empty "line" that results from a trailing newline.
+            // Skip final empty line from trailing newline
             if (i == lines.Length - 1 && string.IsNullOrEmpty(lines[i])) continue;
-
             if (document == null) continue;
 
             var lineSpan = document.CreateElement("span");
             lineSpan.ClassName = "line";
-            lineSpan.InnerHtml = string.IsNullOrWhiteSpace(lines[i]) 
-                ? "  " 
-                : lines[i];
+            lineSpan.InnerHtml = string.IsNullOrWhiteSpace(lines[i]) ? "  " : lines[i];
             codeElement.AppendChild(lineSpan);
             lineElements.Add(lineSpan);
 
@@ -90,237 +86,325 @@ internal static partial class CodeTransformer
         return lineElements;
     }
 
-    private static void RemoveDirectiveFromLine(IElement lineElement, string directiveToRemove, string fullLineText)
+    private static DirectiveMatch? FindDirective(string text)
     {
-        // Check if we need to preserve the comment marker
-        // This happens when we have something like "// [!code hl] more text" 
-        var directiveIndex = fullLineText.IndexOf(directiveToRemove, StringComparison.Ordinal);
-        var preserveCommentMarker = false;
-        var commentMarkerToPreserve = "";
-        
-        if (directiveIndex != -1)
+        var span = text.AsSpan();
+        var codeIndex = span.IndexOf("[!code", StringComparison.OrdinalIgnoreCase);
+        if (codeIndex == -1) return null;
+
+        // Find the closing bracket
+        var closeIndex = span[codeIndex..].IndexOf(']');
+        if (closeIndex == -1) return null;
+        closeIndex += codeIndex;
+
+        // Extract notation
+        var notationStart = codeIndex + 6; // "[!code".Length
+        while (notationStart < closeIndex && char.IsWhiteSpace(span[notationStart]))
+            notationStart++;
+
+        if (notationStart >= closeIndex) return null;
+
+        var notation = span.Slice(notationStart, closeIndex - notationStart).ToString().Trim();
+
+        // Check if there's a comment marker before [!code
+        var beforeDirective = span[..codeIndex];
+        var commentMarkerFound = false;
+        var directiveStart = 0;
+
+        foreach (var marker in CommentMarkers)
         {
-            // Check if there's content after the directive in the full line
-            var afterDirectiveInLine = fullLineText.Substring(directiveIndex + directiveToRemove.Length);
-            // Don't trim - we want to know if there's ANY content after, including spaces
-            if (afterDirectiveInLine.TrimEnd().Length > 0)
+            var markerIndex = beforeDirective.LastIndexOf(marker, StringComparison.OrdinalIgnoreCase);
+            if (markerIndex == -1) continue;
+            // Check if it's only whitespace between marker and [!code
+            var between = beforeDirective[(markerIndex + marker.Length)..];
+            if (IsOnlyWhitespace(between))
             {
-                // Extract the comment marker from the directive
-                var commentMatch = Regex.Match(directiveToRemove, @"^((?://|#|--|<!--|\*|%|'|REM\s*|;|/\*)\s*)\[!code", RegexOptions.IgnoreCase);
-                if (commentMatch.Success)
-                {
-                    preserveCommentMarker = true;
-                    // Ensure we have a space after the comment marker
-                    var marker = commentMatch.Groups[1].Value.TrimEnd();
-                    commentMarkerToPreserve = marker + (afterDirectiveInLine.StartsWith(" ") ? "" : " ");
-                }
+                commentMarkerFound = true;
+                directiveStart = markerIndex;
+                break;
             }
         }
-        
-        // For syntax-highlighted code, the directive might be split across multiple text nodes
-        // So we need a more sophisticated approach
-        
-        if (directiveIndex == -1)
+
+        if (!commentMarkerFound) return null;
+
+        // Check for optional block comment endings
+        var directiveEnd = closeIndex + 1;
+        var afterBracket = span[directiveEnd..];
+
+        foreach (var ending in BlockCommentEndings)
         {
-            // Fallback to simple text replacement
-            var textNodes = lineElement.Descendants().OfType<IText>().ToList();
-            foreach (var textNode in textNodes)
+            if (afterBracket.StartsWith(ending, StringComparison.OrdinalIgnoreCase))
             {
-                if (textNode.Text.Contains(directiveToRemove))
+                directiveEnd += ending.Length;
+                break;
+            }
+        }
+
+        var fullMatch = span.Slice(directiveStart, directiveEnd - directiveStart).ToString();
+        return new DirectiveMatch(fullMatch, notation, directiveStart, directiveEnd);
+    }
+
+    private static bool IsOnlyWhitespace(ReadOnlySpan<char> span)
+    {
+        foreach (var c in span)
+        {
+            if (!char.IsWhiteSpace(c)) return false;
+        }
+        return true;
+    }
+
+    private static void RemoveDirectiveFromLine(IElement lineElement, DirectiveMatch directive, string fullLineText)
+    {
+        var shouldPreserve = DetermineCommentPreservation(directive, fullLineText);
+        var commentMarker = shouldPreserve ? ExtractCommentMarker(directive) : "";
+
+        // Try a simple case first - directive is in a single text node
+        if (TryRemoveFromSingleNode(lineElement, directive.FullMatch, commentMarker))
+        {
+            CleanupLineElement(lineElement);
+            return;
+        }
+
+        // Complex case - directive spans multiple nodes
+        RemoveDirectiveAcrossNodes(lineElement, directive, commentMarker);
+        CleanupLineElement(lineElement);
+    }
+
+    private static bool DetermineCommentPreservation(DirectiveMatch directive, string fullLineText)
+    {
+        // Check if there's content after the directive
+        if (directive.EndIndex >= fullLineText.Length) return false;
+        var afterDirective = fullLineText.AsSpan()[directive.EndIndex..];
+        return !IsOnlyWhitespace(afterDirective);
+    }
+
+    private static string ExtractCommentMarker(DirectiveMatch directive)
+    {
+        // Get the comment marker from the beginning of the directive
+        var directiveSpan = directive.FullMatch.AsSpan();
+        var codeIndex = directiveSpan.IndexOf("[!code", StringComparison.OrdinalIgnoreCase);
+        if (codeIndex == -1) return "";
+
+        var marker = directiveSpan[..codeIndex].ToString().TrimEnd();
+        return string.IsNullOrEmpty(marker) ? "" : marker;
+    }
+
+    private static bool TryRemoveFromSingleNode(IElement lineElement, string directive, string commentMarker)
+    {
+        var textNodes = lineElement.Descendants().OfType<IText>().ToList();
+
+        foreach (var node in textNodes)
+        {
+            if (!node.Text.Contains(directive)) continue;
+
+            // If we have a comment marker and there's content after the directive,
+            // we need to ensure proper spacing
+            var replacement = "";
+            if (!string.IsNullOrEmpty(commentMarker))
+            {
+                var directiveIndex = node.Text.IndexOf(directive, StringComparison.Ordinal);
+                var afterDirective = node.Text.Substring(directiveIndex + directive.Length);
+                replacement = !string.IsNullOrWhiteSpace(afterDirective) && !afterDirective.StartsWith(' ')
+                    ? commentMarker + " "
+                    : commentMarker;
+            }
+
+            var newText = node.Text.Replace(directive, replacement);
+
+            // Remove orphaned comment markers
+            if (string.IsNullOrEmpty(commentMarker))
+            {
+                newText = newText.TrimEnd();
+                if (IsEmptyComment(newText))
                 {
-                    // Check if we need to preserve comment marker in this text node
-                    var nodeDirectiveIndex = textNode.Text.IndexOf(directiveToRemove, StringComparison.Ordinal);
-                    var afterDirectiveInNode = textNode.Text.Substring(nodeDirectiveIndex + directiveToRemove.Length);
-                    
-                    // Special case: if the directive starts with a space and there's content after,
-                    // we need to preserve a space when removing the directive
-                    if (directiveToRemove.StartsWith(" ") && afterDirectiveInNode.TrimEnd().Length > 0)
-                    {
-                        textNode.TextContent = textNode.Text.Replace(directiveToRemove, " ").TrimEnd();
-                        break;
-                    }
-                    
-                    // If there's content after the directive, we might need to preserve the comment marker
-                    if (afterDirectiveInNode.TrimEnd().Length > 0)
-                    {
-                        var commentMatch = Regex.Match(directiveToRemove, @"^((?://|#|--|<!--|\*|%|'|REM\s*|;|/\*)\s*)\[!code", RegexOptions.IgnoreCase);
-                        if (commentMatch.Success)
-                        {
-                            var replacement = commentMatch.Groups[1].Value.TrimEnd() + " ";
-                            textNode.TextContent = textNode.Text.Replace(directiveToRemove, replacement).TrimEnd();
-                            break;
-                        }
-                    }
-                    
-                    var newText = textNode.Text.Replace(directiveToRemove, "").TrimEnd();
-                    newText = Regex.Replace(newText, @"^\s*(//|#|--|<!--|\*|%|'|REM\s*|;|/\*|\*/)\s*$", "", RegexOptions.IgnoreCase).TrimEnd();
-                    newText = Regex.Replace(newText, @"^\s*/\*\s*\*/\s*$", "", RegexOptions.IgnoreCase).TrimEnd();
-                    textNode.TextContent = newText;
-                    break;
+                    newText = "";
                 }
             }
+
+            node.TextContent = newText;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool IsEmptyComment(string text)
+    {
+        var trimmed = text.Trim();
+
+        // Check exact matches
+        if (EmptyCommentPatterns.Any(pattern => string.Equals(trimmed, pattern, StringComparison.OrdinalIgnoreCase)))
+        {
+            return true;
+        }
+
+        // Check for empty block comments like "/*  */"
+        if (trimmed.StartsWith("/*", StringComparison.OrdinalIgnoreCase) &&
+            trimmed.EndsWith("*/", StringComparison.OrdinalIgnoreCase))
+        {
+            var inner = trimmed.Substring(2, trimmed.Length - 4);
+            return string.IsNullOrWhiteSpace(inner);
+        }
+
+        // Check for empty HTML comments like "<!--  -->"
+        if (trimmed.StartsWith("<!--", StringComparison.OrdinalIgnoreCase) &&
+            trimmed.EndsWith("-->", StringComparison.OrdinalIgnoreCase))
+        {
+            var inner = trimmed.Substring(4, trimmed.Length - 7);
+            return string.IsNullOrWhiteSpace(inner);
+        }
+
+        return false;
+    }
+
+    private static void RemoveDirectiveAcrossNodes(IElement lineElement, DirectiveMatch directive, string commentMarker)
+    {
+        var textNodes = lineElement.Descendants().OfType<IText>().ToList();
+        var currentPosition = 0;
+        var commentMarkerAdded = false;
+
+        foreach (var node in textNodes)
+        {
+            var nodeStart = currentPosition;
+            var nodeEnd = currentPosition + node.Text.Length;
+
+            // Check if this node contains part of the directive
+            if (nodeStart < directive.EndIndex && nodeEnd > directive.Index)
+            {
+                var localStart = Math.Max(0, directive.Index - nodeStart);
+                var localEnd = Math.Min(node.Text.Length, directive.EndIndex - nodeStart);
+
+                var before = node.Text[..localStart];
+                var after = node.Text[localEnd..];
+
+                // Add comment marker to first node if needed
+                if (!string.IsNullOrEmpty(commentMarker) && !commentMarkerAdded)
+                {
+                    before += commentMarker;
+                    commentMarkerAdded = true;
+                }
+
+                node.TextContent = (before + after).TrimEnd();
+            }
+
+            currentPosition = nodeEnd;
+        }
+    }
+
+    private static void CleanupLineElement(IElement lineElement)
+    {
+        var spans = lineElement.QuerySelectorAll("span").ToList();
+        var i = 0;
+
+        while (i < spans.Count)
+        {
+            var span = spans[i];
+            var shouldRemove = false;
+
+            // Check if the span should be removed
+            if (string.IsNullOrWhiteSpace(span.TextContent) && span.ChildNodes.Length == 0)
+            {
+                // Check if it's between content (preserve as spacing)
+                var prev = span.PreviousSibling;
+                var next = span.NextSibling;
+
+                shouldRemove = prev == null || next == null ||
+                    (prev is IText pt && string.IsNullOrWhiteSpace(pt.TextContent)) ||
+                    (next is IText nt && string.IsNullOrWhiteSpace(nt.TextContent));
+            }
+            else if (IsOrphanedCommentMarker(span))
+            {
+                shouldRemove = true;
+            }
+
+            if (shouldRemove)
+            {
+                span.Remove();
+                spans.RemoveAt(i);
+                continue;
+            }
+
+            // Try to merge with the next span
+            if (i < spans.Count - 1 && TryMergeSpans(span, spans[i + 1]))
+            {
+                spans.RemoveAt(i + 1);
+                continue;
+            }
+
+            i++;
+        }
+    }
+
+    private static bool IsOrphanedCommentMarker(IElement span)
+    {
+        var content = span.TextContent.Trim();
+        if (!IsCommentMarkerOnly(content))
+            return false;
+
+        // Check if any following content exists
+        var sibling = span.NextSibling;
+        while (sibling != null)
+        {
+            var hasContent = sibling switch
+            {
+                IElement elem => !string.IsNullOrWhiteSpace(elem.TextContent),
+                IText text => !string.IsNullOrWhiteSpace(text.Text),
+                _ => false
+            };
+
+            if (hasContent) return false;
+            sibling = sibling.NextSibling;
+        }
+
+        return true;
+    }
+
+    private static bool IsCommentMarkerOnly(string text)
+    {
+        return CommentMarkers.Any(marker =>
+            string.Equals(text, marker, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static bool TryMergeSpans(IElement current, IElement next)
+    {
+        // Must have the same class and be adjacent
+        if (current.ClassName != next.ClassName || current.NextElementSibling != next)
+            return false;
+
+        // Check for non-whitespace between them
+        var node = current.NextSibling;
+        while (node != null && node != next)
+        {
+            switch (node)
+            {
+                case IText text when !string.IsNullOrWhiteSpace(text.Text):
+                case IElement:
+                    return false;
+                default:
+                    node = node.NextSibling;
+                    break;
+            }
+        }
+
+        // Merge with special handling for comments
+        var currentContent = current.TextContent;
+        var nextContent = next.TextContent;
+
+        if (current.ClassList.Contains("hljs-comment") &&
+            IsCommentMarkerOnly(currentContent) &&
+            !string.IsNullOrEmpty(nextContent) && !nextContent.StartsWith(" "))
+        {
+            current.InnerHtml += " " + next.InnerHtml;
         }
         else
         {
-            // Track position as we iterate through text nodes
-            var currentPosition = 0;
-            var directiveEndIndex = directiveIndex + directiveToRemove.Length;
-            var textNodes = lineElement.Descendants().OfType<IText>().ToList();
-            var firstNodeInDirective = true;
-            
-            foreach (var textNode in textNodes)
-            {
-                var nodeStartPos = currentPosition;
-                var nodeEndPos = currentPosition + textNode.Text.Length;
-                
-                // Check if this node contains any part of the directive
-                if (nodeStartPos < directiveEndIndex && nodeEndPos > directiveIndex)
-                {
-                    var localStart = Math.Max(0, directiveIndex - nodeStartPos);
-                    var localEnd = Math.Min(textNode.Text.Length, directiveEndIndex - nodeStartPos);
-                    
-                    // Remove the portion of the directive from this node
-                    var beforeDirective = textNode.Text.Substring(0, localStart);
-                    var afterDirective = textNode.Text.Substring(localEnd);
-                    
-                    // If we need to preserve the comment marker and this is the first node containing the directive
-                    if (preserveCommentMarker && firstNodeInDirective)
-                    {
-                        // Insert the comment marker at the position where the directive starts
-                        beforeDirective += commentMarkerToPreserve;
-                        firstNodeInDirective = false;
-                    }
-                    
-                    var newText = beforeDirective + afterDirective;
-                    newText = newText.TrimEnd();
-                    
-                    // Only remove if it's just a comment marker with no content
-                    if (!preserveCommentMarker && Regex.IsMatch(newText, @"^\s*(//|#|--|<!--|\*|%|'|REM\s*|;|/\*|\*/)\s*$", RegexOptions.IgnoreCase))
-                    {
-                        newText = "";
-                    }
-                    
-                    textNode.TextContent = newText;
-                }
-                
-                currentPosition = nodeEndPos;
-            }
+            current.InnerHtml += next.InnerHtml;
         }
-        
-        // Clean up empty spans and merge adjacent spans of the same class
-        CleanupAndMergeSpans(lineElement);
-    }
-    
-    private static void CleanupAndMergeSpans(IElement lineElement)
-    {
-        var spans = lineElement.QuerySelectorAll("span").ToList();
-        
-        // First pass: Remove empty spans (but keep spans that only contain whitespace between other content)
-        foreach (var span in spans)
-        {
-            if (string.IsNullOrWhiteSpace(span.TextContent) &&
-                span.ChildNodes.Length == 0)
-            {
-                // Check if this span is between other content
-                var prevSibling = span.PreviousSibling;
-                var nextSibling = span.NextSibling;
-                
-                // Only remove if it's not serving as spacing between elements
-                if (prevSibling == null || nextSibling == null || 
-                    (prevSibling is IText && string.IsNullOrWhiteSpace(prevSibling.TextContent)) ||
-                    (nextSibling is IText && string.IsNullOrWhiteSpace(nextSibling.TextContent)))
-                {
-                    span.Remove();
-                }
-            }
-        }
-        
-        // Second pass: Check for comment-only spans that should be removed
-        spans = lineElement.QuerySelectorAll("span").ToList();
-        foreach (var span in spans)
-        {
-            var content = span.TextContent.Trim();
-            if (content != null && Regex.IsMatch(content, @"^(//|#|--|<!--|\*|%|'|REM|;|/\*|\*/|<!--|-->)$", RegexOptions.IgnoreCase))
-            {
-                // This span only contains a comment marker, check if the next span continues the comment
-                var hasCommentContent = false;
-                
-                // Check if any following sibling has content (not just whitespace)
-                var sibling = span.NextSibling;
-                while (sibling != null)
-                {
-                    if ((sibling is IElement elem && elem.TextContent?.Trim().Length > 0) || (sibling is IText textNode && textNode.Text?.Trim().Length > 0))
-                    {
-                        hasCommentContent = true;
-                        break;
-                    }
 
-                    sibling = sibling.NextSibling;
-                }
-                
-                if (!hasCommentContent)
-                {
-                    // No continuation, remove this orphaned comment marker
-                    span.Remove();
-                }
-            }
-        }
-        
-        // Third pass: Merge adjacent spans with the same class
-        spans = lineElement.QuerySelectorAll("span").ToList();
-        for (int i = 0; i < spans.Count - 1; i++)
-        {
-            var currentSpan = spans[i];
-            var nextSpan = spans[i + 1];
-            
-            // Check if they have the same class and are adjacent
-            if (currentSpan.ClassName == nextSpan.ClassName && 
-                currentSpan.NextElementSibling == nextSpan)
-            {
-                // Check if there's only whitespace text nodes between them
-                var node = currentSpan.NextSibling;
-                var canMerge = true;
-                while (node != null && node != nextSpan)
-                {
-                    if (node is IText textNode && !string.IsNullOrWhiteSpace(textNode.Text))
-                    {
-                        canMerge = false;
-                        break;
-                    }
-                    else if (node is IElement)
-                    {
-                        canMerge = false;
-                        break;
-                    }
-                    node = node.NextSibling;
-                }
-                
-                if (canMerge)
-                {
-                    // Merge the content - be careful with comment markers
-                    var currentContent = currentSpan.TextContent;
-                    var nextContent = nextSpan.TextContent;
-                    
-                    // Special handling for comment spans to preserve spacing
-                    if (currentSpan.ClassList.Contains("hljs-comment") && 
-                        Regex.IsMatch(currentContent, @"^(//|#|--|<!--|\*|%|'|REM|;|/\*)$") &&
-                        nextContent.Length > 0 && !nextContent.StartsWith(" "))
-                    {
-                        currentSpan.InnerHtml += " " + nextSpan.InnerHtml;
-                    }
-                    else
-                    {
-                        currentSpan.InnerHtml += nextSpan.InnerHtml;
-                    }
-                    nextSpan.Remove();
-                    spans.RemoveAt(i + 1);
-                    i--; // Check this span again in case there are more to merge
-                }
-            }
-        }
+        next.Remove();
+        return true;
     }
 
-    // This helper method and LineTransformation class remain unchanged.
     private static void ApplyTransformationsToDom(List<IElement> lineElements, List<LineTransformation> transformations)
     {
         if (transformations.Count == 0) return;
