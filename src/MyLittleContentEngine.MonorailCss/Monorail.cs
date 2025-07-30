@@ -223,7 +223,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 },
                 {
                     ".code-highlight-wrapper pre ",
-                    "py-2 px-4 md:px-4  overflow-x-auto  font-mono text-xs md:text-sm  dark:font-light leading-relaxed w-full dark:scheme-dark"
+                    "py-2 px-4 md:px-4  overflow-x-auto  font-mono text-xs md:text-sm  leading-relaxed w-full dark:scheme-dark"
                 },
                 {
                     ".code-highlight-wrapper .standalone-code-highlight pre",
@@ -280,6 +280,36 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 {
                     ".code-highlight-wrapper .line.warning",
                     "bg-amber-300/50 dark:bg-amber-400/20"
+                },
+                
+                // Word highlighting
+                {
+                    ".code-highlight-wrapper .word-highlight",
+                    "border border-primary-600 dark:border-primary-300/25 rounded px-0.5 py-0 bg-primary-100/25 dark:bg-primary-500/10"
+                },
+                {
+                    ".code-highlight-wrapper .word-highlight-with-message",
+                    "border border-b border-primary-600 dark:border-primary-300/25 rounded px-1 py-1 bg-primary-100/25 dark:bg-primary-500/10 relative "
+                },
+                {
+                    ".code-highlight-wrapper .word-highlight-wrapper",
+                    "relative inline-block"
+                },
+                {
+                    ".code-highlight-wrapper .word-highlight-message",
+                    "font-sans font-semilight tracking-loose absolute top-full left-0 mt-2 px-2 py-1 text-xs text-base-800 bg-base-200/25 dark:bg-base-700/10 dark:text-base-100 rounded border border-base-500/50 whitespace-nowrap z-10 select-none pointer-events-none before:w-4 before:h-4 before:rotate-45 before:bg-[#333] before:absolute  before:-bottom-1 before:left-0  before:right-0 before:mx-auto"
+                },
+                {
+                    ".word-highlight-arrow",
+                    "absolute h-2 w-2 bg-inherit before:visible before:absolute before:h-2 before:w-2 before:rotate-45 before:bg-inherit before:content-['']"
+                },
+                {
+                    ".code-highlight-wrapper .word-highlight-message::selection",
+                    "bg-transparent"
+                },
+                {
+                    ".code-highlight-wrapper .line:has(.word-highlight-wrapper)",
+                    "mb-11"
                 },
             });
     }

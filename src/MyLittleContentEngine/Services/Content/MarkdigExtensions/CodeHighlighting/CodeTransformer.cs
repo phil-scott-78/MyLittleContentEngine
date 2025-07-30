@@ -16,6 +16,7 @@ internal static class CodeTransformer
     ];
 
     private record DirectiveMatch(string FullMatch, string Notation, int Index, int EndIndex);
+    private record WordHighlightInfo(string Word, string? Message);
 
     public static string Transform(string highlightedHtml)
     {
@@ -44,8 +45,28 @@ internal static class CodeTransformer
 
             if (directive != null)
             {
-                transformations.Add(new LineTransformation { LineNumber = i, Notation = directive.Notation });
-                RemoveDirectiveFromLine(lineElement, directive, lineText);
+                // Handle word highlighting
+                if (directive.Notation.StartsWith("word:", StringComparison.OrdinalIgnoreCase))
+                {
+                    var wordInfo = ParseWordHighlight(directive.Notation);
+                    if (wordInfo != null)
+                    {
+                        transformations.Add(new LineTransformation { LineNumber = i, Notation = directive.Notation });
+                        RemoveDirectiveFromLine(lineElement, directive, lineText);
+                        ApplyWordHighlighting(lineElement, wordInfo);
+                    }
+                    else
+                    {
+                        // Invalid word directive, just remove it without adding transformation
+                        RemoveDirectiveFromLine(lineElement, directive, lineText);
+                    }
+                }
+                else
+                {
+                    // Other directive types
+                    transformations.Add(new LineTransformation { LineNumber = i, Notation = directive.Notation });
+                    RemoveDirectiveFromLine(lineElement, directive, lineText);
+                }
             }
         }
 
@@ -84,6 +105,115 @@ internal static class CodeTransformer
         }
 
         return lineElements;
+    }
+
+    private static WordHighlightInfo? ParseWordHighlight(string notation)
+    {
+        // notation format: "word:Hello" or "word:Hello|This is my message"
+        if (!notation.StartsWith("word:", StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        var content = notation.Substring(5); // Remove "word:" prefix
+        var parts = content.Split('|', 2);
+        
+        if (parts.Length == 0 || string.IsNullOrWhiteSpace(parts[0]))
+            return null;
+
+        var word = parts[0].Trim();
+        var message = parts.Length > 1 ? parts[1].Trim() : null;
+        
+        return new WordHighlightInfo(word, string.IsNullOrWhiteSpace(message) ? null : message);
+    }
+
+    private static void ApplyWordHighlighting(IElement lineElement, WordHighlightInfo wordInfo)
+    {
+        var document = lineElement.Owner;
+        if (document == null) return;
+
+        // Find and highlight the word in text nodes
+        var textNodes = lineElement.Descendants().OfType<IText>().ToList();
+        
+        foreach (var textNode in textNodes)
+        {
+            var text = textNode.Text;
+            var wordIndex = text.IndexOf(wordInfo.Word, StringComparison.Ordinal);
+            
+            if (wordIndex == -1) continue;
+
+            // Create the highlighted word element
+            var highlightSpan = document.CreateElement("span");
+            highlightSpan.ClassName = wordInfo.Message != null ? "word-highlight-with-message" : "word-highlight";
+            highlightSpan.TextContent = wordInfo.Word;
+
+            // Split the text and insert the highlighted span
+            var beforeText = text.Substring(0, wordIndex);
+            var afterText = text.Substring(wordIndex + wordInfo.Word.Length);
+
+            var parent = textNode.Parent;
+            if (parent != null)
+            {
+                // Insert before text if it exists
+                if (!string.IsNullOrEmpty(beforeText))
+                {
+                    var beforeNode = document.CreateTextNode(beforeText);
+                    parent.InsertBefore(beforeNode, textNode);
+                }
+
+                // Insert the highlighted span
+                parent.InsertBefore(highlightSpan, textNode);
+
+                // Insert after text if it exists
+                if (!string.IsNullOrEmpty(afterText))
+                {
+                    var afterNode = document.CreateTextNode(afterText);
+                    parent.InsertBefore(afterNode, textNode);
+                }
+
+                // Remove the original text node
+                textNode.Remove();
+            }
+
+            // If there's a message, add it as a permanent callout after the line
+            if (wordInfo.Message != null)
+            {
+                AddMessageCallout(lineElement, wordInfo.Message, highlightSpan);
+            }
+
+            // Only highlight the first occurrence to avoid issues with multiple matches
+            break;
+        }
+    }
+
+    private static void AddMessageCallout(IElement lineElement, string message, IElement highlightSpan)
+    {
+        var document = lineElement.Owner;
+        if (document == null) return;
+
+        // Create a wrapper for the highlighted word and message
+        var messageWrapper = document.CreateElement("span");
+        messageWrapper.ClassName = "word-highlight-wrapper";
+
+        // Move the highlight span into the wrapper
+        var parent = highlightSpan.Parent;
+        if (parent != null)
+        {
+            parent.InsertBefore(messageWrapper, highlightSpan);
+            messageWrapper.AppendChild(highlightSpan);
+        }
+
+        // Create the message callout element with user-select: none to prevent text selection
+        var messageElement = document.CreateElement("div");
+        messageElement.ClassName = "word-highlight-message";
+        messageElement.TextContent = message;
+
+        // Add the callout arrow
+        var arrowElement = document.CreateElement("div");
+        arrowElement.ClassName = "word-highlight-arrow";
+        messageElement.AppendChild(arrowElement);
+
+        
+        // Add the message to the wrapper
+        messageWrapper.AppendChild(messageElement);
     }
 
     private static DirectiveMatch? FindDirective(string text)
@@ -461,6 +591,16 @@ internal static class CodeTransformer
         if (transformationsByType.ContainsKey("warning"))
         {
             preElement.ClassList.Add("has-warnings");
+        }
+        
+        // Check for word highlighting directives
+        foreach (var notation in transformationsByType.Keys)
+        {
+            if (notation.StartsWith("word:", StringComparison.OrdinalIgnoreCase))
+            {
+                preElement.ClassList.Add("has-word-highlights");
+                break;
+            }
         }
     }
 

@@ -49,6 +49,8 @@ The following rules are followed:
    loaded if the code block isn't highlighted by the previous rules. This ensures that the page doesn't load
    unnecessary JavaScript.
 
+See <xref:docs.under-the-hood.syntax-highlighting-system> for more details.
+
 ## Code Tabs
 
 You can create tabbed content sections using the `tabs` attribute on a code block. This allows you to organize content
@@ -186,6 +188,57 @@ public async Task<User> GetUserAsync(int id)
 }
 ```
 
+### Word Highlighting
+
+Highlight specific words or tokens within your code using `// [!code word:wordToHighlight]`. You can also add tooltips with additional information using the pipe syntax:
+
+``````markdown
+```javascript
+function processData(input) {
+    const result = transform(input); // [!code word:transform]
+    return result;
+}
+```
+``````
+
+This will render as:
+
+```javascript
+function processData(input) {
+    const result = transform(input); // [!code word:transform]
+    return result;
+}
+```
+
+#### Word Highlighting with Tooltips
+
+Add helpful explanations using the pipe syntax `// [!code word:word|explanation]`:
+
+``````markdown
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddScoped<IRepository, Repository>(); // [!code word:AddScoped|Registers service with scoped lifetime]
+    services.AddTransient<IValidator, Validator>(); // [!code word:AddTransient|Registers service with transient lifetime]
+}
+```
+``````
+
+This will render as:
+
+```csharp
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddScoped<IRepository, Repository>(); // [!code word:AddScoped|Registers service with scoped lifetime]
+    services.AddTransient<IValidator, Validator>(); // [!code word:AddTransient|Registers service with transient lifetime]
+}
+```
+
+> [!TIP]
+> Word highlighting is perfect for drawing attention to key concepts, method names, or important variables in your code examples. The tooltips provide additional context without cluttering the code itself.
+
+> [!NOTE]
+> Only the first occurrence of the word on each line will be highlighted. This prevents ambiguity when the same word appears multiple times.
 
 ## Enhanced Alerts
 

@@ -1,4 +1,4 @@
-using MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
+﻿using MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
 using Shouldly;
 
 namespace MyLittleContentEngine.Tests.Content;
@@ -309,5 +309,92 @@ public class CodeTransformerTests
         result.ShouldContain("""
                              <span class="line">  </span>
                              """);
+    }
+
+    [Fact]
+    public void Transform_HandlesWordHighlighting_WithoutPopover()
+    {
+        const string input = """
+            <pre><code>function test() {
+                let greeting = "Hello"; // [!code word:Hello] 
+                return greeting;
+            }</code></pre>
+            """;
+
+        var result = CodeTransformer.Transform(input);
+
+        result.ShouldNotContain("[!code word:Hello]");
+        result.ShouldContain("has-word-highlights");
+        result.ShouldContain("<span class=\"word-highlight\">Hello</span>");
+        result.ShouldNotContain("word-highlight-message");
+    }
+
+    [Fact]
+    public void Transform_HandlesWordHighlighting_WithMessage()
+    {
+        const string input = """
+            <pre><code>function test() {
+                let variable = "value"; // [!code word:value|This is the variable value]
+                return variable;
+            }</code></pre>
+            """;
+
+        var result = CodeTransformer.Transform(input);
+
+        result.ShouldNotContain("[!code word:value|This is the variable value]");
+        result.ShouldContain("has-word-highlights");
+        result.ShouldContain("word-highlight-wrapper");
+        result.ShouldContain("<span class=\"word-highlight-with-message\">value</span>");
+        result.ShouldContain("<div class=\"word-highlight-message\">This is the variable value");
+        result.ShouldContain("<div class=\"word-highlight-arrow\"></div>");
+    }
+
+    [Fact]
+    public void Transform_HandlesWordHighlighting_IgnoresInvalidDirectives()
+    {
+        const string input = """
+            <pre><code>function test() {
+                let x = 1; // [!code word:]
+                let y = 2; // [!code word]
+                return x + y;
+            }</code></pre>
+            """;
+
+        var result = CodeTransformer.Transform(input);
+
+        result.ShouldNotContain("word-highlight");
+        result.ShouldNotContain("has-word-highlights");
+    }
+
+    [Fact]
+    public void Transform_HandlesWordHighlighting_OnlyHighlightsFirstOccurrence()
+    {
+        const string input = """
+            <pre><code>function test() {
+                let Hello = "Hello world"; // [!code word:Hello]
+                return Hello;
+            }</code></pre>
+            """;
+
+        var result = CodeTransformer.Transform(input);
+
+        // Should only contain one highlighted span, not multiple
+        var highlightCount = result.Split("<span class=\"word-highlight\">Hello</span>").Length - 1;
+        highlightCount.ShouldBe(1);
+    }
+
+    [Fact]
+    public void Transform_HandlesWordHighlighting_WithWhitespaceInMessage()
+    {
+        const string input = """
+            <pre><code>function test() {
+                console.log("debug"); // [!code word:debug|  This is a debug message  ]
+            }</code></pre>
+            """;
+
+        var result = CodeTransformer.Transform(input);
+
+        result.ShouldContain("word-highlight-wrapper");
+        result.ShouldContain("<div class=\"word-highlight-message\">This is a debug message");
     }
 }
