@@ -219,7 +219,7 @@ Add helpful explanations using the pipe syntax `// [!code word:word|explanation]
 public void ConfigureServices(IServiceCollection services)
 {
     services.AddScoped<IRepository, Repository>(); // [!code word:AddScoped|Registers service with scoped lifetime]
-    services.AddTransient<IValidator, Validator>(); // [!code word:AddTransient|Registers service with transient lifetime]
+    services.AddTransient<IValidator, Validator>();
 }
 ```
 ``````
@@ -230,7 +230,7 @@ This will render as:
 public void ConfigureServices(IServiceCollection services)
 {
     services.AddScoped<IRepository, Repository>(); // [!code word:AddScoped|Registers service with scoped lifetime]
-    services.AddTransient<IValidator, Validator>(); // [!code word:AddTransient|Registers service with transient lifetime]
+    services.AddTransient<IValidator, Validator>(); 
 }
 ```
 

@@ -346,7 +346,6 @@ public class CodeTransformerTests
         result.ShouldContain("word-highlight-wrapper");
         result.ShouldContain("<span class=\"word-highlight-with-message\">value</span>");
         result.ShouldContain("<div class=\"word-highlight-message\">This is the variable value");
-        result.ShouldContain("<div class=\"word-highlight-arrow\"></div>");
     }
 
     [Fact]

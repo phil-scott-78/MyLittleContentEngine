@@ -206,10 +206,19 @@ internal static class CodeTransformer
         messageElement.ClassName = "word-highlight-message";
         messageElement.TextContent = message;
 
-        // Add the callout arrow
-        var arrowElement = document.CreateElement("div");
-        arrowElement.ClassName = "word-highlight-arrow";
-        messageElement.AppendChild(arrowElement);
+        // Add the callout arrow container and arrow
+        var arrowContainer = document.CreateElement("div");
+        arrowContainer.ClassName = "word-highlight-arrow-container";
+        
+        var arrowOuter = document.CreateElement("div");
+        arrowOuter.ClassName = "word-highlight-arrow-outer";
+        
+        var arrowInner = document.CreateElement("div");
+        arrowInner.ClassName = "word-highlight-arrow-inner";
+        
+        arrowContainer.AppendChild(arrowOuter);
+        arrowContainer.AppendChild(arrowInner);
+        messageElement.AppendChild(arrowContainer);
 
         
         // Add the message to the wrapper

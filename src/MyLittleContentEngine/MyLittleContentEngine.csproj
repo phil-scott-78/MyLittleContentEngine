@@ -11,7 +11,7 @@
     <InternalsVisibleTo Include="MyLittleContentEngine.Tests" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AngleSharp" Version="1.1.2" />
+    <PackageReference Include="AngleSharp" Version="1.3.0" />
     <PackageReference Include="JetBrains.Annotations" Version="2024.3.0" />
     <PackageReference Include="Markdig" Version="0.41.3" />
     <PackageReference Include="Mdazor" Version="0.0.0-alpha.0.10" />
