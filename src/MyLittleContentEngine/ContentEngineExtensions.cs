@@ -7,7 +7,12 @@ using Microsoft.Extensions.FileProviders;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions;
-using MyLittleContentEngine.Services.Content.Roslyn;
+using MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
+using MyLittleContentEngine.Services.Content.CodeAnalysis.SyntaxHighlighting;
+using MyLittleContentEngine.Services.Content.CodeAnalysis.SymbolAnalysis;
+using MyLittleContentEngine.Services.Content.CodeAnalysis.Assembly;
+using MyLittleContentEngine.Services.Content.CodeAnalysis.Execution;
+using MyLittleContentEngine.Services.Content.CodeAnalysis.SolutionWorkspace;
 using MyLittleContentEngine.Services.Content.TableOfContents;
 using MyLittleContentEngine.Services.Generation;
 using MyLittleContentEngine.Services.Infrastructure;
@@ -118,10 +123,19 @@ public static class ContentEngineExtensions
             var options = configureOptions.Invoke(services.BuildServiceProvider());
             if (options.ConnectedSolution != null)
             {
-                services.AddTransient<IRoslynHighlighterService, RoslynHighlighterService>();
-                services.AddSingleton<IRoslynExampleCoordinator, RoslynExampleCoordinator>();
-                services.AddTransient<CodeExecutionService>();
-                services.AddSingleton<AssemblyLoaderService>();
+                // Convert and register CodeAnalysisOptions
+                services.AddSingleton<CodeAnalysisOptions>(serviceProvider =>
+                {
+                    var roslynOptions = serviceProvider.GetRequiredService<RoslynHighlighterOptions>();
+                    return roslynOptions.ToCodeAnalysisOptions();
+                });
+                
+                // Core services
+                services.AddSingleton<ISolutionWorkspaceService, SolutionWorkspaceService>();
+                services.AddSingleton<ISymbolExtractionService, SymbolExtractionService>();
+                services.AddSingleton<IAssemblyLoadingService, AssemblyLoadingService>();
+                services.AddTransient<ICodeExecutionService, CodeExecutionService>();
+                services.AddTransient<ISyntaxHighlightingService, SyntaxHighlightingService>();
             }
         }
 

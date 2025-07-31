@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MonorailCss;
 using MyLittleContentEngine.BlogSite.Components;
 using MyLittleContentEngine.MonorailCss;
-using MyLittleContentEngine.Services.Content.Roslyn;
+using MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
 using MyLittleContentEngine.UI.Components;
 
 namespace MyLittleContentEngine.BlogSite;

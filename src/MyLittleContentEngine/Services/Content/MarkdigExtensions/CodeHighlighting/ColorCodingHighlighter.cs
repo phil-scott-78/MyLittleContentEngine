@@ -1,12 +1,12 @@
 ﻿using Markdig;
 using Markdig.Renderers;
 using Markdig.Renderers.Html;
-using MyLittleContentEngine.Services.Content.Roslyn;
+using MyLittleContentEngine.Services.Content.CodeAnalysis.SyntaxHighlighting;
 
 namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting
 {
     internal class ColorCodingHighlighter(
-        IRoslynHighlighterService? roslynHighlighter,
+        ISyntaxHighlightingService? syntaxHighlighter,
         Func<CodeHighlightRenderOptions>? options) : IMarkdownExtension
     {
         public void Setup(MarkdownPipelineBuilder pipeline)
@@ -28,7 +28,7 @@ namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlight
             }
 
             htmlRenderer.ObjectRenderers.AddIfNotAlready(
-                new CodeHighlightRenderer(roslynHighlighter, options)
+                new CodeHighlightRenderer(syntaxHighlighter, options)
             );
         }
     }

@@ -1,224 +1,121 @@
-# MyLittleContentEngine Documentation Update Todo
+# Roslyn Services Refactoring Plan
 
-This document outlines necessary updates to bring the documentation in sync with the current state of the codebase. The analysis was completed on 2025-01-23.
+## Overview
+Complete refactoring of Roslyn services to a clean, modular architecture without backwards compatibility constraints.
 
-## Critical Issues That Need Immediate Attention
+## Phase 1: Core Infrastructure
 
-### 1. **MAJOR**: Getting Started Tutorial References Non-Existent Examples
-- **File**: `docs/getting-started/creating-first-site.md`
-- **Issue**: References `examples/MinimalExample/` components and Program.cs, but these don't match current example structure
-- **Current State**: MinimalExample exists but has different structure than documented
-- **Action**: Completely rewrite tutorial to match actual MinimalExample or create new example that matches tutorial
+### 1. Create base CodeAnalysis folder structure and move existing files
+- [ ] Create folder structure under `src/MyLittleContentEngine/Services/Content/CodeAnalysis/`
+- [ ] Move existing files to appropriate locations
+- [ ] Update namespaces
 
-### 2. **MAJOR**: BlogSite Configuration API Changes
-- **File**: `docs/guides/using-blogsite.md`
-- **Issue**: Documents old `BlogSiteOptions` properties that may not exist or have changed
-- **Current State**: BlogExample shows `SocialMediaImageUrlFactory` and other properties not in docs
-- **Action**: Audit all BlogSiteOptions properties and update documentation
+### 2. Implement ISolutionWorkspaceService for MSBuild workspace management
+- [ ] Create `ISolutionWorkspaceService` interface
+- [ ] Implement `SolutionWorkspaceService` with MSBuildWorkspace
+- [ ] Add solution loading and project filtering
+- [ ] Implement compilation caching
+- [ ] Add invalidation support
 
-### 3. **MAJOR**: RecipeExample Completely Undocumented
-- **Issue**: RecipeExample with CookLang integration exists but has zero documentation
-- **Current State**: Full-featured example with responsive images, CookLang parsing, custom content services
-- **Action**: Create comprehensive guide for CookLang/Recipe functionality
+### 3. Create ISymbolExtractionService for symbol discovery and caching
+- [ ] Create `ISymbolExtractionService` interface
+- [ ] Implement symbol extraction from Solution
+- [ ] Add XML documentation ID lookup
+- [ ] Implement code fragment extraction
+- [ ] Add symbol caching with `CachedSymbolInfo` model
 
-## New Features Requiring Documentation
+## Phase 2: Execution & Highlighting
 
-### 4. **NEW FEATURE**: Custom Content Services Framework
-- **Issue**: Multiple examples show custom content services but no documentation exists
-- **Examples**: 
-  - `RecipeExample/RecipeContentService.cs` 
-  - `SearchExample/RandomContentService.cs`
-- **Action**: Create guide "Creating Custom Content Services"
+### 4. Refactor AssemblyLoadingService with proper abstraction
+- [ ] Create `IAssemblyLoadingService` interface
+- [ ] Refactor existing assembly loading logic
+- [ ] Implement `LoadedAssembly` record type
+- [ ] Add assembly unloading support
+- [ ] Migrate `RoslynAssemblyLoadContext`
 
-### 5. **NEW FEATURE**: Responsive Image Processing
-- **Issue**: `ResponsiveImageContentService` exists with no documentation
-- **Current State**: Full implementation in RecipeExample with image resizing/WebP conversion
-- **Action**: Create guide "Implementing Responsive Images"
+### 5. Implement ICodeExecutionService with isolated execution context
+- [ ] Create `ICodeExecutionService` interface
+- [ ] Implement code execution with output capture
+- [ ] Add method execution by XML doc ID
+- [ ] Implement `ExecutionResult` record type
+- [ ] Add timeout and security constraints
 
-### 6. **NEW FEATURE**: Single File Applications
-- **Issue**: `examples/SingleFileApp/app.cs` shows minimal single-file setup with no documentation
-- **Action**: Create tutorial "Single File Applications"
+### 6. Create ISyntaxHighlightingService as main highlighting interface
+- [ ] Create `ISyntaxHighlightingService` interface
+- [ ] Implement syntax highlighting orchestration
+- [ ] Add file content highlighting
+- [ ] Add symbol highlighting
+- [ ] Integrate with other services
 
-### 7. **NEW FEATURE**: Multiple Content Source Architecture
-- **Issue**: `MultipleContentSourceExample` shows advanced multi-service setup with no documentation
-- **Current State**: Shows blog, docs, and pages with different front matter types
-- **Action**: Create guide "Managing Multiple Content Sources"
+## Phase 3: Configuration & Integration
 
-### 8. **NEW FEATURE**: Razor Pages with Metadata
-- **Issue**: `razor-pages-with-metadata.md` exists but needs major updates
-- **Current State**: Examples show `.razor.metadata.yml` files but documentation is incomplete
-- **Action**: Update with current implementation details
+### 7. Build unified RoslynOptions configuration system
+- [ ] Create `CodeAnalysisOptions` record
+- [ ] Add `ProjectFilter` configuration
+- [ ] Add `HighlightingOptions`
+- [ ] Add `CachingOptions`
+- [ ] Add `ExecutionOptions`
+- [ ] Implement options validation
 
-## Missing API Documentation
+### 8. Implement caching layer with invalidation support
+- [ ] Create caching abstractions
+- [ ] Implement symbol cache
+- [ ] Implement compilation cache
+- [ ] Add cache invalidation logic
+- [ ] Integrate with file watching
 
-### 9. **MISSING**: Search Configuration Options
-- **Issue**: Search guide exists but lacks configuration details
-- **Missing**: 
-  - SearchIndexService customization
-  - Search priority configuration
-  - FlexSearch options
-- **Action**: Expand search documentation with full API reference
+### 9. Add file watching integration for hot reload
+- [ ] Create file watching extensions
+- [ ] Integrate with `IContentEngineFileWatcher`
+- [ ] Implement debounced cache invalidation
+- [ ] Add project file monitoring
 
-### 10. **MISSING**: File Watching and Hot Reload
-- **Issue**: `hot-reload-architecture.md` exists but may be outdated
-- **Current State**: `ContentEngineFileWatcher` shows sophisticated file watching
-- **Action**: Update with current architecture and troubleshooting
+## Phase 4: Migration & Testing
 
-### 11. **MISSING**: MonorailCSS Configuration
-- **Issue**: `monorail-css-configuration.md` is minimal
-- **Current State**: Examples show extensive MonorailCSS customization
-- **Action**: Create comprehensive MonorailCSS guide
+### 10. Update all consumers to use new service interfaces
+- [ ] Update `ContentEngineOptions.MarkdownPipelineBuilder`
+- [ ] Update `CodeHighlightRenderer`
+- [ ] Update `ApiReferenceContentService`
+- [ ] Update `CodeSnippet.razor` component
+- [ ] Update example applications
 
-## Infrastructure Features Needing Documentation
+### 11. Remove old Roslyn services implementation
+- [ ] Remove old service files
+- [ ] Remove old interfaces
+- [ ] Clean up obsolete dependencies
+- [ ] Update documentation
 
-### 12. **MISSING**: Base URL Rewriting Middleware
-- **Issue**: `BaseUrlRewritingMiddleware` exists with no documentation
-- **Use Case**: Subdirectory deployments, GitHub Pages
-- **Action**: Create guide "Deploying to Subdirectories"
+### 12. Write comprehensive tests for all new services
+- [ ] Unit tests for `SolutionWorkspaceService`
+- [ ] Unit tests for `SymbolExtractionService`
+- [ ] Unit tests for `AssemblyLoadingService`
+- [ ] Unit tests for `CodeExecutionService`
+- [ ] Unit tests for `SyntaxHighlightingService`
+- [ ] Integration tests for complete workflow
+- [ ] Performance tests for caching
 
-### 13. **MISSING**: Word Breaking Middleware
-- **Issue**: `WordBreakingMiddleware` exists with no documentation
-- **Action**: Document word breaking functionality
+## Key Design Principles
 
-### 14. **MISSING**: XRef Resolver System
-- **Issue**: `XrefResolver` exists but documentation is minimal
-- **Current State**: Sophisticated cross-reference system
-- **Action**: Expand xref documentation
+1. **Single Responsibility** - Each service has one clear purpose
+2. **Dependency Inversion** - All dependencies flow through interfaces
+3. **Explicit Boundaries** - No service knows about another's internals
+4. **Testability** - Each service can be unit tested in isolation
+5. **Configuration** - Centralized, validated options
 
-## Code Highlighting & Extensions Updates
+## Service Dependencies
 
-### 15. **UPDATE**: Markdown Extensions Documentation
-- **Issue**: `markdown-extensions.md` is extensive but may be outdated
-- **Current State**: Multiple new highlighters (GBNF, ColorCoding, etc.)
-- **Action**: Audit all extensions and update examples
+```
+ISyntaxHighlightingService
+    → ISymbolExtractionService
+        → ISolutionWorkspaceService
+    → IAssemblyLoadingService
+    → ICodeExecutionService
+```
 
-### 16. **MISSING**: Roslyn Integration Deep Dive
-- **Issue**: `connecting-to-roslyn.md` exists but lacks advanced configuration
-- **Current State**: Multiple Roslyn services (`CodeExecutionService`, `RoslynExampleCoordinator`)
-- **Action**: Create advanced Roslyn integration guide
+## Clean Code Patterns
 
-## UI Components Updates
-
-### 17. **UPDATE**: UI Components Documentation
-- **Issue**: `using-ui-elements.md` covers basic components but not all
-- **Missing**: `BigTable`, updated `Badge` component
-- **Action**: Document all UI components with examples
-
-### 18. **MISSING**: JavaScript Architecture
-- **Issue**: `javascript-architecture.md` exists but may be outdated
-- **Current State**: `scripts.js` has sophisticated functionality
-- **Action**: Update JavaScript documentation
-
-## Reference Documentation Gaps
-
-### 19. **UPDATE**: Front Matter Properties
-- **Issue**: `front-matter-properties.md` is good but may be incomplete
-- **Action**: Audit all front matter implementations and ensure completeness
-
-### 20. **MISSING**: Complete API Reference
-- **Issue**: API documentation generation exists but self-documentation is minimal
-- **Action**: Generate comprehensive API docs for MyLittleContentEngine itself
-
-## Example Inconsistencies
-
-### 21. **CONSISTENCY**: Update All Example References
-- **Issue**: Documentation references example files that may not exist or be different
-- **Files Affected**: Most getting-started and guides documentation
-- **Action**: Systematic review of all `path` and file references
-
-### 22. **MISSING**: Example Index/Overview
-- **Issue**: No documentation explaining what each example demonstrates
-- **Action**: Create examples overview guide
-
-## Deployment & Operations
-
-### 23. **UPDATE**: GitHub Pages Deployment
-- **Issue**: `deploying-to-github-pages.md` exists but may be outdated
-- **Action**: Test and update deployment documentation
-
-### 24. **MISSING**: Static Site Generation Deep Dive
-- **Issue**: `content-processing-pipeline.mdx` is good but missing troubleshooting
-- **Action**: Add troubleshooting section for static generation
-
-### 25. **MISSING**: Performance Optimization Guide
-- **Issue**: No documentation on optimizing build times, bundle sizes
-- **Action**: Create performance guide
-
-## Content Organization Issues
-
-### 26. **RESTRUCTURE**: Documentation Site Navigation
-- **Issue**: Some guides may be in wrong categories
-- **Action**: Review Diátaxis framework alignment
-
-### 27. **MISSING**: Migration Guides
-- **Issue**: No migration documentation for version updates
-- **Action**: Create migration guides for breaking changes
-
-## Testing & Development
-
-### 28. **MISSING**: Testing Content Applications
-- **Issue**: No documentation on testing content engines
-- **Current State**: `CLAUDE.md` shows test helpers but not documented publicly
-- **Action**: Create testing guide
-
-### 29. **MISSING**: Development Workflow Guide
-- **Issue**: No documentation on contributing, building, debugging
-- **Action**: Create contributor documentation
-
-## Quick Wins (Easy Updates)
-
-### 30. **QUICK**: Fix Broken Cross-References
-- **Action**: Scan all `xref:` links and fix broken ones
-
-### 31. **QUICK**: Update Package Installation Commands
-- **Issue**: Some docs may reference old package names or missing `--prerelease`
-- **Action**: Standardize installation commands
-
-### 32. **QUICK**: Add Missing Code Language Tags
-- **Issue**: Some code blocks lack language specification
-- **Action**: Add appropriate language tags for syntax highlighting
-
-## New Documentation Topics to Create
-
-### 33. **NEW**: "CookLang Recipe Integration"
-- Based on RecipeExample functionality
-
-### 34. **NEW**: "Building Documentation Sites"
-- Expand DocSite documentation
-
-### 35. **NEW**: "Advanced Blazor Integration"
-- Server-side rendering, component architecture
-
-### 36. **NEW**: "Content Security and Validation"
-- Front matter validation, content sanitization
-
-### 37. **NEW**: "Troubleshooting Common Issues"
-- Based on common GitHub issues and problems
-
-### 38. **NEW**: "Extending MyLittleContentEngine"
-- Plugin architecture, custom services
-
-## Priority Classification
-
-### Immediate (Blocking Users)
-- Items 1, 2, 21 (Fix example references and tutorials)
-
-### High Priority (Missing Core Features)
-- Items 3, 4, 5, 6, 7 (Document major undocumented features)
-
-### Medium Priority (Improve User Experience)
-- Items 8-20 (API documentation and infrastructure)
-
-### Low Priority (Nice to Have)
-- Items 22-38 (Additional guides and improvements)
-
-## Methodology Notes
-
-This analysis was conducted by:
-1. Reading all documentation in `docs/MyLittleContentEngine.Docs/Content/`
-2. Examining all examples in `examples/`
-3. Reviewing source code structure in `src/`
-4. Comparing documentation claims with actual implementations
-5. Identifying gaps where functionality exists but documentation doesn't
-
-The codebase shows significant evolution beyond what's currently documented, particularly in areas of custom content services, responsive images, and advanced deployment scenarios.
+- Use `Result<T>` pattern for error handling
+- Strong typing for domain concepts (`XmlDocId`, `ProjectFilter`, etc.)
+- Immutable configuration records
+- Async-first API design
+- Proper disposal patterns with `IDisposable`/`IAsyncDisposable`

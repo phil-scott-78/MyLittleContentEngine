@@ -1,5 +1,5 @@
-﻿@using MyLittleContentEngine.Services.Content.Roslyn
-@inject IRoslynHighlighterService HighlighterService
+﻿@using MyLittleContentEngine.Services.Content.CodeAnalysis.SyntaxHighlighting
+@inject ISyntaxHighlightingService HighlighterService
 
 @((MarkupString) _highlightedCode)
 
@@ -16,7 +16,8 @@
             return;
         }
         
-        _highlightedCode = HighlighterService.Highlight(Code);
+        var result = await HighlighterService.HighlightAsync(Code, Language.CSharp);
+        _highlightedCode = result.Success ? $"<pre><code>{result.Html}</code></pre>" : $"<pre><code>{Code}</code></pre>";
         await base.OnInitializedAsync();
     }
 

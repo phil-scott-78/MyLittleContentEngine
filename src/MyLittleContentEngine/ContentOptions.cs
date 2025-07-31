@@ -129,6 +129,15 @@ public class ApiReferenceContentOptions : IContentOptions
     public string BasePageUrl { get; init; } = "api";
 
     /// <summary>
+    /// Gets or sets the path to the solution file for API extraction.
+    /// </summary>
+    /// <remarks>
+    /// This should be the full path to the .sln file to analyze for API documentation.
+    /// If not provided, it will be obtained from RoslynHighlighterOptions.
+    /// </remarks>
+    public string? SolutionPath { get; init; }
+
+    /// <summary>
     /// Gets or sets the array of namespace prefixes to include in API documentation.
     /// </summary>
     public string[] IncludeNamespace { get; init; } = [];

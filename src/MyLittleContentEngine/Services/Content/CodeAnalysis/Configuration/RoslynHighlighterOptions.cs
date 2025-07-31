@@ -1,7 +1,7 @@
 ﻿using MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions.Tabs;
 
-namespace MyLittleContentEngine.Services.Content.Roslyn;
+namespace MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
 
 /// <summary>
 /// Configuration options for the Roslyn syntax highlighting service.

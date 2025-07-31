@@ -5,13 +5,13 @@ using Markdig.Parsers;
 using Markdig.Renderers.Html;
 using Markdig.Syntax;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions.Tabs;
-using MyLittleContentEngine.Services.Content.Roslyn;
+using MyLittleContentEngine.Services.Content.CodeAnalysis.SyntaxHighlighting;
 using HtmlRenderer = Markdig.Renderers.HtmlRenderer;
 
 namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
 
 internal sealed class CodeHighlightRenderer(
-    IRoslynHighlighterService? roslynHighlighter,
+    ISyntaxHighlightingService? syntaxHighlighter,
     Func<CodeHighlightRenderOptions>? options)
     : HtmlObjectRenderer<CodeBlock>
 {
@@ -43,9 +43,9 @@ internal sealed class CodeHighlightRenderer(
             var languageId = fencedCodeBlock.Info.Replace(fencedCodeBlockParser.InfoPrefix, string.Empty);
             var code = ExtractCode(codeBlock);
 
-            if (roslynHighlighter != null)
+            if (syntaxHighlighter != null)
             {
-                WriteCode(renderer, codeBlock, languageId, code, roslynHighlighter);
+                WriteCode(renderer, codeBlock, languageId, code, syntaxHighlighter);
             }
             else
             {
@@ -59,7 +59,7 @@ internal sealed class CodeHighlightRenderer(
         renderer.WriteLine("</div>");
     }
 
-    private static void WriteCode(HtmlRenderer renderer, CodeBlock codeBlock, string languageId, string code, IRoslynHighlighterService roslynHighlighter)
+    private static void WriteCode(HtmlRenderer renderer, CodeBlock codeBlock, string languageId, string code, ISyntaxHighlightingService syntaxHighlighter)
     {
         string highlightedCode;
 
@@ -67,16 +67,20 @@ internal sealed class CodeHighlightRenderer(
         switch (languageTrimmed)
         {
             case "vb" or "vbnet":
-                highlightedCode = roslynHighlighter.Highlight(code, Language.VisualBasic);
+                var vbResult = RunSync(async () => await syntaxHighlighter.HighlightAsync(code, Language.VisualBasic));
+                highlightedCode = vbResult.Success ? AsPreCode(vbResult.Html) : $"<pre><code>{HtmlEncoder.Default.Encode(code)}</code></pre>";
                 break;
             case "csharp" or "c#" or "cs":
-                highlightedCode = roslynHighlighter.Highlight(code);
+                var csResult = RunSync(async () => await syntaxHighlighter.HighlightAsync(code, Language.CSharp));
+                highlightedCode = csResult.Success ?  AsPreCode(csResult.Html) : $"<pre><code>{HtmlEncoder.Default.Encode(code)}</code></pre>";
                 break;
             case "csharp:xmldocid,bodyonly":
-                highlightedCode = RunSync(async () => await roslynHighlighter.HighlightExampleAsync(code, true));
+                var symbolResult = RunSync(async () => await syntaxHighlighter.HighlightSymbolAsync(code.Trim(), true));
+                highlightedCode = symbolResult.Success ?  AsPreCode(symbolResult.Html) : $"<pre><code>{HtmlEncoder.Default.Encode(symbolResult.ErrorMessage ?? "Symbol not found")}</code></pre>";
                 break;
             case "csharp:xmldocid":
-                highlightedCode = RunSync(async () => await roslynHighlighter.HighlightExampleAsync(code, false));
+                var symbolResult2 = RunSync(async () => await syntaxHighlighter.HighlightSymbolAsync(code.Trim(), false));
+                highlightedCode = symbolResult2.Success ?  AsPreCode(symbolResult2.Html) : $"<pre><code>{HtmlEncoder.Default.Encode(symbolResult2.ErrorMessage ?? "Symbol not found")}</code></pre>";
                 break;
             case "gbnf":
                 highlightedCode = GbnfHighlighter.Highlight(code);
@@ -85,7 +89,7 @@ internal sealed class CodeHighlightRenderer(
                 highlightedCode = ShellSyntaxHighlighter.Highlight(code);
                 break;
             case "text" or "":
-                highlightedCode = "<pre><code>" + HtmlEncoder.Default.Encode(code) + "</code></pre>";
+                highlightedCode =  AsPreCode(HtmlEncoder.Default.Encode(code));
                 break;
             default:
             {
@@ -98,17 +102,34 @@ internal sealed class CodeHighlightRenderer(
                         arg = string.Empty;
                     }
 
-                    var newCode = RunSync(async () => await roslynHighlighter.GetCodeOutputAsync(code, arg));
-                    WriteCode(renderer, codeBlock, newLanguage, newCode,  roslynHighlighter);
+                    var execResult = RunSync(async () => await syntaxHighlighter.HighlightExecutionAsync(code.Trim(), arg));
+                    if (execResult.Success)
+                    {
+                        WriteCode(renderer, codeBlock, newLanguage, execResult.PlainText, syntaxHighlighter);
+                    }
+                    else
+                    {
+                        highlightedCode = $"<pre><code>Error: {HtmlEncoder.Default.Encode(execResult.ErrorMessage ?? "Execution failed")}</code></pre>";
+                        renderer.Write(highlightedCode);
+                    }
                     return;
                 }
-                else if (languageId.Contains(":path"))
+
+                if (languageId.Contains(":path"))
                 {
                     var newLanguage = languageId[..languageId.IndexOf(":path", StringComparison.Ordinal)];
                     try
                     {
-                        var fileContent = RunSync(async () => await roslynHighlighter.GetFileContentAsync(code.Trim()));
-                        WriteCode(renderer, codeBlock, newLanguage, fileContent, roslynHighlighter);
+                        var fileResult = RunSync(async () => await syntaxHighlighter.HighlightFileAsync(code.Trim()));
+                        if (fileResult.Success)
+                        {
+                            WriteCode(renderer, codeBlock, newLanguage, fileResult.PlainText, syntaxHighlighter);
+                        }
+                        else
+                        {
+                            highlightedCode = $"<pre><code>Error loading file '{code.Trim()}': {HtmlEncoder.Default.Encode(fileResult.ErrorMessage ?? "File not found")}</code></pre>";
+                            renderer.Write(highlightedCode);
+                        }
                         return;
                     }
                     catch (Exception ex)
@@ -136,25 +157,13 @@ internal sealed class CodeHighlightRenderer(
 
     private static void WriteCodeWithoutRoslyn(HtmlRenderer renderer, string languageId, string code)
     {
-        string highlightedCode;
-
-        switch (languageId.Trim())
+        var highlightedCode = languageId.Trim() switch
         {
-            case "gbnf":
-                highlightedCode = GbnfHighlighter.Highlight(code);
-                break;
-            case "bash" or "shell":
-                highlightedCode = ShellSyntaxHighlighter.Highlight(code);
-                break;
-            case "text" or "":
-                highlightedCode = "<pre><code>" + code + "</code></pre>";
-                break;
-            default:
-            {
-                highlightedCode = TextMateHighlighter.Highlight(code, languageId);
-                break;
-            }
-        }
+            "gbnf" => GbnfHighlighter.Highlight(code),
+            "bash" or "shell" => ShellSyntaxHighlighter.Highlight(code),
+            "text" or "" => "<pre><code>" + code + "</code></pre>",
+            _ => TextMateHighlighter.Highlight(code, languageId)
+        };
 
         // Apply code transformations for notation comments
         var transformedCode = CodeTransformer.Transform(highlightedCode);
@@ -191,4 +200,6 @@ internal sealed class CodeHighlightRenderer(
 
         return code.ToString().Trim();
     }
+    
+    private static string AsPreCode(string s) => $"<pre><code>{s}</code></pre>";   
 }

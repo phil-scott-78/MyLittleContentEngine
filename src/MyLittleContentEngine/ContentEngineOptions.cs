@@ -5,7 +5,8 @@ using Markdig.Extensions.AutoIdentifiers;
 using Mdazor;
 using Microsoft.Extensions.DependencyInjection;
 using MyLittleContentEngine.Models;
-using MyLittleContentEngine.Services.Content.Roslyn;
+using MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
+using MyLittleContentEngine.Services.Content.CodeAnalysis.SyntaxHighlighting;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -164,7 +165,7 @@ public record ContentEngineOptions
     /// </remarks>
     public Func<IServiceProvider, MarkdownPipeline> MarkdownPipelineBuilder { get; init; } = serviceProvider =>
     {
-        var roslynHighlighter = serviceProvider.GetService<IRoslynHighlighterService>();
+        var syntaxHighlighter = serviceProvider.GetService<ISyntaxHighlightingService>();
         var roslynHighlighterOptions = serviceProvider.GetService<RoslynHighlighterOptions>();
 
         var builder = new MarkdownPipelineBuilder()
@@ -189,7 +190,7 @@ public record ContentEngineOptions
             .UseDiagrams()
             .UseCustomAlertBlocks()
             .UseCustomContainers()
-            .UseSyntaxHighlighting(roslynHighlighter, roslynHighlighterOptions?.CodeHighlightRenderOptionsFactory)
+            .UseSyntaxHighlighting(syntaxHighlighter, roslynHighlighterOptions?.CodeHighlightRenderOptionsFactory)
             .UseTabbedCodeBlocks(roslynHighlighterOptions?.TabbedCodeBlockRenderOptionsFactory)
             .UseYamlFrontMatter();
 

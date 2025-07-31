@@ -4,7 +4,9 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using MyLittleContentEngine.Models;
-using MyLittleContentEngine.Services.Content.Roslyn;
+using MyLittleContentEngine.Services.Content.CodeAnalysis.SymbolAnalysis;
+using MyLittleContentEngine.Services.Content.CodeAnalysis.SolutionWorkspace;
+using MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
 using MyLittleContentEngine.Services.Content.TableOfContents;
 using MyLittleContentEngine.Services.Infrastructure;
 
@@ -17,20 +19,26 @@ public class ApiReferenceContentService : IContentService, IDisposable
 {
     /// <inheritdoc />
     public int SearchPriority => 5; // Medium priority for API reference content
-    private readonly IRoslynExampleCoordinator _roslynCoordinator;
+    private readonly ISymbolExtractionService _symbolService;
+    private readonly ISolutionWorkspaceService _workspaceService;
     private readonly ILogger<ApiReferenceContentService> _logger;
     private readonly ApiReferenceContentOptions _options;
+    private readonly RoslynHighlighterOptions? _roslynOptions;
     private readonly LazyAndForgetful<ApiReferenceData> _apiDataCache;
     private bool _disposed;
 
     public ApiReferenceContentService(
         ApiReferenceContentOptions options,
-        IRoslynExampleCoordinator roslynCoordinator,
-        ILogger<ApiReferenceContentService> logger)
+        ISymbolExtractionService symbolService,
+        ISolutionWorkspaceService workspaceService,
+        ILogger<ApiReferenceContentService> logger,
+        RoslynHighlighterOptions? roslynOptions = null)
     {
         _options = options ?? throw new ArgumentNullException(nameof(options));
-        _roslynCoordinator = roslynCoordinator ?? throw new ArgumentNullException(nameof(roslynCoordinator));
+        _symbolService = symbolService ?? throw new ArgumentNullException(nameof(symbolService));
+        _workspaceService = workspaceService ?? throw new ArgumentNullException(nameof(workspaceService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _roslynOptions = roslynOptions;
 
         _apiDataCache = new LazyAndForgetful<ApiReferenceData>(async () => await BuildApiReferenceDataAsync());
     }
@@ -278,14 +286,22 @@ public class ApiReferenceContentService : IContentService, IDisposable
     {
         _logger.LogInformation("Building API reference data from Roslyn workspace");
 
-        // Get all symbols from RoslynExampleCoordinator
-        var symbolData = await _roslynCoordinator.GetAllSymbolsAsync();
+        // Get solution path from options or fall back to Roslyn options
+        var solutionPath = _options.SolutionPath ?? _roslynOptions?.ConnectedSolution?.SolutionPath;
+        if (string.IsNullOrEmpty(solutionPath))
+        {
+            throw new InvalidOperationException("No solution path configured for API reference generation");
+        }
+
+        // Load solution and extract all symbols
+        var solution = await _workspaceService.LoadSolutionAsync(solutionPath);
+        var allSymbols = await _symbolService.ExtractSymbolsAsync(solution);
 
         var typeSymbols = new List<INamedTypeSymbol>();
         var memberSymbols = new List<ISymbol>();
 
-        // Extract symbols from cache, filtering for public members only
-        foreach (var kvp in symbolData)
+        // Extract symbols, filtering for public members only
+        foreach (var kvp in allSymbols)
         {
             var symbol = kvp.Value.Symbol;
 

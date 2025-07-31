@@ -2,7 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
-namespace MyLittleContentEngine.Services.Content.Roslyn;
+namespace MyLittleContentEngine.Services.Content.CodeAnalysis.SymbolAnalysis;
 
 internal static class CodeFragmentExtractor
 {

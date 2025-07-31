@@ -1,4 +1,4 @@
-﻿namespace MyLittleContentEngine.Services.Content.Roslyn;
+﻿namespace MyLittleContentEngine.Services.Content.CodeAnalysis.Extensions;
 
 internal static class TextFormatter
 {

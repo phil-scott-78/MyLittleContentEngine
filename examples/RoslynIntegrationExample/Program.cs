@@ -2,7 +2,7 @@
 using RoslynIntegrationExample.Components;
 using MyLittleContentEngine;
 using MyLittleContentEngine.MonorailCss;
-using MyLittleContentEngine.Services.Content.Roslyn;
+using MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -2,7 +2,7 @@
 using MyLittleContentEngine.Services.Content.MarkdigExtensions.AlertBlock;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions.Tabs;
-using MyLittleContentEngine.Services.Content.Roslyn;
+using MyLittleContentEngine.Services.Content.CodeAnalysis.SyntaxHighlighting;
 
 namespace MyLittleContentEngine.Services.Content.MarkdigExtensions;
 
@@ -16,9 +16,9 @@ internal static class MarkdownPipelineBuilderExtensions
     /// </summary>
     /// <returns>The <see cref="MarkdownPipelineBuilder"/> configured with ColorCode.</returns>
     public static MarkdownPipelineBuilder UseSyntaxHighlighting(this MarkdownPipelineBuilder markdownPipelineBuilder,
-        IRoslynHighlighterService? roslynHighlighter, Func<CodeHighlightRenderOptions>? options)
+        ISyntaxHighlightingService? syntaxHighlighter, Func<CodeHighlightRenderOptions>? options)
     {
-        markdownPipelineBuilder.Extensions.AddIfNotAlready(new ColorCodingHighlighter(roslynHighlighter, options));
+        markdownPipelineBuilder.Extensions.AddIfNotAlready(new ColorCodingHighlighter(syntaxHighlighter, options));
 
         return markdownPipelineBuilder;
     }

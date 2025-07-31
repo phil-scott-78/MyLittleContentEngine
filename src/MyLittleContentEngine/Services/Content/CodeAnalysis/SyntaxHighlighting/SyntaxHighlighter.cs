@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Text;
 
-namespace MyLittleContentEngine.Services.Content.Roslyn;
+namespace MyLittleContentEngine.Services.Content.CodeAnalysis.SyntaxHighlighting;
 
 public enum Language
 {
@@ -36,7 +36,7 @@ internal class SyntaxHighlighter : IDisposable
         };
 
         var highlightedCode = AsyncHelpers.RunSync(() => HighlightContent(codeContent, project));
-        return $"{highlightedCode}";
+        return highlightedCode;
     }
 
     // Keep all the highlighting methods from the original class:
