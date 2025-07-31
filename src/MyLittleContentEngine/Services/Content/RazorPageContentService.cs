@@ -21,7 +21,6 @@ internal class RazorPageContentService : IContentService
 {
     private readonly IFileSystem _fileSystem;
     private readonly ILogger<RazorPageContentService> _logger;
-    private readonly ContentEngineOptions _options;
     private readonly IDeserializer _yamlDeserializer;
 
     /// <inheritdoc />
@@ -40,7 +39,6 @@ internal class RazorPageContentService : IContentService
     {
         _fileSystem = fileSystem;
         _logger = logger;
-        _options = options;
         _yamlDeserializer = options.FrontMatterDeserializer;
     }
 
@@ -64,8 +62,9 @@ internal class RazorPageContentService : IContentService
                 {
                     // Try to find and load metadata from sidecar .yml file
                     var metadata = await TryLoadMetadataAsync(component);
-                    
-                    var pageToGenerate = new PageToGenerate(route, _fileSystem.Path.Combine(route, _options.IndexPageHtml).TrimStart('/'), metadata);
+                    var outputFile = route.TrimStart('/').Replace('/', Path.DirectorySeparatorChar).ToLowerInvariant();
+                    outputFile = $"{outputFile}.html";
+                    var pageToGenerate = new PageToGenerate(route, outputFile, metadata);
 
                     pages = pages.Add(pageToGenerate);
                 }

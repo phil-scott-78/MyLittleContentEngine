@@ -1,12 +1,10 @@
 @page "/{*fileName:nonfile}"
-@page "/"
 
 @using System.Diagnostics.CodeAnalysis
 @using MyLittleContentEngine.Models
 @using MyLittleContentEngine.Services.Content
 @using Microsoft.AspNetCore.Components.Sections
 @using MyLittleContentEngine.Services.Content.TableOfContents
-@using MyLittleContentEngine.UI.Components
 @inject ContentEngineOptions ContentEngineOptions
 @inject IMarkdownContentService<DocSiteFrontMatter> MarkdownContentService
 @inject ITableOfContentService TableOfContentService
@@ -56,6 +54,10 @@
         }
     </article>
 }
+else if (_homeComponentType != null)
+{
+    <DynamicComponent Type="_homeComponentType" />
+}
 else
 {
     <PageTitle>@ContentEngineOptions.SiteTitle</PageTitle>
@@ -76,6 +78,7 @@ else
     private OutlineEntry[]? _outline;
     private NavigationTreeItem? _previousPage;
     private NavigationTreeItem? _nextPage;
+    private Type? _homeComponentType;
 
     [MemberNotNull(nameof(_postContent))]
     [MemberNotNull(nameof(_outline))]
@@ -110,6 +113,30 @@ else
         }
 
         var page = await MarkdownContentService.GetRenderedContentPageByUrlOrDefault(fileName);
+        
+        // If no index page found and we're on root, try to render Index component.
+        // This allows the user to have a custom page rather than markdown for their home page of the site.
+        if (page == null && fileName.Equals("index", StringComparison.OrdinalIgnoreCase))
+        {
+            try
+            {
+                var homeType = Type.GetType("Index") ?? 
+                              AppDomain.CurrentDomain.GetAssemblies()
+                                  .SelectMany(a => a.GetTypes())
+                                  .FirstOrDefault(t => t.Name == "Index" && typeof(IComponent).IsAssignableFrom(t));
+                
+                if (homeType != null)
+                {
+                    _homeComponentType = homeType;
+                    return;
+                }
+            }
+            catch
+            {
+                // Fall through to show not found
+            }
+        }
+        
         if (page == null)
         {
             IsLoaded = false;
