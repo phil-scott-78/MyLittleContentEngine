@@ -50,7 +50,7 @@ namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.Tabs
                         document.Add(allBlocks[i]);
                         continue;
                     }
-                    
+
                     // Look ahead to find consecutive code blocks
                     var consecutiveCodeBlocks = new List<FencedCodeBlock> { codeBlock };
                     var j = i + 1;

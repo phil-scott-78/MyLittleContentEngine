@@ -80,7 +80,7 @@ internal class ContentFilesService<TFrontMatter>
         try
         {
             // Use custom URL creation function if provided, otherwise use default
-            return _markdownContentOptions.CreateContentUrl?.Invoke(filePath, baseContentPath) 
+            return _markdownContentOptions.CreateContentUrl?.Invoke(filePath, baseContentPath)
                 ?? _fileSystemUtilities.FilePathToUrlPath(filePath, baseContentPath);
         }
         catch (Exception ex)

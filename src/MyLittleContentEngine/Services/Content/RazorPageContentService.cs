@@ -12,7 +12,7 @@ namespace MyLittleContentEngine.Services.Content;
 /// <summary>
 /// Content service responsible for discovering Razor pages and their associated metadata from sidecar .yml files.
 /// This service replaces the functionality previously handled by RoutesHelper.GetRoutesToRender().
-/// 
+///
 /// Searches for metadata files using the naming convention: "ComponentName.razor.metadata.yml"
 /// The metadata file must be located in the same directory as the Razor component file.
 /// For example, for an "Index.razor" component, it looks for "Index.razor.metadata.yml" in the same directory.
@@ -49,7 +49,7 @@ internal class RazorPageContentService : IContentService
 
         // Get all assemblies that might contain Razor components
         var assemblies = GetRelevantAssemblies();
-        
+
         foreach (var assembly in assemblies)
         {
             // Get all components that are Blazor components with routes
@@ -81,7 +81,7 @@ internal class RazorPageContentService : IContentService
 
         // Get all assemblies that might contain Razor components
         var assemblies = GetRelevantAssemblies();
-        
+
         foreach (var assembly in assemblies)
         {
             // Get all components that are Blazor components with routes
@@ -97,16 +97,16 @@ internal class RazorPageContentService : IContentService
 
                 // Try to find and load metadata from sidecar .yml file
                 var metadata = await TryLoadMetadataAsync(component);
-                
+
                 // Only include pages that have metadata in the TOC
                 if (metadata != null)
                 {
                     // Use the first route for the TOC entry
                     var primaryRoute = routes.First();
-                    
+
                     // Create hierarchy parts from the URL path
                     var hierarchyParts = CreateHierarchyParts(primaryRoute);
-                    
+
                     var tocItem = new ContentTocItem(
                         Title: metadata.Title ?? component.Name,
                         Url: primaryRoute,
@@ -144,18 +144,18 @@ internal class RazorPageContentService : IContentService
     {
         var assemblies = new HashSet<Assembly>();
         var entryAssembly = Assembly.GetEntryAssembly();
-        
+
         if (entryAssembly != null)
         {
             assemblies.Add(entryAssembly);
-            
+
             // Add all referenced assemblies that might contain Razor components
             foreach (var referencedAssembly in entryAssembly.GetReferencedAssemblies())
             {
                 try
                 {
                     var assembly = Assembly.Load(referencedAssembly);
-                    
+
                     // Only include assemblies that are likely to contain Razor components
                     if (CouldContainRazorComponents(assembly))
                     {
@@ -169,7 +169,7 @@ internal class RazorPageContentService : IContentService
                 }
             }
         }
-        
+
         // Also check currently loaded assemblies in the current domain
         foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
         {
@@ -178,7 +178,7 @@ internal class RazorPageContentService : IContentService
                 assemblies.Add(assembly);
             }
         }
-        
+
         return assemblies;
     }
 
@@ -190,7 +190,7 @@ internal class RazorPageContentService : IContentService
     private static bool CouldContainRazorComponents(Assembly assembly)
     {
         var assemblyName = assembly.GetName().Name ?? string.Empty;
-        
+
         // Skip system assemblies and common third-party libraries that won't have components
         if (assemblyName.StartsWith("System.") ||
             assemblyName.StartsWith("Microsoft.") ||
@@ -205,10 +205,10 @@ internal class RazorPageContentService : IContentService
         {
             return false;
         }
-        
+
         // Include if it references ASP.NET Core Components (indicating it might have Razor components)
         var referencedAssemblies = assembly.GetReferencedAssemblies();
-        return referencedAssemblies.Any(r => 
+        return referencedAssemblies.Any(r =>
             r.Name?.Contains("Microsoft.AspNetCore.Components") == true ||
             r.Name?.Contains("Microsoft.AspNetCore.Mvc") == true);
     }
@@ -269,14 +269,14 @@ internal class RazorPageContentService : IContentService
             }
 
             var metadata = _yamlDeserializer.Deserialize<Metadata>(yamlContent);
-            _logger.LogDebug("Loaded metadata for component {ComponentName} from {SidecarPath}", 
+            _logger.LogDebug("Loaded metadata for component {ComponentName} from {SidecarPath}",
                 component.Name, sidecarPath);
-            
+
             return metadata;
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to parse metadata from sidecar file {SidecarPath} for component {ComponentName}", 
+            _logger.LogWarning(ex, "Failed to parse metadata from sidecar file {SidecarPath} for component {ComponentName}",
                 sidecarPath, component.Name);
             return null;
         }
@@ -292,7 +292,7 @@ internal class RazorPageContentService : IContentService
     {
         // For a component like "Index" or "About", look for "Index.razor.metadata.yml" or "About.razor.metadata.yml"
         // in the same directory as the Razor component file
-        
+
         // Get the assembly location to help find the component's directory
         var assemblyLocation = component.Assembly.Location;
         if (string.IsNullOrEmpty(assemblyLocation))
@@ -316,7 +316,7 @@ internal class RazorPageContentService : IContentService
         // Search for the metadata file in the same directory as the Razor component
         var componentName = component.Name;
         var metadataFileName = $"{componentName}.razor.metadata.yml";
-        
+
         return FindMetadataFileSideBySide(projectRoot, componentName, metadataFileName);
     }
 
@@ -339,7 +339,7 @@ internal class RazorPageContentService : IContentService
             // Look for the Razor component file first, then check for metadata file in same directory
             var razorFileName = $"{componentName}.razor";
             var componentPath = FindRazorComponentFile(projectRoot, razorFileName);
-            
+
             if (componentPath != null)
             {
                 var componentDirectory = _fileSystem.Path.GetDirectoryName(componentPath);
@@ -373,7 +373,7 @@ internal class RazorPageContentService : IContentService
         {
             "Components/Pages",
             "Components",
-            "Pages", 
+            "Pages",
             "Views",
             "Areas",
             "src/Components/Pages",
@@ -405,13 +405,13 @@ internal class RazorPageContentService : IContentService
     private string? FindProjectRoot(string startDirectory)
     {
         var currentDir = startDirectory;
-        
+
         while (!string.IsNullOrEmpty(currentDir))
         {
             try
             {
                 // Look for common project indicators
-                if (_fileSystem.Directory.Exists(currentDir) && 
+                if (_fileSystem.Directory.Exists(currentDir) &&
                     _fileSystem.Directory.GetFiles(currentDir, "*.csproj").Length > 0)
                 {
                     return currentDir;
@@ -443,7 +443,7 @@ internal class RazorPageContentService : IContentService
     {
         // Remove leading slash and split by forward slashes
         var parts = url.TrimStart('/').Split('/', StringSplitOptions.RemoveEmptyEntries);
-        
+
         // If empty (root path), return empty array
         if (parts.Length == 0)
         {

@@ -195,7 +195,7 @@ public static class ContentEngineExtensions
 
         if (app.Services.GetService<SitemapRssService>() != null)
         {
-            app.MapContentEngineSitemapRss();    
+            app.MapContentEngineSitemapRss();
         }
     }
 

@@ -83,10 +83,10 @@ internal static class StringExtensions
     {
         // Short conjunctions (3 letters or fewer)
         "and", "as", "but", "for", "if", "nor", "or", "so", "yet",
-        
+
         // Articles
         "a", "an", "the",
-        
+
         // Short prepositions (3 letters or fewer)
         "at", "by", "in", "of", "off", "on", "per", "to", "up", "via"
     };
@@ -98,10 +98,10 @@ internal static class StringExtensions
 
         var span = input.AsSpan();
         var result = new StringBuilder(input.Length);
-        
+
         bool isFirstWord = true;
         bool afterPunctuation = false;
-        
+
         int i = 0;
         while (i < span.Length)
         {
@@ -109,29 +109,29 @@ internal static class StringExtensions
             int whitespaceStart = i;
             while (i < span.Length && char.IsWhiteSpace(span[i]))
                 i++;
-            
+
             if (whitespaceStart < i)
             {
                 result.Append(span.Slice(whitespaceStart, i - whitespaceStart));
             }
-            
+
             if (i >= span.Length)
                 break;
-                
+
             // Find the end of the current word
             int wordStart = i;
             while (i < span.Length && !char.IsWhiteSpace(span[i]))
                 i++;
-            
+
             var wordSpan = span.Slice(wordStart, i - wordStart);
             var processedWord = ProcessWord(wordSpan, isFirstWord, afterPunctuation);
             result.Append(processedWord);
-            
+
             // Check if this word ends with punctuation that requires next word capitalization
             afterPunctuation = EndsWithPunctuation(wordSpan);
             isFirstWord = false;
         }
-        
+
         return result.ToString();
     }
 
@@ -139,9 +139,9 @@ internal static class StringExtensions
     {
         if (word.Length == 0)
             return false;
-            
+
         char lastChar = word[word.Length - 1];
-        return lastChar == ':' || lastChar == '.' || lastChar == '!' || 
+        return lastChar == ':' || lastChar == '.' || lastChar == '!' ||
                lastChar == '?' || lastChar == '—';
     }
 
@@ -156,13 +156,13 @@ internal static class StringExtensions
         {
             var firstPart = word.Slice(0, hyphenIndex);
             var secondPart = word.Slice(hyphenIndex + 1);
-            
+
             var processedFirst = ProcessSingleWord(firstPart, isFirstWord, afterPunctuation);
             var processedSecond = ProcessSingleWord(secondPart, true, false); // Second part of hyphenated word is capitalized
-            
+
             return processedFirst + "-" + processedSecond;
         }
-        
+
         return ProcessSingleWord(word, isFirstWord, afterPunctuation);
     }
 
@@ -183,17 +183,17 @@ internal static class StringExtensions
 
         // Extract the core word without leading/trailing punctuation
         var coreWord = ExtractCoreWord(word, out string prefix, out string suffix);
-        
+
         if (coreWord.Length == 0)
             return word.ToString();
 
-        bool shouldCapitalize = isFirstWord || 
-                              afterPunctuation || 
-                              coreWord.Length >= 4 || 
+        bool shouldCapitalize = isFirstWord ||
+                              afterPunctuation ||
+                              coreWord.Length >= 4 ||
                               !IsMinorWord(coreWord);
 
-        string processedCore = shouldCapitalize ? 
-            CapitalizeWord(coreWord) : 
+        string processedCore = shouldCapitalize ?
+            CapitalizeWord(coreWord) :
             coreWord.ToString().ToLower();
 
         return prefix + processedCore + suffix;
@@ -203,21 +203,21 @@ internal static class StringExtensions
     {
         int start = 0;
         int end = word.Length - 1;
-        
+
         // Find start of core word (skip leading punctuation)
         while (start < word.Length && !char.IsLetter(word[start]))
             start++;
-            
+
         // Find end of core word (skip trailing punctuation)
         while (end >= start && !char.IsLetter(word[end]))
             end--;
-        
+
         prefix = start > 0 ? word.Slice(0, start).ToString() : string.Empty;
         suffix = end < word.Length - 1 ? word.Slice(end + 1).ToString() : string.Empty;
-        
+
         if (start <= end)
             return word.Slice(start, end - start + 1);
-        
+
         return ReadOnlySpan<char>.Empty;
     }
 
@@ -225,14 +225,14 @@ internal static class StringExtensions
     {
         if (word.Length > 3)
             return false;
-            
+
         // Create a string for HashSet lookup - only for short words
         Span<char> buffer = stackalloc char[word.Length];
         for (int i = 0; i < word.Length; i++)
         {
             buffer[i] = char.ToLower(word[i]);
         }
-        
+
         return MinorWords.Contains(buffer.ToString());
     }
 
@@ -243,12 +243,12 @@ internal static class StringExtensions
 
         Span<char> result = stackalloc char[word.Length];
         result[0] = char.ToUpper(word[0]);
-        
+
         for (int i = 1; i < word.Length; i++)
         {
             result[i] = char.ToLower(word[i]);
         }
-        
+
         return result.ToString();
     }
 }

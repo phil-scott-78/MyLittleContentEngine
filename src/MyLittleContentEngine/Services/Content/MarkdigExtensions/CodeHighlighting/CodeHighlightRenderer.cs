@@ -137,7 +137,7 @@ internal sealed class CodeHighlightRenderer(
     private static void WriteCodeWithoutRoslyn(HtmlRenderer renderer, string languageId, string code)
     {
         string highlightedCode;
-        
+
         switch (languageId.Trim())
         {
             case "gbnf":
@@ -155,7 +155,7 @@ internal sealed class CodeHighlightRenderer(
                 break;
             }
         }
-        
+
         // Apply code transformations for notation comments
         var transformedCode = CodeTransformer.Transform(highlightedCode);
         renderer.Write(transformedCode);

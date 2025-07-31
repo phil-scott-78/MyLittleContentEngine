@@ -14,7 +14,7 @@ public interface IFrontMatter
     /// Tags for the content.
     /// </summary>
     string[] Tags { get; init; }
-    
+
     /// <summary>
     /// If true, the content page will not be generated.
     /// </summary>
@@ -24,9 +24,9 @@ public interface IFrontMatter
     /// Currently unused, but maybe one day we can support xref links.
     /// </summary>
     string? Uid { get; init; }
-    
+
     string? RedirectUrl { get; init; }
-    
+
     /// <summary>
     /// Converts the FrontMatter into structured metadata for RSS and SiteMap generation.
     /// </summary>

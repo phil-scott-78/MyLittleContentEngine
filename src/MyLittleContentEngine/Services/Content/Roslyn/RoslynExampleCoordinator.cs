@@ -432,7 +432,7 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
             var semanticModel = await document.GetSemanticModelAsync(token) ?? throw new NullReferenceException();
             var sourceText = await document.GetTextAsync(token);
             var rootSyntaxNode = await syntaxTree.GetRootAsync(token);
-            
+
             var fileName = _fileSystem.Path.GetFileName(document.FilePath);
             foreach (var type in ProcessTypeDeclarationsAsync(document, rootSyntaxNode, semanticModel, sourceText))
             {
@@ -466,7 +466,6 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
             var textSpan = CreateExtendedTextSpan(typeDeclaration);
             yield return (xmlDocId, typeSymbol, document, textSpan, sourceText);
 
-            
             foreach (var method in ProcessMethodDeclarationsAsync(document, typeDeclaration, semanticModel, sourceText))
             {
                 yield return method;
@@ -528,7 +527,7 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
         {
             var propertySymbol = semanticModel.GetDeclaredSymbol(propertyDeclaration);
             if (propertySymbol == null) continue;
-            if (propertySymbol.DeclaredAccessibility != Accessibility.Public) continue; 
+            if (propertySymbol.DeclaredAccessibility != Accessibility.Public) continue;
 
             var xmlDocId = propertySymbol.GetDocumentationCommentId();
             if (string.IsNullOrEmpty(xmlDocId)) continue;
@@ -554,7 +553,7 @@ internal class RoslynExampleCoordinator : IRoslynExampleCoordinator
             {
                 var fieldSymbol = semanticModel.GetDeclaredSymbol(variable);
                 if (fieldSymbol == null) continue;
-                if (fieldSymbol.DeclaredAccessibility != Accessibility.Public) continue; 
+                if (fieldSymbol.DeclaredAccessibility != Accessibility.Public) continue;
 
                 var xmlDocId = fieldSymbol.GetDocumentationCommentId();
                 if (string.IsNullOrEmpty(xmlDocId)) continue;

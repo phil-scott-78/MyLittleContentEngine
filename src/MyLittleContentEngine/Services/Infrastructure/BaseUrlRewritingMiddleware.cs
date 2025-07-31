@@ -45,13 +45,13 @@ public partial class BaseUrlRewritingMiddleware
 
     // Pattern to match xref: URLs in href attributes
     private static readonly Regex XrefPattern = XrefRegex();
-    
+
     // Pattern to match <xref: tags (e.g., <xref:docs.guides.linking-documents-and-media>)
     private static readonly Regex XrefTagPattern = XrefTagRegex();
-    
+
     // Pattern to match <a href="xref:uid">xref:uid</a> where href and content must match
     private static readonly Regex XrefLinkPattern = XrefLinkRegex();
-    
+
     // Pattern to match body tag to add data-base-url attribute
     private static readonly Regex BodyTagPattern = BodyTagRegex();
 
@@ -148,13 +148,13 @@ public partial class BaseUrlRewritingMiddleware
     {
         // First, handle <xref:uid> tags and convert them to <a> links
         html = await ResolveXrefTagsAsync(html);
-        
+
         // Second, handle <a href="xref:uid">xref:uid</a> links where href and content match
         html = await ResolveXrefLinksAsync(html);
-        
+
         // Then handle existing xref: URLs in href attributes
         var matches = XrefPattern.Matches(html).Reverse().ToList();
-        
+
         foreach (var match in matches)
         {
             var prefix = match.Groups[1].Value;
@@ -175,10 +175,10 @@ public partial class BaseUrlRewritingMiddleware
                 var suffixValue = suffix; // This contains ">Unknown Documentation</a>"
                 var contentStartIndex = suffixValue.IndexOf('>') + 1;
                 var contentEndIndex = suffixValue.LastIndexOf('<');
-                var content = contentEndIndex > contentStartIndex ? 
-                    suffixValue.Substring(contentStartIndex, contentEndIndex - contentStartIndex) : 
+                var content = contentEndIndex > contentStartIndex ?
+                    suffixValue.Substring(contentStartIndex, contentEndIndex - contentStartIndex) :
                     "Reference not found";
-                
+
                 var replacement = $"<span data-xref-error=\"Reference not found\" data-xref-uid=\"{xrefUid}\" style=\"color: red; text-decoration: line-through;\">{content}</span>";
                 html = html.Remove(match.Index, match.Length).Insert(match.Index, replacement);
             }
@@ -190,7 +190,7 @@ public partial class BaseUrlRewritingMiddleware
     private async Task<string> ResolveXrefTagsAsync(string html)
     {
         var matches = XrefTagPattern.Matches(html).Reverse().ToList();
-        
+
         foreach (var match in matches)
         {
             var xrefUid = match.Groups[1].Value;
@@ -216,7 +216,7 @@ public partial class BaseUrlRewritingMiddleware
     private async Task<string> ResolveXrefLinksAsync(string html)
     {
         var matches = XrefLinkPattern.Matches(html).Reverse().ToList();
-        
+
         foreach (var match in matches)
         {
             var xrefUid = match.Groups[1].Value;
@@ -246,14 +246,14 @@ public partial class BaseUrlRewritingMiddleware
             var openingTag = match.Groups[1].Value; // "<body"
             var attributes = match.Groups[2].Value; // existing attributes (could be empty)
             var closingBracket = match.Groups[3].Value; // ">"
-            
+
             // Check if data-base-url attribute already exists in the attributes
             if (attributes.Contains("data-base-url", StringComparison.OrdinalIgnoreCase))
             {
                 // Already has the attribute, return unchanged
                 return match.Value;
             }
-            
+
             // Add data-base-url attribute while preserving existing attributes
             var dataBaseUrlAttr = string.IsNullOrEmpty(_baseUrl) ? "" : $" data-base-url=\"{_baseUrl}\"";
             return $"{openingTag}{attributes}{dataBaseUrlAttr}{closingBracket}";
@@ -270,7 +270,7 @@ public partial class BaseUrlRewritingMiddleware
 
             // Process each URL in the srcset value
             var rewrittenSrcset = RewriteSrcsetValue(srcsetValue);
-            
+
             return prefix + rewrittenSrcset + suffix;
         });
     }

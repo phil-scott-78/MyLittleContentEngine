@@ -102,7 +102,7 @@ internal class SyntaxHighlighter : IDisposable
             var cssClass = ClassificationTypeToHighlightJsClass(range.ClassificationType);
             if (string.IsNullOrWhiteSpace(cssClass))
             {
-                
+
                 sb.Append(WebUtility.HtmlEncode(range.Text));
             }
             else
@@ -227,7 +227,7 @@ internal class SyntaxHighlighter : IDisposable
                 or ClassificationTypeNames.XmlDocCommentEntityReference
                 or ClassificationTypeNames.XmlDocCommentProcessingInstruction
                 or ClassificationTypeNames.XmlDocCommentCDataSection => "comment",
-            
+
             _ => classificationType.ToLower().Replace(" ", "-")
         };
     }

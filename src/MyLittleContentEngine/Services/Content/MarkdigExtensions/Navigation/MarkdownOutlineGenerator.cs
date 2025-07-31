@@ -24,7 +24,7 @@ internal static class MarkdownOutlineGenerator
         foreach (var node in document.Descendants())
         {
             if (node is not HeadingBlock headingBlock) continue;
-            
+
             if (headingBlock.Inline == null)
             {
                 continue;
@@ -32,7 +32,7 @@ internal static class MarkdownOutlineGenerator
 
             // Extract title from the heading
             var title = GetPlainTextFromInline(headingBlock.Inline);
-            
+
             // Skip empty headings
             if (string.IsNullOrWhiteSpace(title))
             {
@@ -78,9 +78,9 @@ internal static class MarkdownOutlineGenerator
             {
                 var lastEntry = stack[^1];
                 stack.RemoveAt(stack.Count - 1);
-                
+
                 var completedEntry = lastEntry.Entry with { Children = lastEntry.Children.ToArray() };
-                
+
                 // Add to the appropriate parent
                 if (stack.Count > 0)
                 {
@@ -101,9 +101,9 @@ internal static class MarkdownOutlineGenerator
         {
             var lastEntry = stack[^1];
             stack.RemoveAt(stack.Count - 1);
-            
+
             var completedEntry = lastEntry.Entry with { Children = lastEntry.Children.ToArray() };
-            
+
             if (stack.Count > 0)
             {
                 stack[^1].Children.Add(completedEntry);

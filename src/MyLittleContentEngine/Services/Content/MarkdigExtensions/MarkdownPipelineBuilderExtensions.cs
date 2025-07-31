@@ -35,7 +35,7 @@ internal static class MarkdownPipelineBuilderExtensions
         markdownPipelineBuilder.Extensions.AddIfNotAlready(new TabbedCodeBlocksExtension(options));
         return markdownPipelineBuilder;
     }
-    
+
     /// <summary>
     /// Adds support for custom alert blocks to the specified Markdig pipeline.
     /// </summary>

@@ -60,7 +60,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
             {
                 var url = BuildUrlFromTemplate(_options.UrlOptions.NamespaceUrlTemplate, ns);
                 var outputFile = BuildUrlFromTemplate(_options.UrlOptions.NamespaceOutputTemplate, ns);
-                
+
                 pages.Add(new PageToGenerate(
                     Url: url,
                     OutputFile: outputFile,
@@ -80,7 +80,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
             {
                 var url = BuildUrlFromTemplate(_options.UrlOptions.TypeUrlTemplate, type);
                 var outputFile = BuildUrlFromTemplate(_options.UrlOptions.TypeOutputTemplate, type);
-                
+
                 pages.Add(new PageToGenerate(
                     Url: url,
                     OutputFile: outputFile,
@@ -134,7 +134,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
                 // Ensure URL ends with trailing slash for consistency
                 if (!url.EndsWith('/'))
                     url += "/";
-                
+
                 crossRefs.Add(new CrossReference
                 {
                     Uid = ns.XmlDocId,
@@ -153,7 +153,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
                 // Ensure URL ends with trailing slash for consistency
                 if (!url.EndsWith('/'))
                     url += "/";
-                
+
                 crossRefs.Add(new CrossReference
                 {
                     Uid = type.XmlDocId,
@@ -413,7 +413,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
                 .Where(m => !ShouldFilterMember(m, typeSymbol))
                 .Where(m => !typeMembers.Any(tm => SymbolEqualityComparer.Default.Equals(tm, m)))
                 .ToList();
-            
+
             typeMembers.AddRange(directMembers);
         }
 
@@ -760,17 +760,17 @@ public class ApiReferenceContentService : IContentService, IDisposable
                             result.Append("<a href=\"xref:");
                             result.Append(System.Net.WebUtility.HtmlEncode(cref));
                             result.Append("\">");
-                            
+
                             // Extract the last part of the cref as display text
                             var name = cref.Split('.').Last().Split('`').First();
                             result.Append("<code>");
                             result.Append(System.Net.WebUtility.HtmlEncode(name));
                             result.Append("</code>");
-                            
+
                             result.Append("</a>");
                         }
                         break;
-                        
+
                     case "seealso":
                         var seealsoCref = element.Attribute("cref")?.Value;
                         if (!string.IsNullOrEmpty(seealsoCref))
@@ -779,15 +779,15 @@ public class ApiReferenceContentService : IContentService, IDisposable
                             result.Append("<a href=\"xref:");
                             result.Append(System.Net.WebUtility.HtmlEncode(seealsoCref));
                             result.Append("\">");
-                            
+
                             // Extract the last part of the cref as display text
                             var seealsoName = seealsoCref.Split('.').Last().Split('`').First();
                             result.Append(System.Net.WebUtility.HtmlEncode(seealsoName));
-                            
+
                             result.Append("</a>");
                         }
                         break;
-                        
+
                     case "paramref":
                         var paramName = element.Attribute("name")?.Value;
                         if (!string.IsNullOrEmpty(paramName))
@@ -797,7 +797,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
                             result.Append("</code>");
                         }
                         break;
-                        
+
                     case "typeparamref":
                         var typeParamName = element.Attribute("name")?.Value;
                         if (!string.IsNullOrEmpty(typeParamName))
@@ -807,7 +807,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
                             result.Append("</code>");
                         }
                         break;
-                        
+
                     case "para":
                         result.Append("<p>");
                         foreach (var child in element.Nodes())
@@ -1077,7 +1077,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
 
         var isIncluded = _options.IncludeNamespace.Length == 0 ||
                          _options.IncludeNamespace.Any(prefix => namespaceName.StartsWith(prefix, StringComparison.Ordinal));
-        
+
         var isExcluded = _options.ExcludedNamespace.Length > 0 &&
                          _options.ExcludedNamespace.Any(prefix => namespaceName.StartsWith(prefix, StringComparison.Ordinal));
 

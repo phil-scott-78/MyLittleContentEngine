@@ -50,7 +50,7 @@ internal class RoslynHighlighterService : IDisposable, IRoslynHighlighterService
 
         if (options.ConnectedSolution != null)
         {
-            _solutionDirectory = fileSystem.Path.GetDirectoryName(options.ConnectedSolution.SolutionPath) 
+            _solutionDirectory = fileSystem.Path.GetDirectoryName(options.ConnectedSolution.SolutionPath)
                        ?? throw new InvalidOperationException("Could not determine solution directory");
             _fileWatcher.AddPathWatch(_solutionDirectory, "*.cs", OnFileChanged);
         }
@@ -135,7 +135,7 @@ internal class RoslynHighlighterService : IDisposable, IRoslynHighlighterService
         // Ensure the resolved path is still within the solution directory (security check)
         var resolvedPath = _fileSystem.Path.GetFullPath(fullPath);
         var solutionPath = _fileSystem.Path.GetFullPath(_solutionDirectory);
-        
+
         if (!resolvedPath.StartsWith(solutionPath, StringComparison.OrdinalIgnoreCase))
         {
             throw new UnauthorizedAccessException(

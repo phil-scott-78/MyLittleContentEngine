@@ -117,7 +117,7 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
                                    </body>
                                  </html>
                                  """;
-            
+
             return (page, redirectHtml);
         }
 
@@ -175,9 +175,9 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
     {
         var pages = await ((IContentService)this).GetPagesToGenerateAsync();
         var allContentPages = await GetAllContentPagesAsync();
-        
+
         return pages.Where(p => p.Metadata?.Title != null)
-            .Where(p => 
+            .Where(p =>
             {
                 // Exclude redirect pages from table of contents
                 var contentPage = allContentPages.FirstOrDefault(cp => cp.Url == p.Url);

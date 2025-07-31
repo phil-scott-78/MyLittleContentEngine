@@ -50,7 +50,7 @@ public record ContentEngineOptions
     /// Example format: "https://example.com" (without a trailing slash)
     /// </para>
     public string? CanonicalBaseUrl { get; init; }
-    
+
     /// <summary>
     /// Gets or sets the path to the content root directory. Defaults to "Content".
     /// </summary>

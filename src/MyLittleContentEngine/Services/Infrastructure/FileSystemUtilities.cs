@@ -34,12 +34,12 @@ internal class FileSystemUtilities(IFileSystem fileSystem)
         {
             return baseUrl;
         }
-        
+
         if (!baseUrl.EndsWith('/') && (relativePath.StartsWith('#') || relativePath.StartsWith('?')))
         {
             return $"{baseUrl}{relativePath}";
         }
-        
+
         baseUrl = baseUrl.TrimEnd('/');
         relativePath = relativePath.Trim('/');
 

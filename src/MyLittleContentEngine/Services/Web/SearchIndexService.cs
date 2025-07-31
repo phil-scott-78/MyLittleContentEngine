@@ -62,7 +62,7 @@ public partial class SearchIndexService
         {
             var pages = await contentService.GetPagesToGenerateAsync();
 
-            await Parallel.ForEachAsync(pages, async (page, _) => 
+            await Parallel.ForEachAsync(pages, async (page, _) =>
             {
                 try
                 {

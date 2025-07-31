@@ -115,13 +115,13 @@ internal static class CodeTransformer
 
         var content = notation.Substring(5); // Remove "word:" prefix
         var parts = content.Split('|', 2);
-        
+
         if (parts.Length == 0 || string.IsNullOrWhiteSpace(parts[0]))
             return null;
 
         var word = parts[0].Trim();
         var message = parts.Length > 1 ? parts[1].Trim() : null;
-        
+
         return new WordHighlightInfo(word, string.IsNullOrWhiteSpace(message) ? null : message);
     }
 
@@ -132,12 +132,12 @@ internal static class CodeTransformer
 
         // Find and highlight the word in text nodes
         var textNodes = lineElement.Descendants().OfType<IText>().ToList();
-        
+
         foreach (var textNode in textNodes)
         {
             var text = textNode.Text;
             var wordIndex = text.IndexOf(wordInfo.Word, StringComparison.Ordinal);
-            
+
             if (wordIndex == -1) continue;
 
             // Create the highlighted word element
@@ -209,18 +209,17 @@ internal static class CodeTransformer
         // Add the callout arrow container and arrow
         var arrowContainer = document.CreateElement("div");
         arrowContainer.ClassName = "word-highlight-arrow-container";
-        
+
         var arrowOuter = document.CreateElement("div");
         arrowOuter.ClassName = "word-highlight-arrow-outer";
-        
+
         var arrowInner = document.CreateElement("div");
         arrowInner.ClassName = "word-highlight-arrow-inner";
-        
+
         arrowContainer.AppendChild(arrowOuter);
         arrowContainer.AppendChild(arrowInner);
         messageElement.AppendChild(arrowContainer);
 
-        
         // Add the message to the wrapper
         messageWrapper.AppendChild(messageElement);
     }
@@ -569,7 +568,7 @@ internal static class CodeTransformer
         {
             // Add the has-focused class to the pre element
             preElement.ClassList.Add("has-focused");
-            
+
             // Add blurred class to non-focused lines
             for (var i = 0; i < lineElements.Count; i++)
             {
@@ -586,22 +585,22 @@ internal static class CodeTransformer
         {
             preElement.ClassList.Add("has-highlighted");
         }
-        
+
         if (transformationsByType.ContainsKey("++") || transformationsByType.ContainsKey("--"))
         {
             preElement.ClassList.Add("has-diff");
         }
-        
+
         if (transformationsByType.ContainsKey("error"))
         {
             preElement.ClassList.Add("has-errors");
         }
-        
+
         if (transformationsByType.ContainsKey("warning"))
         {
             preElement.ClassList.Add("has-warnings");
         }
-        
+
         // Check for word highlighting directives
         foreach (var notation in transformationsByType.Keys)
         {

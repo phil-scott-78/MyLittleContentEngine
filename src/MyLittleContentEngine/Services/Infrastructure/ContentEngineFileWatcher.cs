@@ -114,7 +114,7 @@ public sealed class ContentEngineFileWatcher : IDisposable, IContentEngineFileWa
             _logger?.LogError(ex, "Error setting up file watcher for {Path} with pattern {Pattern}", path, filePattern);
         }
     }
-    
+
     public void SubscribeToMetadataUpdate(Action onUpdate)
     {
         UpdateActions.Add(onUpdate);

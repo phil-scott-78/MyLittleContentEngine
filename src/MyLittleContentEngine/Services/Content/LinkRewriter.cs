@@ -20,7 +20,7 @@ internal static class LinkRewriter
         path.StartsWith("tel:", StringComparison.OrdinalIgnoreCase) ||
         path.StartsWith("ftp:", StringComparison.OrdinalIgnoreCase) ||
         path.StartsWith("xref:", StringComparison.OrdinalIgnoreCase);
-    
+
 
     /// <summary>
     /// Determines if the given path is an anchor link
@@ -112,7 +112,7 @@ internal static class LinkRewriter
             {
                 return PrependBaseUrl(relativePath, baseUrl);
             }
-            
+
             // If it's a relative path with no base, return as-is (or remove leading slash for legacy behavior)
             return relativePath;
         }
@@ -150,7 +150,7 @@ internal static class LinkRewriter
 
         // Combine the remaining base segments with the relative segments
         var resultSegments = baseSegments.Concat(relativeSegments);
-        var resultPath = relativeToUrl.StartsWith('/') 
+        var resultPath = relativeToUrl.StartsWith('/')
             ? "/" + string.Join("/", resultSegments)
             : string.Join("/", resultSegments);
 

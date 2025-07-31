@@ -107,7 +107,7 @@ internal class OutputGenerationService(
         }
 
         contentToCopy = contentToCopy.AddRange(GetStaticWebAssetsToOutput(environment.WebRootFileProvider, string.Empty));
-        
+
         // Also include static files from Razor Class Libraries
         var allFileProviders = GetAllFileProviders();
         foreach (var fileProvider in allFileProviders)
@@ -118,21 +118,21 @@ internal class OutputGenerationService(
                 contentToCopy = contentToCopy.AddRange(GetStaticWebAssetsToOutput(fileProvider, string.Empty));
             }
         }
-        
+
         // Also include custom content file providers that MapContentEngineStaticAssets sets up
         var customContentProviders = GetContentEngineFileProviders();
         foreach (var (fileProvider, requestPath) in customContentProviders)
         {
             logger.LogDebug("Adding content engine static assets from: {fileProvider} at path: {requestPath}", fileProvider, requestPath);
             var assets = GetStaticWebAssetsToOutput(fileProvider, string.Empty);
-            
+
             // Adjust the target path to include the request path prefix
             var adjustedAssets = assets.Select(asset => new ContentToCopy(
                 asset.SourcePath,
                 string.IsNullOrEmpty(requestPath) ? asset.TargetPath : $"{requestPath.TrimStart('/')}/{asset.TargetPath}".TrimStart('/'),
                 asset.ExcludedExtensions
             ));
-            
+
             contentToCopy = contentToCopy.AddRange(adjustedAssets);
         }
 
@@ -162,7 +162,7 @@ internal class OutputGenerationService(
         foreach (var contentItem in contentToCreate)
         {
             var targetPath = _fileSystem.Path.Combine(outputOptions.OutputFolderPath, contentItem.TargetPath.TrimStart('/'));
-            
+
             var directoryPath = _fileSystem.Path.GetDirectoryName(targetPath);
             if (!string.IsNullOrEmpty(directoryPath))
             {
@@ -205,7 +205,7 @@ internal class OutputGenerationService(
                     try
                     {
                         content = await client.GetByteArrayAsync(page.Url, ctx);
-                    
+
                         logger.LogInformation("Generated binary {pageUrl} into {pageOutputFile}", page.Url, page.OutputFile);
 
                     }
@@ -231,7 +231,7 @@ internal class OutputGenerationService(
                     try
                     {
                         content = await client.GetStringAsync(page.Url, ctx);
-                    
+
                         logger.LogInformation("Generated {pageUrl} into {pageOutputFile}", page.Url, page.OutputFile);
 
                     }
@@ -251,7 +251,7 @@ internal class OutputGenerationService(
 
                     await _fileSystem.File.WriteAllTextAsync(outFilePath, content, ctx);
                 }
-                
+
             });
         }
 
@@ -287,7 +287,7 @@ internal class OutputGenerationService(
     private IEnumerable<(IFileProvider FileProvider, string RequestPath)> GetContentEngineFileProviders()
     {
         var currentDirectory = _fileSystem.Directory.GetCurrentDirectory();
-        
+
         // Add the main content root file provider (mimics MapContentEngineStaticAssets logic)
         if (!string.IsNullOrEmpty(options.ContentRootPath))
         {
@@ -297,23 +297,23 @@ internal class OutputGenerationService(
                 yield return (new PhysicalFileProvider(contentRootPath), "");
             }
         }
-        
+
         // Get all IContentOptions from services (mimics MapContentEngineStaticAssets logic)
         var contentOptions = serviceProvider.GetServices<IContentOptions>().ToList();
         foreach (var option in contentOptions)
         {
             var contentPath = _fileSystem.Path.Combine(currentDirectory, option.ContentPath);
-            
+
             if (_fileSystem.Directory.Exists(contentPath))
             {
                 string requestPath = "";
                 if (!string.IsNullOrWhiteSpace(option.BasePageUrl))
                 {
-                    requestPath = option.BasePageUrl.StartsWith('/') 
-                        ? option.BasePageUrl 
+                    requestPath = option.BasePageUrl.StartsWith('/')
+                        ? option.BasePageUrl
                         : '/' + option.BasePageUrl;
                 }
-                
+
                 yield return (new PhysicalFileProvider(contentPath), requestPath);
             }
         }

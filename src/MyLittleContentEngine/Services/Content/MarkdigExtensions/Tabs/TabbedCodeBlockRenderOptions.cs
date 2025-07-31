@@ -16,7 +16,7 @@ public record TabbedCodeBlockRenderOptions
         TabButtonCss = "tab-button",
         TabPanelCss = "tab-panel"
     };
-    
+
     /// <summary>
     /// CSS class for the outer wrapper element
     /// </summary>

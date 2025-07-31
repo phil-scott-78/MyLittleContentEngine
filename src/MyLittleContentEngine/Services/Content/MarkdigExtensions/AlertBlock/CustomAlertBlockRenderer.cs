@@ -54,7 +54,7 @@ internal class CustomAlertBlockRenderer : HtmlObjectRenderer<Markdig.Extensions.
         {
             renderer.Write("</div");
         }
-        
+
         renderer.ImplicitParagraph = savedImplicitParagraph;
         if (renderer.EnableHtmlForBlock)
         {
