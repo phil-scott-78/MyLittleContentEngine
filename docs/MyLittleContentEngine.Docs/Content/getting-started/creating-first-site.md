@@ -107,7 +107,7 @@ examples/MinimalExample/Components/Layout/MainLayout.razor
 Create `Components/Layout/Home.razor` to display your blog posts. Here we are calling `GetAllContentPagesAsync` to retrieve all
 the blog posts and display them in a list:
 
-```razor:pa
+```razor:path
 examples/MinimalExample/Components/Layout/Home.razor
 ```
 </Step>
