@@ -79,7 +79,7 @@ internal static class StringExtensions
         return slugBuilder.ToString();
     }
 
-    private static readonly HashSet<string> MinorWords = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+    private static readonly HashSet<string> MinorWords = new(StringComparer.OrdinalIgnoreCase)
     {
         // Short conjunctions (3 letters or fewer)
         "and", "as", "but", "for", "if", "nor", "or", "so", "yet",
@@ -99,14 +99,14 @@ internal static class StringExtensions
         var span = input.AsSpan();
         var result = new StringBuilder(input.Length);
 
-        bool isFirstWord = true;
-        bool afterPunctuation = false;
+        var isFirstWord = true;
+        var afterPunctuation = false;
 
-        int i = 0;
+        var i = 0;
         while (i < span.Length)
         {
             // Skip whitespace and add it to result
-            int whitespaceStart = i;
+            var whitespaceStart = i;
             while (i < span.Length && char.IsWhiteSpace(span[i]))
                 i++;
 
@@ -116,12 +116,16 @@ internal static class StringExtensions
             }
 
             if (i >= span.Length)
+            {
                 break;
+            }
 
             // Find the end of the current word
-            int wordStart = i;
+            var wordStart = i;
             while (i < span.Length && !char.IsWhiteSpace(span[i]))
+            {
                 i++;
+            }
 
             var wordSpan = span.Slice(wordStart, i - wordStart);
             var processedWord = ProcessWord(wordSpan, isFirstWord, afterPunctuation);
@@ -140,9 +144,8 @@ internal static class StringExtensions
         if (word.Length == 0)
             return false;
 
-        char lastChar = word[word.Length - 1];
-        return lastChar == ':' || lastChar == '.' || lastChar == '!' ||
-               lastChar == '?' || lastChar == '—';
+        var lastChar = word[^1];
+        return lastChar is ':' or '.' or '!' or '?' or '—';
     }
 
     private static string ProcessWord(ReadOnlySpan<char> word, bool isFirstWord, bool afterPunctuation)
@@ -151,11 +154,11 @@ internal static class StringExtensions
             return string.Empty;
 
         // Handle hyphenated words
-        int hyphenIndex = FindHyphen(word);
+        var hyphenIndex = word.IndexOf('-');
         if (hyphenIndex >= 0)
         {
-            var firstPart = word.Slice(0, hyphenIndex);
-            var secondPart = word.Slice(hyphenIndex + 1);
+            var firstPart = word[..hyphenIndex];
+            var secondPart = word[(hyphenIndex + 1)..];
 
             var processedFirst = ProcessSingleWord(firstPart, isFirstWord, afterPunctuation);
             var processedSecond = ProcessSingleWord(secondPart, true, false); // Second part of hyphenated word is capitalized
@@ -166,33 +169,23 @@ internal static class StringExtensions
         return ProcessSingleWord(word, isFirstWord, afterPunctuation);
     }
 
-    private static int FindHyphen(ReadOnlySpan<char> word)
-    {
-        for (int i = 0; i < word.Length; i++)
-        {
-            if (word[i] == '-')
-                return i;
-        }
-        return -1;
-    }
-
     private static string ProcessSingleWord(ReadOnlySpan<char> word, bool isFirstWord, bool afterPunctuation)
     {
         if (word.Length == 0)
             return string.Empty;
 
         // Extract the core word without leading/trailing punctuation
-        var coreWord = ExtractCoreWord(word, out string prefix, out string suffix);
+        var coreWord = ExtractCoreWord(word, out var prefix, out var suffix);
 
         if (coreWord.Length == 0)
             return word.ToString();
 
-        bool shouldCapitalize = isFirstWord ||
-                              afterPunctuation ||
-                              coreWord.Length >= 4 ||
-                              !IsMinorWord(coreWord);
+        var shouldCapitalize = isFirstWord ||
+                               afterPunctuation ||
+                               coreWord.Length >= 4 ||
+                               !IsMinorWord(coreWord);
 
-        string processedCore = shouldCapitalize ?
+        var processedCore = shouldCapitalize ?
             CapitalizeWord(coreWord) :
             coreWord.ToString().ToLower();
 
@@ -201,24 +194,27 @@ internal static class StringExtensions
 
     private static ReadOnlySpan<char> ExtractCoreWord(ReadOnlySpan<char> word, out string prefix, out string suffix)
     {
-        int start = 0;
-        int end = word.Length - 1;
+        var start = 0;
+        var end = word.Length - 1;
 
         // Find start of core word (skip leading punctuation)
         while (start < word.Length && !char.IsLetter(word[start]))
+        {
             start++;
+        }
 
         // Find end of core word (skip trailing punctuation)
         while (end >= start && !char.IsLetter(word[end]))
+        {
             end--;
+        }
 
-        prefix = start > 0 ? word.Slice(0, start).ToString() : string.Empty;
-        suffix = end < word.Length - 1 ? word.Slice(end + 1).ToString() : string.Empty;
+        prefix = start > 0 ? word[..start].ToString() : string.Empty;
+        suffix = end < word.Length - 1 ? word[(end + 1)..].ToString() : string.Empty;
 
-        if (start <= end)
-            return word.Slice(start, end - start + 1);
-
-        return ReadOnlySpan<char>.Empty;
+        return start <= end 
+            ? word.Slice(start, end - start + 1) 
+            : ReadOnlySpan<char>.Empty;
     }
 
     private static bool IsMinorWord(ReadOnlySpan<char> word)
@@ -228,7 +224,7 @@ internal static class StringExtensions
 
         // Create a string for HashSet lookup - only for short words
         Span<char> buffer = stackalloc char[word.Length];
-        for (int i = 0; i < word.Length; i++)
+        for (var i = 0; i < word.Length; i++)
         {
             buffer[i] = char.ToLower(word[i]);
         }
@@ -239,16 +235,12 @@ internal static class StringExtensions
     private static string CapitalizeWord(ReadOnlySpan<char> word)
     {
         if (word.Length == 0)
-            return string.Empty;
+            throw new ArgumentException($"{nameof(word)} cannot be empty", nameof(word));
 
-        Span<char> result = stackalloc char[word.Length];
-        result[0] = char.ToUpper(word[0]);
-
-        for (int i = 1; i < word.Length; i++)
+        return string.Create(word.Length, word, (span, src) =>
         {
-            result[i] = char.ToLower(word[i]);
-        }
-
-        return result.ToString();
+            span[0] = char.ToUpper(src[0]);
+            src[1..].CopyTo(span[1..]);
+        });
     }
 }
