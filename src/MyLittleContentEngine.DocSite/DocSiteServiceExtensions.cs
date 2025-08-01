@@ -116,9 +116,6 @@ public static class DocSiteServiceExtensions
                 ExcludedNamespace = tempOptions.ExcludeNamespaces ?? [],
             });
         }
-
-        // add the output options
-        services.AddOutputOptions(tempOptions.ApplicationArgs);
         
         return services;
     }

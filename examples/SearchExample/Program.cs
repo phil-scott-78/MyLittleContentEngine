@@ -9,7 +9,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDocSite(_ => new DocSiteOptions()
 {
-    ApplicationArgs = args,
     // Basic site information
     SiteTitle = "Random Content Site",
     Description = "Random content site for demonstration purposes.",
@@ -55,9 +54,6 @@ builder.Services.AddDocSite(_ => new DocSiteOptions()
     
     AdditionalRoutingAssemblies = [typeof(Random).Assembly]
 });
-
-// Register OutputOptions to handle command line arguments and environment variables
-builder.Services.AddOutputOptions(args);
 
 builder.Services.AddSingleton<RandomContentService>();
 

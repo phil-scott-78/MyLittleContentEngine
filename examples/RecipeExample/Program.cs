@@ -20,9 +20,6 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
     ContentRootPath = "recipes",
 });
 
-// Register OutputOptions to handle command line arguments and environment variables
-builder.Services.AddOutputOptions(args);
-
 builder.Services.AddRecipeContentService(options =>
 {
     options.RecipePath = "recipes";

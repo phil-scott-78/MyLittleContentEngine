@@ -11,11 +11,6 @@ namespace MyLittleContentEngine.BlogSite;
 public record BlogSiteOptions
 {
     /// <summary>
-    /// The args the app was launched with
-    /// </summary>
-    public required string[] ApplicationArgs { get; init; }
-
-    /// <summary>
     /// The primary hue for the site's color scheme (0-360)
     /// </summary>
     public int PrimaryHue { get; init; } = 250;

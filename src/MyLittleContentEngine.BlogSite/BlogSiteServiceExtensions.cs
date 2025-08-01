@@ -105,12 +105,6 @@ public static class BlogSiteServiceExtensions
                 ExtraStyles = o.ExtraStyles ?? string.Empty
             };
         });
-
-        
-        // add the output options
-        var sp = services.BuildServiceProvider();
-        var tempOptions = sp.GetRequiredService<BlogSiteOptions>();
-        services.AddOutputOptions(tempOptions.ApplicationArgs);
         
         return services;
     }

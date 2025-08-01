@@ -17,9 +17,6 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
     ContentRootPath = "Content",
 });
 
-// Register OutputOptions to handle command line arguments and environment variables
-builder.Services.AddOutputOptions(args);
-
 // configures individual sections of the blog. PageUrl should match the configured razor pages route,
 // and contentPath should match the location on disk.
 // you can have multiple of these per site.

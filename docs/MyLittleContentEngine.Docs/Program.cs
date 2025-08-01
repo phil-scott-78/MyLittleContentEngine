@@ -6,7 +6,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDocSite(_ => new DocSiteOptions()
 {
-    ApplicationArgs = args,
     SiteTitle = "My Little Content Engine",
     Description = "An Inflexible Content Engine for .NET",
     SocialImageUrl = "/social.png",

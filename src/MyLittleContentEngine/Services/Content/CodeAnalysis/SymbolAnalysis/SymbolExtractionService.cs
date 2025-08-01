@@ -165,7 +165,7 @@ internal class SymbolExtractionService : ISymbolExtractionService
         foreach (var typeDecl in typeDeclarations)
         {
             var typeSymbol = semanticModel.GetDeclaredSymbol(typeDecl);
-            if (typeSymbol == null || !IsPublicApi(typeSymbol))
+            if (typeSymbol == null)
             {
                 continue;
             }
@@ -207,7 +207,7 @@ internal class SymbolExtractionService : ISymbolExtractionService
             _ => null
         };
 
-        if (symbol != null && IsPublicApi(symbol))
+        if (symbol != null)
         {
             AddSymbol(symbols, symbol, document, member, sourceText);
         }
@@ -259,13 +259,6 @@ internal class SymbolExtractionService : ISymbolExtractionService
         };
 
         symbols.TryAdd(xmlDocId, symbolInfo);
-    }
-
-    private static bool IsPublicApi(ISymbol symbol)
-    {
-        return symbol.DeclaredAccessibility == Accessibility.Public ||
-               symbol.DeclaredAccessibility == Accessibility.Protected ||
-               symbol.DeclaredAccessibility == Accessibility.ProtectedOrInternal;
     }
 
     private static string? GetXmlDocumentation(ISymbol symbol)

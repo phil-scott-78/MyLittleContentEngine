@@ -21,7 +21,7 @@ public static class OutputOptionsExtensions
     /// OutputFolderPath defaults to "output" if not specified.
     /// </para>
     /// </remarks>
-    public static IServiceCollection AddOutputOptions(this IServiceCollection services, string[] args)
+    internal static IServiceCollection AddOutputOptions(this IServiceCollection services, string[] args)
     {
         var (baseUrl, outputFolderPath) = GetOutputOptionsFromArgs(args);
         return services.AddSingleton<OutputOptions>(_ => new OutputOptions { BaseUrl = baseUrl, OutputFolderPath = outputFolderPath });

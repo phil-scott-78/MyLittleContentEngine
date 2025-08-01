@@ -94,6 +94,7 @@ public static class ContentEngineExtensions
         services.AddSingleton<RazorPageContentService>();
         services.AddSingleton<IContentService>(provider => provider.GetRequiredService<RazorPageContentService>());
 
+        services.AddOutputOptions(Environment.GetCommandLineArgs());
         return services;
     }
 
