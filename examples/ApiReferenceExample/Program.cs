@@ -30,12 +30,9 @@ builder.Services.AddContentEngineStaticContentService(_ => new MarkdownContentOp
 });
 
 // this is required if you are using the API content service
-builder.Services.AddRoslynService(_ => new RoslynHighlighterOptions()
+builder.Services.AddConnectedRoslynSolution(_ => new CodeAnalysisOptions()
 {
-    ConnectedSolution = new ConnectedDotNetSolution()
-    {
-        SolutionPath = "../../MyLittleContentEngine.sln",
-    }
+    SolutionPath = "../../MyLittleContentEngine.sln"
 });
 
 // Add API reference content service

@@ -31,13 +31,10 @@ builder.Services.AddContentEngineStaticContentService(_ => new MarkdownContentOp
 
 builder.Services.AddMonorailCss();
 
-// Add Roslyn service for code syntax highlighting and documentation
-builder.Services.AddRoslynService(_ => new RoslynHighlighterOptions()
+// Add Roslyn service for documentation
+builder.Services.AddConnectedRoslynSolution(_ => new CodeAnalysisOptions()
 {
-    ConnectedSolution = new ConnectedDotNetSolution()
-    {
-        SolutionPath = "../../MyLittleContentEngine.sln",
-    }
+    SolutionPath = "../../MyLittleContentEngine.sln"
 });
 
 var app = builder.Build();

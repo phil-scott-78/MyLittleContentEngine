@@ -18,34 +18,6 @@ public record CodeAnalysisOptions
     /// Filter for including/excluding projects
     /// </summary>
     public ProjectFilter? ProjectFilter { get; init; }
-
-    /// <summary>
-    /// Options for syntax highlighting
-    /// </summary>
-    public HighlightingOptions Highlighting { get; init; } = new();
-
-    /// <summary>
-    /// Options for caching behavior
-    /// </summary>
-    public CachingOptions Caching { get; init; } = new();
-
-    /// <summary>
-    /// Options for code execution
-    /// </summary>
-    public ExecutionOptions Execution { get; init; } = new();
-
-    /// <summary>
-    /// Validates the options and throws if invalid
-    /// </summary>
-    public void Validate()
-    {
-        if (!string.IsNullOrEmpty(SolutionPath) && !File.Exists(SolutionPath))
-        {
-            throw new FileNotFoundException($"Solution file not found: {SolutionPath}");
-        }
-
-        ProjectFilter?.Validate();
-    }
 }
 
 /// <summary>
@@ -68,7 +40,7 @@ public record ProjectFilter
     /// </summary>
     public static ProjectFilter Include(params string[] projectNames) => new()
     {
-        IncludedProjects = new HashSet<string>(projectNames)
+        IncludedProjects = [..projectNames]
     };
 
     /// <summary>
@@ -76,7 +48,7 @@ public record ProjectFilter
     /// </summary>
     public static ProjectFilter Exclude(params string[] projectNames) => new()
     {
-        ExcludedProjects = new HashSet<string>(projectNames)
+        ExcludedProjects = [..projectNames]
     };
 
     /// <summary>
@@ -94,79 +66,4 @@ public record ProjectFilter
             }
         }
     }
-}
-
-/// <summary>
-/// Options for syntax highlighting behavior
-/// </summary>
-public record HighlightingOptions
-{
-    /// <summary>
-    /// Factory for creating code highlight render options
-    /// </summary>
-    public Func<CodeHighlightRenderOptions> CodeHighlightRenderOptionsFactory { get; init; } = 
-        () => CodeHighlightRenderOptions.Default;
-
-    /// <summary>
-    /// Factory for creating tabbed code block render options
-    /// </summary>
-    public Func<TabbedCodeBlockRenderOptions> TabbedCodeBlockRenderOptionsFactory { get; init; } = 
-        () => TabbedCodeBlockRenderOptions.Default;
-
-    /// <summary>
-    /// Default language for code blocks without language specification
-    /// </summary>
-    public Language DefaultLanguage { get; init; } = Language.CSharp;
-}
-
-/// <summary>
-/// Options for caching behavior
-/// </summary>
-public record CachingOptions
-{
-    /// <summary>
-    /// Whether to enable file watching for cache invalidation
-    /// </summary>
-    public bool EnableFileWatching { get; init; } = true;
-
-    /// <summary>
-    /// Maximum size of the symbol cache
-    /// </summary>
-    public int MaxSymbolCacheSize { get; init; } = 1000;
-
-    /// <summary>
-    /// Maximum size of the compilation cache
-    /// </summary>
-    public int MaxCompilationCacheSize { get; init; } = 10;
-
-    /// <summary>
-    /// Debounce time for file watching events in milliseconds
-    /// </summary>
-    public int FileWatchDebounceMs { get; init; } = 500;
-}
-
-/// <summary>
-/// Options for code execution behavior
-/// </summary>
-public record ExecutionOptions
-{
-    /// <summary>
-    /// Timeout for code execution in milliseconds
-    /// </summary>
-    public int TimeoutMs { get; init; } = 30000;
-
-    /// <summary>
-    /// Maximum output size in characters
-    /// </summary>
-    public int MaxOutputSize { get; init; } = 100000;
-
-    /// <summary>
-    /// Whether to capture console error output
-    /// </summary>
-    public bool CaptureErrorOutput { get; init; } = true;
-
-    /// <summary>
-    /// Whether to allow unsafe code execution
-    /// </summary>
-    public bool AllowUnsafe { get; init; } = false;
 }

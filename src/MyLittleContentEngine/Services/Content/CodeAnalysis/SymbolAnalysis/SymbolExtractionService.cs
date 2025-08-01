@@ -32,9 +32,10 @@ internal class SymbolExtractionService : ISymbolExtractionService
 
         // Initialize lazy loading for symbols
         _lazySymbols = new LazyAndForgetful<IReadOnlyDictionary<string, SymbolInfo>>(
-            async () => await LoadAllSymbolsAsync(), TimeSpan.FromMilliseconds(_options.Caching.FileWatchDebounceMs));
+            async () => await LoadAllSymbolsAsync(), TimeSpan.FromMilliseconds(50));
+
         // Register file watching if available
-        if (fileWatcher != null && _options.Caching.EnableFileWatching && !string.IsNullOrEmpty(_options.SolutionPath))
+        if (fileWatcher != null && !string.IsNullOrEmpty(_options.SolutionPath))
         {
             var solutionDir = fileSystem.Path.GetDirectoryName(_options.SolutionPath);
             if (!string.IsNullOrEmpty(solutionDir))

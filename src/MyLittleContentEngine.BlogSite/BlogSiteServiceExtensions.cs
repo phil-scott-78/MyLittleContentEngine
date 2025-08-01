@@ -67,24 +67,22 @@ public static class BlogSiteServiceExtensions
             };
         });
 
-        
-        services.AddRoslynService(sp =>
-        {
-            var o = sp.GetRequiredService<BlogSiteOptions>();
+        // we need to resolve the options to see if we should add the connected solution
+        var serviceProvider = services.BuildServiceProvider();
+        var blogOptions = serviceProvider.GetRequiredService<BlogSiteOptions>();
 
-            if (string.IsNullOrWhiteSpace(o.SolutionPath))
+        // Add connected solution only if solution path is configured
+        if (!string.IsNullOrWhiteSpace(blogOptions.SolutionPath))
+        {
+            services.AddConnectedRoslynSolution(serviceProvider =>
             {
-                return new RoslynHighlighterOptions();
-            }
-            
-            return new RoslynHighlighterOptions
-            {
-                ConnectedSolution = new ConnectedDotNetSolution
+                var o = serviceProvider.GetRequiredService<BlogSiteOptions>();
+                return new CodeAnalysisOptions
                 {
-                    SolutionPath = o.SolutionPath,
-                }
-            };
-        });
+                    SolutionPath = o.SolutionPath
+                };
+            });
+        }
         
         // Configure MonorailCSS
         services.AddMonorailCss(sp =>

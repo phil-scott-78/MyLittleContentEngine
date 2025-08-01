@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.Web;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
@@ -21,9 +20,9 @@ public class ApiReferenceContentService : IContentService, IDisposable
     public int SearchPriority => 5; // Medium priority for API reference content
     private readonly ISymbolExtractionService _symbolService;
     private readonly ISolutionWorkspaceService _workspaceService;
+    private readonly CodeAnalysisOptions _codeAnalysisOptions;
     private readonly ILogger<ApiReferenceContentService> _logger;
     private readonly ApiReferenceContentOptions _options;
-    private readonly RoslynHighlighterOptions? _roslynOptions;
     private readonly LazyAndForgetful<ApiReferenceData> _apiDataCache;
     private bool _disposed;
 
@@ -31,14 +30,15 @@ public class ApiReferenceContentService : IContentService, IDisposable
         ApiReferenceContentOptions options,
         ISymbolExtractionService symbolService,
         ISolutionWorkspaceService workspaceService,
+        CodeAnalysisOptions codeAnalysisOptions,
         ILogger<ApiReferenceContentService> logger,
-        RoslynHighlighterOptions? roslynOptions = null)
+        CodeHighlighterOptions? roslynOptions = null)
     {
         _options = options ?? throw new ArgumentNullException(nameof(options));
         _symbolService = symbolService ?? throw new ArgumentNullException(nameof(symbolService));
         _workspaceService = workspaceService ?? throw new ArgumentNullException(nameof(workspaceService));
+        _codeAnalysisOptions = codeAnalysisOptions;
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _roslynOptions = roslynOptions;
 
         _apiDataCache = new LazyAndForgetful<ApiReferenceData>(async () => await BuildApiReferenceDataAsync());
     }
@@ -287,7 +287,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
         _logger.LogInformation("Building API reference data from Roslyn workspace");
 
         // Get solution path from options or fall back to Roslyn options
-        var solutionPath = _options.SolutionPath ?? _roslynOptions?.ConnectedSolution?.SolutionPath;
+        var solutionPath = _options.SolutionPath ?? _codeAnalysisOptions.SolutionPath;
         if (string.IsNullOrEmpty(solutionPath))
         {
             throw new InvalidOperationException("No solution path configured for API reference generation");
@@ -708,16 +708,6 @@ public class ApiReferenceContentService : IContentService, IDisposable
         return false;
     }
 
-    private string GenerateMemberIdFromApiMember(ApiMember member)
-    {
-        if (member.MemberKind == "method" && member.Parameters.Any())
-        {
-            return $"{member.Name}({string.Join(",", member.Parameters.Select(p => p.Type.Split('.').Last()))})";
-        }
-
-        return member.Name;
-    }
-
     private string ExtractSummaryFromXmlDoc(string xmlDoc)
     {
         if (string.IsNullOrEmpty(xmlDoc)) return string.Empty;
@@ -905,8 +895,6 @@ public class ApiReferenceContentService : IContentService, IDisposable
             case "number":
                 ConvertSimpleListToHtml(listElement, result, "ol");
                 break;
-
-            case "bullet":
             default:
                 ConvertSimpleListToHtml(listElement, result, "ul");
                 break;

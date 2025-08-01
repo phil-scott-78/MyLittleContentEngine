@@ -88,6 +88,7 @@ public static class ContentEngineExtensions
         services.AddSingleton<IFileSystem>(new FileSystem());
         services.AddTransient<FileSystemUtilities>();
         services.AddSingleton<IXrefResolver, XrefResolver>();
+        services.AddSyntaxHighlightingService();
 
         // Register the Razor page content service
         services.AddSingleton<RazorPageContentService>();
@@ -97,43 +98,49 @@ public static class ContentEngineExtensions
     }
 
     /// <summary>
-    /// Adds a RoslynHighlighterService to the application's service collection with support for Roslyn highlighter configuration.
+    /// Adds syntax highlighting services to the application's service collection.
     /// </summary>
     /// <param name="services">The application's service collection.</param>
-    /// <param name="configureOptions">Action to configure the Roslyn highlighter options.</param>
+    /// <param name="configureOptions">Optional action to configure highlighting options.</param>
     /// <returns>The updated service collection for method chaining.</returns>
     /// <remarks>
-    /// This method registers the RoslynHighlighterService and its associated options as singleton services.
-    /// The RoslynHighlighterService facilitates syntax highlighting
-    /// using Roslyn configuration provided in the specified options.
+    /// This method always registers the SyntaxHighlightingService with HighlightingOptions.
+    /// Use AddConnectedRoslynSolution to add solution workspace services for advanced features.
     /// </remarks>
-    public static IServiceCollection AddRoslynService(this IServiceCollection services,
-        Func<IServiceProvider, RoslynHighlighterOptions>? configureOptions = null)
+    private static IServiceCollection AddSyntaxHighlightingService(this IServiceCollection services)
     {
-        if (configureOptions == null)
-        {
-            services.AddSingleton(new RoslynHighlighterOptions());
-        }
-        else
-        {
-            services.AddTransient(configureOptions);
+        services.AddTransient<ISyntaxHighlightingService, SyntaxHighlightingService>();
 
-            var options = configureOptions.Invoke(services.BuildServiceProvider());
-            if (options.ConnectedSolution != null)
-            {
-                // Convert and register CodeAnalysisOptions
-                services.AddSingleton<CodeAnalysisOptions>(serviceProvider =>
-                {
-                    var roslynOptions = serviceProvider.GetRequiredService<RoslynHighlighterOptions>();
-                    return roslynOptions.ToCodeAnalysisOptions();
-                });
-                
-                // Core services
-                services.AddSingleton<ISolutionWorkspaceService, SolutionWorkspaceService>();
-                services.AddSingleton<ISymbolExtractionService, SymbolExtractionService>();
-                services.AddTransient<ISyntaxHighlightingService, SyntaxHighlightingService>();
-            }
+        return services;
+    }
+
+    /// <summary>
+    /// Adds connected Roslyn solution services for advanced code analysis and symbol extraction.
+    /// </summary>
+    /// <param name="services">The application's service collection.</param>
+    /// <param name="configureOptions">Action to configure the connected solution options.</param>
+    /// <returns>The updated service collection for method chaining.</returns>
+    /// <remarks>
+    /// This method registers solution workspace and symbol extraction services.
+    /// Call AddRoslynService first to register basic syntax highlighting.
+    /// This method overrides the CodeAnalysisOptions from AddRoslynService.
+    /// </remarks>
+    public static IServiceCollection AddConnectedRoslynSolution(this IServiceCollection services,
+        Func<IServiceProvider, CodeAnalysisOptions> configureOptions)
+    {
+        // Remove the existing CodeAnalysisOptions registration from AddRoslynService
+        var existingDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(CodeAnalysisOptions));
+        if (existingDescriptor != null)
+        {
+            services.Remove(existingDescriptor);
         }
+        
+        // Register the new code analysis options
+        services.AddSingleton(configureOptions);
+        
+        // Register connected solution services
+        services.AddSingleton<ISolutionWorkspaceService, SolutionWorkspaceService>();
+        services.AddSingleton<ISymbolExtractionService, SymbolExtractionService>();
 
         return services;
     }
@@ -142,16 +149,41 @@ public static class ContentEngineExtensions
     /// Adds an ApiReferenceContentService to the application's service collection for generating API documentation.
     /// </summary>
     /// <param name="services">The application's service collection.</param>
-    /// <param name="func"></param>
+    /// <param name="func">Configuration function for API reference options.</param>
     /// <returns>The updated service collection for method chaining.</returns>
     /// <remarks>
     /// This method registers the ApiReferenceContentService as both a singleton service and as an IContentService.
-    /// The ApiReferenceContentService requires RoslynExampleCoordinator to be registered first via AddRoslynService.
+    /// The ApiReferenceContentService requires solution workspace services, so this method automatically
+    /// calls AddConnectedRoslynSolution if not already registered.
+    /// Call AddRoslynService first to register basic syntax highlighting.
     /// </remarks>
     public static IServiceCollection AddApiReferenceContentService(this IServiceCollection services,
         Func<IServiceProvider, ApiReferenceContentOptions> func)
     {
         services.AddTransient(func);
+        
+        // Ensure connected solution services are registered
+        // Check if ISolutionWorkspaceService is already registered
+        var solutionServiceDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(ISolutionWorkspaceService));
+        if (solutionServiceDescriptor == null)
+        {
+            // Need to register connected solution services
+            // Build a temporary service provider to get the API reference options
+            var tempServiceProvider = services.BuildServiceProvider();
+            var apiOptions = tempServiceProvider.GetRequiredService<ApiReferenceContentOptions>();
+            
+            if (string.IsNullOrWhiteSpace(apiOptions.SolutionPath))
+            {
+                throw new InvalidOperationException(
+                    "ApiReferenceContentService requires a solution path. Set SolutionPath in ApiReferenceContentOptions.");
+            }
+            
+            services.AddConnectedRoslynSolution(sp => new CodeAnalysisOptions
+            {
+                SolutionPath = apiOptions.SolutionPath
+            });
+        }
+        
         // Register the API reference content service
         services.AddSingleton<ApiReferenceContentService>();
 

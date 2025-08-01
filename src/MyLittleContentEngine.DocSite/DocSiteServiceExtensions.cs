@@ -87,28 +87,22 @@ public static class DocSiteServiceExtensions
             };
         });
 
-        // Configure Roslyn service if solution path is provided
-        services.AddRoslynService(sp =>
-        {
-            var o = sp.GetRequiredService<DocSiteOptions>();
-
-            if (string.IsNullOrWhiteSpace(o.SolutionPath))
-            {
-                return new RoslynHighlighterOptions();
-            }
-
-            return new RoslynHighlighterOptions
-            {
-                ConnectedSolution = new ConnectedDotNetSolution
-                {
-                    SolutionPath = o.SolutionPath,
-                }
-            };
-        });
-
         // we need to resolve the options to see if we should add the rest.
         var sp = services.BuildServiceProvider();
         var tempOptions = sp.GetRequiredService<DocSiteOptions>();
+
+        // Add connected solution only if solution path is configured
+        if (!string.IsNullOrWhiteSpace(tempOptions.SolutionPath))
+        {
+            services.AddConnectedRoslynSolution(serviceProvider =>
+            {
+                var o = serviceProvider.GetRequiredService<DocSiteOptions>();
+                return new CodeAnalysisOptions
+                {
+                    SolutionPath = o.SolutionPath
+                };
+            });
+        }
 
         if (tempOptions.ApiReferenceContentOptions != null)
         {

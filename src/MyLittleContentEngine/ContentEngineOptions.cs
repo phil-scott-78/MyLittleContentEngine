@@ -166,7 +166,7 @@ public record ContentEngineOptions
     public Func<IServiceProvider, MarkdownPipeline> MarkdownPipelineBuilder { get; init; } = serviceProvider =>
     {
         var syntaxHighlighter = serviceProvider.GetService<ISyntaxHighlightingService>();
-        var roslynHighlighterOptions = serviceProvider.GetService<RoslynHighlighterOptions>();
+        var roslynHighlighterOptions = serviceProvider.GetService<CodeHighlighterOptions>();
 
         var builder = new MarkdownPipelineBuilder()
             .UseAutoIdentifiers(AutoIdentifierOptions.GitHub) // This sets up GitHub-style header IDs

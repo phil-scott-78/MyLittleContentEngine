@@ -160,11 +160,6 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
 
     private void RegisterFileWatching()
     {
-        if (!_options.Caching.EnableFileWatching)
-        {
-            return;
-        }
-
         var solutionDir = _fileSystem.Path.GetDirectoryName(_options.SolutionPath);
         if (string.IsNullOrEmpty(solutionDir))
         {

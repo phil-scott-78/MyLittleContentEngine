@@ -11,15 +11,15 @@ namespace MyLittleContentEngine.Services.Content.CodeAnalysis.SyntaxHighlighting
 internal class SyntaxHighlightingService : ISyntaxHighlightingService
 {
     private readonly ILogger<SyntaxHighlightingService> _logger;
-    private readonly CodeAnalysisOptions _options;
+    private readonly CodeAnalysisOptions? _options;
     private readonly SyntaxHighlighter _syntaxHighlighter;
     private readonly ISymbolExtractionService? _symbolService;
     private readonly IFileSystem _fileSystem;
 
     public SyntaxHighlightingService(
         ILogger<SyntaxHighlightingService> logger,
-        CodeAnalysisOptions options,
         IFileSystem fileSystem,
+        CodeAnalysisOptions? options = null,
         ISymbolExtractionService? symbolService = null)
     {
         _logger = logger;
@@ -98,7 +98,16 @@ internal class SyntaxHighlightingService : ISyntaxHighlightingService
                     "Invalid file path");
             }
 
-            var solutionDir = _fileSystem.Path.GetDirectoryName(_options.SolutionPath);
+            var solutionPath = _options?.SolutionPath;
+            if (string.IsNullOrEmpty(solutionPath))
+            {
+                return HighlightedCode.CreateFailure(
+                    string.Empty,
+                    Language.CSharp,
+                    "Solution path not configured");
+            }
+            
+            var solutionDir = _fileSystem.Path.GetDirectoryName(solutionPath);
             if (string.IsNullOrEmpty(solutionDir))
             {
                 return HighlightedCode.CreateFailure(
