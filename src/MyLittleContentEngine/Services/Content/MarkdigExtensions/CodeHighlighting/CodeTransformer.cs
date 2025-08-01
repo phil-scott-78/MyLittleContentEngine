@@ -83,7 +83,7 @@ internal static class CodeTransformer
         var document = codeElement.Owner;
         var lineElements = new List<IElement>();
 
-        var lines = codeElement.InnerHtml.ReplaceLineEndings("\n").Split('\n');
+        var lines = codeElement.InnerHtml.SplitNewLines();
         codeElement.InnerHtml = "";
 
         for (var i = 0; i < lines.Length; i++)

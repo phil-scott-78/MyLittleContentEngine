@@ -1,3 +1,4 @@
+using System.IO.Abstractions;
 using System.Collections.Concurrent;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
@@ -13,11 +14,12 @@ namespace MyLittleContentEngine.Services.Content.CodeAnalysis.SolutionWorkspace;
 /// </summary>
 internal class SolutionWorkspaceService : ISolutionWorkspaceService
 {
+    private readonly IFileSystem _fileSystem;
     private readonly ILogger<SolutionWorkspaceService> _logger;
     private readonly CodeAnalysisOptions _options;
     private readonly IContentEngineFileWatcher _fileWatcher;
     private readonly Lock _lock = new();
-    
+
     private MSBuildWorkspace? _workspace;
     private Solution? _solution;
     private readonly ConcurrentDictionary<ProjectId, Compilation> _compilationCache = new();
@@ -28,10 +30,7 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
         // Initialize MSBuild once
         if (!MSBuildLocator.IsRegistered)
         {
-            var instance = MSBuildLocator.QueryVisualStudioInstances()
-                .OrderByDescending(x => x.Version)
-                .FirstOrDefault() ?? MSBuildLocator.RegisterDefaults();
-            
+            var instance = MSBuildLocator.QueryVisualStudioInstances().OrderByDescending(x => x.Version).FirstOrDefault() ?? MSBuildLocator.RegisterDefaults();
             MSBuildLocator.RegisterInstance(instance);
         }
     }
@@ -39,11 +38,12 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
     public SolutionWorkspaceService(
         CodeAnalysisOptions options,
         ILogger<SolutionWorkspaceService> logger,
-        IContentEngineFileWatcher fileWatcher)
+        IContentEngineFileWatcher fileWatcher, IFileSystem fileSystem)
     {
         _options = options ?? throw new ArgumentNullException(nameof(options));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _fileWatcher = fileWatcher ?? throw new ArgumentNullException(nameof(fileWatcher));
+        _fileSystem = fileSystem;
 
         if (string.IsNullOrEmpty(_options.SolutionPath))
         {
@@ -69,7 +69,7 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
         _logger.LogInformation("Loading solution from {SolutionPath}", solutionPath);
 
         var workspace = MSBuildWorkspace.Create();
-        workspace.WorkspaceFailed += (sender, args) =>
+        workspace.WorkspaceFailed += (_, args) =>
         {
             _logger.LogWarning("Workspace failed: {Diagnostic}", args.Diagnostic);
         };
@@ -77,7 +77,7 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
         try
         {
             var solution = await workspace.OpenSolutionAsync(solutionPath);
-            
+
             lock (_lock)
             {
                 _workspace?.Dispose();
@@ -160,12 +160,12 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
 
     private void RegisterFileWatching()
     {
-        if (!_options.Caching?.EnableFileWatching ?? false)
+        if (!_options.Caching.EnableFileWatching)
         {
             return;
         }
 
-        var solutionDir = Path.GetDirectoryName(_options.SolutionPath);
+        var solutionDir = _fileSystem.Path.GetDirectoryName(_options.SolutionPath);
         if (string.IsNullOrEmpty(solutionDir))
         {
             return;

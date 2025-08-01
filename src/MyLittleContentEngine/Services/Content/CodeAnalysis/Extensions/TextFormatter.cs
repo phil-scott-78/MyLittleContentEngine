@@ -7,7 +7,7 @@ internal static class TextFormatter
         if (string.IsNullOrWhiteSpace(code))
             return code;
 
-        var lines = code.TrimEnd().Split('\n');
+        var lines = code.TrimEnd().SplitNewLines();
 
         // Find the first non-empty line
         var firstNonEmptyIndex = Array.FindIndex(lines, line => !string.IsNullOrWhiteSpace(line));

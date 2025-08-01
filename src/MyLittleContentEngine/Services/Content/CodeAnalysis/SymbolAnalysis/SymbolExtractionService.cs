@@ -1,3 +1,4 @@
+using System.IO.Abstractions;
 using System.Collections.Concurrent;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
@@ -8,7 +9,6 @@ using Microsoft.Extensions.Logging;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.Extensions;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.SolutionWorkspace;
-using MyLittleContentEngine.Services.Content.CodeAnalysis.SymbolAnalysis.Models;
 using MyLittleContentEngine.Services.Infrastructure;
 
 namespace MyLittleContentEngine.Services.Content.CodeAnalysis.SymbolAnalysis;
@@ -21,29 +21,22 @@ internal class SymbolExtractionService : ISymbolExtractionService
     private readonly ILogger<SymbolExtractionService> _logger;
     private readonly ISolutionWorkspaceService _workspaceService;
     private readonly CodeAnalysisOptions _options;
-    private readonly ConcurrentDictionary<string, SymbolInfo> _symbolCache = new();
     private readonly LazyAndForgetful<IReadOnlyDictionary<string, SymbolInfo>> _lazySymbols;
-    private readonly Lock _cacheLock = new();
 
-    public SymbolExtractionService(
-        ISolutionWorkspaceService workspaceService,
-        CodeAnalysisOptions options,
-        ILogger<SymbolExtractionService> logger,
-        IContentEngineFileWatcher? fileWatcher = null)
+    public SymbolExtractionService(ISolutionWorkspaceService workspaceService, CodeAnalysisOptions options,
+        ILogger<SymbolExtractionService> logger, IFileSystem fileSystem, IContentEngineFileWatcher? fileWatcher = null)
     {
-        _workspaceService = workspaceService ?? throw new ArgumentNullException(nameof(workspaceService));
-        _options = options ?? throw new ArgumentNullException(nameof(options));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _workspaceService = workspaceService;
+        _options = options;
+        _logger = logger;
 
         // Initialize lazy loading for symbols
         _lazySymbols = new LazyAndForgetful<IReadOnlyDictionary<string, SymbolInfo>>(
-            async () => await LoadAllSymbolsAsync(),
-            TimeSpan.FromMilliseconds(_options.Caching.FileWatchDebounceMs));
-
+            async () => await LoadAllSymbolsAsync(), TimeSpan.FromMilliseconds(_options.Caching.FileWatchDebounceMs));
         // Register file watching if available
         if (fileWatcher != null && _options.Caching.EnableFileWatching && !string.IsNullOrEmpty(_options.SolutionPath))
         {
-            var solutionDir = Path.GetDirectoryName(_options.SolutionPath);
+            var solutionDir = fileSystem.Path.GetDirectoryName(_options.SolutionPath);
             if (!string.IsNullOrEmpty(solutionDir))
             {
                 fileWatcher.AddPathWatch(solutionDir, "*.cs", InvalidateFile);
@@ -77,7 +70,7 @@ internal class SymbolExtractionService : ISymbolExtractionService
     public async Task<SymbolInfo?> FindSymbolAsync(string xmlDocId)
     {
         var symbols = await _lazySymbols.Value;
-        return symbols.TryGetValue(xmlDocId, out var symbol) ? symbol : null;
+        return symbols.GetValueOrDefault(xmlDocId);
     }
 
     public async Task<string> ExtractCodeFragmentAsync(string xmlDocId, bool bodyOnly = false)
@@ -108,30 +101,13 @@ internal class SymbolExtractionService : ISymbolExtractionService
 
     public void InvalidateFile(string filePath)
     {
-        _logger.LogDebug("Invalidating symbols for file: {FilePath}", filePath);
-        
-        // Clear specific cached symbols for this file
-        var keysToRemove = _symbolCache
-            .Where(kvp => kvp.Value.Document.FilePath?.Equals(filePath, StringComparison.OrdinalIgnoreCase) ?? false)
-            .Select(kvp => kvp.Key)
-            .ToList();
-
-        foreach (var key in keysToRemove)
-        {
-            _symbolCache.TryRemove(key, out _);
-        }
-
         // Invalidate the lazy loader
         _lazySymbols.Refresh();
     }
 
     public void ClearCache()
     {
-        lock (_cacheLock)
-        {
-            _symbolCache.Clear();
-            _lazySymbols.Refresh();
-        }
+        _lazySymbols.Refresh();
     }
 
     private async Task<IReadOnlyDictionary<string, SymbolInfo>> LoadAllSymbolsAsync()
@@ -139,19 +115,7 @@ internal class SymbolExtractionService : ISymbolExtractionService
         _logger.LogDebug("Loading all symbols from solution");
 
         var solution = await _workspaceService.LoadSolutionAsync(_options.SolutionPath!);
-        var allSymbols = await ExtractSymbolsAsync(solution);
-
-        // Update cache
-        lock (_cacheLock)
-        {
-            _symbolCache.Clear();
-            foreach (var kvp in allSymbols)
-            {
-                _symbolCache.TryAdd(kvp.Key, kvp.Value);
-            }
-        }
-
-        return allSymbols;
+        return await ExtractSymbolsAsync(solution);
     }
 
     private async Task ExtractProjectSymbols(Project project, ConcurrentDictionary<string, SymbolInfo> symbols)
@@ -163,7 +127,7 @@ internal class SymbolExtractionService : ISymbolExtractionService
             return;
         }
 
-        await Parallel.ForEachAsync(project.Documents, async (document, ct) =>
+        await Parallel.ForEachAsync(project.Documents, async (document, _) =>
         {
             try
             {
@@ -194,7 +158,8 @@ internal class SymbolExtractionService : ISymbolExtractionService
         // Extract type declarations
         var typeDeclarations = root.DescendantNodes()
             .OfType<TypeDeclarationSyntax>()
-            .Where(t => t is ClassDeclarationSyntax or InterfaceDeclarationSyntax or StructDeclarationSyntax or RecordDeclarationSyntax);
+            .Where(t => t is ClassDeclarationSyntax or InterfaceDeclarationSyntax or StructDeclarationSyntax
+                or RecordDeclarationSyntax);
 
         foreach (var typeDecl in typeDeclarations)
         {
@@ -214,8 +179,7 @@ internal class SymbolExtractionService : ISymbolExtractionService
         }
 
         // Extract top-level members (for top-level programs)
-        var compilationUnit = root as CompilationUnitSyntax;
-        if (compilationUnit != null)
+        if (root is CompilationUnitSyntax compilationUnit)
         {
             foreach (var member in compilationUnit.Members.OfType<GlobalStatementSyntax>())
             {

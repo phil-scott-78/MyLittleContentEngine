@@ -196,25 +196,16 @@ internal sealed class CodeHighlightRenderer(
             return AsPreCode(HtmlEncoder.Default.Encode(code));
 
         // For C#, use symbol highlighting, for other languages use execution
-        if (baseLanguage is LanguageIds.CSharp or LanguageIds.CSharpShort or LanguageIds.CSharpAbbrev)
+        if (baseLanguage is not (LanguageIds.CSharp or LanguageIds.CSharpShort or LanguageIds.CSharpAbbrev))
         {
-            var symbolResult = RunSync(async () => await syntaxHighlighter.HighlightSymbolAsync(code.Trim(), bodyOnly));
-            return symbolResult.Success
-                ? AsPreCode(symbolResult.Html)
-                : AsPreCode(HtmlEncoder.Default.Encode(symbolResult.ErrorMessage ?? "Symbol not found"));
+            return AsPreCode($"Error: Only C# is supported for {LanguageModifiers.XmlDocId} modifier.");
         }
+        
+        var symbolResult = RunSync(async () => await syntaxHighlighter.HighlightSymbolAsync(code.Trim(), bodyOnly));
+        return symbolResult.Success
+            ? AsPreCode(symbolResult.Html)
+            : AsPreCode(HtmlEncoder.Default.Encode(symbolResult.ErrorMessage ?? "Symbol not found"));
 
-        // For non-C# languages, use execution with data argument
-        var arg = ExtractDataArgument(codeBlock);
-        var execResult = RunSync(async () => await syntaxHighlighter.HighlightExecutionAsync(code.Trim(), arg));
-
-        if (execResult.Success)
-        {
-            // Re-highlight the execution result
-            return ProcessPipeline(codeBlock, baseLanguage, execResult.PlainText);
-        }
-
-        return AsPreCode($"Error: {HtmlEncoder.Default.Encode(execResult.ErrorMessage ?? "Execution failed")}");
     }
 
     private string ProcessPathModifier(CodeBlock codeBlock, string baseLanguage, string code)

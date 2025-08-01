@@ -27,19 +27,6 @@ public interface ISyntaxHighlightingService
     /// <param name="relativePath">Path relative to the solution root</param>
     /// <returns>The highlighted file content</returns>
     Task<HighlightedCode> HighlightFileAsync(string relativePath);
-
-    /// <summary>
-    /// Executes code and returns highlighted output
-    /// </summary>
-    /// <param name="xmlDocId">The XML documentation ID of the method to execute</param>
-    /// <param name="attachmentName">Optional attachment name for the output</param>
-    /// <returns>The highlighted execution output</returns>
-    Task<HighlightedCode> HighlightExecutionAsync(string xmlDocId, string? attachmentName = null);
-
-    /// <summary>
-    /// Gets supported languages for highlighting
-    /// </summary>
-    IReadOnlyCollection<Language> SupportedLanguages { get; }
 }
 
 /// <summary>
