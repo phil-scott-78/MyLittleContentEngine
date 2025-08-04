@@ -166,6 +166,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                     {
                         ChildRules =
                         [
+                            new CssRuleSet("pre > code", [new CssDeclaration(CssProperties.FontSize, "inherit")]),
                             new CssRuleSet(":not(pre) > code", [new CssDeclaration(CssProperties.FontSize, "0.8em")]),
 
                         ]
@@ -176,6 +177,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                     {
                         ChildRules =
                         [
+                            new CssRuleSet("pre > code", [new CssDeclaration(CssProperties.FontSize, "inherit")]),
                             new CssRuleSet(":not(pre) > code", [new CssDeclaration(CssProperties.FontSize, "0.8em")]),
 
                         ]
