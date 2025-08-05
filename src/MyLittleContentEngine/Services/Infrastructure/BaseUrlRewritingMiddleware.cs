@@ -1,9 +1,10 @@
 ﻿using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using AngleSharp;
+using AngleSharp.Dom;
+using AngleSharp.Html.Dom;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 namespace MyLittleContentEngine.Services.Infrastructure;
 
@@ -11,55 +12,38 @@ namespace MyLittleContentEngine.Services.Infrastructure;
 /// Middleware that rewrites URLs in HTML responses to handle both xref: cross-references and BaseUrl rewriting.
 /// First resolves xref: URLs to their actual targets, then rewrites root-relative URLs to include the configured BaseUrl.
 /// This ensures that links work correctly when the site is deployed to a subdirectory.
+/// Uses AngleSharp for robust HTML parsing and manipulation.
 /// </summary>
 public partial class BaseUrlRewritingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly IXrefResolver _xrefResolver;
     private readonly string _baseUrl;
+    private readonly IBrowsingContext _browsingContext;
 
-    // Patterns to match various HTML elements with URLs
-    private static readonly Regex[] UrlPatterns =
-    [
-        // href attributes in <a> and <link> tags
-        HrefRegex(),
-
-        // src attributes in <img>, <script>, <iframe>, <embed>, <source>, <track> tags
-        SrcRegex(),
-
-        // action attributes in <form> tags
-        FormActionRegex(),
-
-        // data attributes that might contain URLs
-        DataAttributeRegex(),
-
-        // CSS url() functions in style attributes
-        CssUrlRegex(),
-
-        // CSS @import statements
-        CssImportRegex()
-    ];
-
-    // Special pattern for srcset attributes which contain multiple URLs with descriptors
-    private static readonly Regex SrcsetPattern = SrcsetRegex();
-
-    // Pattern to match xref: URLs in href attributes
-    private static readonly Regex XrefPattern = XrefRegex();
-
-    // Pattern to match <xref: tags (e.g., <xref:docs.guides.linking-documents-and-media>)
-    private static readonly Regex XrefTagPattern = XrefTagRegex();
-
-    // Pattern to match <a href="xref:uid">xref:uid</a> where href and content must match
-    private static readonly Regex XrefLinkPattern = XrefLinkRegex();
-
-    // Pattern to match body tag to add data-base-url attribute
-    private static readonly Regex BodyTagPattern = BodyTagRegex();
+    // HTML elements and attributes that contain URLs that should be rewritten
+    private static readonly Dictionary<string, string[]> UrlAttributes = new()
+    {
+        { "a", ["href"] },
+        { "link", ["href"] },
+        { "img", ["src", "srcset"] },
+        { "script", ["src"] },
+        { "iframe", ["src"] },
+        { "embed", ["src"] },
+        { "source", ["src", "srcset"] },
+        { "track", ["src"] },
+        { "form", ["action"] }
+    };
 
     public BaseUrlRewritingMiddleware(RequestDelegate next, OutputOptions? outputOptions, IXrefResolver xrefResolver)
     {
         _next = next;
         _xrefResolver = xrefResolver;
         _baseUrl = outputOptions?.BaseUrl ?? string.Empty;
+
+        // Configure AngleSharp
+        var config = Configuration.Default;
+        _browsingContext = BrowsingContext.New(config);
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -88,7 +72,7 @@ public partial class BaseUrlRewritingMiddleware
             }
             else
             {
-                // For non-HTML responses, just copy the content as-is
+                // For non-HTML responses, copy the content as-is
                 responseBody.Seek(0, SeekOrigin.Begin);
                 await responseBody.CopyToAsync(originalBodyStream);
             }
@@ -116,163 +100,226 @@ public partial class BaseUrlRewritingMiddleware
 
     private async Task<string> RewriteUrlsAsync(string html)
     {
-        // First, resolve any xref: URLs
-        html = await ResolveXrefsAsync(html);
+        // Parse the HTML using AngleSharp
+        var document = await _browsingContext.OpenAsync(req => req.Content(html));
+
+        // First, resolve any xref: URLs and tags
+        await ResolveXrefsAsync(document);
 
         // Add data-base-url attribute to body tag if not already present
-        html = AddDataBaseUrlToBody(html);
+        AddDataBaseUrlToBody(document);
 
-        // Handle srcset attributes separately since they contain multiple URLs
-        html = RewriteSrcsetUrls(html);
+        // Then apply BaseUrl rewriting to all URL attributes
+        RewriteUrlAttributes(document);
 
-        // Then apply BaseUrl rewriting to the result for other URL patterns
-        return UrlPatterns.Aggregate(html, (current, pattern) => pattern.Replace(current, match =>
-        {
-            var prefix = match.Groups[1].Value;
-            var url = match.Groups[2].Value;
-            var suffix = match.Groups[3].Value;
-
-            // Skip if it's not a root-relative URL (doesn't start with /)
-            if (!url.StartsWith('/')) return match.Value;
-
-            // Skip if it already contains the base URL
-            if (url.StartsWith(_baseUrl, StringComparison.OrdinalIgnoreCase)) return match.Value;
-
-            // Rewrite the URL
-            var rewrittenUrl = PrependBaseUrl(url);
-            return prefix + rewrittenUrl + suffix;
-        }));
+        // Return the modified HTML
+        return document.ToHtml();
     }
 
-    private async Task<string> ResolveXrefsAsync(string html)
+    private async Task ResolveXrefsAsync(IDocument document)
     {
         // First, handle <xref:uid> tags and convert them to <a> links
-        html = await ResolveXrefTagsAsync(html);
+        await ResolveXrefTagsAsync(document);
 
         // Second, handle <a href="xref:uid">xref:uid</a> links where href and content match
-        html = await ResolveXrefLinksAsync(html);
+        await ResolveXrefLinksAsync(document);
 
         // Then handle existing xref: URLs in href attributes
-        var matches = XrefPattern.Matches(html).Reverse().ToList();
+        var xrefLinks = document.QuerySelectorAll("a[href^='xref:']").Cast<IHtmlAnchorElement>().ToList();
 
-        foreach (var match in matches)
+        foreach (var link in xrefLinks)
         {
-            var prefix = match.Groups[1].Value;
-            var xrefUid = match.Groups[2].Value;
-            var suffix = match.Groups[3].Value;
-
-            var resolvedUrl = await _xrefResolver.ResolveAsync(xrefUid);
-            if (resolvedUrl != null)
+            var href = link.GetAttribute("href");
+            if (href?.StartsWith("xref:") == true)
             {
-                // Replace the xref: URL with the resolved URL
-                var replacement = prefix + resolvedUrl + suffix;
-                html = html.Remove(match.Index, match.Length).Insert(match.Index, replacement);
-            }
-            else
-            {
-                // Replace unresolved xref with a span containing error message
-                // Extract the content between the opening and closing tags from the suffix
-                var suffixValue = suffix; // This contains ">Unknown Documentation</a>"
-                var contentStartIndex = suffixValue.IndexOf('>') + 1;
-                var contentEndIndex = suffixValue.LastIndexOf('<');
-                var content = contentEndIndex > contentStartIndex ?
-                    suffixValue.Substring(contentStartIndex, contentEndIndex - contentStartIndex) :
-                    "Reference not found";
+                var xrefUid = href[5..]; // Remove "xref:" prefix
+                var resolvedUrl = await _xrefResolver.ResolveAsync(xrefUid);
 
-                var replacement = $"<span data-xref-error=\"Reference not found\" data-xref-uid=\"{xrefUid}\" style=\"color: red; text-decoration: line-through;\">{content}</span>";
-                html = html.Remove(match.Index, match.Length).Insert(match.Index, replacement);
+                if (resolvedUrl != null)
+                {
+                    // Replace the xref: URL with the resolved URL
+                    link.Href = resolvedUrl;
+                }
+                else
+                {
+                    // Replace unresolved xref with a span containing error message
+                    var content = link.TextContent;
+                    var errorSpan = document.CreateElement("span");
+                    errorSpan.SetAttribute("data-xref-error", "Reference not found");
+                    errorSpan.SetAttribute("data-xref-uid", xrefUid);
+                    errorSpan.SetAttribute("style", "color: red; text-decoration: line-through;");
+                    errorSpan.TextContent = content;
+
+                    link.Parent?.ReplaceChild(errorSpan, link);
+                }
             }
         }
-
-        return html;
     }
 
-    private async Task<string> ResolveXrefTagsAsync(string html)
+    private async Task ResolveXrefTagsAsync(IDocument document)
     {
-        var matches = XrefTagPattern.Matches(html).Reverse().ToList();
+        // Find all text nodes that contain <xref:uid> patterns and process them
+        // We'll do this by looking at the entire document content and replacing the patterns
+        var htmlContent = document.DocumentElement.InnerHtml;
 
-        foreach (var match in matches)
+        var startIndex = 0;
+        var modificationsMade = false;
+
+        while ((startIndex = htmlContent.IndexOf("<xref:", startIndex, StringComparison.Ordinal)) >= 0)
         {
-            var xrefUid = match.Groups[1].Value;
+            var endIndex = htmlContent.IndexOf('>', startIndex);
+            if (endIndex == -1) break;
+
+            var xrefTag = htmlContent.Substring(startIndex, endIndex - startIndex + 1);
+            var xrefUid = htmlContent.Substring(startIndex + 6, endIndex - startIndex - 6); // Remove "<xref:" and ">"
 
             var crossRef = await _xrefResolver.ResolveToReferenceAsync(xrefUid);
-            if (crossRef != null)
+            string replacement;
+
+            // Create an <a> tag with the resolved URL and title
+            replacement = crossRef != null
+                ? $"<a href=\"{crossRef.Url}\">{crossRef.Title}</a>" 
+                : $"<span data-xref-error=\"Reference not found\" data-xref-uid=\"{xrefUid}\" class=\"text-red-500\">Reference not found: {xrefUid}</span>";
+
+            htmlContent = htmlContent.Replace(xrefTag, replacement);
+            modificationsMade = true;
+            startIndex = endIndex + 1;
+        }
+
+        if (modificationsMade)
+        {
+            document.DocumentElement.InnerHtml = htmlContent;
+        }
+    }
+
+    private async Task ResolveXrefLinksAsync(IDocument document)
+    {
+        // Find <a href="xref:uid">xref:uid</a> links where href and content match
+        var xrefLinks = document.QuerySelectorAll("a[href^='xref:']").Cast<IHtmlAnchorElement>()
+            .Where(link => link.Href.StartsWith("xref:") &&
+                          link.TextContent.StartsWith("xref:") &&
+                          link.Href == link.TextContent)
+            .ToList();
+
+        foreach (var link in xrefLinks)
+        {
+            var href = link.GetAttribute("href");
+            if (href?.StartsWith("xref:") == true)
             {
-                // Create an <a> tag with the resolved URL and title
-                var replacement = $"<a href=\"{crossRef.Url}\">{crossRef.Title}</a>";
-                html = html.Remove(match.Index, match.Length).Insert(match.Index, replacement);
+                var xrefUid = href[5..]; // Remove "xref:" prefix
+                var crossRef = await _xrefResolver.ResolveToReferenceAsync(xrefUid);
+
+                if (crossRef != null)
+                {
+                    // Replace the entire <a href="xref:uid">xref:uid</a> with resolved link
+                    link.Href = crossRef.Url;
+                    link.TextContent = crossRef.Title;
+                }
+                else
+                {
+                    // Replace unresolved xref with a span containing error message
+                    var errorSpan = document.CreateElement("span");
+                    errorSpan.SetAttribute("data-xref-error", "Reference not found");
+                    errorSpan.SetAttribute("data-xref-uid", xrefUid);
+                    errorSpan.SetAttribute("style", "color: red; text-decoration: line-through;");
+                    errorSpan.TextContent = $"Reference not found: {xrefUid}";
+
+                    link.Parent?.ReplaceChild(errorSpan, link);
+                }
             }
-            else
+        }
+    }
+
+    private void AddDataBaseUrlToBody(IDocument document)
+    {
+        var body = document.Body;
+        if (body?.HasAttribute("data-base-url") == false && !string.IsNullOrEmpty(_baseUrl))
+        {
+            body.SetAttribute("data-base-url", _baseUrl);
+        }
+    }
+
+    private void RewriteUrlAttributes(IDocument document)
+    {
+        foreach (var elementType in UrlAttributes.Keys)
+        {
+            var elements = document.QuerySelectorAll(elementType);
+
+            foreach (var element in elements)
             {
-                // Replace unresolved xref with a span containing error message
-                var replacement = $"<span data-xref-error=\"Reference not found\" data-xref-uid=\"{xrefUid}\" style=\"color: red; text-decoration: line-through;\">Reference not found: {xrefUid}</span>";
-                html = html.Remove(match.Index, match.Length).Insert(match.Index, replacement);
+                var attributes = UrlAttributes[elementType];
+
+                foreach (var attributeName in attributes)
+                {
+                    var attributeValue = element.GetAttribute(attributeName);
+                    if (string.IsNullOrEmpty(attributeValue)) continue;
+
+                    if (attributeName == "srcset")
+                    {
+                        // Handle srcset attributes specially
+                        var rewrittenSrcset = RewriteSrcsetValue(attributeValue);
+                        if (rewrittenSrcset != attributeValue)
+                        {
+                            element.SetAttribute(attributeName, rewrittenSrcset);
+                        }
+                    }
+                    else if (attributeName.StartsWith("data-") && attributeValue.StartsWith('/'))
+                    {
+                        // Handle data attributes that contain URLs
+                        var rewrittenUrl = RewriteUrl(attributeValue);
+                        if (rewrittenUrl != attributeValue)
+                        {
+                            element.SetAttribute(attributeName, rewrittenUrl);
+                        }
+                    }
+                    else if (attributeValue.StartsWith('/'))
+                    {
+                        // Handle regular URL attributes
+                        var rewrittenUrl = RewriteUrl(attributeValue);
+                        if (rewrittenUrl != attributeValue)
+                        {
+                            element.SetAttribute(attributeName, rewrittenUrl);
+                        }
+                    }
+                }
+
+                // Handle data attributes that might contain URLs
+                foreach (var attr in element.Attributes.Where(a => a.Name.StartsWith("data-") && a.Value.StartsWith('/')))
+                {
+                    var rewrittenUrl = RewriteUrl(attr.Value);
+                    if (rewrittenUrl != attr.Value)
+                    {
+                        element.SetAttribute(attr.Name, rewrittenUrl);
+                    }
+                }
+
+                // Handle CSS url() functions in style attributes
+                var styleAttr = element.GetAttribute("style");
+                if (!string.IsNullOrEmpty(styleAttr))
+                {
+                    var rewrittenStyle = RewriteCssUrls(styleAttr);
+                    if (rewrittenStyle != styleAttr)
+                    {
+                        element.SetAttribute("style", rewrittenStyle);
+                    }
+                }
             }
         }
 
-        return html;
-    }
-
-    private async Task<string> ResolveXrefLinksAsync(string html)
-    {
-        var matches = XrefLinkPattern.Matches(html).Reverse().ToList();
-
-        foreach (var match in matches)
+        // Handle CSS @import statements and url() functions in <style> elements
+        var styleElements = document.QuerySelectorAll("style");
+        foreach (var styleElement in styleElements)
         {
-            var xrefUid = match.Groups[1].Value;
-
-            var crossRef = await _xrefResolver.ResolveToReferenceAsync(xrefUid);
-            if (crossRef != null)
+            var originalCss = styleElement.TextContent;
+            if (!string.IsNullOrEmpty(originalCss))
             {
-                // Replace the entire <a href="xref:uid">xref:uid</a> with resolved link
-                var replacement = $"<a href=\"{crossRef.Url}\">{crossRef.Title}</a>";
-                html = html.Remove(match.Index, match.Length).Insert(match.Index, replacement);
-            }
-            else
-            {
-                // Replace unresolved xref with a span containing error message
-                var replacement = $"<span data-xref-error=\"Reference not found\" data-xref-uid=\"{xrefUid}\" style=\"color: red; text-decoration: line-through;\">Reference not found: {xrefUid}</span>";
-                html = html.Remove(match.Index, match.Length).Insert(match.Index, replacement);
+                var rewrittenCss = RewriteCssUrls(originalCss);
+                if (rewrittenCss != originalCss)
+                {
+                    styleElement.TextContent = rewrittenCss;
+                }
             }
         }
-
-        return html;
-    }
-
-    private string AddDataBaseUrlToBody(string html)
-    {
-        return BodyTagPattern.Replace(html, match =>
-        {
-            var openingTag = match.Groups[1].Value; // "<body"
-            var attributes = match.Groups[2].Value; // existing attributes (could be empty)
-            var closingBracket = match.Groups[3].Value; // ">"
-
-            // Check if data-base-url attribute already exists in the attributes
-            if (attributes.Contains("data-base-url", StringComparison.OrdinalIgnoreCase))
-            {
-                // Already has the attribute, return unchanged
-                return match.Value;
-            }
-
-            // Add data-base-url attribute while preserving existing attributes
-            var dataBaseUrlAttr = string.IsNullOrEmpty(_baseUrl) ? "" : $" data-base-url=\"{_baseUrl}\"";
-            return $"{openingTag}{attributes}{dataBaseUrlAttr}{closingBracket}";
-        });
-    }
-
-    private string RewriteSrcsetUrls(string html)
-    {
-        return SrcsetPattern.Replace(html, match =>
-        {
-            var prefix = match.Groups[1].Value; // Everything before srcset value
-            var srcsetValue = match.Groups[2].Value; // The srcset attribute value
-            var suffix = match.Groups[3].Value; // Everything after srcset value
-
-            // Process each URL in the srcset value
-            var rewrittenSrcset = RewriteSrcsetValue(srcsetValue);
-
-            return prefix + rewrittenSrcset + suffix;
-        });
     }
 
     private string RewriteSrcsetValue(string srcsetValue)
@@ -300,17 +347,46 @@ public partial class BaseUrlRewritingMiddleware
             // Only rewrite root-relative URLs that don't already contain the base URL
             if (url.StartsWith('/'))
             {
-                // Skip if it already contains the base URL
-                if (!url.StartsWith(_baseUrl, StringComparison.OrdinalIgnoreCase))
-                {
-                    url = PrependBaseUrl(url);
-                }
+                url = RewriteUrl(url);
             }
 
             rewrittenSources.Add(url + descriptor);
         }
 
         return string.Join(", ", rewrittenSources);
+    }
+
+    private string RewriteUrl(string url)
+    {
+        // Skip if it's not a root-relative URL (doesn't start with /)
+        if (!url.StartsWith('/')) return url;
+
+        // Skip if it already contains the base URL
+        if (url.StartsWith(_baseUrl, StringComparison.OrdinalIgnoreCase)) return url;
+
+        // Rewrite the URL
+        return PrependBaseUrl(url);
+    }
+
+    private string RewriteCssUrls(string css)
+    {
+        // Handle CSS url() functions
+        css = CssUrlRewriteRegex().Replace(css, match =>
+        {
+            var url = match.Groups[1].Value;
+            var rewrittenUrl = RewriteUrl(url);
+            return match.Value.Replace(url, rewrittenUrl);
+        });
+
+        // Handle CSS @import statements
+        css = CssUrlImportRegex().Replace(css, match =>
+        {
+            var url = match.Groups[1].Value;
+            var rewrittenUrl = RewriteUrl(url);
+            return match.Value.Replace(url, rewrittenUrl);
+        });
+
+        return css;
     }
 
     private string PrependBaseUrl(string path)
@@ -338,26 +414,8 @@ public partial class BaseUrlRewritingMiddleware
         return normalizedBaseUrl + path;
     }
 
-    [GeneratedRegex("""(<(?:a|link)\b[^>]*?\s+href\s*=\s*["'])(/[^"']*?)(["'][^>]*?>)""", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-US")]
-    private static partial Regex HrefRegex();
-    [GeneratedRegex("""(<(?:img|script|iframe|embed|source|track)\b[^>]*?\s+src\s*=\s*["'])(/[^"']*?)(["'][^>]*?>)""", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-US")]
-    private static partial Regex SrcRegex();
-    [GeneratedRegex("""(<form\b[^>]*?\s+action\s*=\s*["'])(/[^"']*?)(["'][^>]*?>)""", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-US")]
-    private static partial Regex FormActionRegex();
-    [GeneratedRegex("""(<[^>]*?\s+data-[^=]*?\s*=\s*["'])(/[^"']*?)(["'][^>]*?>)""", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-US")]
-    private static partial Regex DataAttributeRegex();
-    [GeneratedRegex("""(url\s*\(\s*["']?)(/[^"')]*?)(["']?\s*\))""", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-US")]
-    private static partial Regex CssUrlRegex();
-    [GeneratedRegex("""(@import\s+["'])(/[^"']*?)(["'])""", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-US")]
-    private static partial Regex CssImportRegex();
-    [GeneratedRegex("""(<(?:a|link)\b[^>]*?\s+href\s*=\s*["'])xref:([^"']*?)(["'][^>]*?>)""", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-US")]
-    private static partial Regex XrefRegex();
-    [GeneratedRegex("""<xref:([^>]+)>""", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-US")]
-    private static partial Regex XrefTagRegex();
-    [GeneratedRegex("""<a\b[^>]*?\s+href\s*=\s*["']xref:([^"']*?)["'][^>]*?>xref:\1</a>""", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-US")]
-    private static partial Regex XrefLinkRegex();
-    [GeneratedRegex("""(<img\b[^>]*?\s+srcset\s*=\s*["'])([^"']*?)(['"][^>]*?>)""", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-US")]
-    private static partial Regex SrcsetRegex();
-    [GeneratedRegex("""(<body)([^>]*)(>)""", RegexOptions.IgnoreCase | RegexOptions.Compiled, "en-US")]
-    private static partial Regex BodyTagRegex();
+    [GeneratedRegex("""url\s*\(\s*["']?(/[^"')]*?)["']?\s*\)""", RegexOptions.IgnoreCase, "en-US")]
+    private static partial Regex CssUrlRewriteRegex();
+    [GeneratedRegex("""@import\s+["'](/[^"']*?)["']""", RegexOptions.IgnoreCase, "en-US")]
+    private static partial Regex CssUrlImportRegex();
 }
