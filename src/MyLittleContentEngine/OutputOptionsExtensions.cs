@@ -23,7 +23,7 @@ public static class OutputOptionsExtensions
     /// </remarks>
     internal static IServiceCollection AddOutputOptions(this IServiceCollection services, string[] args)
     {
-        var (baseUrl, outputFolderPath) = GetOutputOptionsFromArgs(args);
+        var (baseUrl, outputFolderPath) = GetOutputOptionsFromArgs(args.Skip(1).ToArray());
         return services.AddSingleton<OutputOptions>(_ => new OutputOptions { BaseUrl = baseUrl, OutputFolderPath = outputFolderPath });
     }
 
