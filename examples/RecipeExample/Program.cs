@@ -1,12 +1,8 @@
-
-using System.Net.Mime;
 using MonorailCss;
 using MyLittleContentEngine;
 using MyLittleContentEngine.MonorailCss;
 using RecipeExample;
 using RecipeExample.Components;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Processing;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,28 +10,19 @@ builder.Services.AddRazorComponents();
 
 
 builder.Services.AddContentEngineService(_ => new ContentEngineOptions
-{
-    SiteTitle = "Recipe Collection",
-    SiteDescription = "CookLang Recipe Website",
-    ContentRootPath = "recipes",
-});
+    {
+        SiteTitle = "Recipe Collection",
+        SiteDescription = "CookLang Recipe Website",
+        ContentRootPath = "recipes",
+    })
+    .AddRecipeContentService(options =>
+    {
+        options.RecipePath = "recipes";
+        options.FilePattern = "*.cook";
+    })
+    .AddResponsiveImageContentService();
 
-builder.Services.AddRecipeContentService(options =>
-{
-    options.RecipePath = "recipes";
-    options.FilePattern = "*.cook";
-});
-
-var recipeOptions = new RecipeContentOptions 
-{ 
-    RecipePath = "recipes", 
-    FilePattern = "*.cook" 
-};
-
-builder.Services.AddSingleton(recipeOptions);
-builder.Services.AddResponsiveImageContentService(recipeOptions);
-
-builder.Services.AddMonorailCss(provider => new MonorailCssOptions()
+builder.Services.AddMonorailCss(_ => new MonorailCssOptions()
 {
     PrimaryHue = () => 55,
     BaseColorName = () => ColorNames.Neutral,
@@ -58,16 +45,17 @@ app.MapRazorComponents<App>();
 app.UseMonorailCss();
 
 // Responsive image endpoint
-app.MapGet("/images/{filename}-{size}.webp", async (string filename, string size, IResponsiveImageContentService imageService) =>
-{
-    var imageData = await imageService.ProcessImageAsync(filename, size);
-    
-    if (imageData == null)
+app.MapGet("/images/{filename}-{size}.webp",
+    async (string filename, string size, IResponsiveImageContentService imageService) =>
     {
-        return Results.NotFound();
-    }
+        var imageData = await imageService.ProcessImageAsync(filename, size);
 
-    return Results.File(imageData, "image/webp");
-});
+        if (imageData == null)
+        {
+            return Results.NotFound();
+        }
+
+        return Results.File(imageData, "image/webp");
+    });
 
 await app.RunOrBuildContent(args);

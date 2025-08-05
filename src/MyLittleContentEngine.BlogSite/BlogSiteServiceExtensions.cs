@@ -21,7 +21,7 @@ public static class BlogSiteServiceExtensions
     /// <param name="configureOptions">Configuration action for BlogSiteOptions</param>
     /// <returns>The service collection</returns>
     public static IServiceCollection AddBlogSite(this IServiceCollection services,
-        Func<IServiceProvider,  BlogSiteOptions> configureOptions)
+        Func<IServiceProvider, BlogSiteOptions> configureOptions)
     {
         services.AddTransient(configureOptions);
         services.AddRazorComponents();
@@ -34,38 +34,38 @@ public static class BlogSiteServiceExtensions
             .AddMdazorComponent<LinkCard>()
             .AddMdazorComponent<Step>()
             .AddMdazorComponent<Steps>();
-        
+
         // Configure content engine
-        services.AddContentEngineService(sp =>
-        {
-            var o = sp.GetRequiredService<BlogSiteOptions>();
-
-            return new ContentEngineOptions
+        var contentEngineService = services.AddContentEngineService(sp =>
             {
-                SiteTitle = o.SiteTitle,
-                SiteDescription = o.Description,
-                ContentRootPath = o.ContentRootPath,
-                CanonicalBaseUrl = o.CanonicalBaseUrl
-            };
-        });
+                var o = sp.GetRequiredService<BlogSiteOptions>();
 
-        // Configure content service
-        services.AddContentEngineStaticContentService(sp =>
-        {
-            var o = sp.GetRequiredService<BlogSiteOptions>();
-
-            return new MarkdownContentOptions<BlogSiteFrontMatter>
-            {
-                ContentPath = Path.Combine(o.ContentRootPath, o.BlogContentPath),
-                BasePageUrl = o.BlogBaseUrl,
-                Tags = new TagsOptions
+                return new ContentEngineOptions
                 {
-                    TagsPageUrl = o.TagsPageUrl
-                },
-                ExcludeSubfolders = false,
-                PostFilePattern = "*.md;*.mdx"
-            };
-        });
+                    SiteTitle = o.SiteTitle,
+                    SiteDescription = o.Description,
+                    ContentRootPath = o.ContentRootPath,
+                    CanonicalBaseUrl = o.CanonicalBaseUrl
+                };
+            })
+            .WithMarkdownContentService(sp =>
+            {
+                // Configure content service
+
+                var o = sp.GetRequiredService<BlogSiteOptions>();
+
+                return new MarkdownContentOptions<BlogSiteFrontMatter>
+                {
+                    ContentPath = Path.Combine(o.ContentRootPath, o.BlogContentPath),
+                    BasePageUrl = o.BlogBaseUrl,
+                    Tags = new TagsOptions
+                    {
+                        TagsPageUrl = o.TagsPageUrl
+                    },
+                    ExcludeSubfolders = false,
+                    PostFilePattern = "*.md;*.mdx"
+                };
+            });
 
         // we need to resolve the options to see if we should add the connected solution
         var serviceProvider = services.BuildServiceProvider();
@@ -74,7 +74,7 @@ public static class BlogSiteServiceExtensions
         // Add connected solution only if solution path is configured
         if (!string.IsNullOrWhiteSpace(blogOptions.SolutionPath))
         {
-            services.AddConnectedRoslynSolution(serviceProvider =>
+            contentEngineService.WithConnectedRoslynSolution(serviceProvider =>
             {
                 var o = serviceProvider.GetRequiredService<BlogSiteOptions>();
                 return new CodeAnalysisOptions
@@ -83,9 +83,9 @@ public static class BlogSiteServiceExtensions
                 };
             });
         }
-        
+
         // Configure MonorailCSS
-        services.AddMonorailCss(sp =>
+        contentEngineService.AddMonorailCss(sp =>
         {
             var o = sp.GetRequiredService<BlogSiteOptions>();
 
@@ -98,14 +98,18 @@ public static class BlogSiteServiceExtensions
                     DesignSystem = defaultSettings.DesignSystem with
                     {
                         FontFamilies = defaultSettings.DesignSystem.FontFamilies
-                            .Add("display", new FontFamilyDefinition(o.DisplayFontFamily ?? "-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, Adwaita Sans, Cantarell, Ubuntu, roboto, noto, helvetica, arial, sans-serif;"))
-                            .SetItem("sans", new FontFamilyDefinition(o.BodyFontFamily ?? "-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, Adwaita Sans, Cantarell, Ubuntu, roboto, noto, helvetica, arial, sans-serif;"))
+                            .Add("display",
+                                new FontFamilyDefinition(o.DisplayFontFamily ??
+                                                         "-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, Adwaita Sans, Cantarell, Ubuntu, roboto, noto, helvetica, arial, sans-serif;"))
+                            .SetItem("sans",
+                                new FontFamilyDefinition(o.BodyFontFamily ??
+                                                         "-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, Adwaita Sans, Cantarell, Ubuntu, roboto, noto, helvetica, arial, sans-serif;"))
                     },
                 },
                 ExtraStyles = o.ExtraStyles ?? string.Empty
             };
         });
-        
+
         return services;
     }
 

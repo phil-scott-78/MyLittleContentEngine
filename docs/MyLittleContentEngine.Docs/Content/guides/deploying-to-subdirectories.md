@@ -95,14 +95,11 @@ builder.Services.AddDocSite(_ => new DocSiteOptions
 });
 ```
 
-### For Custom Sites (Manual Registration)
+### For Custom Sites
 
-If you're building a custom site without BlogSite/DocSite packages, register OutputOptions manually:
+If you're building a custom site without BlogSite/DocSite packages:
 
 ```csharp
-// Register OutputOptions to support command line arguments
-builder.Services.AddOutputOptions(args);
-
 builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 {
     SiteTitle = "My Site",

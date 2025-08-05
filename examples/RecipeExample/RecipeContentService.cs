@@ -3,7 +3,6 @@ using System.Collections.Immutable;
 using System.IO.Abstractions;
 using System.Text.RegularExpressions;
 using CooklangSharp;
-using MyLittleContentEngine;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Content.TableOfContents;
@@ -111,7 +110,7 @@ internal class RecipeContentService : IDisposable, IRecipeContentService
 
             try
             {
-                frontMatter = _yamlDeserializer.Deserialize<RecipeFrontMatter>(yamlContent) ?? new RecipeFrontMatter();
+                frontMatter = _yamlDeserializer.Deserialize<RecipeFrontMatter>(yamlContent);
             }
             catch (Exception)
             {
@@ -143,7 +142,10 @@ internal class RecipeContentService : IDisposable, IRecipeContentService
         // Add individual recipe pages
         foreach (var (url, recipePage) in data)
         {
+
             var relativePath = url.Replace('/', Path.DirectorySeparatorChar);
+            
+            
             var outputFile = _fileSystem.Path.Combine(_options.BasePageUrl, $"{relativePath}.html").TrimStart(Path.DirectorySeparatorChar);
             
             pages.Add(new PageToGenerate(url, outputFile, new Metadata()

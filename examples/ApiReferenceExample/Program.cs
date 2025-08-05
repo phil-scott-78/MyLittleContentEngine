@@ -11,33 +11,30 @@ builder.Services.AddRazorComponents();
 // configures site wide settings
 // hot reload note - these will not be reflected until the application restarts
 builder.Services.AddContentEngineService(_ => new ContentEngineOptions
-{
-    SiteTitle = "API Reference Example",
-    SiteDescription = "Demonstrating API Reference Content Service",
-    ContentRootPath = "Content",
-});
-
-// configures individual sections of the blog. PageUrl should match the configured razor pages route,
+    {
+        SiteTitle = "API Reference Example",
+        SiteDescription = "Demonstrating API Reference Content Service",
+        ContentRootPath = "Content",
+    }).WithMarkdownContentService(_ => new MarkdownContentOptions<BlogFrontMatter>()
+    {
+        // configures individual sections of the blog. PageUrl should match the configured razor pages route,
 // and contentPath should match the location on disk.
 // you can have multiple of these per site.
-builder.Services.AddContentEngineStaticContentService(_ => new MarkdownContentOptions<BlogFrontMatter>()
-{
-    ContentPath = "Content",
-    BasePageUrl = string.Empty
-});
+        ContentPath = "Content",
+        BasePageUrl = string.Empty
+    }).WithConnectedRoslynSolution(_ => new CodeAnalysisOptions()
+    {
+        // this is required if you are using the API content service
 
-// this is required if you are using the API content service
-builder.Services.AddConnectedRoslynSolution(_ => new CodeAnalysisOptions()
-{
-    SolutionPath = "../../MyLittleContentEngine.sln"
-});
+        SolutionPath = "../../MyLittleContentEngine.sln"
+    })
+    .WithApiReferenceContentService(_ => new ApiReferenceContentOptions()
+    {
+        // Add API reference content service
 
-// Add API reference content service
-builder.Services.AddApiReferenceContentService(_ => new ApiReferenceContentOptions()
-{
-    IncludeNamespace = ["MyLittleContentEngine"],
-    ExcludedNamespace = ["MyLittleContentEngine.Tests"],
-});
+        IncludeNamespace = ["MyLittleContentEngine"],
+        ExcludedNamespace = ["MyLittleContentEngine.Tests"],
+    });
 
 builder.Services.AddMonorailCss();
 

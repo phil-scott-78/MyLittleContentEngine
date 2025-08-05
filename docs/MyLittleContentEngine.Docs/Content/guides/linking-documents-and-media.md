@@ -28,9 +28,6 @@ The `BaseUrl` setting tells MyLittleContentEngine where your site will be deploy
 ### Quick BaseUrl Setup
 
 ```csharp
-// Register OutputOptions to handle BaseUrl from command line arguments
-builder.Services.AddOutputOptions(args);
-
 builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 {
     SiteTitle = "My Documentation Site",

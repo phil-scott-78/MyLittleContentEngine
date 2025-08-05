@@ -1,4 +1,5 @@
-﻿using System.IO.Abstractions;
+﻿using System.Collections;
+using System.IO.Abstractions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.AspNetCore.Http;
@@ -18,6 +19,42 @@ using MyLittleContentEngine.Services.Web;
 
 namespace MyLittleContentEngine;
 
+public interface IConfiguredContentEngineServiceCollection : IServiceCollection;
+public class ConfiguredContentEngineServiceCollection(
+    IServiceCollection configuredContentEngineServiceCollectionImplementation)
+    : IConfiguredContentEngineServiceCollection
+{
+    public IEnumerator<ServiceDescriptor> GetEnumerator() => configuredContentEngineServiceCollectionImplementation.GetEnumerator();
+
+    IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)configuredContentEngineServiceCollectionImplementation).GetEnumerator();
+
+    public void Add(ServiceDescriptor item) => configuredContentEngineServiceCollectionImplementation.Add(item);
+
+    public void Clear() => configuredContentEngineServiceCollectionImplementation.Clear();
+
+    public bool Contains(ServiceDescriptor item) => configuredContentEngineServiceCollectionImplementation.Contains(item);
+
+    public void CopyTo(ServiceDescriptor[] array, int arrayIndex) => configuredContentEngineServiceCollectionImplementation.CopyTo(array, arrayIndex);
+
+    public bool Remove(ServiceDescriptor item) => configuredContentEngineServiceCollectionImplementation.Remove(item);
+
+    public int Count => configuredContentEngineServiceCollectionImplementation.Count;
+
+    public bool IsReadOnly => configuredContentEngineServiceCollectionImplementation.IsReadOnly;
+
+    public int IndexOf(ServiceDescriptor item) => configuredContentEngineServiceCollectionImplementation.IndexOf(item);
+
+    public void Insert(int index, ServiceDescriptor item) => configuredContentEngineServiceCollectionImplementation.Insert(index, item);
+
+    public void RemoveAt(int index) => configuredContentEngineServiceCollectionImplementation.RemoveAt(index);
+
+    public ServiceDescriptor this[int index]
+    {
+        get => configuredContentEngineServiceCollectionImplementation[index];
+        set => configuredContentEngineServiceCollectionImplementation[index] = value;
+    }
+}
+
 /// <summary>
 /// Provides extension methods for configuring and using MyLittleContentEngine services within an ASP.NET Core application.
 /// These methods facilitate static site generation with Blazor, including content management and file processing.
@@ -31,8 +68,8 @@ public static class ContentEngineExtensions
     /// <param name="services">The application's service collection.</param>
     /// <param name="configureOptions">Action to customize the content service options.</param>
     /// <returns>The updated service collection for method chaining.</returns>
-    public static IServiceCollection AddContentEngineStaticContentService<TFrontMatter>(
-        this IServiceCollection services,
+    public static IConfiguredContentEngineServiceCollection WithMarkdownContentService<TFrontMatter>(
+        this IConfiguredContentEngineServiceCollection services,
         Func<IServiceProvider, MarkdownContentOptions<TFrontMatter>>? configureOptions)
         where TFrontMatter : class, IFrontMatter, new()
     {
@@ -75,7 +112,7 @@ public static class ContentEngineExtensions
     /// <param name="services">The application's service collection.</param>
     /// <param name="configureOptions">Optional action to customize the static generation process.</param>
     /// <returns>The updated service collection for method chaining.</returns>
-    public static IServiceCollection AddContentEngineService(this IServiceCollection services,
+    public static IConfiguredContentEngineServiceCollection AddContentEngineService(this IServiceCollection services,
         Func<IServiceProvider, ContentEngineOptions> configureOptions)
     {
         // Register the main options for the content engine
@@ -93,16 +130,15 @@ public static class ContentEngineExtensions
         // Register the Razor page content service
         services.AddSingleton<RazorPageContentService>();
         services.AddSingleton<IContentService>(provider => provider.GetRequiredService<RazorPageContentService>());
-
         services.AddOutputOptions(Environment.GetCommandLineArgs());
-        return services;
+
+        return new ConfiguredContentEngineServiceCollection(services);
     }
 
     /// <summary>
     /// Adds syntax highlighting services to the application's service collection.
     /// </summary>
     /// <param name="services">The application's service collection.</param>
-    /// <param name="configureOptions">Optional action to configure highlighting options.</param>
     /// <returns>The updated service collection for method chaining.</returns>
     /// <remarks>
     /// This method always registers the SyntaxHighlightingService with HighlightingOptions.
@@ -122,11 +158,11 @@ public static class ContentEngineExtensions
     /// <param name="configureOptions">Action to configure the connected solution options.</param>
     /// <returns>The updated service collection for method chaining.</returns>
     /// <remarks>
-    /// This method registers solution workspace and symbol extraction services.
+    /// This method registers solution workspBace and symbol extraction services.
     /// Call AddRoslynService first to register basic syntax highlighting.
     /// This method overrides the CodeAnalysisOptions from AddRoslynService.
     /// </remarks>
-    public static IServiceCollection AddConnectedRoslynSolution(this IServiceCollection services,
+    public static IConfiguredContentEngineServiceCollection WithConnectedRoslynSolution(this IConfiguredContentEngineServiceCollection services,
         Func<IServiceProvider, CodeAnalysisOptions> configureOptions)
     {
         // Remove the existing CodeAnalysisOptions registration from AddRoslynService
@@ -158,7 +194,7 @@ public static class ContentEngineExtensions
     /// calls AddConnectedRoslynSolution if not already registered.
     /// Call AddRoslynService first to register basic syntax highlighting.
     /// </remarks>
-    public static IServiceCollection AddApiReferenceContentService(this IServiceCollection services,
+    public static IConfiguredContentEngineServiceCollection WithApiReferenceContentService(this IConfiguredContentEngineServiceCollection services,
         Func<IServiceProvider, ApiReferenceContentOptions> func)
     {
         services.AddTransient(func);
@@ -179,7 +215,7 @@ public static class ContentEngineExtensions
                     "ApiReferenceContentService requires a solution path. Set SolutionPath in ApiReferenceContentOptions.");
             }
             
-            services.AddConnectedRoslynSolution(sp => new CodeAnalysisOptions
+            services.WithConnectedRoslynSolution(_ => new CodeAnalysisOptions
             {
                 SolutionPath = apiOptions.SolutionPath
             });

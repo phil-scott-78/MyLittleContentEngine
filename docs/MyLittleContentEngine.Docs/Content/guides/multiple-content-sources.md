@@ -28,38 +28,32 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorComponents();
 
-// Register OutputOptions to support command line arguments
-builder.Services.AddOutputOptions(args);
-
 // Global site configuration
 builder.Services.AddContentEngineService(_ => new ContentEngineOptions
-{
-    SiteTitle = "Daily Life Hub",
-    SiteDescription = "Your everyday life, simplified",
-    ContentRootPath = "Content",
-});
-
-// Static pages at root level (about, contact, etc.)
-builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<ContentFrontMatter>()
-{
-    ContentPath = "Content",
-    BasePageUrl = "",
-    ExcludeSubfolders = true, // Don't include blog/ and docs/ subfolders
-});
-
-// Blog posts with RSS feeds
-builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<BlogFrontMatter>()
-{
-    ContentPath = "Content/blog",
-    BasePageUrl = "/blog"
-});
-
-// Documentation with ordering
-builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<DocsFrontMatter>()
-{
-    ContentPath = "Content/docs",
-    BasePageUrl = "/docs"
-});
+    {
+        SiteTitle = "Daily Life Hub",
+        SiteDescription = "Your everyday life, simplified",
+        ContentRootPath = "Content",
+    })
+    .WithMarkdownContentService(_ => new MarkdownContentOptions<ContentFrontMatter>()
+    {
+        // Static pages at root level (about, contact, etc.)
+        ContentPath = "Content",
+        BasePageUrl = "",
+        ExcludeSubfolders = true, // Don't include blog/ and docs/ subfolders
+    })
+    .WithMarkdownContentService(_ => new MarkdownContentOptions<BlogFrontMatter>()
+    {
+        // Blog posts with RSS feeds
+        ContentPath = "Content/blog",
+        BasePageUrl = "/blog"
+    })
+    .WithMarkdownContentService(_ => new MarkdownContentOptions<DocsFrontMatter>()
+    {
+        // Documentation with ordering
+        ContentPath = "Content/docs",
+        BasePageUrl = "/docs"
+    });
 
 builder.Services.AddMonorailCss();
 
@@ -253,7 +247,7 @@ Use `ExcludeSubfolders` to prevent content services from processing subdirectori
 
 ```csharp
 // Only process files directly in Content/, not Content/blog/ or Content/docs/
-builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<ContentFrontMatter>()
+builder.Services.WithMarkdownContentService(_ => new MarkdownContentOptions<ContentFrontMatter>()
 {
     ContentPath = "Content",
     BasePageUrl = "",
@@ -267,21 +261,21 @@ Configure different URL patterns for each content type:
 
 ```csharp
 // Blog posts at /blog/post-name
-builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<BlogFrontMatter>()
+builder.Services.WithMarkdownContentService(_ => new MarkdownContentOptions<BlogFrontMatter>()
 {
     ContentPath = "Content/blog",
     BasePageUrl = "/blog"
 });
 
 // Documentation at /docs/guide-name
-builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<DocsFrontMatter>()
+builder.Services.WithMarkdownContentService(_ => new MarkdownContentOptions<DocsFrontMatter>()
 {
     ContentPath = "Content/docs",
     BasePageUrl = "/docs"
 });
 
 // API docs at /api/reference-name
-builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<ApiDocsFrontMatter>()
+builder.Services.WithMarkdownContentService(_ => new MarkdownContentOptions<ApiDocsFrontMatter>()
 {
     ContentPath = "Content/api",
     BasePageUrl = "/api"
@@ -297,7 +291,7 @@ var contentRoot = Environment.GetEnvironmentVariable("CONTENT_ROOT") ?? "Content
 var blogPath = Path.Combine(contentRoot, "blog");
 var docsPath = Path.Combine(contentRoot, "docs");
 
-builder.Services.AddContentEngineStaticContentService(_ => new ContentEngineContentOptions<BlogFrontMatter>()
+builder.Services.WithMarkdownContentService(_ => new MarkdownContentOptions<BlogFrontMatter>()
 {
     ContentPath = blogPath,
     BasePageUrl = "/blog"

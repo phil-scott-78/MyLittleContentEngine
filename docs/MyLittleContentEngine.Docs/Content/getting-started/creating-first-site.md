@@ -74,7 +74,7 @@ examples/MinimalExample/Program.cs
 <Step stepNumber="5">
 ## Create the Content Structure
 
-Create the content directory structure to match what we defined in `AddContentEngineStaticContentService`:
+Create the content directory structure to match what we defined in `WithMarkdownContentService`:
 
 ```bash
 mkdir -p Content

@@ -161,20 +161,6 @@ MyLittleContentEngine handles links.
 
 For basic usage, you typically don't need to configure anything special in your Program.cs for GitHub Pages deployment. The build command line arguments will handle the BaseUrl automatically.
 
-If you need environment variable fallback support, you can register OutputOptions explicitly:
-
-```csharp
-// Register OutputOptions to support command line arguments
-builder.Services.AddOutputOptions(args);
-
-builder.Services.AddContentEngineService(() => new ContentEngineOptions
-{
-    SiteTitle = "My Site",
-    SiteDescription = "My site description",
-    ContentRootPath = "Content",
-});
-```
-
 The BaseUrl is now configured via command line arguments during the build process instead of being hardcoded in your Program.cs.
 </Step>
 <Step stepNumber="4">

@@ -38,32 +38,31 @@ public static class DocSiteServiceExtensions
             .AddMdazorComponent<BigTable>();
 
         // Configure content engine
-        services.AddContentEngineService(sp =>
-        {
-            var options = sp.GetRequiredService<DocSiteOptions>();
-            return new ContentEngineOptions
+        var contentEngineService = services.AddContentEngineService(sp =>
             {
-                SiteTitle = options.SiteTitle,
-                SiteDescription = options.Description,
-                ContentRootPath = options.ContentRootPath,
-                CanonicalBaseUrl = options.CanonicalBaseUrl
-            };
-        });
-
-
-        // Configure content service
-        services.AddContentEngineStaticContentService(sp =>
-        {
-            var options = sp.GetRequiredService<DocSiteOptions>();
-
-            return new MarkdownContentOptions<DocSiteFrontMatter>()
+                var options = sp.GetRequiredService<DocSiteOptions>();
+                return new ContentEngineOptions
+                {
+                    SiteTitle = options.SiteTitle,
+                    SiteDescription = options.Description,
+                    ContentRootPath = options.ContentRootPath,
+                    CanonicalBaseUrl = options.CanonicalBaseUrl
+                };
+            })
+            .WithMarkdownContentService(sp =>
             {
-                ContentPath = options.ContentRootPath,
-                BasePageUrl = string.Empty,
-                ExcludeSubfolders = false,
-                PostFilePattern = "*.md;*.mdx"
-            };
-        });
+                // Configure content service
+
+                var options = sp.GetRequiredService<DocSiteOptions>();
+
+                return new MarkdownContentOptions<DocSiteFrontMatter>()
+                {
+                    ContentPath = options.ContentRootPath,
+                    BasePageUrl = string.Empty,
+                    ExcludeSubfolders = false,
+                    PostFilePattern = "*.md;*.mdx"
+                };
+            });
 
         // Configure MonorailCSS
         services.AddMonorailCss(sp =>
@@ -79,8 +78,12 @@ public static class DocSiteServiceExtensions
                     DesignSystem = defaultSettings.DesignSystem with
                     {
                         FontFamilies = defaultSettings.DesignSystem.FontFamilies
-                            .Add("display", new FontFamilyDefinition(options.DisplayFontFamily ?? "-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, Adwaita Sans, Cantarell, Ubuntu, roboto, noto, helvetica, arial, sans-serif;"))
-                            .SetItem("sans", new FontFamilyDefinition(options.BodyFontFamily ?? "-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, Adwaita Sans, Cantarell, Ubuntu, roboto, noto, helvetica, arial, sans-serif;"))
+                            .Add("display",
+                                new FontFamilyDefinition(options.DisplayFontFamily ??
+                                                         "-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, Adwaita Sans, Cantarell, Ubuntu, roboto, noto, helvetica, arial, sans-serif;"))
+                            .SetItem("sans",
+                                new FontFamilyDefinition(options.BodyFontFamily ??
+                                                         "-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, Adwaita Sans, Cantarell, Ubuntu, roboto, noto, helvetica, arial, sans-serif;"))
                     },
                 },
                 ExtraStyles = options.ExtraStyles ?? string.Empty
@@ -94,7 +97,7 @@ public static class DocSiteServiceExtensions
         // Add connected solution only if solution path is configured
         if (!string.IsNullOrWhiteSpace(tempOptions.SolutionPath))
         {
-            services.AddConnectedRoslynSolution(serviceProvider =>
+            contentEngineService.WithConnectedRoslynSolution(serviceProvider =>
             {
                 var o = serviceProvider.GetRequiredService<DocSiteOptions>();
                 return new CodeAnalysisOptions
@@ -106,17 +109,17 @@ public static class DocSiteServiceExtensions
 
         if (tempOptions.ApiReferenceContentOptions != null)
         {
-            services.AddApiReferenceContentService(_ => tempOptions.ApiReferenceContentOptions);
+            contentEngineService.WithApiReferenceContentService(_ => tempOptions.ApiReferenceContentOptions);
         }
         else if (tempOptions.IncludeNamespaces != null || tempOptions.ExcludeNamespaces != null)
         {
-            services.AddApiReferenceContentService(_ => new ApiReferenceContentOptions()
+            contentEngineService.WithApiReferenceContentService(_ => new ApiReferenceContentOptions()
             {
                 IncludeNamespace = tempOptions.IncludeNamespaces ?? [],
                 ExcludedNamespace = tempOptions.ExcludeNamespaces ?? [],
             });
         }
-        
+
         return services;
     }
 

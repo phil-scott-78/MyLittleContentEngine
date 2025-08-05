@@ -42,11 +42,20 @@ Add the ApiReferenceContentService to your application in `Program.cs`:
 
 ```csharp
 // Add API reference content service 
-builder.Services.AddApiReferenceContentService(_ => new ApiReferenceContentOptions()
-{
-    IncludeNamespace = ["MyLittleContentEngine"],
-    ExcludedNamespace = ["MyLittleContentEngine.Tests"],
-});
+
+builder.Services.AddContentEngineService(_ => new ContentEngineOptions
+    {
+        // existing site config
+    })
+    .WithConnectedRoslynSolution(_ => new CodeAnalysisOptions()
+    {
+        SolutionPath = "../../{path-to-your-solution}.sln",
+    })
+    .WithApiReferenceContentService(_ => new ApiReferenceContentOptions()
+    {
+        IncludeNamespace = ["MyLittleContentEngine"],
+        ExcludedNamespace = ["MyLittleContentEngine.Tests"],
+    });
 ```
 
 This will register an `ApiReferenceContentService` that can be used to generate API documentation for the specified
@@ -61,7 +70,7 @@ site generation. These URLs must match the routing configuration of your Razor p
 ### Basic URL Configuration
 
 ```csharp
-builder.Services.AddApiReferenceContentService(_ => new ApiReferenceContentOptions()
+.WithApiReferenceContentService(_ => new ApiReferenceContentOptions()
 {
     BasePageUrl = "docs", // Changes base from "api" to "docs"
     IncludeNamespace = ["MyLittleContentEngine"],

@@ -1,14 +1,12 @@
-using System.IO.Abstractions;
 using MyLittleContentEngine;
 using MyLittleContentEngine.Services.Content;
-using MyLittleContentEngine.Services.Infrastructure;
 
 namespace RecipeExample;
 
 public static class RecipeContentServiceExtensions
 {
-    public static IServiceCollection AddRecipeContentService(
-        this IServiceCollection services,
+    public static IConfiguredContentEngineServiceCollection AddRecipeContentService(
+        this IConfiguredContentEngineServiceCollection services,
         Action<RecipeContentOptions>? configureOptions = null)
     {
         var options = new RecipeContentOptions();

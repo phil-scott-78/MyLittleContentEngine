@@ -73,23 +73,18 @@ This configuration ensures that:
 <Step stepNumber="3">
 ## Configure Roslyn Service
 
-Update `Program.cs` to include Roslyn configuration. Add the required using statement:
-
-```csharp
-using MyLittleContentEngine.Services.Content.Roslyn;
-```
-
-Then add the Roslyn service configuration before `var app = builder.Build();`:
+Update `Program.cs` to include Roslyn configuration. Chain the Roslyn service configuration to your current `AddContentEngineService` call:
 
 ```csharp
 // Add Roslyn service for code syntax highlighting and documentation
-builder.Services.AddRoslynService(_ => new RoslynHighlighterOptions()
-{
-    ConnectedSolution = new ConnectedDotNetSolution()
+builder.Services.AddContentEngineService(_ => new ContentEngineOptions
+    {
+        // existing site config
+    })
+    .WithConnectedRoslynSolution(_ => new CodeAnalysisOptions()
     {
         SolutionPath = "../../{path-to-your-solution}.sln",
-    }
-});
+    });
 ```
 
 The `SolutionPath` should point to your .NET solution file. This is relative to the host application root. Adjust the

@@ -63,6 +63,11 @@ internal class RazorPageContentService : IContentService
                     // Try to find and load metadata from sidecar .yml file
                     var metadata = await TryLoadMetadataAsync(component);
                     var outputFile = route.TrimStart('/').Replace('/', Path.DirectorySeparatorChar).ToLowerInvariant();
+                    if (string.IsNullOrEmpty(outputFile))
+                    {
+                        outputFile = "index";
+                    }
+
                     outputFile = $"{outputFile}.html";
                     var pageToGenerate = new PageToGenerate(route, outputFile, metadata);
 
