@@ -23,7 +23,13 @@
       "Bash(dotnet sln:*)",
       "Bash(dotnet restore:*)",
       "WebFetch(domain:github.com)",
-      "Bash(BaseHref=\"/env-base-url\" dotnet run)"
+      "Bash(BaseHref=\"/env-base-url\" dotnet run)",
+      "Bash(vhs:*)",
+      "Bash(git tag:*)",
+      "Bash(git log:*)"
+    ],
+    "additionalDirectories": [
+      "b:\\spectre\\"
     ]
   },
   "model": "sonnet",

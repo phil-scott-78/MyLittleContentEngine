@@ -69,6 +69,12 @@ jobs:
                 continue
               fi
 
+              # Skip Spectre.Console.Examples as it isn't a web app
+              if [ "$example_name" = "Spectre.Console.Examples" ]; then
+                echo "Skipping Spectre.Console.Examples (example project used elsewhere)"
+                continue
+              fi
+
               # Create output directory for this example
               mkdir -p "${{ env.WEBAPP_PATH }}output/examples/$example_name"
 

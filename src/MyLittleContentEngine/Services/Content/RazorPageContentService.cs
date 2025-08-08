@@ -116,7 +116,8 @@ internal class RazorPageContentService : IContentService
                         Title: metadata.Title ?? component.Name,
                         Url: primaryRoute,
                         Order: metadata.Order,
-                        HierarchyParts: hierarchyParts
+                        HierarchyParts: hierarchyParts,
+                        Section: metadata.Section
                     );
 
                     tocItems = tocItems.Add(tocItem);

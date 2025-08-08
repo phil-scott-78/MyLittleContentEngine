@@ -25,6 +25,8 @@ public class BlogSiteFrontMatter : IFrontMatter
     public string Series { get; init; } = string.Empty;
 
     public string? RedirectUrl { get; init; }
+
+    public string? Section { get; init; }
     
     public Metadata AsMetadata()
     {

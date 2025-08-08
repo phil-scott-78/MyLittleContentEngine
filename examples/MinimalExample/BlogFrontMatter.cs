@@ -12,6 +12,7 @@ public class BlogFrontMatter : IFrontMatter
     public bool IsDraft { get; init; } = false;
     public string[] Tags { get; init; } = [];
     public string? RedirectUrl { get; init; }
+    public string? Section { get; init; }
     
     public Metadata AsMetadata()
     {

@@ -23,6 +23,7 @@ class PageManager {
         this.mermaidManager = new MermaidManager();
         this.mobileNavManager = new MobileNavManager();
         this.mainSiteNavManager = new MainSiteNavManager();
+        this.sidebarToggleManager = new SidebarToggleManager();
         this.searchManager = new SearchManager();
 
         // Initialize all components
@@ -32,6 +33,7 @@ class PageManager {
         this.mermaidManager.init();
         this.mobileNavManager.init();
         this.mainSiteNavManager.init();
+        this.sidebarToggleManager.init();
         this.searchManager.init();
     }
 }
@@ -102,7 +104,7 @@ class OutlineManager {
 
         // Initialize all links and build section map
         this.outlineLinks.forEach(link => {
-            link.dataset.selected ='false';
+            link.dataset.selected = 'false';
 
             const id = this.extractIdFromHref(link.getAttribute('href'));
             if (id) {
@@ -123,7 +125,7 @@ class OutlineManager {
             this.handleIntersection.bind(this),
             {
                 rootMargin: '-130px 0px -25%', // Very generous - catch sections with small margins
-                threshold: [1] // Just needs any part visible
+                threshold: [0] // Any part visible
             }
         );
 
@@ -312,7 +314,7 @@ class TabManager {
     activateTab(selectedTab, allTabs) {
         // Deactivate all tabs
         allTabs.forEach(tab => {
-            tab.dataset.selected  ='false';
+            tab.dataset.selected = 'false';
             tab.setAttribute('data-state', 'inactive');
             tab.setAttribute('tabindex', '-1');
         });
@@ -795,6 +797,86 @@ class MainSiteNavManager {
 
     closeMenu() {
         this.mobileMenu.dataset.expanded = 'false';
+    }
+}
+
+/**
+ * Sidebar Toggle Manager - Handles table of contents sidebar toggle for Spectre.Console-style layouts
+ */
+class SidebarToggleManager {
+    constructor() {
+        this.sidebarToggle = null;
+        this.sidebarOverlay = null;
+        this.sidebarClose = null;
+        this.sidebarPanel = null;
+    }
+
+    init() {
+        this.sidebarToggle = document.getElementById('sidebar-toggle');
+        this.sidebarOverlay = document.getElementById('sidebar-overlay');
+        this.sidebarClose = document.getElementById('sidebar-close');
+        this.sidebarPanel = document.getElementById('sidebar-panel');
+        
+        if (this.sidebarToggle && this.sidebarOverlay) {
+            this.setupEventListeners();
+        }
+    }
+
+    setupEventListeners() {
+        // Toggle sidebar on button click
+        this.sidebarToggle.addEventListener('click', () => {
+            this.toggleSidebar();
+        });
+        
+        // Close sidebar when clicking close button
+        if (this.sidebarClose) {
+            this.sidebarClose.addEventListener('click', () => {
+                this.closeSidebar();
+            });
+        }
+        
+        // Close sidebar when clicking on overlay (but not the panel)
+        this.sidebarOverlay.addEventListener('click', (e) => {
+            if (e.target === this.sidebarOverlay) {
+                this.closeSidebar();
+            }
+        });
+        
+        // Stop propagation on panel to prevent closing when clicking inside
+        if (this.sidebarPanel) {
+            this.sidebarPanel.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+        }
+        
+        // Close sidebar on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.isSidebarOpen()) {
+                this.closeSidebar();
+            }
+        });
+    }
+
+    toggleSidebar() {
+        if (this.isSidebarOpen()) {
+            this.closeSidebar();
+        } else {
+            this.openSidebar();
+        }
+    }
+
+    isSidebarOpen() {
+        return !this.sidebarOverlay.classList.contains('hidden');
+    }
+
+    openSidebar() {
+        this.sidebarOverlay.classList.remove('hidden');
+        document.body.setAttribute('data-sidebar-open', 'true');
+    }
+
+    closeSidebar() {
+        this.sidebarOverlay.classList.add('hidden');
+        document.body.setAttribute('data-sidebar-open', 'false');
     }
 }
 

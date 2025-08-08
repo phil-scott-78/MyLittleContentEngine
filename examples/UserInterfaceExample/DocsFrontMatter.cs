@@ -11,6 +11,7 @@ public class DocsFrontMatter : IFrontMatter
     public int Order { get; init; } = int.MaxValue;
     public string? Uid { get; init; } = null;
     public string? RedirectUrl { get; init; }
+    public string? Section { get; init; }
     
     public Metadata AsMetadata()
     {

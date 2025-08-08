@@ -1,0 +1,62 @@
+@page "/blog/{*fileName:nonfile}"
+@layout BlogLayout
+@inject IMarkdownContentService<BlogFrontMatter> BlogService
+
+@if (_post == null)
+{
+    <div class="text-center py-16">
+        <h2 class="text-2xl font-display font-bold text-base-900 dark:text-base-100">Post not found</h2>
+        <p class="mt-2 text-base-600 dark:text-base-400">The blog post you're looking for doesn't exist.</p>
+        <a href="/blog" class="mt-4 inline-block text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300">
+            ← Back to blog
+        </a>
+    </div>
+    return;
+}
+
+<PageTitle>@_post.FrontMatter.Title - Spectre.Console Blog</PageTitle>
+
+<HeadContent>
+    <meta property="og:title" content="@_post.FrontMatter.Title" />
+    <meta property="og:description" content="@_post.FrontMatter.Description" />
+    <meta property="og:type" content="article" />
+    <meta property="og:site_name" content="Spectre.Console Blog" />
+    <meta property="article:published_time" content="@_post.FrontMatter.Date.ToString("yyyy-MM-ddTHH:mm:ssZ")" />
+    
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="@_post.FrontMatter.Title" />
+    <meta name="twitter:description" content="@_post.FrontMatter.Description" />
+</HeadContent>
+
+<BlogPost MarkdownContentPage="_post" HtmlContent="@_postContent" Series="_series"/>
+
+@code {
+    [Parameter] public required string FileName { get; init; }
+    
+    private MarkdownContentPage<BlogFrontMatter>? _post;
+    private string? _postContent;
+    private List<MarkdownContentPage<BlogFrontMatter>>? _series;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var page = await BlogService.GetRenderedContentPageByUrlOrDefault(FileName);
+        if (page == null)
+        {
+            _post = null;
+            _postContent = null;
+            return;
+        }
+        
+        _post = page.Value.Page;
+        _postContent = page.Value.HtmlContent;
+        
+        if (_post != null && !string.IsNullOrWhiteSpace(_post.FrontMatter.Series))
+        {
+            var allPosts = await BlogService.GetAllContentPagesAsync();
+            _series = allPosts
+                .Where(i => string.Equals(i.FrontMatter.Series, _post.FrontMatter.Series, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(i => i.FrontMatter.Date)
+                .ToList();
+        }
+    }
+}

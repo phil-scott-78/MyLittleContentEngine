@@ -32,4 +32,5 @@ public class DocsFrontMatter : IFrontMatter
     }
 
     public string? Uid { get; init; } = null;
+    public string? Section { get; init; }
 }

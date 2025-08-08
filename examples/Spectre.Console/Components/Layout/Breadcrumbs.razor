@@ -1,0 +1,45 @@
+@using MyLittleContentEngine.Services.Content.TableOfContents
+
+@if (Items != null && Items.Any())
+{
+    <nav class="flex items-center text-sm text-base-600 dark:text-base-400 mb-4 flex-wrap">
+        @foreach (var (breadcrumb, index) in Items.Select((b, i) => (b, i)))
+        {
+            @if (index > 0)
+            {
+                <svg class="w-4 h-4 mx-2" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            }
+            
+            @if (breadcrumb.IsCurrent)
+            {
+                <span class="text-base-900 dark:text-base-100">@breadcrumb.Name</span>
+            }
+            else
+            {
+                <a href="@breadcrumb.Href" class="hover:text-base-900 dark:hover:text-base-100 transition-colors">@breadcrumb.Name</a>
+            }
+        }
+    </nav>
+}
+
+@code {
+    /// <summary>
+    /// The breadcrumb items to display in the navigation trail.
+    /// </summary>
+    [Parameter] 
+    public IEnumerable<BreadcrumbItem>? Items { get; set; }
+    
+    /// <summary>
+    /// Optional CSS class to apply to the nav element.
+    /// </summary>
+    [Parameter] 
+    public string? CssClass { get; set; }
+    
+    /// <summary>
+    /// Optional separator icon between breadcrumb items. Defaults to chevron right.
+    /// </summary>
+    [Parameter]
+    public RenderFragment? Separator { get; set; }
+}

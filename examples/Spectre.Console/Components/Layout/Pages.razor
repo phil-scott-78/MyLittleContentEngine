@@ -1,0 +1,193 @@
+@page "/cli/{*fileName:nonfile}"
+@page "/console/{*fileName:nonfile}"
+@using MyLittleContentEngine.Services.Content.TableOfContents
+@inject ContentEngineOptions ContentEngineOptions
+@inject IEnumerable<IMarkdownContentService<SpectreConsoleCliFrontMatter>> CliMarkdownContentServices
+@inject IEnumerable<IMarkdownContentService<SpectreConsoleFrontMatter>> ConsoleMarkdownContentServices
+@inject NavigationManager NavigationManager
+@inject ITableOfContentService TableOfContentService
+
+@if (_postContent == null || _navigationInfo == null)
+{
+    <PageTitle>@ContentEngineOptions.SiteTitle</PageTitle>
+    <div class="text-center py-12">
+        <svg class="w-16 h-16 mx-auto text-base-400 dark:text-base-600 mb-4" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
+        <h2 class="text-2xl font-bold text-base-900 dark:text-base-100 mb-2">Page Not Found</h2>
+        <p class="text-base-600 dark:text-base-400 mb-6">The @(_navigationInfo?.SectionName ?? "documentation") page you're looking for doesn't exist.</p>
+        <a href="@($"/{_navigationInfo?.SectionPath ?? ""}" )" class="inline-flex items-center px-4 py-2 @ButtonColorClass text-white rounded-lg @ButtonHoverClass transition-colors">
+            <svg class="w-5 h-5 mr-2" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+            </svg>
+            Back to @(_navigationInfo?.SectionName ?? "Home")
+        </a>
+    </div>
+    return;
+}
+
+<PageTitle>@ContentEngineOptions.SiteTitle - @_navigationInfo.PageTitle</PageTitle>
+
+<article class="max-w-7xl mx-auto">
+    <!-- Article Header -->
+    <header class="mb-8 pb-8 border-b border-base-200 dark:border-base-700">
+        <Breadcrumbs Items="@_navigationInfo.Breadcrumbs" />
+        
+        <h1 class="text-4xl lg:text-5xl font-extrabold text-base-900 dark:text-base-100 mb-4">
+            @_navigationInfo.PageTitle
+        </h1>
+        
+        @if (!string.IsNullOrEmpty(_description))
+        {
+            <p class="text-xl text-base-600 dark:text-base-400">
+                @_description
+            </p>
+        }
+        
+        @if (_tags != null && _tags.Any())
+        {
+            <div class="flex flex-wrap gap-2 mt-4">
+                @foreach (var tag in _tags)
+                {
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium @TagColorClass">
+                        @tag
+                    </span>
+                }
+            </div>
+        }
+    </header>
+
+    <!-- Content with Outline -->
+    <div class="lg:flex lg:gap-8">
+        <!-- Main Content -->
+        <div class="flex-1 min-w-0">
+            <div class="prose dark:prose-invert max-w-full prose-headings:scroll-m-20" >
+                @((MarkupString)_postContent)
+            </div>
+        </div>
+        
+        <!-- Outline Navigation (Desktop) -->
+        @if (_outline is { Length: > 0 })
+        {
+            <aside class="hidden xl:block w-64 shrink-0">
+                <div class="sticky top-24">
+                    <h3 class="text-sm font-semibold text-base-900 dark:text-base-100 uppercase tracking-wider mb-3">
+                        On this page
+                    </h3>
+                    <div class="@(_isCliSection ? "border-l-2 border-base-200 dark:border-base-700 pl-3" : "")">
+                        <OutlineNavigation Outline="@_outline" />
+                    </div>
+                </div>
+            </aside>
+        }
+    </div>
+</article>
+
+<script>
+    window.toggleOutline = function() {
+        const overlay = document.getElementById('outline-overlay');
+        if (overlay) {
+            overlay.classList.toggle('hidden');
+        }
+    }
+</script>
+
+@code {
+    private string? _postContent;
+    private OutlineEntry[]? _outline;
+    private NavigationInfo? _navigationInfo;
+    private bool _isCliSection;
+    private string? _description;
+    private IEnumerable<string>? _tags;
+    
+    // Style classes based on section
+    private string ButtonColorClass => _isCliSection 
+        ? "bg-tertiary-one-600 dark:bg-tertiary-one-500" 
+        : "bg-primary-600 dark:bg-primary-500";
+    
+    private string ButtonHoverClass => _isCliSection 
+        ? "hover:bg-tertiary-one-700 dark:hover:bg-tertiary-one-600" 
+        : "hover:bg-primary-700 dark:hover:bg-primary-600";
+    
+    private string TagColorClass => _isCliSection 
+        ? "bg-tertiary-one-100 dark:bg-tertiary-one-900 text-tertiary-one-800 dark:text-tertiary-one-200" 
+        : "bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200";
+    
+    [Parameter] public required string FileName { get; init; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Determine which section we're in based on the URL
+        var uri = NavigationManager.Uri;
+        _isCliSection = uri.Contains("/cli/", StringComparison.OrdinalIgnoreCase);
+
+        var fileName = FileName;
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            fileName = "index";
+        }
+
+        if (_isCliSection)
+        {
+            await LoadCliContent(fileName);
+        }
+        else
+        {
+            await LoadConsoleContent(fileName);
+        }
+        
+        // Get navigation info from the TableOfContentService
+        if (_postContent != null)
+        {
+            var section = _isCliSection ? "cli" : "console";
+            var url = $"/{section}/{fileName}";
+            _navigationInfo = await TableOfContentService.GetNavigationInfoAsync(url);
+        }
+    }
+
+    private async Task LoadCliContent(string fileName)
+    {
+        var cliService = CliMarkdownContentServices.FirstOrDefault();
+        if (cliService == null) return;
+
+        var allPages = await cliService.GetAllContentPagesAsync();
+        var page = allPages.FirstOrDefault(p => 
+            p.Url.Equals($"/cli/{fileName}", StringComparison.OrdinalIgnoreCase) ||
+            p.Url.Equals($"cli/{fileName}", StringComparison.OrdinalIgnoreCase));
+
+        if (page != null)
+        {
+            var renderedPage = await cliService.GetRenderedContentPageByUrlOrDefault(page.Url.TrimStart('/'));
+            if (renderedPage != null)
+            {
+                _postContent = renderedPage.Value.HtmlContent;
+                _outline = renderedPage.Value.Page.Outline;
+                _description = renderedPage.Value.Page.FrontMatter.Description;
+                _tags = renderedPage.Value.Page.FrontMatter.Tags;
+            }
+        }
+    }
+
+    private async Task LoadConsoleContent(string fileName)
+    {
+        var consoleService = ConsoleMarkdownContentServices.FirstOrDefault();
+        if (consoleService == null) return;
+
+        var allPages = await consoleService.GetAllContentPagesAsync();
+        var page = allPages.FirstOrDefault(p => 
+            p.Url.Equals($"/console/{fileName}", StringComparison.OrdinalIgnoreCase) ||
+            p.Url.Equals($"console/{fileName}", StringComparison.OrdinalIgnoreCase));
+
+        if (page != null)
+        {
+            var renderedPage = await consoleService.GetRenderedContentPageByUrlOrDefault(page.Url.TrimStart('/'));
+            if (renderedPage != null)
+            {
+                _postContent = renderedPage.Value.HtmlContent;
+                _outline = renderedPage.Value.Page.Outline;
+                _description = renderedPage.Value.Page.FrontMatter.Description;
+                _tags = renderedPage.Value.Page.FrontMatter.Tags;
+            }
+        }
+    }
+}

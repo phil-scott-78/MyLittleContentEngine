@@ -31,4 +31,9 @@ public class Metadata
     /// Gets the order of the page in the navigation or table of contents. Default is 0, which means no specific order is set.
     /// </summary>
     public int Order { get; set; } = int.MaxValue;
+
+    /// <summary>
+    /// The section this content belongs to for table of contents grouping. Empty string means no section (global content).
+    /// </summary>
+    public string? Section { get; set; }
 }

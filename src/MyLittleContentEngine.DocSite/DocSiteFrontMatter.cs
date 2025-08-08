@@ -20,6 +20,8 @@ public class DocSiteFrontMatter : IFrontMatter
     public int Order { get; init; } = int.MaxValue;
     
     public string? RedirectUrl { get; init; }
+
+    public string? Section { get; init; }
     
     // probably should make this optional
     public Metadata AsMetadata()

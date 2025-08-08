@@ -15,6 +15,12 @@ public interface IContentService
     /// Default priority is 1. Recommended values: 1 (low), 5 (medium), 10 (high).
     /// </summary>
     int SearchPriority { get; }
+
+    /// <summary>
+    /// Gets the default section for content from this service. Used for grouping content in table of contents.
+    /// Individual content items can override this via their metadata. Empty string means no section (global content).
+    /// </summary>
+    string DefaultSection => "";
     /// <summary>
     /// Gets the collection of pages that should be generated for this content.
     /// </summary>

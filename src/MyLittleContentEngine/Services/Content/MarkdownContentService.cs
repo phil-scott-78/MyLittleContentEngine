@@ -45,6 +45,7 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
     private readonly ContentFilesService<TFrontMatter> _contentFilesService;
     private readonly MarkdownParserService _markdownParserService;
     private bool _isDisposed; // To detect redundant calls
+    private MarkdownContentOptions<TFrontMatter> _markdownContentOptions;
 
     /// <summary>
     ///     Initializes a new instance of the MarkdownContentService.
@@ -63,6 +64,7 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
         MarkdownParserService markdownParserService,
         MarkdownContentProcessor<TFrontMatter> contentProcessor)
     {
+        _markdownContentOptions = markdownContentOptions;
         _tagService = tagService;
         _contentFilesService = contentFilesService;
         _contentProcessor = contentProcessor;
@@ -176,6 +178,8 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
         var pages = await ((IContentService)this).GetPagesToGenerateAsync();
         var allContentPages = await GetAllContentPagesAsync();
 
+        var defaultSection = _markdownContentOptions.TableOfContentsSectionKey;
+    
         return pages.Where(p => p.Metadata?.Title != null)
             .Where(p =>
             {
@@ -183,11 +187,17 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
                 var contentPage = allContentPages.FirstOrDefault(cp => cp.Url == p.Url);
                 return contentPage?.FrontMatter.RedirectUrl == null;
             })
-            .Select(p => new ContentTocItem(
-                p.Metadata!.Title!,
-                p.Url,
-                p.Metadata.Order,
-                CreateHierarchyParts(p.Url)))
+            .Select(p =>
+            {
+                var contentPage = allContentPages.FirstOrDefault(cp => cp.Url == p.Url);
+                var section = contentPage?.FrontMatter.Section ?? defaultSection;
+                return new ContentTocItem(
+                    p.Metadata!.Title!,
+                    p.Url,
+                    p.Metadata.Order,
+                    CreateHierarchyParts(p.Url),
+                    section);
+            })
             .ToImmutableList();
     }
 

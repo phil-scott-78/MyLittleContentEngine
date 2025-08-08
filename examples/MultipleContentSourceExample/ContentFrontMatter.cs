@@ -10,6 +10,7 @@ public class ContentFrontMatter : IFrontMatter
     public bool IsDraft { get; init; }
     public string? Uid { get; init; }
     public string? RedirectUrl { get; init; }
+    public string? Section { get; init; }
     
     public Metadata AsMetadata()
     {

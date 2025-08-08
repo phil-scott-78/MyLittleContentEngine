@@ -1,0 +1,85 @@
+@page "/blog"
+@layout BlogLayout
+@inject IMarkdownContentService<BlogFrontMatter> BlogService
+
+<PageTitle>Blog - Spectre.Console</PageTitle>
+
+<div class="mx-auto max-w-4xl">
+    <div class="mb-12 text-center">
+        <h1 class="font-display text-4xl md:text-5xl font-bold text-base-900 dark:text-base-100">
+            Blog
+        </h1>
+        <p class="mt-4 text-lg text-base-600 dark:text-base-400">
+            News, updates, and insights from the Spectre.Console team
+        </p>
+    </div>
+
+    @if (_posts == null)
+    {
+        <div class="text-center py-8">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+        </div>
+    }
+    else if (!_posts.Any())
+    {
+        <div class="text-center py-16 text-base-500 dark:text-base-400">
+            <p>No blog posts available yet.</p>
+        </div>
+    }
+    else
+    {
+        <div class="space-y-8">
+            @foreach (var post in _posts.OrderByDescending(p => p.FrontMatter.Date))
+            {
+                <article class="group p-6 bg-white dark:bg-base-900 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-base-200 dark:border-base-800">
+                    <a href="/blog/@post.Url" class="block">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <h2 class="text-xl font-display font-semibold text-base-900 dark:text-base-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
+                                    @post.FrontMatter.Title
+                                </h2>
+                                <p class="mt-2 text-base-600 dark:text-base-400 line-clamp-2">
+                                    @post.FrontMatter.Description
+                                </p>
+                                <div class="mt-4 flex items-center text-sm text-base-500 dark:text-base-500">
+                                    <time datetime="@post.FrontMatter.Date.ToString("yyyy-MM-dd")">
+                                        @post.FrontMatter.Date.ToString("MMMM d, yyyy")
+                                    </time>
+                                    @if (!string.IsNullOrEmpty(post.FrontMatter.Author))
+                                    {
+                                        <span class="mx-2">•</span>
+                                        <span>@post.FrontMatter.Author</span>
+                                    }
+                                    @if (post.Tags.Any())
+                                    {
+                                        <span class="mx-2">•</span>
+                                        <div class="flex gap-2">
+                                            @foreach (var tag in post.Tags.Take(3))
+                                            {
+                                                <span class="text-primary-600 dark:text-primary-400">@tag.Name</span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                            <svg class="ml-4 h-5 w-5 text-base-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors" 
+                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </div>
+                    </a>
+                </article>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private IList<MarkdownContentPage<BlogFrontMatter>>? _posts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _posts = await BlogService.GetAllContentPagesAsync();
+        _posts = _posts.Where(p => !p.FrontMatter.IsDraft).ToList();
+    }
+}

@@ -28,6 +28,11 @@ public interface IFrontMatter
     string? RedirectUrl { get; init; }
 
     /// <summary>
+    /// The section this content belongs to for table of contents grouping. Empty string means no section (global content).
+    /// </summary>
+    string? Section { get; init; }
+
+    /// <summary>
     /// Converts the FrontMatter into structured metadata for RSS and SiteMap generation.
     /// </summary>
     public Metadata AsMetadata();

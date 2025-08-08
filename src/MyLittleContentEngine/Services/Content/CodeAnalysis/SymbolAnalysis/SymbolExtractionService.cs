@@ -52,7 +52,7 @@ internal class SymbolExtractionService : ISymbolExtractionService
         var symbols = new ConcurrentDictionary<string, SymbolInfo>();
         var projects = await _workspaceService.GetProjectsAsync();
 
-        await Parallel.ForEachAsync(projects, async (project, ct) =>
+        await Parallel.ForEachAsync(projects, async (project, _) =>
         {
             try
             {
@@ -85,10 +85,48 @@ internal class SymbolExtractionService : ISymbolExtractionService
 
         try
         {
+            // we need to get the syntax root so we can also find any leading whitespace 
+
+            var syntaxRoot = await symbolInfo.Document.GetSyntaxRootAsync();
+            if (syntaxRoot == null)
+            {
+                // theoretically we should always get the syntax root, but if not fallback to highlighting
+                // only the symbol
+                var backupFragment = await CodeFragmentExtractor.ExtractCodeFragmentAsync(
+                    symbolInfo.Document,
+                    symbolInfo.TextSpan,
+                    symbolInfo.SourceText,
+                    bodyOnly);
+                
+                return TextFormatter.NormalizeIndents(backupFragment);
+
+            }
+            var node = syntaxRoot.FindNode(symbolInfo.TextSpan);
+
+            var leadingTrivia = node.GetLeadingTrivia();
+
+            // Filter for only whitespace trivia
+            var whitespaceTrivia = leadingTrivia
+                .Reverse() // start from closest to the node
+                .TakeWhile(t => t.IsKind(SyntaxKind.WhitespaceTrivia))
+                .Reverse()
+                .ToList();
+
+            // Calculate the new span start by subtracting the length of the whitespace trivia
+            var extraWhitespaceLength = whitespaceTrivia.Sum(t => t.Span.Length);
+            var newStart = node.SpanStart - extraWhitespaceLength;
+
+            // Clamp newStart to avoid going out of bounds
+            newStart = Math.Max(0, newStart);
+
+            var extendedSpan = TextSpan.FromBounds(newStart, symbolInfo.TextSpan.End);
+
+            var sourceText = symbolInfo.SourceText;
+
             var fragment = await CodeFragmentExtractor.ExtractCodeFragmentAsync(
                 symbolInfo.Document,
-                symbolInfo.TextSpan,
-                symbolInfo.SourceText,
+                extendedSpan,
+                sourceText,
                 bodyOnly);
 
             return TextFormatter.NormalizeIndents(fragment);
@@ -272,7 +310,7 @@ internal class SymbolExtractionService : ISymbolExtractionService
         try
         {
             var xDoc = XDocument.Parse(xmlString);
-            var summary = xDoc.Descendants("summary").FirstOrDefault()?.Value?.Trim();
+            var summary = xDoc.Descendants("summary").FirstOrDefault()?.Value.Trim();
             return summary;
         }
         catch

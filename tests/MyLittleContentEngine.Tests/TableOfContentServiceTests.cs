@@ -9,6 +9,87 @@ namespace MyLittleContentEngine.Tests;
 public class TableOfContentServiceTests
 {
     private class TestContentService2(params (string title, string url, int order)[] pages) : TestContentService(pages);
+
+    private class WebContentService : IContentService
+    {
+        private readonly ImmutableList<PageToGenerate> _pages;
+
+        public WebContentService(params (string title, string url, int order)[] pages)
+        {
+            _pages = pages.Select(p => new PageToGenerate(
+                p.url,
+                p.url,
+                new Metadata { Title = p.title, Order = p.order, Section = "Web" })).ToImmutableList();
+        }
+
+        public int SearchPriority { get; } = 0;
+        public string DefaultSection => "Web";
+        public Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync() => Task.FromResult(_pages);
+        public Task<ImmutableList<ContentTocItem>> GetContentTocEntriesAsync() => Task.FromResult(_pages.Where(p => p.Metadata?.Title != null).Select(p => new ContentTocItem(p.Metadata!.Title!, p.Url, p.Metadata.Order, p.Url.Trim('/').Split(['/'], StringSplitOptions.RemoveEmptyEntries), p.Metadata.Section)).ToImmutableList());
+        public Task<ImmutableList<ContentToCopy>> GetContentToCopyAsync() => Task.FromResult(ImmutableList<ContentToCopy>.Empty);
+        public Task<ImmutableList<CrossReference>> GetCrossReferencesAsync() => Task.FromResult(ImmutableList<CrossReference>.Empty);
+    }
+
+    private class ConsoleContentService : IContentService
+    {
+        private readonly ImmutableList<PageToGenerate> _pages;
+
+        public ConsoleContentService(params (string title, string url, int order)[] pages)
+        {
+            _pages = pages.Select(p => new PageToGenerate(
+                p.url,
+                p.url,
+                new Metadata { Title = p.title, Order = p.order, Section = "Console" })).ToImmutableList();
+        }
+
+        public int SearchPriority { get; } = 0;
+        public string DefaultSection => "Console";
+        public Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync() => Task.FromResult(_pages);
+        public Task<ImmutableList<ContentTocItem>> GetContentTocEntriesAsync() => Task.FromResult(_pages.Where(p => p.Metadata?.Title != null).Select(p => new ContentTocItem(p.Metadata!.Title!, p.Url, p.Metadata.Order, p.Url.Trim('/').Split(['/'], StringSplitOptions.RemoveEmptyEntries), p.Metadata.Section)).ToImmutableList());
+        public Task<ImmutableList<ContentToCopy>> GetContentToCopyAsync() => Task.FromResult(ImmutableList<ContentToCopy>.Empty);
+        public Task<ImmutableList<CrossReference>> GetCrossReferencesAsync() => Task.FromResult(ImmutableList<CrossReference>.Empty);
+    }
+
+    private class TestContentServiceWithItemSection : IContentService
+    {
+        public int SearchPriority { get; } = 0;
+        public string DefaultSection => "Console"; // Service default is Console
+
+        public Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync() => 
+            Task.FromResult(ImmutableList.Create(
+                new PageToGenerate("/service-default", "/service-default", new Metadata { Title = "Service Default Item", Order = 1 }),
+                new PageToGenerate("/override-item", "/override-item", new Metadata { Title = "Override Item", Order = 2, Section = "Web" })
+            ));
+
+        public Task<ImmutableList<ContentTocItem>> GetContentTocEntriesAsync() => 
+            Task.FromResult(ImmutableList.Create(
+                new ContentTocItem("Service Default Item", "/service-default", 1, ["service-default"]), // Uses service default section
+                new ContentTocItem("Override Item", "/override-item", 2, ["override-item"], "Web") // Overrides to Web section
+            ));
+
+        public Task<ImmutableList<ContentToCopy>> GetContentToCopyAsync() => Task.FromResult(ImmutableList<ContentToCopy>.Empty);
+        public Task<ImmutableList<CrossReference>> GetCrossReferencesAsync() => Task.FromResult(ImmutableList<CrossReference>.Empty);
+    }
+
+    private class WebContentService2 : IContentService
+    {
+        private readonly ImmutableList<PageToGenerate> _pages;
+
+        public WebContentService2(params (string title, string url, int order)[] pages)
+        {
+            _pages = pages.Select(p => new PageToGenerate(
+                p.url,
+                p.url,
+                new Metadata { Title = p.title, Order = p.order, Section = "Web" })).ToImmutableList();
+        }
+
+        public int SearchPriority { get; } = 0;
+        public string DefaultSection => "Web";
+        public Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync() => Task.FromResult(_pages);
+        public Task<ImmutableList<ContentTocItem>> GetContentTocEntriesAsync() => Task.FromResult(_pages.Where(p => p.Metadata?.Title != null).Select(p => new ContentTocItem(p.Metadata!.Title!, p.Url, p.Metadata.Order, p.Url.Trim('/').Split(['/'], StringSplitOptions.RemoveEmptyEntries), p.Metadata.Section)).ToImmutableList());
+        public Task<ImmutableList<ContentToCopy>> GetContentToCopyAsync() => Task.FromResult(ImmutableList<ContentToCopy>.Empty);
+        public Task<ImmutableList<CrossReference>> GetCrossReferencesAsync() => Task.FromResult(ImmutableList<CrossReference>.Empty);
+    }
     
     // Test-specific concrete implementations of IContentService
     private class TestContentService : IContentService
@@ -237,6 +318,132 @@ public class TableOfContentServiceTests
         result.Count.ShouldBe(2);
         result.Any(e => e.Name == "Home").ShouldBeTrue();
         result.Any(e => e.Name == "About").ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task GetNavigationTocAsync_WithSection_FiltersOnlySpecificSection()
+    {
+        // Arrange
+        var contentService1 = new WebContentService(("Web Home", "/web-home", 1), ("Web Guide", "/web-guide", 2));
+        var contentService2 = new ConsoleContentService(("Console Home", "/console-home", 1), ("Console Guide", "/console-guide", 2));
+        var contentService3 = new TestContentService(("Global Page", "/global", 1)); // No section
+        var contentServices = new List<IContentService> { contentService1, contentService2, contentService3 };
+        var service = new TableOfContentService(contentServices);
+
+        // Act
+        var webResult = await service.GetNavigationTocAsync("/current", "Web");
+        var consoleResult = await service.GetNavigationTocAsync("/current", "Console");
+        var globalResult = await service.GetNavigationTocAsync("/current", "");
+
+        // Assert
+        webResult.Count.ShouldBe(2);
+        webResult.Any(e => e.Name == "Web Home").ShouldBeTrue();
+        webResult.Any(e => e.Name == "Web Guide").ShouldBeTrue();
+        webResult.Any(e => e.Name == "Console Home").ShouldBeFalse();
+
+        consoleResult.Count.ShouldBe(2);  
+        consoleResult.Any(e => e.Name == "Console Home").ShouldBeTrue();
+        consoleResult.Any(e => e.Name == "Console Guide").ShouldBeTrue();
+        consoleResult.Any(e => e.Name == "Web Home").ShouldBeFalse();
+
+        globalResult.Count.ShouldBe(1);
+        globalResult.Any(e => e.Name == "Global Page").ShouldBeTrue();
+        globalResult.Any(e => e.Name == "Web Home").ShouldBeFalse();
+    }
+
+    [Fact]
+    public async Task GetNavigationTocAsync_WithSection_IncludesItemsWithOverrideSection()
+    {
+        // Arrange - Test item-level section override
+        var contentService = new TestContentServiceWithItemSection();
+        var service = new TableOfContentService([contentService]);
+
+        // Act
+        var webResult = await service.GetNavigationTocAsync("/current", "Web");
+        var consoleResult = await service.GetNavigationTocAsync("/current", "Console");
+        
+        // Assert
+        webResult.Count.ShouldBe(1);
+        webResult.Any(e => e.Name == "Override Item").ShouldBeTrue();
+        
+        consoleResult.Count.ShouldBe(1);
+        consoleResult.Any(e => e.Name == "Service Default Item").ShouldBeTrue();
+    }
+
+    [Fact]
+    public async Task GetNextPreviousAsync_WithSection_FiltersOnlySpecificSection()
+    {
+        // Arrange
+        var contentService1 = new WebContentService(("Web Page 1", "/web/page1", 1), ("Web Page 2", "/web/page2", 2));
+        var contentService2 = new ConsoleContentService(("Console Page 1", "/console/page1", 1), ("Console Page 2", "/console/page2", 2));
+        var contentServices = new List<IContentService> { contentService1, contentService2 };
+        var service = new TableOfContentService(contentServices);
+
+        // Act
+        var webResult = await service.GetNextPreviousAsync("/web/page1", "Web");
+        var consoleResult = await service.GetNextPreviousAsync("/console/page1", "Console");
+
+        // Assert
+        webResult.Previous.ShouldBeNull();
+        webResult.Next?.Name.ShouldBe("Web Page 2");
+        webResult.Next?.Href.ShouldBe("/web/page2");
+
+        consoleResult.Previous.ShouldBeNull();
+        consoleResult.Next?.Name.ShouldBe("Console Page 2");
+        consoleResult.Next?.Href.ShouldBe("/console/page2");
+    }
+
+    [Fact]
+    public async Task GetSectionsAsync_ReturnsAllDefinedSections()
+    {
+        // Arrange
+        var contentService1 = new WebContentService(("Web Home", "/web-home", 1));
+        var contentService2 = new ConsoleContentService(("Console Home", "/console-home", 1));
+        var contentService3 = new TestContentService(("Global Page", "/global", 1)); // No section (empty string)
+        var contentService4 = new TestContentServiceWithItemSection(); // Mixed sections
+        var contentServices = new List<IContentService> { contentService1, contentService2, contentService3, contentService4 };
+        var service = new TableOfContentService(contentServices);
+
+        // Act
+        var sections = await service.GetSectionsAsync();
+
+        // Assert
+        sections.Count.ShouldBe(3); // "", "Console", "Web" (sorted)
+        sections[0].ShouldBe(""); // Empty string (global) comes first when sorted
+        sections[1].ShouldBe("Console");
+        sections[2].ShouldBe("Web");
+    }
+
+    [Fact]
+    public async Task GetSectionsAsync_WithNoSections_ReturnsEmptyStringOnly()
+    {
+        // Arrange
+        var contentService = new TestContentService(("Global Page 1", "/global1", 1), ("Global Page 2", "/global2", 2));
+        var service = new TableOfContentService([contentService]);
+
+        // Act
+        var sections = await service.GetSectionsAsync();
+
+        // Assert
+        sections.Count.ShouldBe(1);
+        sections[0].ShouldBe(""); // Only global section
+    }
+
+    [Fact]
+    public async Task GetSectionsAsync_WithDuplicateSections_ReturnsUniqueValues()
+    {
+        // Arrange
+        var contentService1 = new WebContentService(("Web Page 1", "/web1", 1), ("Web Page 2", "/web2", 2));
+        var contentService2 = new WebContentService2(("Web Page 3", "/web3", 1)); // Same section as service1 but different service type
+        var contentServices = new List<IContentService> { contentService1, contentService2 };
+        var service = new TableOfContentService(contentServices);
+
+        // Act
+        var sections = await service.GetSectionsAsync();
+
+        // Assert
+        sections.Count.ShouldBe(1);
+        sections[0].ShouldBe("Web"); // Only unique sections returned
     }
 
     [Fact]

@@ -147,10 +147,13 @@ else
         _post = page.Value.Page;
         _postContent = page.Value.HtmlContent;
 
-        var nextPrevious = await TableOfContentService.GetNextPreviousAsync(page.Value.Page.Url);
-        _nextPage = nextPrevious.Next;
-        _previousPage = nextPrevious.Previous;
-
+        var nextPrevious = await TableOfContentService.GetNavigationInfoAsync(page.Value.Page.Url);
+        if (nextPrevious != null)
+        {
+            _nextPage = nextPrevious.NextPage;
+            _previousPage = nextPrevious.PreviousPage;    
+        }
+        
         IsLoaded = true;
     }
 }

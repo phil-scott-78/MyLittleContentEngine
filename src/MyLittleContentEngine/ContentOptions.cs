@@ -92,6 +92,11 @@ public record MarkdownContentOptions<TFrontMatter> : IContentOptions
     public TagsOptions Tags { get; init; } = new();
 
     /// <summary>
+    /// Gets or sets the default section key for Table of Content rendering.
+    /// </summary>
+    public string TableOfContentsSectionKey { get; init; } = string.Empty;
+
+    /// <summary>
     /// Gets or sets a function to create content URLs from file paths.
     /// </summary>
     /// <remarks>
