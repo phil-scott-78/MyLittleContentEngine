@@ -32,7 +32,7 @@
             @foreach (var post in _posts.OrderByDescending(p => p.FrontMatter.Date))
             {
                 <article class="group p-6 bg-white dark:bg-base-900 rounded-lg shadow-sm hover:shadow-md transition-shadow border border-base-200 dark:border-base-800">
-                    <a href="/blog/@post.Url" class="block">
+                    <a href="@post.Url" class="block">
                         <div class="flex items-start justify-between">
                             <div class="flex-1">
                                 <h2 class="text-xl font-display font-semibold text-base-900 dark:text-base-100 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors">
@@ -63,7 +63,7 @@
                                 </div>
                             </div>
                             <svg class="ml-4 h-5 w-5 text-base-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors" 
-                                 fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                 viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
                             </svg>
                         </div>
