@@ -15,7 +15,7 @@
             @if (_toc != null && _toc.Count > 0)
             {
                 <aside class="hidden lg:block lg:w-64 xl:w-72 shrink-0">
-                    <div class="sticky top-16 overflow-y-auto max-h-[calc(100vh-4rem)] pr-4 -mr-4">
+                    <div class="sticky top-16 scrollbar-gutter-thumb-900 dark:scrollbar-thin dark:scrollbar-thumb-base-700 dark:scrollbar-track-base-950 overflow-y-auto max-h-[calc(100vh-4rem)] pr-4 -mr-4">
                         <div class="py-8">
                             <TableOfContentsNavigation TableOfContents="@_toc" Section="@CurrentSection"/>
                         </div>

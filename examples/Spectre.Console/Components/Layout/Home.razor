@@ -55,10 +55,10 @@
                 {
                     <div class="mb-6">
                         <h3 class="font-semibold text-sm uppercase tracking-wide text-base-700 dark:text-base-300 mb-3">
-                            Popular Topics
+                            Get Started
                         </h3>
                         <ul class="space-y-2">
-                            @foreach (var p in _consolePages.Take(4).OrderBy(i => i.FrontMatter.Title))
+                            @foreach (var p in _consolePages.Where(p => p.Url.Contains("/tutorials/")).OrderBy(i => i.FrontMatter.Title))
                             {
                                 <li>
                                     <a href="@p.Url" class="flex items-center text-primary-700 dark:text-primary-400 hover:text-primary-800 dark:hover:text-primary-300 group/link">
@@ -102,10 +102,10 @@
                 {
                     <div class="mb-6">
                         <h3 class="font-semibold text-sm uppercase tracking-wide text-base-700 dark:text-base-300 mb-3">
-                            Popular Topics
+                            Get Started
                         </h3>
                         <ul class="space-y-2">
-                            @foreach (var p in _cliPages.Take(4).OrderBy(i => i.FrontMatter.Title))
+                            @foreach (var p in _cliPages.Where(p => p.Url.Contains("/tutorials/")).OrderBy(i => i.FrontMatter.Title))
                             {
                                 <li>
                                     <a href="@p.Url" class="flex items-center text-tertiary-one-700 dark:text-tertiary-one-400 hover:text-tertiary-one-800 dark:hover:text-tertiary-one-300 group/link">

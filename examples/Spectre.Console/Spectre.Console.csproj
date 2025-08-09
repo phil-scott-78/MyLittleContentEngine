@@ -12,7 +12,5 @@
     <ProjectReference Include="..\..\src\MyLittleContentEngine.UI\MyLittleContentEngine.UI.csproj" />
     <ProjectReference Include="..\..\src\MyLittleContentEngine\MyLittleContentEngine.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Content\cli\" />
-  </ItemGroup>
+
 </Project>

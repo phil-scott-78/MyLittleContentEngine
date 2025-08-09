@@ -18,6 +18,14 @@ Spectre.Console is a .NET library that makes it easier to create beautiful conso
 - Interactive prompts
 - And much more!
 
+## Installation
+
+Install Spectre.Console via NuGet:
+
+```bash
+dotnet add package Spectre.Console
+```
+
 ## Quick Start
 
 ```csharp
@@ -27,3 +35,10 @@ AnsiConsole.WriteLine("Hello, [bold yellow]World[/]!");
 ```
 
 This will output "Hello, World!" with "World" in bold yellow text.
+
+## Tutorials
+
+Get started with our comprehensive tutorials:
+
+- [Getting Started: Building Rich Console App](/console/tutorials/getting-started-building-rich-console-app)
+- [Interactive Prompt and Dashboard Tutorial](/console/tutorials/interactive-prompt-and-dashboard-tutorial)

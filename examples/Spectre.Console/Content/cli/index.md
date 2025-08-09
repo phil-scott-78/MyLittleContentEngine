@@ -20,6 +20,14 @@ Spectre.Console.Cli is a command-line parsing library that helps you build CLI a
 - **Validation**: Input validation with custom error messages
 - **Convention over Configuration**: Sensible defaults that follow CLI best practices
 
+## Installation
+
+Install Spectre.Console.Cli via NuGet:
+
+```bash
+dotnet add package Spectre.Console.Cli
+```
+
 ## Getting Started
 
 Choose your learning path:
