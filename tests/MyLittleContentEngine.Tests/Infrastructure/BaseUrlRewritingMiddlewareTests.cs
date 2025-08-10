@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Infrastructure;
 using MyLittleContentEngine.Tests.TestHelpers;
+using Shouldly;
 
 namespace MyLittleContentEngine.Tests.Infrastructure;
 
@@ -46,7 +47,7 @@ public class BaseUrlRewritingMiddlewareTests
         
         // Assert
         var responseContent = await ReadResponseContent(context);
-        Assert.Contains("""<a href="/myapp/api/system/string">String Documentation</a>""", responseContent);
+        responseContent.ShouldContain("""<a href="/myapp/api/system/string">String Documentation</a>""");
     }
 
     [Fact]
@@ -85,11 +86,11 @@ public class BaseUrlRewritingMiddlewareTests
         // Assert
         var responseContent = await ReadResponseContent(context);
         // Check that the original xref URL is no longer present
-        Assert.DoesNotContain("""<a href="xref:UnknownType">""", responseContent);
+        responseContent.ShouldNotContain("""<a href="xref:UnknownType">""");
         // Check that we have an error span with the xref UID
-        Assert.Contains(""""data-xref-uid="UnknownType"""", responseContent);
-        Assert.Contains(""""data-xref-error="Reference not found"""", responseContent);
-        Assert.Contains("Unknown Documentation", responseContent);
+        responseContent.ShouldContain(""""data-xref-uid="UnknownType"""");
+        responseContent.ShouldContain(""""data-xref-error="Reference not found"""");
+        responseContent.ShouldContain("Unknown Documentation");
     }
 
     [Fact]
@@ -132,8 +133,8 @@ public class BaseUrlRewritingMiddlewareTests
         
         // Assert
         var responseContent = await ReadResponseContent(context);
-        Assert.Contains("""<a href="/myapp/api/system/string">String Documentation</a>""", responseContent);
-        Assert.Contains("""<a href="/myapp/docs/guide">Regular Link</a>""", responseContent);
+        responseContent.ShouldContain("""<a href="/myapp/api/system/string">String Documentation</a>""");
+        responseContent.ShouldContain("""<a href="/myapp/docs/guide">Regular Link</a>""");
     }
 
     [Fact]
@@ -176,10 +177,10 @@ public class BaseUrlRewritingMiddlewareTests
         // Assert
         var responseContent = await ReadResponseContent(context);
         // Since XrefResolver is present but has no cross-references, unresolved xrefs should show error spans
-        Assert.DoesNotContain("""<a href="xref:System.String">""", responseContent);
-        Assert.Contains(""""data-xref-uid="System.String"""", responseContent);
-        Assert.Contains(""""data-xref-error="Reference not found"""", responseContent);
-        Assert.Contains("""<a href="/myapp/docs/guide">Regular Link</a>""", responseContent);
+        responseContent.ShouldNotContain("""<a href="xref:System.String">""");
+        responseContent.ShouldContain(""""data-xref-uid="System.String"""");
+        responseContent.ShouldContain(""""data-xref-error="Reference not found"""");
+        responseContent.ShouldContain("""<a href="/myapp/docs/guide">Regular Link</a>""");
     }
 
     [Fact]
@@ -219,8 +220,8 @@ public class BaseUrlRewritingMiddlewareTests
         
         // Assert
         var responseContent = await ReadResponseContent(context);
-        Assert.Contains("""<a href="/myapp/docs/guides/linking">Linking Documents and Media</a>""", responseContent);
-        Assert.DoesNotContain("<xref:", responseContent);
+        responseContent.ShouldContain("""<a href="/myapp/docs/guides/linking">Linking Documents and Media</a>""");
+        responseContent.ShouldNotContain("<xref:");
     }
 
     [Fact]
@@ -258,10 +259,10 @@ public class BaseUrlRewritingMiddlewareTests
         
         // Assert
         var responseContent = await ReadResponseContent(context);
-        Assert.Contains(""""data-xref-uid="unknown.reference"""", responseContent);
-        Assert.Contains(""""data-xref-error="Reference not found"""", responseContent);
-        Assert.Contains("Reference not found: unknown.reference", responseContent);
-        Assert.DoesNotContain("<xref:", responseContent);
+        responseContent.ShouldContain(""""data-xref-uid="unknown.reference"""");
+        responseContent.ShouldContain(""""data-xref-error="Reference not found"""");
+        responseContent.ShouldContain("Reference not found: unknown.reference");
+        responseContent.ShouldNotContain("<xref:");
     }
 
     [Fact]
@@ -301,8 +302,8 @@ public class BaseUrlRewritingMiddlewareTests
         
         // Assert
         var responseContent = await ReadResponseContent(context);
-        Assert.Contains("""<a href="/myapp/docs/guides/linking">Linking Documents and Media</a>""", responseContent);
-        Assert.DoesNotContain("xref:docs.guides.linking-documents-and-media", responseContent);
+        responseContent.ShouldContain("""<a href="/myapp/docs/guides/linking">Linking Documents and Media</a>""");
+        responseContent.ShouldNotContain("xref:docs.guides.linking-documents-and-media");
     }
 
     [Fact]
@@ -344,8 +345,8 @@ public class BaseUrlRewritingMiddlewareTests
         var responseContent = await ReadResponseContent(context);
         // Should not be processed by our new pattern because href and content don't match
         // It should be processed by the existing XrefPattern instead
-        Assert.Contains("""<a href="/myapp/docs/guides/linking">Different Content</a>""", responseContent);
-        Assert.DoesNotContain("xref:docs.guides.linking-documents-and-media", responseContent);
+        responseContent.ShouldContain("""<a href="/myapp/docs/guides/linking">Different Content</a>""");
+        responseContent.ShouldNotContain("xref:docs.guides.linking-documents-and-media");
     }
 
     private static HttpContext CreateHttpContext(IServiceProvider serviceProvider)
@@ -419,14 +420,14 @@ public class BaseUrlRewritingMiddlewareTests
         var responseContent = await ReadResponseContent(context);
         
         // All srcset URLs should be rewritten
-        Assert.Contains("/MyLittleContentEngine/images/beer-cheese-xs.webp 480w", responseContent);
-        Assert.Contains("/MyLittleContentEngine/images/beer-cheese-sm.webp 768w", responseContent);
-        Assert.Contains("/MyLittleContentEngine/images/beer-cheese-md.webp 1024w", responseContent);
-        Assert.Contains("/MyLittleContentEngine/images/beer-cheese-lg.webp 1440w", responseContent);
-        Assert.Contains("/MyLittleContentEngine/images/beer-cheese-xl.webp 1920w", responseContent);
+        responseContent.ShouldContain("/MyLittleContentEngine/images/beer-cheese-xs.webp 480w");
+        responseContent.ShouldContain("/MyLittleContentEngine/images/beer-cheese-sm.webp 768w");
+        responseContent.ShouldContain("/MyLittleContentEngine/images/beer-cheese-md.webp 1024w");
+        responseContent.ShouldContain("/MyLittleContentEngine/images/beer-cheese-lg.webp 1440w");
+        responseContent.ShouldContain("/MyLittleContentEngine/images/beer-cheese-xl.webp 1920w");
         
         // The src attribute should also be rewritten
-        Assert.Contains(@"src=""/MyLittleContentEngine/images/beer-cheese-md.webp""", responseContent);
+        responseContent.ShouldContain(@"src=""/MyLittleContentEngine/images/beer-cheese-md.webp""");
     }
 
     [Fact]
@@ -471,11 +472,11 @@ public class BaseUrlRewritingMiddlewareTests
         var responseContent = await ReadResponseContent(context);
         
         // Already rewritten URL should remain unchanged
-        Assert.Contains("/MyLittleContentEngine/images/already-rewritten.webp 480w", responseContent);
+        responseContent.ShouldContain("/MyLittleContentEngine/images/already-rewritten.webp 480w");
         // New URL should be rewritten
-        Assert.Contains("/MyLittleContentEngine/images/needs-rewriting.webp 768w", responseContent);
+        responseContent.ShouldContain("/MyLittleContentEngine/images/needs-rewriting.webp 768w");
         // The src attribute should also be rewritten
-        Assert.Contains(@"src=""/MyLittleContentEngine/images/needs-rewriting.webp""", responseContent);
+        responseContent.ShouldContain(@"src=""/MyLittleContentEngine/images/needs-rewriting.webp""");
     }
 
     [Fact]
@@ -525,14 +526,14 @@ public class BaseUrlRewritingMiddlewareTests
         var responseContent = await ReadResponseContent(context);
         
         // All srcset URLs should be rewritten (including those on new lines)
-        Assert.Contains("/MyLittleContentEngine/images/chicken-piccata-xs.webp 480w", responseContent);
-        Assert.Contains("/MyLittleContentEngine/images/chicken-piccata-sm.webp 768w", responseContent);
-        Assert.Contains("/MyLittleContentEngine/images/chicken-piccata-md.webp 1024w", responseContent);
-        Assert.Contains("/MyLittleContentEngine/images/chicken-piccata-lg.webp 1440w", responseContent);
-        Assert.Contains("/MyLittleContentEngine/images/chicken-piccata-xl.webp 1920w", responseContent);
+        responseContent.ShouldContain("/MyLittleContentEngine/images/chicken-piccata-xs.webp 480w");
+        responseContent.ShouldContain("/MyLittleContentEngine/images/chicken-piccata-sm.webp 768w");
+        responseContent.ShouldContain("/MyLittleContentEngine/images/chicken-piccata-md.webp 1024w");
+        responseContent.ShouldContain("/MyLittleContentEngine/images/chicken-piccata-lg.webp 1440w");
+        responseContent.ShouldContain("/MyLittleContentEngine/images/chicken-piccata-xl.webp 1920w");
         
         // Should not contain HTML entities for newlines
-        Assert.DoesNotContain("&#xA;", responseContent);
+        responseContent.ShouldNotContain("&#xA;");
         
         // The actual srcset attribute value should not contain newlines
         var srcsetValueStart = responseContent.IndexOf("srcset=\"", StringComparison.Ordinal) + 8;
@@ -540,9 +541,9 @@ public class BaseUrlRewritingMiddlewareTests
         var srcsetValue = responseContent.Substring(srcsetValueStart, srcsetValueEnd - srcsetValueStart);
         
         // Should not contain literal newlines in the srcset attribute value
-        Assert.DoesNotContain("\n", srcsetValue);
+        srcsetValue.ShouldNotContain("\n");
         
         // The src attribute should also be rewritten
-        Assert.Contains(@"src=""/MyLittleContentEngine/images/chicken-piccata-md.webp""", responseContent);
+        responseContent.ShouldContain(@"src=""/MyLittleContentEngine/images/chicken-piccata-md.webp""");
     }
 }

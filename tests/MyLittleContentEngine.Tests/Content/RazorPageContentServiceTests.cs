@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging.Abstractions;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content;
+using Shouldly;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -38,16 +39,11 @@ public class RazorPageContentServiceTests
         var result = await _service.GetPagesToGenerateAsync();
 
         // Assert
-        Assert.NotEmpty(result);
+        result.ShouldNotBeEmpty();
         
         // Verify we get some pages (the exact count depends on the test assembly's components)
         var pages = result.ToList();
-        Assert.All(pages, page =>
-        {
-            Assert.False(page.Url.IsEmpty);
-            Assert.False(page.OutputFile.IsEmpty);
-            Assert.Null(page.Metadata); // No sidecar files provided
-        });
+        pages.ShouldAllBe(page => !page.Url.IsEmpty && !page.OutputFile.IsEmpty && page.Metadata == null);
     }
 
     [Fact]
@@ -73,7 +69,7 @@ public class RazorPageContentServiceTests
         var result = await _service.GetPagesToGenerateAsync();
 
         // Assert
-        Assert.NotEmpty(result);
+        result.ShouldNotBeEmpty();
         
         // Note: Since we're testing against the actual assembly components,
         // we can't guarantee a specific component will have metadata loaded
@@ -98,7 +94,7 @@ public class RazorPageContentServiceTests
         var result = await _service.GetPagesToGenerateAsync();
 
         // Assert
-        Assert.NotEmpty(result);
+        result.ShouldNotBeEmpty();
         // Service should handle invalid YAML gracefully and continue
     }
 
@@ -109,7 +105,7 @@ public class RazorPageContentServiceTests
         var result = await _service.GetContentTocEntriesAsync();
 
         // Assert
-        Assert.Empty(result);
+        result.ShouldBeEmpty();
     }
 
     [Fact]
@@ -136,7 +132,7 @@ public class RazorPageContentServiceTests
         // Note: Since we're testing against the actual assembly components,
         // we can't guarantee our mock metadata will be loaded, but we can verify
         // that the method doesn't crash and returns a valid collection
-        Assert.NotNull(result);
+        result.ShouldNotBeNull();
     }
 
     [Fact]
@@ -149,7 +145,7 @@ public class RazorPageContentServiceTests
 
         // Assert
         // Should return empty since no pages have metadata
-        Assert.Empty(result);
+        result.ShouldBeEmpty();
     }
 
     [Fact]
@@ -159,7 +155,7 @@ public class RazorPageContentServiceTests
         var result = await _service.GetContentToCopyAsync();
 
         // Assert
-        Assert.Equal(ImmutableList<ContentToCopy>.Empty, result);
+        result.ShouldBe(ImmutableList<ContentToCopy>.Empty);
     }
 
     [Fact]
@@ -169,14 +165,14 @@ public class RazorPageContentServiceTests
         var result = await _service.GetCrossReferencesAsync();
 
         // Assert
-        Assert.Equal(ImmutableList<CrossReference>.Empty, result);
+        result.ShouldBe(ImmutableList<CrossReference>.Empty);
     }
 
     [Fact]
     public void SearchPriority_ReturnsMediumPriority()
     {
         // Act & Assert
-        Assert.Equal(5, _service.SearchPriority);
+        _service.SearchPriority.ShouldBe(5);
     }
 
     [Fact]
@@ -189,11 +185,7 @@ public class RazorPageContentServiceTests
         var pages = result.ToList();
         
         // Verify no parameterized routes are included
-        Assert.All(pages, page =>
-        {
-            Assert.DoesNotContain("{", page.Url);
-            Assert.DoesNotContain("}", page.Url);
-        });
+        pages.ShouldAllBe(page => !page.Url.Value.Contains("{") && !page.Url.Value.Contains("}"));
     }
 
     [Fact]
@@ -206,10 +198,10 @@ public class RazorPageContentServiceTests
         var pages = result.ToList();
         
         // Should find the IntegrationTestComponent defined in this test assembly
-        Assert.Contains(pages, p => p.Url == "/integration-test");
+        pages.ShouldContain(p => p.Url == "/integration-test");
         
         // Verify we get pages from multiple assemblies (at least the test assembly)
-        Assert.NotEmpty(pages);
+        pages.ShouldNotBeEmpty();
     }
 
     [Fact]
@@ -236,7 +228,7 @@ public class RazorPageContentServiceTests
         var result = await _service.GetPagesToGenerateAsync();
 
         // Assert
-        Assert.NotEmpty(result);
+        result.ShouldNotBeEmpty();
         // The metadata should NOT be loaded since files are not side-by-side
         // This test verifies the service enforces the side-by-side requirement
     }

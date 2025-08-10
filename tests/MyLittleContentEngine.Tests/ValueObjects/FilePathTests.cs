@@ -1,5 +1,6 @@
 using System.IO.Abstractions.TestingHelpers;
 using MyLittleContentEngine.Services;
+using Shouldly;
 
 namespace MyLittleContentEngine.Tests.ValueObjects;
 
@@ -23,7 +24,7 @@ public class FilePathTests
     public void Constructor_HandlesEmptyPaths(string? input, string expected)
     {
         var path = new FilePath(input);
-        Assert.Equal(expected, path.Value);
+        path.Value.ShouldBe(expected);
     }
 
     [Theory]
@@ -33,7 +34,7 @@ public class FilePathTests
     public void IsAbsolute_ReturnsCorrectValue(string input, bool expected)
     {
         var path = new FilePath(input);
-        Assert.Equal(expected, path.IsAbsolute);
+        path.IsAbsolute.ShouldBe(expected);
     }
 
     [Fact]
@@ -44,7 +45,7 @@ public class FilePathTests
             new FilePath("folder"),
             new FilePath("file.txt")
         );
-        Assert.Equal(@"C:\test\folder\file.txt", result.Value);
+        result.Value.ShouldBe(@"C:\test\folder\file.txt");
     }
 
     [Fact]
@@ -53,7 +54,7 @@ public class FilePathTests
         var path1 = new FilePath(@"C:\test");
         var path2 = new FilePath("file.txt");
         var result = path1 / path2;
-        Assert.Equal(@"C:\test\file.txt", result.Value);
+        result.Value.ShouldBe(@"C:\test\file.txt");
     }
 
     [Fact]
@@ -61,7 +62,7 @@ public class FilePathTests
     {
         var path = new FilePath(@"C:\test\folder\file.txt");
         var directory = path.GetDirectory();
-        Assert.Equal(@"C:\test\folder", directory.Value);
+        directory.Value.ShouldBe(@"C:\test\folder");
     }
 
     [Fact]
@@ -69,7 +70,7 @@ public class FilePathTests
     {
         var path = new FilePath(@"C:\test\file.txt");
         var fileName = path.GetFileName();
-        Assert.Equal("file.txt", fileName);
+        fileName.ShouldBe("file.txt");
     }
 
     [Fact]
@@ -77,7 +78,7 @@ public class FilePathTests
     {
         var path = new FilePath(@"C:\test\file.txt");
         var fileName = path.GetFileNameWithoutExtension();
-        Assert.Equal("file", fileName);
+        fileName.ShouldBe("file");
     }
 
     [Fact]
@@ -85,7 +86,7 @@ public class FilePathTests
     {
         var path = new FilePath(@"C:\test\file.txt");
         var extension = path.GetExtension();
-        Assert.Equal(".txt", extension);
+        extension.ShouldBe(".txt");
     }
 
     [Fact]
@@ -93,7 +94,7 @@ public class FilePathTests
     {
         var path = new FilePath(@"C:\test\file.txt");
         var newPath = path.ChangeExtension(".md");
-        Assert.Equal(@"C:\test\file.md", newPath.Value);
+        newPath.Value.ShouldBe(@"C:\test\file.md");
     }
 
     [Fact]
@@ -102,35 +103,35 @@ public class FilePathTests
         var path = new FilePath(@"C:\test\folder\subfolder\file.txt");
         var basePath = new FilePath(@"C:\test");
         var relative = path.GetRelativeTo(basePath);
-        Assert.Equal(@"folder\subfolder\file.txt", relative.Value);
+        relative.Value.ShouldBe(@"folder\subfolder\file.txt");
     }
 
     [Fact]
     public void FileExists_ReturnsTrueForExistingFile()
     {
         var path = new FilePath(@"C:\test\file.txt");
-        Assert.True(path.FileExists(_fileSystem));
+        path.FileExists(_fileSystem).ShouldBeTrue();
     }
 
     [Fact]
     public void FileExists_ReturnsFalseForNonExistingFile()
     {
         var path = new FilePath(@"C:\test\nonexistent.txt");
-        Assert.False(path.FileExists(_fileSystem));
+        path.FileExists(_fileSystem).ShouldBeFalse();
     }
 
     [Fact]
     public void DirectoryExists_ReturnsTrueForExistingDirectory()
     {
         var path = new FilePath(@"C:\test");
-        Assert.True(path.DirectoryExists(_fileSystem));
+        path.DirectoryExists(_fileSystem).ShouldBeTrue();
     }
 
     [Fact]
     public void DirectoryExists_ReturnsFalseForNonExistingDirectory()
     {
         var path = new FilePath(@"C:\nonexistent");
-        Assert.False(path.DirectoryExists(_fileSystem));
+        path.DirectoryExists(_fileSystem).ShouldBeFalse();
     }
 
     [Fact]
@@ -138,7 +139,7 @@ public class FilePathTests
     {
         var filePath = new FilePath(@"content\blog\post.md");
         var urlPath = filePath.ToUrlPath();
-        Assert.Equal("content/blog/post.md", urlPath.Value);
+        urlPath.Value.ShouldBe("content/blog/post.md");
     }
 
     [Fact]
@@ -146,7 +147,7 @@ public class FilePathTests
     {
         var urlPath = new UrlPath("content/blog/post.md");
         var filePath = FilePath.FromUrlPath(urlPath);
-        Assert.Equal(@"content\blog\post.md", filePath.Value);
+        filePath.Value.ShouldBe(@"content\blog\post.md");
     }
 
     [Fact]
@@ -154,7 +155,7 @@ public class FilePathTests
     {
         var path = new FilePath(@"C:\newdir\file.txt");
         path.EnsureDirectoryExists(_fileSystem);
-        Assert.True(_fileSystem.Directory.Exists(@"C:\newdir"));
+        _fileSystem.Directory.Exists(@"C:\newdir").ShouldBeTrue();
     }
 
     [Fact]
@@ -162,14 +163,14 @@ public class FilePathTests
     {
         var path = new FilePath(@"C:\test\folder\file.txt");
         var parent = path.GetParent();
-        Assert.Equal(@"C:\test\folder", parent.Value);
+        parent.Value.ShouldBe(@"C:\test\folder");
     }
 
     [Fact]
     public void IsValid_ReturnsTrueForValidPath()
     {
         var path = new FilePath(@"C:\test\file.txt");
-        Assert.True(path.IsValid());
+        path.IsValid().ShouldBeTrue();
     }
 
     [Fact]
@@ -177,7 +178,7 @@ public class FilePathTests
     {
         var basePath = new FilePath(@"C:\test");
         var result = basePath.Combine("folder", "subfolder", "file.txt");
-        Assert.Equal(@"C:\test\folder\subfolder\file.txt", result.Value);
+        result.Value.ShouldBe(@"C:\test\folder\subfolder\file.txt");
     }
 
     [Fact]
@@ -187,10 +188,10 @@ public class FilePathTests
         var path2 = new FilePath(@"C:\test\file.txt");
         var path3 = new FilePath(@"C:\test\other.txt");
 
-        Assert.Equal(path1, path2);
-        Assert.NotEqual(path1, path3);
-        Assert.True(path1 == path2);
-        Assert.True(path1 != path3);
+        path1.ShouldBe(path2);
+        path1.ShouldNotBe(path3);
+        (path1 == path2).ShouldBeTrue();
+        (path1 != path3).ShouldBeTrue();
     }
 
     [Fact]
@@ -200,7 +201,7 @@ public class FilePathTests
         {
             var path1 = new FilePath(@"C:\Test\File.txt");
             var path2 = new FilePath(@"c:\test\file.txt");
-            Assert.Equal(path1, path2);
+            path1.ShouldBe(path2);
         }
     }
 
@@ -208,7 +209,7 @@ public class FilePathTests
     public void ImplicitConversion_FromString()
     {
         FilePath path = @"C:\test\file.txt";
-        Assert.Equal(@"C:\test\file.txt", path.Value);
+        path.Value.ShouldBe(@"C:\test\file.txt");
     }
 
     [Fact]
@@ -216,22 +217,22 @@ public class FilePathTests
     {
         var path = new FilePath(@"C:\test\file.txt");
         string value = path;
-        Assert.Equal(@"C:\test\file.txt", value);
+        value.ShouldBe(@"C:\test\file.txt");
     }
 
     [Fact]
     public void TryParse_ValidPath_ReturnsTrue()
     {
         var success = FilePath.TryParse(@"C:\test\file.txt", out var path);
-        Assert.True(success);
-        Assert.Equal(@"C:\test\file.txt", path!.Value);
+        success.ShouldBeTrue();
+        path!.ShouldBe(new FilePath(@"C:\test\file.txt"));
     }
 
     [Fact]
     public void TryParse_NullPath_ReturnsTrue()
     {
         var success = FilePath.TryParse(null, out var path);
-        Assert.True(success);
-        Assert.Equal("", path!.Value);
+        success.ShouldBeTrue();
+        path!.ShouldBe(new FilePath(""));
     }
 }

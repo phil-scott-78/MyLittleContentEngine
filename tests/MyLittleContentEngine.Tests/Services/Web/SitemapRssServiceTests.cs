@@ -3,6 +3,7 @@ using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Content.TableOfContents;
 using MyLittleContentEngine.Services.Web;
+using Shouldly;
 
 namespace MyLittleContentEngine.Tests.Services.Web;
 
@@ -26,9 +27,9 @@ public class SitemapRssServiceTests
         var sitemap = await service.GenerateSitemap();
 
         // Assert
-        Assert.Contains("https://example.com/test-page", sitemap);
-        Assert.Contains("https://example.com/blog/post", sitemap);
-        Assert.DoesNotContain("https://example.com//", sitemap); // No double slashes
+        sitemap.ShouldContain("https://example.com/test-page");
+        sitemap.ShouldContain("https://example.com/blog/post");
+        sitemap.ShouldNotContain("https://example.com//"); // No double slashes
     }
 
     [Fact]
@@ -49,9 +50,9 @@ public class SitemapRssServiceTests
         var rssFeed = await service.GenerateRssFeed();
 
         // Assert
-        Assert.Contains("https://example.com/test-page", rssFeed);
-        Assert.Contains("https://example.com/blog/post", rssFeed);
-        Assert.DoesNotContain("https://example.com//", rssFeed); // No double slashes
+        rssFeed.ShouldContain("https://example.com/test-page");
+        rssFeed.ShouldContain("https://example.com/blog/post");
+        rssFeed.ShouldNotContain("https://example.com//"); // No double slashes
     }
 
     private class MockContentService : IContentService

@@ -1,5 +1,6 @@
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Tests.TestHelpers;
+using Shouldly;
 
 namespace MyLittleContentEngine.Tests.Content;
 
@@ -54,7 +55,7 @@ public class MarkdownContentServiceTests
             </html>
             """;
         
-        Assert.Equal(expectedHtml, html);
+        html.ShouldBe(expectedHtml);
     }
 
     [Fact]
@@ -87,7 +88,7 @@ public class MarkdownContentServiceTests
         }
 
         // Assert
-        Assert.Equal("<!-- Normal markdown would be rendered here -->", html);
+        html.ShouldBe("<!-- Normal markdown would be rendered here -->");
     }
 
     [Fact]
@@ -128,9 +129,9 @@ public class MarkdownContentServiceTests
             .ToList();
 
         // Assert
-        Assert.Single(filteredPages);
-        Assert.Equal("Normal Page", filteredPages[0].FrontMatter.Title);
-        Assert.Equal("/normal", filteredPages[0].Url);
+        filteredPages.ShouldHaveSingleItem();
+        filteredPages[0].FrontMatter.Title.ShouldBe("Normal Page");
+        filteredPages[0].Url.ShouldBe("/normal");
     }
 
     [Fact]
@@ -147,6 +148,6 @@ public class MarkdownContentServiceTests
         var shouldRedirect = !string.IsNullOrEmpty(testFrontMatter.RedirectUrl);
 
         // Assert
-        Assert.False(shouldRedirect);
+        shouldRedirect.ShouldBeFalse();
     }
 }

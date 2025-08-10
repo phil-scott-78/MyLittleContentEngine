@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Infrastructure;
 using MyLittleContentEngine.Tests.TestHelpers;
+using Shouldly;
 
 namespace MyLittleContentEngine.Tests.Infrastructure;
 
@@ -30,7 +31,7 @@ public class XrefResolverTests
         var result = await xrefResolver.ResolveAsync("System.String");
 
         // Assert
-        Assert.Equal("/api/system/string", result);
+        result.ShouldBe("/api/system/string");
     }
 
     [Fact]
@@ -52,7 +53,7 @@ public class XrefResolverTests
         var result = await xrefResolver.ResolveAsync("NonExistent.Type");
 
         // Assert
-        Assert.Null(result);
+        result.ShouldBeNull();
     }
 
     [Fact]
@@ -71,9 +72,9 @@ public class XrefResolverTests
         var xrefResolver = provider.GetRequiredService<IXrefResolver>();
 
         // Act & Assert
-        Assert.Null(await xrefResolver.ResolveAsync(""));
-        Assert.Null(await xrefResolver.ResolveAsync(null!));
-        Assert.Null(await xrefResolver.ResolveAsync("   "));
+        (await xrefResolver.ResolveAsync("")).ShouldBeNull();
+        (await xrefResolver.ResolveAsync(null!)).ShouldBeNull();
+        (await xrefResolver.ResolveAsync("   ")).ShouldBeNull();
     }
 
     [Fact]
@@ -94,9 +95,9 @@ public class XrefResolverTests
         var xrefResolver = provider.GetRequiredService<IXrefResolver>();
 
         // Act & Assert
-        Assert.Equal("/api/system/string", await xrefResolver.ResolveAsync("system.string"));
-        Assert.Equal("/api/system/string", await xrefResolver.ResolveAsync("SYSTEM.STRING"));
-        Assert.Equal("/api/system/string", await xrefResolver.ResolveAsync("System.String"));
+        (await xrefResolver.ResolveAsync("system.string")).ShouldBe("/api/system/string");
+        (await xrefResolver.ResolveAsync("SYSTEM.STRING")).ShouldBe("/api/system/string");
+        (await xrefResolver.ResolveAsync("System.String")).ShouldBe("/api/system/string");
     }
 }
 

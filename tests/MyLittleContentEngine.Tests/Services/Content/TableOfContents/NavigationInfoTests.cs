@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Content.TableOfContents;
 using Moq;
+using Shouldly;
 
 namespace MyLittleContentEngine.Tests.Services.Content.TableOfContents;
 
@@ -27,37 +28,37 @@ public class NavigationInfoTests
         var navigationInfo = await tableOfContentService.GetNavigationInfoAsync("/cli/advanced/configuration");
 
         // Assert
-        Assert.NotNull(navigationInfo);
-        Assert.Equal("CLI", navigationInfo.SectionName);
-        Assert.Equal("cli", navigationInfo.SectionPath);
-        Assert.Equal("Configuration", navigationInfo.PageTitle);
+        navigationInfo.ShouldNotBeNull();
+        navigationInfo.SectionName.ShouldBe("CLI");
+        navigationInfo.SectionPath.ShouldBe("cli");
+        navigationInfo.PageTitle.ShouldBe("Configuration");
         
         // Check breadcrumbs (should skip the duplicate "cli" from hierarchy)
-        Assert.Equal(4, navigationInfo.Breadcrumbs.Count);
-        Assert.Equal("Home", navigationInfo.Breadcrumbs[0].Name);
-        Assert.Equal("/", navigationInfo.Breadcrumbs[0].Href);
-        Assert.False(navigationInfo.Breadcrumbs[0].IsCurrent);
+        navigationInfo.Breadcrumbs.Count.ShouldBe(4);
+        navigationInfo.Breadcrumbs[0].Name.ShouldBe("Home");
+        navigationInfo.Breadcrumbs[0].Href.ShouldBe("/");
+        navigationInfo.Breadcrumbs[0].IsCurrent.ShouldBeFalse();
         
-        Assert.Equal("CLI", navigationInfo.Breadcrumbs[1].Name);
-        Assert.Equal("/cli", navigationInfo.Breadcrumbs[1].Href);
-        Assert.False(navigationInfo.Breadcrumbs[1].IsCurrent);
+        navigationInfo.Breadcrumbs[1].Name.ShouldBe("CLI");
+        navigationInfo.Breadcrumbs[1].Href.ShouldBe("/cli");
+        navigationInfo.Breadcrumbs[1].IsCurrent.ShouldBeFalse();
         
-        Assert.Equal("Advanced", navigationInfo.Breadcrumbs[2].Name);
-        Assert.Equal("/cli/advanced", navigationInfo.Breadcrumbs[2].Href);
-        Assert.False(navigationInfo.Breadcrumbs[2].IsCurrent);
+        navigationInfo.Breadcrumbs[2].Name.ShouldBe("Advanced");
+        navigationInfo.Breadcrumbs[2].Href.ShouldBe("/cli/advanced");
+        navigationInfo.Breadcrumbs[2].IsCurrent.ShouldBeFalse();
         
-        Assert.Equal("Configuration", navigationInfo.Breadcrumbs[3].Name);
-        Assert.Null(navigationInfo.Breadcrumbs[3].Href);
-        Assert.True(navigationInfo.Breadcrumbs[3].IsCurrent);
+        navigationInfo.Breadcrumbs[3].Name.ShouldBe("Configuration");
+        navigationInfo.Breadcrumbs[3].Href.ShouldBeNull();
+        navigationInfo.Breadcrumbs[3].IsCurrent.ShouldBeTrue();
         
         // Check next/previous navigation
-        Assert.NotNull(navigationInfo.PreviousPage);
-        Assert.Equal("Getting Started", navigationInfo.PreviousPage.Name);
-        Assert.Equal("/cli/getting-started", navigationInfo.PreviousPage.Href);
+        navigationInfo.PreviousPage.ShouldNotBeNull();
+        navigationInfo.PreviousPage.Name.ShouldBe("Getting Started");
+        navigationInfo.PreviousPage.Href.ShouldBe("/cli/getting-started");
         
-        Assert.NotNull(navigationInfo.NextPage);
-        Assert.Equal("Troubleshooting", navigationInfo.NextPage.Name);
-        Assert.Equal("/cli/troubleshooting", navigationInfo.NextPage.Href);
+        navigationInfo.NextPage.ShouldNotBeNull();
+        navigationInfo.NextPage.Name.ShouldBe("Troubleshooting");
+        navigationInfo.NextPage.Href.ShouldBe("/cli/troubleshooting");
     }
 
     [Fact]
@@ -78,7 +79,7 @@ public class NavigationInfoTests
         var navigationInfo = await tableOfContentService.GetNavigationInfoAsync("/nonexistent/page");
 
         // Assert
-        Assert.Null(navigationInfo);
+        navigationInfo.ShouldBeNull();
     }
 
     [Fact]
@@ -99,20 +100,20 @@ public class NavigationInfoTests
         var navigationInfo = await tableOfContentService.GetNavigationInfoAsync("/");
 
         // Assert
-        Assert.NotNull(navigationInfo);
-        Assert.Equal("Home", navigationInfo.SectionName);
-        Assert.Equal("", navigationInfo.SectionPath);
-        Assert.Equal("Welcome", navigationInfo.PageTitle);
+        navigationInfo.ShouldNotBeNull();
+        navigationInfo.SectionName.ShouldBe("Home");
+        navigationInfo.SectionPath.ShouldBe("");
+        navigationInfo.PageTitle.ShouldBe("Welcome");
         
         // Root page should have Home and itself in breadcrumbs
-        Assert.Equal(2, navigationInfo.Breadcrumbs.Count);
-        Assert.Equal("Home", navigationInfo.Breadcrumbs[0].Name);
-        Assert.Equal("/", navigationInfo.Breadcrumbs[0].Href);
-        Assert.False(navigationInfo.Breadcrumbs[0].IsCurrent);
+        navigationInfo.Breadcrumbs.Count.ShouldBe(2);
+        navigationInfo.Breadcrumbs[0].Name.ShouldBe("Home");
+        navigationInfo.Breadcrumbs[0].Href.ShouldBe("/");
+        navigationInfo.Breadcrumbs[0].IsCurrent.ShouldBeFalse();
         
-        Assert.Equal("Welcome", navigationInfo.Breadcrumbs[1].Name);
-        Assert.Null(navigationInfo.Breadcrumbs[1].Href);
-        Assert.True(navigationInfo.Breadcrumbs[1].IsCurrent);
+        navigationInfo.Breadcrumbs[1].Name.ShouldBe("Welcome");
+        navigationInfo.Breadcrumbs[1].Href.ShouldBeNull();
+        navigationInfo.Breadcrumbs[1].IsCurrent.ShouldBeTrue();
     }
 
     [Fact]
@@ -133,8 +134,8 @@ public class NavigationInfoTests
         var apiInfo = await tableOfContentService.GetNavigationInfoAsync("/api/reference");
 
         // Assert
-        Assert.NotNull(apiInfo);
-        Assert.Equal("API", apiInfo.SectionName);
+        apiInfo.ShouldNotBeNull();
+        apiInfo.SectionName.ShouldBe("API");
     }
     
     [Fact]
@@ -155,8 +156,8 @@ public class NavigationInfoTests
         var faqInfo = await tableOfContentService.GetNavigationInfoAsync("/faq/common");
 
         // Assert
-        Assert.NotNull(faqInfo);
-        Assert.Equal("FAQ", faqInfo.SectionName);
+        faqInfo.ShouldNotBeNull();
+        faqInfo.SectionName.ShouldBe("FAQ");
     }
     
     [Fact]
@@ -181,16 +182,16 @@ public class NavigationInfoTests
         var navigationInfo = await tableOfContentService.GetNavigationInfoAsync("/cli/how-to/working-with-multiple-command-hierarchies");
 
         // Assert - Should not have duplicate "CLI" in breadcrumbs
-        Assert.NotNull(navigationInfo);
-        Assert.Equal(4, navigationInfo.Breadcrumbs.Count);
+        navigationInfo.ShouldNotBeNull();
+        navigationInfo.Breadcrumbs.Count.ShouldBe(4);
         
-        Assert.Equal("Home", navigationInfo.Breadcrumbs[0].Name);
-        Assert.Equal("CLI", navigationInfo.Breadcrumbs[1].Name); // Section breadcrumb
-        Assert.Equal("How To", navigationInfo.Breadcrumbs[2].Name); // Formatted from "How-To"
-        Assert.Equal("Working with Multiple Command Hierarchies", navigationInfo.Breadcrumbs[3].Name);
+        navigationInfo.Breadcrumbs[0].Name.ShouldBe("Home");
+        navigationInfo.Breadcrumbs[1].Name.ShouldBe("CLI"); // Section breadcrumb
+        navigationInfo.Breadcrumbs[2].Name.ShouldBe("How To"); // Formatted from "How-To"
+        navigationInfo.Breadcrumbs[3].Name.ShouldBe("Working with Multiple Command Hierarchies");
         
         // The URL for "How To" should be correct
-        Assert.Equal("/cli/how-to", navigationInfo.Breadcrumbs[2].Href);
+        navigationInfo.Breadcrumbs[2].Href.ShouldBe("/cli/how-to");
     }
     
     [Fact]
@@ -213,18 +214,18 @@ public class NavigationInfoTests
         var firstPageInfo = await tableOfContentService.GetNavigationInfoAsync("/docs/intro");
         
         // Assert - First page has no previous
-        Assert.NotNull(firstPageInfo);
-        Assert.Null(firstPageInfo.PreviousPage);
-        Assert.NotNull(firstPageInfo.NextPage);
-        Assert.Equal("Getting Started", firstPageInfo.NextPage.Name);
+        firstPageInfo.ShouldNotBeNull();
+        firstPageInfo.PreviousPage.ShouldBeNull();
+        firstPageInfo.NextPage.ShouldNotBeNull();
+        firstPageInfo.NextPage.Name.ShouldBe("Getting Started");
         
         // Act - Last page
         var lastPageInfo = await tableOfContentService.GetNavigationInfoAsync("/docs/advanced");
         
         // Assert - Last page has no next
-        Assert.NotNull(lastPageInfo);
-        Assert.NotNull(lastPageInfo.PreviousPage);
-        Assert.Equal("Getting Started", lastPageInfo.PreviousPage.Name);
-        Assert.Null(lastPageInfo.NextPage);
+        lastPageInfo.ShouldNotBeNull();
+        lastPageInfo.PreviousPage.ShouldNotBeNull();
+        lastPageInfo.PreviousPage.Name.ShouldBe("Getting Started");
+        lastPageInfo.NextPage.ShouldBeNull();
     }
 }

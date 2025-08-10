@@ -1,4 +1,5 @@
 using MyLittleContentEngine.Services;
+using Shouldly;
 
 namespace MyLittleContentEngine.Tests.ValueObjects;
 
@@ -17,7 +18,7 @@ public class UrlPathTests
     public void Constructor_NormalizesPath(string? input, string expected)
     {
         var path = new UrlPath(input);
-        Assert.Equal(expected, path.Value);
+        path.Value.ShouldBe(expected);
     }
 
     [Theory]
@@ -28,7 +29,7 @@ public class UrlPathTests
     public void IsEmpty_ReturnsCorrectValue(string input, bool expected)
     {
         var path = new UrlPath(input);
-        Assert.Equal(expected, path.IsEmpty);
+        path.IsEmpty.ShouldBe(expected);
     }
 
     [Theory]
@@ -39,21 +40,21 @@ public class UrlPathTests
     public void IsAbsolute_ReturnsCorrectValue(string input, bool expected)
     {
         var path = new UrlPath(input);
-        Assert.Equal(expected, path.IsAbsolute);
+        path.IsAbsolute.ShouldBe(expected);
     }
 
     [Fact]
     public void Combine_HandlesEmptyPaths()
     {
         var result = UrlPath.Combine(UrlPath.Empty, UrlPath.Empty);
-        Assert.Equal("", result.Value);
+        result.Value.ShouldBe("");
     }
 
     [Fact]
     public void Combine_PreservesAbsolutePath()
     {
         var result = UrlPath.Combine(new UrlPath("/base"), new UrlPath("path"));
-        Assert.Equal("/base/path", result.Value);
+        result.Value.ShouldBe("/base/path");
     }
 
     [Fact]
@@ -64,7 +65,7 @@ public class UrlPathTests
             new UrlPath("v1"),
             new UrlPath("users")
         );
-        Assert.Equal("/api/v1/users", result.Value);
+        result.Value.ShouldBe("/api/v1/users");
     }
 
     [Fact]
@@ -73,7 +74,7 @@ public class UrlPathTests
         var path1 = new UrlPath("/api");
         var path2 = new UrlPath("users");
         var result = path1 / path2;
-        Assert.Equal("/api/users", result.Value);
+        result.Value.ShouldBe("/api/users");
     }
 
     [Theory]
@@ -84,7 +85,7 @@ public class UrlPathTests
     {
         var path = new UrlPath(input);
         var result = path.EnsureLeadingSlash();
-        Assert.Equal(expected, result.Value);
+        result.Value.ShouldBe(expected);
     }
 
     [Theory]
@@ -95,7 +96,7 @@ public class UrlPathTests
     {
         var path = new UrlPath(input);
         var result = path.RemoveLeadingSlash();
-        Assert.Equal(expected, result.Value);
+        result.Value.ShouldBe(expected);
     }
 
     [Theory]
@@ -106,7 +107,7 @@ public class UrlPathTests
     {
         var path = new UrlPath(input);
         var result = path.EnsureTrailingSlash();
-        Assert.Equal(expected, result.Value);
+        result.Value.ShouldBe(expected);
     }
 
     [Theory]
@@ -117,7 +118,7 @@ public class UrlPathTests
     {
         var path = new UrlPath(input);
         var result = path.RemoveTrailingSlash();
-        Assert.Equal(expected, result.Value);
+        result.Value.ShouldBe(expected);
     }
 
     [Fact]
@@ -125,7 +126,7 @@ public class UrlPathTests
     {
         var path = new UrlPath("/api/users");
         var result = path.AppendQueryOrFragment("?page=1");
-        Assert.Equal("/api/users?page=1", result.Value);
+        result.Value.ShouldBe("/api/users?page=1");
     }
 
     [Fact]
@@ -133,14 +134,14 @@ public class UrlPathTests
     {
         var path = new UrlPath("/docs");
         var result = path.AppendQueryOrFragment("#section1");
-        Assert.Equal("/docs#section1", result.Value);
+        result.Value.ShouldBe("/docs#section1");
     }
 
     [Fact]
     public void AppendQueryOrFragment_ThrowsForInvalidInput()
     {
         var path = new UrlPath("/api");
-        Assert.Throws<ArgumentException>(() => path.AppendQueryOrFragment("invalid"));
+        Should.Throw<ArgumentException>(() => path.AppendQueryOrFragment("invalid"));
     }
 
     [Theory]
@@ -153,7 +154,7 @@ public class UrlPathTests
     {
         var path = new UrlPath(input);
         var parent = path.GetParent();
-        Assert.Equal(expected, parent.Value);
+        parent.Value.ShouldBe(expected);
     }
 
     [Theory]
@@ -166,7 +167,7 @@ public class UrlPathTests
     {
         var path = new UrlPath(input);
         var segment = path.GetLastSegment();
-        Assert.Equal(expected, segment);
+        segment.ShouldBe(expected);
     }
 
     [Fact]
@@ -176,17 +177,17 @@ public class UrlPathTests
         var path2 = new UrlPath("/api/users");
         var path3 = new UrlPath("/api/posts");
 
-        Assert.Equal(path1, path2);
-        Assert.NotEqual(path1, path3);
-        Assert.True(path1 == path2);
-        Assert.True(path1 != path3);
+        path1.ShouldBe(path2);
+        path1.ShouldNotBe(path3);
+        (path1 == path2).ShouldBeTrue();
+        (path1 != path3).ShouldBeTrue();
     }
 
     [Fact]
     public void ImplicitConversion_FromString()
     {
         UrlPath path = "/api/users";
-        Assert.Equal("/api/users", path.Value);
+        path.Value.ShouldBe("/api/users");
     }
 
     [Fact]
@@ -194,22 +195,22 @@ public class UrlPathTests
     {
         var path = new UrlPath("/api/users");
         string value = path;
-        Assert.Equal("/api/users", value);
+        value.ShouldBe("/api/users");
     }
 
     [Fact]
     public void TryParse_ValidPath_ReturnsTrue()
     {
         var success = UrlPath.TryParse("/api/users", out var path);
-        Assert.True(success);
-        Assert.Equal("/api/users", path!.Value);
+        success.ShouldBeTrue();
+        path!.ShouldBe(new UrlPath("/api/users"));
     }
 
     [Fact]
     public void TryParse_NullPath_ReturnsTrue()
     {
         var success = UrlPath.TryParse(null, out var path);
-        Assert.True(success);
-        Assert.Equal("", path!.Value);
+        success.ShouldBeTrue();
+        path!.ShouldBe(new UrlPath(""));
     }
 }
