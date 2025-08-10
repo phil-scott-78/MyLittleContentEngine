@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using MyLittleContentEngine.Services;
 
 namespace MyLittleContentEngine;
 
@@ -32,10 +33,10 @@ public static class OutputOptionsExtensions
     /// </summary>
     /// <param name="args">Command line arguments array.</param>
     /// <returns>A tuple containing the base URL and output folder path.</returns>
-    private static (string baseUrl, string outputFolderPath) GetOutputOptionsFromArgs(string[] args)
+    private static (UrlPath baseUrl, FilePath outputFolderPath) GetOutputOptionsFromArgs(string[] args)
     {
-        string baseUrl = string.Empty;
-        string outputFolderPath = "output";
+        UrlPath baseUrl = UrlPath.Empty;
+        FilePath outputFolderPath = new FilePath("output");
 
         // Check if the first argument is "build"
         if (args.Length >= 1 && args[0].Equals("build", StringComparison.OrdinalIgnoreCase))
@@ -43,25 +44,24 @@ public static class OutputOptionsExtensions
             // The second argument is BaseUrl
             if (args.Length >= 2)
             {
-                baseUrl = args[1];
-                if (!baseUrl.StartsWith('/')) baseUrl = '/' + baseUrl; // Ensure leading slash
-                if (!baseUrl.EndsWith('/')) baseUrl += '/'; // Ensure trailing slash
+                // UrlPath automatically handles normalization
+                baseUrl = new UrlPath(args[1]).EnsureLeadingSlash().EnsureTrailingSlash();
             }
 
             // The third argument is OutputFolderPath
             if (args.Length >= 3)
             {
-                outputFolderPath = args[2];
+                outputFolderPath = new FilePath(args[2]);
             }
         }
 
         // Fall back to environment variable for BaseUrl only (no env var for OutputFolderPath)
-        if (string.IsNullOrWhiteSpace(baseUrl))
+        if (baseUrl.IsEmpty)
         {
             var envValue = Environment.GetEnvironmentVariable("BaseHref");
             if (!string.IsNullOrWhiteSpace(envValue))
             {
-                baseUrl = envValue;
+                baseUrl = new UrlPath(envValue);
             }
         }
 

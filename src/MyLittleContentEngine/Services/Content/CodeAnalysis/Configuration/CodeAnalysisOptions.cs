@@ -1,3 +1,4 @@
+using MyLittleContentEngine.Services;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.SyntaxHighlighting;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions.Tabs;
@@ -12,7 +13,7 @@ public record CodeAnalysisOptions
     /// <summary>
     /// Path to the solution file to analyze
     /// </summary>
-    public string? SolutionPath { get; init; }
+    public FilePath? SolutionPath { get; init; }
 
     /// <summary>
     /// Filter for including/excluding projects

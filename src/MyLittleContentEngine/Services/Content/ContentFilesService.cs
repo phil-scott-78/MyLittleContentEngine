@@ -44,9 +44,12 @@ internal class ContentFilesService<TFrontMatter>
             // Validate the content path exists
             var absoluteContentPath = _fileSystemUtilities.ValidateDirectoryPath(_markdownContentOptions.ContentPath);
 
-            return _fileSystemUtilities.GetFilesInDirectory(
+            var (files, absPath) = _fileSystemUtilities.GetFilesInDirectory(
                 absoluteContentPath,
                 _markdownContentOptions.PostFilePattern, !_markdownContentOptions.ExcludeSubfolders);
+            
+            // Convert FilePath[] back to string[] for now to maintain compatibility
+            return (files.Select(f => f.Value).ToArray(), absPath.Value);
         }
         catch (DirectoryNotFoundException ex)
         {
@@ -141,9 +144,14 @@ internal class ContentFilesService<TFrontMatter>
             // Validate the content path exists
             _fileSystemUtilities.ValidateDirectoryPath(_markdownContentOptions.ContentPath);
 
+            // Convert the base page URL to a relative file path for the output
+            var targetPath = _markdownContentOptions.BasePageUrl.IsEmpty 
+                ? new FilePath(string.Empty) 
+                : FilePath.FromUrlPath(_markdownContentOptions.BasePageUrl.RemoveLeadingSlash());
+            
             return new[]
             {
-                new ContentToCopy(_markdownContentOptions.ContentPath, _markdownContentOptions.BasePageUrl, [".md"])
+                new ContentToCopy(_markdownContentOptions.ContentPath, targetPath, [".md"])
             }.ToImmutableList();
         }
         catch (DirectoryNotFoundException ex)

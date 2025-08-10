@@ -1,4 +1,6 @@
-﻿namespace MyLittleContentEngine;
+﻿using MyLittleContentEngine.Services;
+
+namespace MyLittleContentEngine;
 
 /// <summary>
 /// Configuration options for output generation in MyLittleContentEngine.
@@ -9,7 +11,7 @@
 /// which are used for generating static sites and handling deployments.
 /// </para>
 /// </remarks>
-public class OutputOptions
+public record OutputOptions
 {
     /// <summary>
     /// Gets or sets the base URL for the published site.
@@ -20,13 +22,13 @@ public class OutputOptions
     /// such as when deploying to GitHub Pages or a subfolder on a web server.
     /// </para>
     /// <para>
-    /// Example format: "/MyLittleContentEngine" (without a trailing slash)
+    /// Example format: "/MyLittleContentEngine" (automatically normalized, no need to worry about slashes)
     /// </para>
     /// <para>
-    /// Generally, this should be an empty string for dev and set by an environment variable or configuration setting for production deployments.
+    /// Generally, this should be an empty UrlPath for dev and set by an environment variable or configuration setting for production deployments.
     /// </para>
     /// </remarks>
-    public string BaseUrl { get; init; } = string.Empty;
+    public UrlPath BaseUrl { get; init; } = UrlPath.Empty;
 
     /// <summary>
     /// Gets or sets the output directory path for generated static files.
@@ -40,5 +42,5 @@ public class OutputOptions
     /// The default value is "output".
     /// </para>
     /// </remarks>
-    public string OutputFolderPath { get; init; } = "output";
+    public FilePath OutputFolderPath { get; init; } = new FilePath("output");
 }

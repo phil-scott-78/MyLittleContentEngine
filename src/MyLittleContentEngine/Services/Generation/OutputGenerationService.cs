@@ -88,16 +88,16 @@ internal class OutputGenerationService(
         pagesToGenerate = pagesToGenerate.AddRange(routeHelper.GetMapGetRoutes(), Priority.MustBeLast);
 
         // Clear and recreate the output directory
-        if (_fileSystem.Directory.Exists(outputOptions.OutputFolderPath))
+        if (_fileSystem.Directory.Exists(outputOptions.OutputFolderPath.Value))
         {
-            _fileSystem.Directory.Delete(outputOptions.OutputFolderPath, true);
+            _fileSystem.Directory.Delete(outputOptions.OutputFolderPath.Value, true);
         }
-        _fileSystem.Directory.CreateDirectory(outputOptions.OutputFolderPath);
+        _fileSystem.Directory.CreateDirectory(outputOptions.OutputFolderPath.Value);
 
         // Prepare paths to ignore during content copy
         var ignoredPathsWithOutputFolder = options
             .IgnoredPathsOnContentCopy
-            .Select(x => _fileSystem.Path.Combine(outputOptions.OutputFolderPath, x))
+            .Select(x => _fileSystem.Path.Combine(outputOptions.OutputFolderPath.Value, x.Value))
             .ToList();
 
         var contentToCopy = ImmutableList<ContentToCopy>.Empty;
@@ -145,7 +145,7 @@ internal class OutputGenerationService(
         // Copy all content to the output directory
         foreach (var pathToCopy in contentToCopy)
         {
-            var targetPath = _fileSystem.Path.Combine(outputOptions.OutputFolderPath, pathToCopy.TargetPath);
+            var targetPath = _fileSystem.Path.Combine(outputOptions.OutputFolderPath.Value, pathToCopy.TargetPath);
 
             logger.LogInformation("Copying {sourcePath} to {targetPath}", pathToCopy.SourcePath, targetPath);
             CopyContent(pathToCopy.SourcePath, targetPath, ignoredPathsWithOutputFolder, pathToCopy.ExcludedExtensions);
@@ -161,7 +161,7 @@ internal class OutputGenerationService(
         // Create content files in the output directory
         foreach (var contentItem in contentToCreate)
         {
-            var targetPath = _fileSystem.Path.Combine(outputOptions.OutputFolderPath, contentItem.TargetPath.TrimStart('/'));
+            var targetPath = _fileSystem.Path.Combine(outputOptions.OutputFolderPath.Value, contentItem.TargetPath.RemoveLeadingSlash().Value);
 
             var directoryPath = _fileSystem.Path.GetDirectoryName(targetPath);
             if (!string.IsNullOrEmpty(directoryPath))
@@ -215,7 +215,7 @@ internal class OutputGenerationService(
                         return;
                     }
 
-                    var outFilePath = _fileSystem.Path.Combine(outputOptions.OutputFolderPath, page.OutputFile.TrimStart('/'));
+                    var outFilePath = _fileSystem.Path.Combine(outputOptions.OutputFolderPath.Value, page.OutputFile.RemoveLeadingSlash().Value);
 
                     var directoryPath = _fileSystem.Path.GetDirectoryName(outFilePath);
                     if (!string.IsNullOrEmpty(directoryPath))
@@ -241,7 +241,7 @@ internal class OutputGenerationService(
                         return;
                     }
 
-                    var outFilePath = _fileSystem.Path.Combine(outputOptions.OutputFolderPath, page.OutputFile.TrimStart('/'));
+                    var outFilePath = _fileSystem.Path.Combine(outputOptions.OutputFolderPath.Value, page.OutputFile.RemoveLeadingSlash().Value);
 
                     var directoryPath = _fileSystem.Path.GetDirectoryName(outFilePath);
                     if (!string.IsNullOrEmpty(directoryPath))
@@ -302,19 +302,12 @@ internal class OutputGenerationService(
         var contentOptions = serviceProvider.GetServices<IContentOptions>().ToList();
         foreach (var option in contentOptions)
         {
-            var contentPath = _fileSystem.Path.Combine(currentDirectory, option.ContentPath);
+            var contentPath = _fileSystem.Path.Combine(currentDirectory, option.ContentPath.Value);
 
             if (_fileSystem.Directory.Exists(contentPath))
             {
-                string requestPath = "";
-                if (!string.IsNullOrWhiteSpace(option.BasePageUrl))
-                {
-                    requestPath = option.BasePageUrl.StartsWith('/')
-                        ? option.BasePageUrl
-                        : '/' + option.BasePageUrl;
-                }
-
-                yield return (new PhysicalFileProvider(contentPath), requestPath);
+                var requestPath = option.BasePageUrl.EnsureLeadingSlash();
+                yield return (new PhysicalFileProvider(contentPath), requestPath.Value);
             }
         }
     }

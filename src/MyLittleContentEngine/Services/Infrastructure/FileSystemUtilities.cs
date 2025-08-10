@@ -13,13 +13,17 @@ internal class FileSystemUtilities(IFileSystem fileSystem)
     /// <param name="filePath">The file path to convert.</param>
     /// <param name="baseContentPath">The base content path to make the path relative to.</param>
     /// <returns>A URL-friendly relative path.</returns>
-    public string FilePathToUrlPath(string filePath, string baseContentPath)
+    public UrlPath FilePathToUrlPath(FilePath filePath, FilePath baseContentPath)
     {
-        var relativePath = fileSystem.Path.GetRelativePath(baseContentPath, filePath);
-        var directoryPath = fileSystem.Path.GetDirectoryName(relativePath) ?? string.Empty;
-        var fileNameWithoutExtension = fileSystem.Path.GetFileNameWithoutExtension(relativePath).Slugify();
+        if (filePath.IsEmpty || baseContentPath.IsEmpty)
+            return UrlPath.Empty;
 
-        return fileSystem.Path.Combine(directoryPath, fileNameWithoutExtension).Replace(Path.DirectorySeparatorChar, '/');
+        var relativePath = filePath.GetRelativeTo(baseContentPath);
+        var directoryPath = relativePath.GetDirectory();
+        var fileNameWithoutExtension = relativePath.GetFileNameWithoutExtension().Slugify();
+
+        var result = FilePath.Combine(directoryPath, fileNameWithoutExtension);
+        return result.ToUrlPath();
     }
 
     /// <summary>
@@ -28,22 +32,27 @@ internal class FileSystemUtilities(IFileSystem fileSystem)
     /// <param name="baseUrl">The base URL.</param>
     /// <param name="relativePath">The relative path to append.</param>
     /// <returns>A complete URL.</returns>
-    public static string CombineUrl(string baseUrl, string relativePath)
+    public static UrlPath CombineUrl(UrlPath baseUrl, UrlPath relativePath)
     {
-        if (string.IsNullOrWhiteSpace(relativePath))
-        {
+        if (relativePath.IsEmpty)
             return baseUrl;
-        }
 
-        if (!baseUrl.EndsWith('/') && (relativePath.StartsWith('#') || relativePath.StartsWith('?')))
+        // Handle query strings and fragments specially
+        var relativeValue = relativePath.Value;
+        if (relativeValue.StartsWith('#') || relativeValue.StartsWith('?'))
         {
-            return $"{baseUrl}{relativePath}";
+            return baseUrl.RemoveTrailingSlash().AppendQueryOrFragment(relativeValue);
         }
 
-        baseUrl = baseUrl.TrimEnd('/');
-        relativePath = relativePath.Trim('/');
-
-        return $"{baseUrl}/{relativePath}";
+        // For full URLs (with scheme), handle them differently than relative paths
+        var baseValue = baseUrl.Value;
+        
+        // Remove trailing slash from base and leading slash from relative
+        baseValue = baseValue.TrimEnd('/');
+        relativeValue = relativeValue.Trim('/');  // Trim both leading and trailing slashes
+        
+        // Combine with a single slash
+        return new UrlPath($"{baseValue}/{relativeValue}");
     }
 
     /// <summary>
@@ -53,8 +62,8 @@ internal class FileSystemUtilities(IFileSystem fileSystem)
     /// <param name="pattern">The file pattern to match. Can be semicolon-separated for multiple patterns (e.g., "*.md;*.mdx").</param>
     /// <param name="recursive">Whether to search subdirectories.</param>
     /// <returns>A tuple with the array of file paths and the absolute directory path.</returns>
-    public (string[] Files, string AbsolutePath) GetFilesInDirectory(
-        string directoryPath,
+    public (FilePath[] Files, FilePath AbsolutePath) GetFilesInDirectory(
+        FilePath directoryPath,
         string pattern,
         bool recursive = true)
     {
@@ -74,13 +83,13 @@ internal class FileSystemUtilities(IFileSystem fileSystem)
             var trimmedPattern = singlePattern.Trim();
             if (!string.IsNullOrWhiteSpace(trimmedPattern))
             {
-                var files = fileSystem.Directory.GetFiles(directoryPath, trimmedPattern, enumerationOptions);
+                var files = fileSystem.Directory.GetFiles(directoryPath.Value, trimmedPattern, enumerationOptions);
                 allFiles.AddRange(files);
             }
         }
 
         // Remove duplicates and sort
-        var uniqueFiles = allFiles.Distinct().OrderBy(f => f).ToArray();
+        var uniqueFiles = allFiles.Distinct().OrderBy(f => f).Select(f => new FilePath(f)).ToArray();
 
         return (uniqueFiles, directoryPath);
     }
@@ -92,15 +101,15 @@ internal class FileSystemUtilities(IFileSystem fileSystem)
     /// <param name="createIfNotExists">Whether to create the directory if it doesn't exist.</param>
     /// <returns>The absolute path.</returns>
     /// <exception cref="DirectoryNotFoundException">Thrown when the directory doesn't exist and createIfNotExists is false.</exception>
-    public string ValidateDirectoryPath(string path, bool createIfNotExists = false)
+    public FilePath ValidateDirectoryPath(FilePath path, bool createIfNotExists = false)
     {
-        var fullPath = fileSystem.Path.GetFullPath(path);
+        var fullPath = path.GetFullPath();
 
-        if (fileSystem.Directory.Exists(fullPath)) return fullPath;
+        if (fileSystem.Directory.Exists(fullPath.Value)) return fullPath;
 
         if (createIfNotExists)
         {
-            fileSystem.Directory.CreateDirectory(fullPath);
+            fileSystem.Directory.CreateDirectory(fullPath.Value);
         }
         else
         {
@@ -116,8 +125,8 @@ internal class FileSystemUtilities(IFileSystem fileSystem)
     /// <param name="basePageUrl"></param>
     /// <param name="relativePath"></param>
     /// <returns></returns>
-    public string Combine(string basePageUrl, string relativePath)
+    public FilePath Combine(FilePath basePageUrl, FilePath relativePath)
     {
-        return fileSystem.Path.Combine(basePageUrl, relativePath);
+        return FilePath.Combine(basePageUrl, relativePath);
     }
 }

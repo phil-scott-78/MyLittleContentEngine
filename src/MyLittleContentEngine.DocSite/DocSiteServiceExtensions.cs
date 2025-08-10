@@ -95,7 +95,7 @@ public static class DocSiteServiceExtensions
         var tempOptions = sp.GetRequiredService<DocSiteOptions>();
 
         // Add connected solution only if solution path is configured
-        if (!string.IsNullOrWhiteSpace(tempOptions.SolutionPath))
+        if (tempOptions.SolutionPath.HasValue && !tempOptions.SolutionPath.Value.IsEmpty)
         {
             contentEngineService.WithConnectedRoslynSolution(serviceProvider =>
             {

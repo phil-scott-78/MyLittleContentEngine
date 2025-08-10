@@ -1,4 +1,5 @@
 using System.IO.Abstractions.TestingHelpers;
+using MyLittleContentEngine.Services;
 using MyLittleContentEngine.Services.Infrastructure;
 using Shouldly;
 
@@ -11,12 +12,12 @@ public class FileSystemUtilitiesTests
     {
         var fileSystem = new MockFileSystem();
         var pathUtilities = new FileSystemUtilities(fileSystem);
-        var filePath = "/content/my-blog-post.md";
-        var baseContentPath = "/content";
+        var filePath = new FilePath("/content/my-blog-post.md");
+        var baseContentPath = new FilePath("/content");
 
         var result = pathUtilities.FilePathToUrlPath(filePath, baseContentPath);
 
-        result.ShouldBe("my-blog-post");
+        result.Value.ShouldBe("my-blog-post");
     }
 
     [Fact]
@@ -24,12 +25,12 @@ public class FileSystemUtilitiesTests
     {
         var fileSystem = new MockFileSystem();
         var pathUtilities = new FileSystemUtilities(fileSystem);
-        var filePath = "/content/blog/my-first-post.md";
-        var baseContentPath = "/content";
+        var filePath = new FilePath("/content/blog/my-first-post.md");
+        var baseContentPath = new FilePath("/content");
 
         var result = pathUtilities.FilePathToUrlPath(filePath, baseContentPath);
 
-        result.ShouldBe("blog/my-first-post");
+        result.Value.ShouldBe("blog/my-first-post");
     }
 
     [Fact]
@@ -37,12 +38,12 @@ public class FileSystemUtilitiesTests
     {
         var fileSystem = new MockFileSystem();
         var pathUtilities = new FileSystemUtilities(fileSystem);
-        var filePath = "/content/docs/guides/getting-started.md";
-        var baseContentPath = "/content";
+        var filePath = new FilePath("/content/docs/guides/getting-started.md");
+        var baseContentPath = new FilePath("/content");
 
         var result = pathUtilities.FilePathToUrlPath(filePath, baseContentPath);
 
-        result.ShouldBe("docs/guides/getting-started");
+        result.Value.ShouldBe("docs/guides/getting-started");
     }
 
     [Fact]
@@ -50,12 +51,12 @@ public class FileSystemUtilitiesTests
     {
         var fileSystem = new MockFileSystem();
         var pathUtilities = new FileSystemUtilities(fileSystem);
-        var filePath = "/content/My Blog Post With Spaces!.md";
-        var baseContentPath = "/content";
+        var filePath = new FilePath("/content/My Blog Post With Spaces!.md");
+        var baseContentPath = new FilePath("/content");
 
         var result = pathUtilities.FilePathToUrlPath(filePath, baseContentPath);
 
-        result.ShouldBe("my-blog-post-with-spaces");
+        result.Value.ShouldBe("my-blog-post-with-spaces");
     }
 
     [Fact]
@@ -63,12 +64,12 @@ public class FileSystemUtilitiesTests
     {
         var fileSystem = new MockFileSystem();
         var pathUtilities = new FileSystemUtilities(fileSystem);
-        var filePath = "/content/blog/posts/article.md";
-        var baseContentPath = "/content";
+        var filePath = new FilePath("/content/blog/posts/article.md");
+        var baseContentPath = new FilePath("/content");
 
         var result = pathUtilities.FilePathToUrlPath(filePath, baseContentPath);
 
-        result.ShouldBe("blog/posts/article");
+        result.Value.ShouldBe("blog/posts/article");
     }
 
     [Theory]
@@ -76,57 +77,57 @@ public class FileSystemUtilitiesTests
     [InlineData("https://example.com", "   ", "https://example.com")]
     public void CombineUrl_EmptyRelativePath_ReturnsBaseUrl(string baseUrl, string relativePath, string expected)
     {
-        var result = FileSystemUtilities.CombineUrl(baseUrl, relativePath);
-        result.ShouldBe(expected);
+        var result = FileSystemUtilities.CombineUrl(new UrlPath(baseUrl), new UrlPath(relativePath));
+        result.Value.ShouldBe(expected);
     }
 
     [Fact]
     public void CombineUrl_FragmentPath_AppendsDirectlyToBaseUrl()
     {
-        var result = FileSystemUtilities.CombineUrl("https://example.com/page", "#section");
-        result.ShouldBe("https://example.com/page#section");
+        var result = FileSystemUtilities.CombineUrl(new UrlPath("https://example.com/page"), new UrlPath("#section"));
+        result.Value.ShouldBe("https://example.com/page#section");
     }
 
     [Fact]
     public void CombineUrl_QueryPath_AppendsDirectlyToBaseUrl()
     {
-        var result = FileSystemUtilities.CombineUrl("https://example.com/page", "?param=value");
-        result.ShouldBe("https://example.com/page?param=value");
+        var result = FileSystemUtilities.CombineUrl(new UrlPath("https://example.com/page"), new UrlPath("?param=value"));
+        result.Value.ShouldBe("https://example.com/page?param=value");
     }
 
     [Fact]
     public void CombineUrl_BaseUrlWithTrailingSlash_CombinesCorrectly()
     {
-        var result = FileSystemUtilities.CombineUrl("https://example.com/", "path/to/page");
-        result.ShouldBe("https://example.com/path/to/page");
+        var result = FileSystemUtilities.CombineUrl(new UrlPath("https://example.com/"), new UrlPath("path/to/page"));
+        result.Value.ShouldBe("https://example.com/path/to/page");
     }
 
     [Fact]
     public void CombineUrl_BaseUrlWithoutTrailingSlash_CombinesCorrectly()
     {
-        var result = FileSystemUtilities.CombineUrl("https://example.com", "path/to/page");
-        result.ShouldBe("https://example.com/path/to/page");
+        var result = FileSystemUtilities.CombineUrl(new UrlPath("https://example.com"), new UrlPath("path/to/page"));
+        result.Value.ShouldBe("https://example.com/path/to/page");
     }
 
     [Fact]
     public void CombineUrl_RelativePathWithLeadingSlash_CombinesCorrectly()
     {
-        var result = FileSystemUtilities.CombineUrl("https://example.com", "/path/to/page");
-        result.ShouldBe("https://example.com/path/to/page");
+        var result = FileSystemUtilities.CombineUrl(new UrlPath("https://example.com"), new UrlPath("/path/to/page"));
+        result.Value.ShouldBe("https://example.com/path/to/page");
     }
 
     [Fact]
     public void CombineUrl_BothPathsHaveSlashes_CombinesCorrectly()
     {
-        var result = FileSystemUtilities.CombineUrl("https://example.com/", "/path/to/page");
-        result.ShouldBe("https://example.com/path/to/page");
+        var result = FileSystemUtilities.CombineUrl(new UrlPath("https://example.com/"), new UrlPath("/path/to/page"));
+        result.Value.ShouldBe("https://example.com/path/to/page");
     }
 
     [Fact]
     public void CombineUrl_RelativePathWithTrailingSlashes_TrimsCorrectly()
     {
-        var result = FileSystemUtilities.CombineUrl("https://example.com", "path/to/page/");
-        result.ShouldBe("https://example.com/path/to/page");
+        var result = FileSystemUtilities.CombineUrl(new UrlPath("https://example.com"), new UrlPath("path/to/page/"));
+        result.Value.ShouldBe("https://example.com/path/to/page");
     }
 
 
@@ -137,7 +138,7 @@ public class FileSystemUtilitiesTests
         var pathUtilities = new FileSystemUtilities(fileSystem);
 
         Should.Throw<DirectoryNotFoundException>(() => 
-            pathUtilities.ValidateDirectoryPath("/nonexistent"));
+            pathUtilities.ValidateDirectoryPath(new FilePath("/nonexistent")));
     }
 
     [Fact]
@@ -146,9 +147,9 @@ public class FileSystemUtilitiesTests
         var fileSystem = new MockFileSystem();
         var pathUtilities = new FileSystemUtilities(fileSystem);
 
-        var result = pathUtilities.Combine("", "relative/path");
+        var result = pathUtilities.Combine(new FilePath(""), new FilePath("relative/path"));
 
-        result.ShouldBe("relative/path");
+        result.Value.ShouldBe("relative/path");
     }
 
     [Fact]
@@ -156,12 +157,12 @@ public class FileSystemUtilitiesTests
     {
         var fileSystem = new MockFileSystem();
         var pathUtilities = new FileSystemUtilities(fileSystem);
-        var filePath = "/content/index.md";
-        var baseContentPath = "/content";
+        var filePath = new FilePath("/content/index.md");
+        var baseContentPath = new FilePath("/content");
 
         var result = pathUtilities.FilePathToUrlPath(filePath, baseContentPath);
 
-        result.ShouldBe("index");
+        result.Value.ShouldBe("index");
     }
 
     
@@ -176,11 +177,11 @@ public class FileSystemUtilitiesTests
         });
         var pathUtilities = new FileSystemUtilities(fileSystem);
 
-        var (files, absolutePath) = pathUtilities.GetFilesInDirectory("/content", "*.md", recursive: false);
+        var (files, absolutePath) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), "*.md", recursive: false);
 
-        files.ShouldContain(s => s.Contains("file1.md"));
-        files.ShouldContain(s => s.Contains("file2.md"));
-        files.ShouldNotContain(s => s.Contains("file3.md"));
+        files.ShouldContain(s => s.Value.Contains("file1.md"));
+        files.ShouldContain(s => s.Value.Contains("file2.md"));
+        files.ShouldNotContain(s => s.Value.Contains("file3.md"));
     }
     
     [Fact]
@@ -194,11 +195,11 @@ public class FileSystemUtilitiesTests
         });
         var pathUtilities = new FileSystemUtilities(fileSystem);
 
-        var (files, absolutePath) = pathUtilities.GetFilesInDirectory("/content", "*.md", recursive: true);
+        var (files, absolutePath) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), "*.md", recursive: true);
 
-        files.ShouldContain(s => s.Contains("file1.md"));
-        files.ShouldContain(s => s.Contains("file2.md"));
-        files.ShouldContain(s => s.Contains("file3.md"));
+        files.ShouldContain(s => s.Value.Contains("file1.md"));
+        files.ShouldContain(s => s.Value.Contains("file2.md"));
+        files.ShouldContain(s => s.Value.Contains("file3.md"));
     }
     
     [Fact]
@@ -206,12 +207,12 @@ public class FileSystemUtilitiesTests
     {
         var fileSystem = new MockFileSystem();
         var pathUtilities = new FileSystemUtilities(fileSystem);
-        var filePath = "/var/www/content/blog/2023/my-awesome-post.md";
-        var baseContentPath = "/var/www/content";
+        var filePath = new FilePath("/var/www/content/blog/2023/my-awesome-post.md");
+        var baseContentPath = new FilePath("/var/www/content");
 
         var result = pathUtilities.FilePathToUrlPath(filePath, baseContentPath);
 
-        result.ShouldBe("blog/2023/my-awesome-post");
+        result.Value.ShouldBe("blog/2023/my-awesome-post");
     }
 
     [Fact]
@@ -227,14 +228,14 @@ public class FileSystemUtilitiesTests
         });
         var pathUtilities = new FileSystemUtilities(fileSystem);
 
-        var (files, absolutePath) = pathUtilities.GetFilesInDirectory("/content", "*.md;*.mdx", recursive: true);
+        var (files, absolutePath) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), "*.md;*.mdx", recursive: true);
 
         files.Length.ShouldBe(4);
-        files.ShouldContain(s => s.Contains("file1.md"));
-        files.ShouldContain(s => s.Contains("file2.mdx"));
-        files.ShouldContain(s => s.Contains("file4.md"));
-        files.ShouldContain(s => s.Contains("file5.mdx"));
-        files.ShouldNotContain(s => s.Contains("file3.txt"));
+        files.ShouldContain(s => s.Value.Contains("file1.md"));
+        files.ShouldContain(s => s.Value.Contains("file2.mdx"));
+        files.ShouldContain(s => s.Value.Contains("file4.md"));
+        files.ShouldContain(s => s.Value.Contains("file5.mdx"));
+        files.ShouldNotContain(s => s.Value.Contains("file3.txt"));
     }
 
     [Fact]
@@ -247,11 +248,11 @@ public class FileSystemUtilitiesTests
         });
         var pathUtilities = new FileSystemUtilities(fileSystem);
 
-        var (files, absolutePath) = pathUtilities.GetFilesInDirectory("/content", "*.md;*.md;*.mdx", recursive: true);
+        var (files, absolutePath) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), "*.md;*.md;*.mdx", recursive: true);
 
         files.Length.ShouldBe(2);
-        files.ShouldContain(s => s.Contains("file1.md"));
-        files.ShouldContain(s => s.Contains("file2.mdx"));
+        files.ShouldContain(s => s.Value.Contains("file1.md"));
+        files.ShouldContain(s => s.Value.Contains("file2.mdx"));
     }
 
     [Fact]
@@ -265,12 +266,12 @@ public class FileSystemUtilitiesTests
         });
         var pathUtilities = new FileSystemUtilities(fileSystem);
 
-        var (files, absolutePath) = pathUtilities.GetFilesInDirectory("/content", " *.md ; *.mdx ", recursive: true);
+        var (files, absolutePath) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), " *.md ; *.mdx ", recursive: true);
 
         files.Length.ShouldBe(2);
-        files.ShouldContain(s => s.Contains("file1.md"));
-        files.ShouldContain(s => s.Contains("file2.mdx"));
-        files.ShouldNotContain(s => s.Contains("file3.txt"));
+        files.ShouldContain(s => s.Value.Contains("file1.md"));
+        files.ShouldContain(s => s.Value.Contains("file2.mdx"));
+        files.ShouldNotContain(s => s.Value.Contains("file3.txt"));
     }
 
     [Fact]
@@ -283,10 +284,10 @@ public class FileSystemUtilitiesTests
         });
         var pathUtilities = new FileSystemUtilities(fileSystem);
 
-        var (files, absolutePath) = pathUtilities.GetFilesInDirectory("/content", "*.md", recursive: true);
+        var (files, absolutePath) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), "*.md", recursive: true);
 
         files.Length.ShouldBe(1);
-        files.ShouldContain(s => s.Contains("file1.md"));
-        files.ShouldNotContain(s => s.Contains("file2.mdx"));
+        files.ShouldContain(s => s.Value.Contains("file1.md"));
+        files.ShouldNotContain(s => s.Value.Contains("file2.mdx"));
     }
 }

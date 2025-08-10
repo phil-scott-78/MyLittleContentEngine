@@ -1,4 +1,5 @@
 ﻿using MyLittleContentEngine.Models;
+using MyLittleContentEngine.Services;
 
 namespace MyLittleContentEngine;
 
@@ -10,12 +11,12 @@ public interface IContentOptions
     /// <summary>
     /// Gets the path where content files are stored.
     /// </summary>
-    string ContentPath { get; init; }
+    FilePath ContentPath { get; init; }
 
     /// <summary>
     /// Gets the URL path component for the page that displays content.
     /// </summary>
-    string BasePageUrl { get; init; }
+    UrlPath BasePageUrl { get; init; }
 }
 
 /// <summary>
@@ -39,7 +40,7 @@ public record MarkdownContentOptions<TFrontMatter> : IContentOptions
     /// Default value is "Content/Blog".
     /// </para>
     /// </remarks>
-    public string ContentPath { get; init; } = "Content/Blog";
+    public FilePath ContentPath { get; init; } = new FilePath("Content/Blog");
 
     /// <summary>
     /// Gets or sets the file pattern used to identify content files in the ContentPath.
@@ -60,7 +61,7 @@ public record MarkdownContentOptions<TFrontMatter> : IContentOptions
     /// <remarks>
     /// <para>
     /// This value should correspond to the route specified in your Blazor page.
-    /// For example, if your page is defined with @page "/blog", set PageUrl to "blog".
+    /// For example, if your page is defined with @page "/blog", set BasePageUrl to UrlPath("blog").
     /// </para>
     /// <para>
     /// This value also serves as the generated folder name for static content.
@@ -70,7 +71,7 @@ public record MarkdownContentOptions<TFrontMatter> : IContentOptions
     /// The default value is "blog".
     /// </para>
     /// </remarks>
-    public string BasePageUrl { get; init; } = "blog";
+    public UrlPath BasePageUrl { get; init; } = new UrlPath("blog");
 
     /// <summary>
     /// Gets or sets a value indicating whether to exclude subfolders when searching for content files.
@@ -101,10 +102,10 @@ public record MarkdownContentOptions<TFrontMatter> : IContentOptions
     /// </summary>
     /// <remarks>
     /// This function takes a file path and base content path and returns a URL for the content.
-    /// The default implementation uses the FileSystemUtilities.FilePathToUrlPath method.
-    /// Override this to customize URL generation (e.g., to lowercase paths).
+    /// The default implementation converts the file path to a URL path.
+    /// Override this to customize URL generation (e.g., to add transformations).
     /// </remarks>
-    public Func<string, string, string>? CreateContentUrl { get; init; }
+    public Func<FilePath, FilePath, UrlPath>? CreateContentUrl { get; init; }
 }
 
 /// <summary>
@@ -131,7 +132,7 @@ public class ApiReferenceContentOptions : IContentOptions
     /// The default value is "api".
     /// </para>
     /// </remarks>
-    public string BasePageUrl { get; init; } = "api";
+    public UrlPath BasePageUrl { get; init; } = new UrlPath("api");
 
     /// <summary>
     /// Gets or sets the path to the solution file for API extraction.
@@ -140,7 +141,7 @@ public class ApiReferenceContentOptions : IContentOptions
     /// This should be the full path to the .sln file to analyze for API documentation.
     /// If not provided, it will be obtained from RoslynHighlighterOptions.
     /// </remarks>
-    public string? SolutionPath { get; init; }
+    public FilePath? SolutionPath { get; init; }
 
     /// <summary>
     /// Gets or sets the array of namespace prefixes to include in API documentation.
@@ -167,7 +168,7 @@ public class ApiReferenceContentOptions : IContentOptions
     /// This property is required by IContentOptions but is not used for API reference generation
     /// since API content is generated from code analysis rather than files.
     /// </remarks>
-    public string ContentPath { get; init; } = string.Empty;
+    public FilePath ContentPath { get; init; } = FilePath.Empty;
 
 }
 
@@ -178,7 +179,7 @@ public class ApiReferenceContentOptions : IContentOptions
 /// Controls how URLs are generated for different types of API documentation.
 /// URL templates support placeholders: {BasePageUrl}, {Slug}, {Name}, {Namespace}, {TypeName}
 /// </remarks>
-public class ApiReferenceUrlOptions
+public record ApiReferenceUrlOptions
 {
     /// <summary>
     /// Gets or sets whether to generate namespace documentation pages.
@@ -257,7 +258,7 @@ public class ApiReferenceUrlOptions
 /// <remarks>
 /// Controls how tags are processed, displayed, and linked throughout the site.
 /// </remarks>
-public class TagsOptions
+public record TagsOptions
 {
     /// <summary>
     /// Gets or sets the URL path component for the page that displays all tags.
@@ -265,7 +266,7 @@ public class TagsOptions
     /// <remarks>
     /// <para>
     /// This value should correspond to the route specified in your Blazor page.
-    /// For example, if your "tags" page is defined with @page "/tags", set TagsPageUrl to "tags".
+    /// For example, if your "tags" page is defined with @page "/tags", set TagsPageUrl to UrlPath("tags").
     /// </para>
     /// <para>
     /// Using this property in code helps avoid magic strings in .razor files.
@@ -274,7 +275,7 @@ public class TagsOptions
     /// The default value is "tags".
     /// </para>
     /// </remarks>
-    public string TagsPageUrl { get; init; } = "tags";
+    public UrlPath TagsPageUrl { get; init; } = new UrlPath("tags");
 
     /// <summary>
     /// Gets or sets the function used to encode tag strings into URL-friendly formats.

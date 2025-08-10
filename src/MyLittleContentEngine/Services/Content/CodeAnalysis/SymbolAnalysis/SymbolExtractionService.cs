@@ -35,12 +35,12 @@ internal class SymbolExtractionService : ISymbolExtractionService
             async () => await LoadAllSymbolsAsync(), TimeSpan.FromMilliseconds(50));
 
         // Register file watching if available
-        if (fileWatcher != null && !string.IsNullOrEmpty(_options.SolutionPath))
+        if (fileWatcher != null && _options.SolutionPath.HasValue && !_options.SolutionPath.Value.IsEmpty)
         {
-            var solutionDir = fileSystem.Path.GetDirectoryName(_options.SolutionPath);
-            if (!string.IsNullOrEmpty(solutionDir))
+            var solutionDir = _options.SolutionPath.Value.GetDirectory();
+            if (!solutionDir.IsEmpty)
             {
-                fileWatcher.AddPathWatch(solutionDir, "*.cs", InvalidateFile);
+                fileWatcher.AddPathWatch(solutionDir.Value, "*.cs", InvalidateFile);
             }
         }
     }
@@ -153,7 +153,7 @@ internal class SymbolExtractionService : ISymbolExtractionService
     {
         _logger.LogDebug("Loading all symbols from solution");
 
-        var solution = await _workspaceService.LoadSolutionAsync(_options.SolutionPath!);
+        var solution = await _workspaceService.LoadSolutionAsync(_options.SolutionPath!.Value.Value);
         return await ExtractSymbolsAsync(solution);
     }
 

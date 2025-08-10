@@ -55,7 +55,7 @@ Update the `.csproj` file to include source code watching while excluding build 
 
 <ItemGroup>
     <Watch Include="Content\**\*.*"/>
-    <Watch Include="..\..\src\**\*.cs" Exclude="..\..\src\*\bin\**\*.*;..\..\src\*\obj\**\*.*"/>
+    <Watch Include="..\..\src\**\*.cs" />
 </ItemGroup>
 ```
 
@@ -66,9 +66,7 @@ This configuration ensures that:
 
 - Content files are watched for changes (as before)
 - Source code files are watched for changes
-- Build artifacts in `bin` and `obj` folders are excluded to prevent unnecessary rebuilds. This is important as we will
-  be building at runtime for certain actions, and we don't want to cause an unneeded refresh.
-  </Step>
+</Step>
 
 <Step stepNumber="3">
 ## Configure Roslyn Service

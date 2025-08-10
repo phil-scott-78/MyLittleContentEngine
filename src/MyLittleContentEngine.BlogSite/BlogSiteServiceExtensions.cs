@@ -56,7 +56,7 @@ public static class BlogSiteServiceExtensions
 
                 return new MarkdownContentOptions<BlogSiteFrontMatter>
                 {
-                    ContentPath = Path.Combine(o.ContentRootPath, o.BlogContentPath),
+                    ContentPath = o.ContentRootPath / o.BlogContentPath,
                     BasePageUrl = o.BlogBaseUrl,
                     Tags = new TagsOptions
                     {
@@ -72,7 +72,7 @@ public static class BlogSiteServiceExtensions
         var blogOptions = serviceProvider.GetRequiredService<BlogSiteOptions>();
 
         // Add connected solution only if solution path is configured
-        if (!string.IsNullOrWhiteSpace(blogOptions.SolutionPath))
+        if (blogOptions.SolutionPath.HasValue && !blogOptions.SolutionPath.Value.IsEmpty)
         {
             contentEngineService.WithConnectedRoslynSolution(serviceProvider =>
             {

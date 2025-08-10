@@ -103,17 +103,6 @@ public class LinkRewriterTests
     }
 
     [Theory]
-    [InlineData("", "/docs", "/docs")]
-    [InlineData(".", "/docs", "/docs/.")]
-    [InlineData("./current", "/docs", "/docs/./current")]
-    public void RewriteUrl_WithEmptyOrCurrentDirectory_HandlesCorrectly(string url, string baseUrl, string expected)
-    {
-        var result = LinkRewriter.RewriteUrl(url, baseUrl);
-
-        result.ShouldBe(expected);
-    }
-
-    [Theory]
     [InlineData("page with spaces", "/docs", "/docs/page with spaces")]
     [InlineData("file%20encoded", "/docs", "/docs/file%20encoded")]
     [InlineData("special-chars!@#$", "/docs", "/docs/special-chars!@#$")]

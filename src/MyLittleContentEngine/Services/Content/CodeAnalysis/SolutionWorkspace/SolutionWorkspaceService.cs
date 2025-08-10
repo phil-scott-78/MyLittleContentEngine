@@ -45,7 +45,7 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
         _fileWatcher = fileWatcher ?? throw new ArgumentNullException(nameof(fileWatcher));
         _fileSystem = fileSystem;
 
-        if (string.IsNullOrEmpty(_options.SolutionPath))
+        if (!_options.SolutionPath.HasValue || _options.SolutionPath.Value.IsEmpty)
         {
             throw new ArgumentException("Solution path must be specified in options", nameof(options));
         }
@@ -101,7 +101,7 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
     {
         ObjectDisposedException.ThrowIf(_isDisposed, nameof(SolutionWorkspaceService));
 
-        var solution = await LoadSolutionAsync(_options.SolutionPath!);
+        var solution = await LoadSolutionAsync(_options.SolutionPath!.Value.Value);
         var projects = solution.Projects;
 
         if (filter != null)
@@ -160,7 +160,7 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
 
     private void RegisterFileWatching()
     {
-        var solutionDir = _fileSystem.Path.GetDirectoryName(_options.SolutionPath);
+        var solutionDir = _options.SolutionPath!.Value.GetDirectory().Value;
         if (string.IsNullOrEmpty(solutionDir))
         {
             return;
@@ -176,7 +176,7 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
         // Watch for solution file changes  
         _fileWatcher.AddPathWatch(solutionDir, "*.sln", path =>
         {
-            if (path.Equals(_options.SolutionPath, StringComparison.OrdinalIgnoreCase))
+            if (path.Equals(_options.SolutionPath!.Value.Value, StringComparison.OrdinalIgnoreCase))
             {
                 _logger.LogDebug("Solution file changed: {Path}", path);
                 InvalidateSolution();

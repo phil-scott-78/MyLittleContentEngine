@@ -49,8 +49,8 @@ public class RazorPageContentServiceTests
         var pages = result.ToList();
         Assert.All(pages, page =>
         {
-            Assert.NotNull(page.Url);
-            Assert.NotNull(page.OutputFile);
+            Assert.False(page.Url.IsEmpty);
+            Assert.False(page.OutputFile.IsEmpty);
             Assert.Null(page.Metadata); // No sidecar files provided
         });
     }

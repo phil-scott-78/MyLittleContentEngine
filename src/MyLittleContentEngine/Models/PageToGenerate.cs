@@ -1,3 +1,5 @@
+using MyLittleContentEngine.Services;
+
 namespace MyLittleContentEngine.Models;
 
 /// <summary>
@@ -7,4 +9,4 @@ namespace MyLittleContentEngine.Models;
 /// <param name="OutputFile">The relative path of the output file.</param>
 /// <param name="Metadata">Additional file properties.</param>
 /// <param name="IsBinary">Marks the page as binary.</param>
-public record PageToGenerate(string Url, string OutputFile, Metadata? Metadata = null, bool IsBinary = false);
+public record PageToGenerate(UrlPath Url, FilePath OutputFile, Metadata? Metadata = null, bool IsBinary = false);

@@ -5,6 +5,7 @@ using Markdig.Extensions.AutoIdentifiers;
 using Mdazor;
 using Microsoft.Extensions.DependencyInjection;
 using MyLittleContentEngine.Models;
+using MyLittleContentEngine.Services;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.SyntaxHighlighting;
 using YamlDotNet.Serialization;
@@ -48,14 +49,18 @@ public record ContentEngineOptions
     /// Url to use as the canonical base URL for the site, specifically for sitemaps, RSS feeds, and Open Graph metadata.
     /// </summary>
     /// <para>
-    /// Example format: "https://example.com" (without a trailing slash)
+    /// Example format: "https://example.com" (automatically normalized, no need to worry about slashes)
     /// </para>
+    /// <summary>
+    /// The canonical base URL for the site (e.g., "https://example.com").
+    /// Used for generating absolute URLs in sitemaps and RSS feeds.
+    /// </summary>
     public string? CanonicalBaseUrl { get; init; }
 
     /// <summary>
     /// Gets or sets the path to the content root directory. Defaults to "Content".
     /// </summary>
-    public string ContentRootPath { get; init; } = "Content";
+    public FilePath ContentRootPath { get; init; } = new FilePath("Content");
 
 
     /// <summary>
@@ -112,12 +117,12 @@ public record ContentEngineOptions
     ///     <item>
     ///         <description>
     ///             To ignore "wwwroot/app.css" when copying "wwwroot" to the root of the output folder,
-    ///             add "app.css" to this list.
+    ///             add FilePath("app.css") to this list.
     ///         </description>
     ///     </item>
     /// </list>
     /// </remarks>
-    public ImmutableList<string> IgnoredPathsOnContentCopy { get; init; } = [];
+    public ImmutableList<FilePath> IgnoredPathsOnContentCopy { get; init; } = [];
 
     /// <summary>
     /// Gets or sets the YAML deserializer used for parsing front matter in Markdown files.

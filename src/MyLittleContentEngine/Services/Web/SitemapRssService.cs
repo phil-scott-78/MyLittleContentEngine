@@ -36,7 +36,7 @@ internal class SitemapRssService
     /// <returns>The XML string representation of the sitemap.</returns>
     public async Task<string> GenerateSitemap()
     {
-        var baseUrl = GetBaseUrl().TrimEnd('/');
+        var baseUrl = GetBaseUrl();
 
         // Create the sitemap root element
         XNamespace ns = "https://www.sitemaps.org/schemas/sitemap/0.9";
@@ -54,8 +54,12 @@ internal class SitemapRssService
         // Add each page to the sitemap
         foreach (var (url, _, metadata, _) in pagesToGenerate)
         {
+            // Construct the full URL: combine base URL with page URL
+            var pageUrl = new UrlPath(url).EnsureLeadingSlash().Value;
+            var fullUrl = baseUrl + pageUrl;
+            
             var urlElement = new XElement(ns + "url",
-                new XElement(ns + "loc", $"{baseUrl}/{url.TrimStart('/')}"));
+                new XElement(ns + "loc", fullUrl));
 
             // Add lastmod if available
             if (metadata == null) continue;
@@ -89,7 +93,7 @@ internal class SitemapRssService
     /// <returns>The XML string representation of the RSS feed.</returns>
     public async Task<string> GenerateRssFeed()
     {
-        var baseUrl = GetBaseUrl().TrimEnd('/');
+        var baseUrl = GetBaseUrl();
 
         // Create the feed
         var feed = new SyndicationFeed(
@@ -132,8 +136,16 @@ internal class SitemapRssService
 
     private static SyndicationItem GetSyndicationItem(string url, Metadata metadata, string baseUrl)
     {
-        return new SyndicationItem(metadata.Title, metadata.Description ?? string.Empty,
-            new Uri($"{baseUrl}/{url.TrimStart('/')}"), url, metadata.LastMod.HasValue
+        // Construct the full URL: combine base URL with page URL
+        var pageUrl = new UrlPath(url).EnsureLeadingSlash().Value;
+        var fullUrl = baseUrl + pageUrl;
+        
+        return new SyndicationItem(
+            metadata.Title, 
+            metadata.Description ?? string.Empty,
+            new Uri(fullUrl), 
+            url, 
+            metadata.LastMod.HasValue
                 ? new DateTimeOffset(metadata.LastMod.Value)
                 : DateTimeOffset.UtcNow);
     }
@@ -141,9 +153,11 @@ internal class SitemapRssService
     private string GetBaseUrl()
     {
         // First, try to get it from options
-        if (!string.IsNullOrEmpty(_options.CanonicalBaseUrl))
+        if (!string.IsNullOrWhiteSpace(_options.CanonicalBaseUrl))
         {
-            return _options.CanonicalBaseUrl;
+            // CanonicalBaseUrl is expected to be a full URL like "https://example.com"
+            // We need to ensure it doesn't end with a slash for proper URL construction
+            return _options.CanonicalBaseUrl.TrimEnd('/');
         }
 
         return "https://example.com";

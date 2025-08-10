@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using MonorailCss;
+using MyLittleContentEngine.Services;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
 
 namespace MyLittleContentEngine.DocSite;
@@ -18,7 +19,7 @@ public record DocSiteOptions
     /// <summary>
     /// Path to the solution file for API documentation generation
     /// </summary>
-    public string? SolutionPath { get; init; }
+    public FilePath? SolutionPath { get; init; }
 
     /// <summary>
     /// Options for API reference content generation
@@ -63,7 +64,7 @@ public record DocSiteOptions
     /// <summary>
     /// Path to the content directory
     /// </summary>
-    public string ContentRootPath { get; init; } = "Content";
+    public FilePath ContentRootPath { get; init; } = new FilePath("Content");
 
     /// <summary>
     /// Additional CSS styles to include

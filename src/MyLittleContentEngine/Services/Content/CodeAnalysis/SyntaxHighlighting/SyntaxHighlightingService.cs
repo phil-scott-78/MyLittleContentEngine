@@ -99,7 +99,7 @@ internal class SyntaxHighlightingService : ISyntaxHighlightingService
             }
 
             var solutionPath = _options?.SolutionPath;
-            if (string.IsNullOrEmpty(solutionPath))
+            if (!solutionPath.HasValue || solutionPath.Value.IsEmpty)
             {
                 return HighlightedCode.CreateFailure(
                     string.Empty,

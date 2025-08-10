@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Components;
 using System.Reflection;
 using MonorailCss;
 using MyLittleContentEngine.Models;
+using MyLittleContentEngine.Services;
 
 namespace MyLittleContentEngine.BlogSite;
 
@@ -43,22 +44,22 @@ public record BlogSiteOptions
     /// <summary>
     /// Path to the content directory
     /// </summary>
-    public string ContentRootPath { get; init; } = "Content";
+    public FilePath ContentRootPath { get; init; } = new FilePath("Content");
 
     /// <summary>
     /// Path to the blog content directory (relative to ContentRootPath)
     /// </summary>
-    public string BlogContentPath { get; init; } = "Blog";
+    public FilePath BlogContentPath { get; init; } = new FilePath("Blog");
 
     /// <summary>
     /// Base URL for blog posts (used for routing)
     /// </summary>
-    public string BlogBaseUrl { get; init; } = "/blog";
+    public UrlPath BlogBaseUrl { get; init; } = new UrlPath("/blog");
 
     /// <summary>
     /// URL for the tags page
     /// </summary>
-    public string TagsPageUrl { get; init; } = "/tags";
+    public UrlPath TagsPageUrl { get; init; } = new UrlPath("/tags");
 
     /// <summary>
     /// Additional CSS styles to include
@@ -123,7 +124,7 @@ public record BlogSiteOptions
     /// <summary>
     /// Path to the solution file for API documentation generation
     /// </summary>
-    public string? SolutionPath { get; init; }
+    public FilePath? SolutionPath { get; init; }
 
     /// <summary>
     /// Function to generate a URL to be used in social media metadata links 

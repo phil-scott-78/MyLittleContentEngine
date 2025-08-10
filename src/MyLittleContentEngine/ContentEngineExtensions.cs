@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using MyLittleContentEngine.Models;
+using MyLittleContentEngine.Services;
 using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
@@ -77,8 +78,8 @@ public static class ContentEngineExtensions
         {
             configureOptions = _ => new MarkdownContentOptions<TFrontMatter>
             {
-                ContentPath = "Content",
-                BasePageUrl = string.Empty,
+                ContentPath = new FilePath("Content"),
+                BasePageUrl = UrlPath.Empty,
             };
         }
 
@@ -209,7 +210,7 @@ public static class ContentEngineExtensions
             var tempServiceProvider = services.BuildServiceProvider();
             var apiOptions = tempServiceProvider.GetRequiredService<ApiReferenceContentOptions>();
             
-            if (string.IsNullOrWhiteSpace(apiOptions.SolutionPath))
+            if (apiOptions.SolutionPath == null || apiOptions.SolutionPath.Value.IsEmpty)
             {
                 throw new InvalidOperationException(
                     "ApiReferenceContentService requires a solution path. Set SolutionPath in ApiReferenceContentOptions.");
@@ -217,7 +218,7 @@ public static class ContentEngineExtensions
             
             services.WithConnectedRoslynSolution(_ => new CodeAnalysisOptions
             {
-                SolutionPath = apiOptions.SolutionPath
+                SolutionPath = apiOptions.SolutionPath.Value.Value
             });
         }
         
@@ -246,26 +247,20 @@ public static class ContentEngineExtensions
         app.UseStaticFiles(new StaticFileOptions
         {
             FileProvider =
-                new PhysicalFileProvider(fileSystem.Path.Combine(currentDirectory, engineOptions.ContentRootPath)),
+                new PhysicalFileProvider(fileSystem.Path.Combine(currentDirectory, engineOptions.ContentRootPath.Value)),
             RequestPath = "",
             ServeUnknownFileTypes = false,
         });
 
         foreach (var option in optionList)
         {
-            var combine = fileSystem.Path.Combine(currentDirectory, option.ContentPath);
-            string optionPageUrl;
-            if (string.IsNullOrWhiteSpace(option.BasePageUrl))
-                optionPageUrl = string.Empty;
-            else if (option.BasePageUrl.StartsWith('/'))
-                optionPageUrl = option.BasePageUrl;
-            else
-                optionPageUrl = '/' + option.BasePageUrl;
+            var combine = fileSystem.Path.Combine(currentDirectory, option.ContentPath.Value);
+            var optionPageUrl = option.BasePageUrl.EnsureLeadingSlash().RemoveTrailingSlash();
 
             app.UseStaticFiles(new StaticFileOptions
             {
                 FileProvider = new PhysicalFileProvider(combine),
-                RequestPath = optionPageUrl,
+                RequestPath = optionPageUrl.Value,
                 ServeUnknownFileTypes = true,
             });
         }
