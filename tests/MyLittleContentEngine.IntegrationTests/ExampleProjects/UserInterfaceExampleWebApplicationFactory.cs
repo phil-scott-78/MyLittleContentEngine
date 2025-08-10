@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using MyLittleContentEngine;
 using UserInterfaceExample::UserInterfaceExample;
 
 namespace MyLittleContentEngine.IntegrationTests.ExampleProjects;

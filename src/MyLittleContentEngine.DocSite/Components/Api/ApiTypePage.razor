@@ -1,5 +1,4 @@
 @page "/api/type/{slug}/"
-@using System.Net
 @using System.Web
 @using MyLittleContentEngine.Services.Content
 @inject ContentEngineOptions ContentEngineOptions
@@ -135,8 +134,6 @@ else
 
     private string PageTitle => _type != null ? $"{_type.Name} {_type.TypeKind}" : "Type Not Found";
     
-    private RenderFragment Prose(RenderFragment childContent) => @<div class="prose dark:prose-invert max-w-full prose-sm md:prose-base min-w-0">(@childContent)</div>;
-            
 
     protected override async Task OnInitializedAsync()
     {

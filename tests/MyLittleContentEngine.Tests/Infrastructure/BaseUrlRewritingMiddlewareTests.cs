@@ -1,12 +1,9 @@
 using System.Text;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using MyLittleContentEngine;
 using MyLittleContentEngine.Models;
-using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Infrastructure;
 using MyLittleContentEngine.Tests.TestHelpers;
-using Xunit;
 
 namespace MyLittleContentEngine.Tests.Infrastructure;
 
@@ -27,7 +24,7 @@ public class BaseUrlRewritingMiddlewareTests
         var mockContentService = ServiceMockFactory.CreateContentServiceWithCrossReferences(
             new CrossReference { Uid = "System.String", Title = "String Class", Url = "/api/system/string" }
         );
-        services.AddSingleton<IContentService>(mockContentService.Object);
+        services.AddSingleton(mockContentService.Object);
         services.AddSingleton<IXrefResolver, XrefResolver>();
         
         var serviceProvider = services.BuildServiceProvider();
@@ -65,7 +62,7 @@ public class BaseUrlRewritingMiddlewareTests
         services.AddSingleton<IContentEngineFileWatcher, MockContentEngineFileWatcher>();
         
         var mockContentService = ServiceMockFactory.CreateContentServiceWithCrossReferences();
-        services.AddSingleton<IContentService>(mockContentService.Object);
+        services.AddSingleton(mockContentService.Object);
         services.AddSingleton<IXrefResolver, XrefResolver>();
         
         var serviceProvider = services.BuildServiceProvider();
@@ -110,7 +107,7 @@ public class BaseUrlRewritingMiddlewareTests
         var mockContentService = ServiceMockFactory.CreateContentServiceWithCrossReferences(
             new CrossReference { Uid = "System.String", Title = "String Class", Url = "/api/system/string" }
         );
-        services.AddSingleton<IContentService>(mockContentService.Object);
+        services.AddSingleton(mockContentService.Object);
         services.AddSingleton<IXrefResolver, XrefResolver>();
         
         var serviceProvider = services.BuildServiceProvider();
@@ -153,7 +150,7 @@ public class BaseUrlRewritingMiddlewareTests
         
         // Add empty content service but no xref resolver
         var mockContentService = ServiceMockFactory.CreateContentServiceWithCrossReferences();
-        services.AddSingleton<IContentService>(mockContentService.Object);
+        services.AddSingleton(mockContentService.Object);
         services.AddSingleton<IXrefResolver, XrefResolver>();
         
         var serviceProvider = services.BuildServiceProvider();
@@ -200,7 +197,7 @@ public class BaseUrlRewritingMiddlewareTests
         var mockContentService = ServiceMockFactory.CreateContentServiceWithCrossReferences(
             new CrossReference { Uid = "docs.guides.linking-documents-and-media", Title = "Linking Documents and Media", Url = "/docs/guides/linking" }
         );
-        services.AddSingleton<IContentService>(mockContentService.Object);
+        services.AddSingleton(mockContentService.Object);
         services.AddSingleton<IXrefResolver, XrefResolver>();
         
         var serviceProvider = services.BuildServiceProvider();
@@ -239,7 +236,7 @@ public class BaseUrlRewritingMiddlewareTests
         services.AddSingleton<IContentEngineFileWatcher, MockContentEngineFileWatcher>();
         
         var mockContentService = ServiceMockFactory.CreateContentServiceWithCrossReferences();
-        services.AddSingleton<IContentService>(mockContentService.Object);
+        services.AddSingleton(mockContentService.Object);
         services.AddSingleton<IXrefResolver, XrefResolver>();
         
         var serviceProvider = services.BuildServiceProvider();
@@ -282,7 +279,7 @@ public class BaseUrlRewritingMiddlewareTests
         var mockContentService = ServiceMockFactory.CreateContentServiceWithCrossReferences(
             new CrossReference { Uid = "docs.guides.linking-documents-and-media", Title = "Linking Documents and Media", Url = "/docs/guides/linking" }
         );
-        services.AddSingleton<IContentService>(mockContentService.Object);
+        services.AddSingleton(mockContentService.Object);
         services.AddSingleton<IXrefResolver, XrefResolver>();
         
         var serviceProvider = services.BuildServiceProvider();
@@ -323,7 +320,7 @@ public class BaseUrlRewritingMiddlewareTests
         var mockContentService = ServiceMockFactory.CreateContentServiceWithCrossReferences(
             new CrossReference { Uid = "docs.guides.linking-documents-and-media", Title = "Linking Documents and Media", Url = "/docs/guides/linking" }
         );
-        services.AddSingleton<IContentService>(mockContentService.Object);
+        services.AddSingleton(mockContentService.Object);
         services.AddSingleton<IXrefResolver, XrefResolver>();
         
         var serviceProvider = services.BuildServiceProvider();
@@ -389,7 +386,7 @@ public class BaseUrlRewritingMiddlewareTests
         services.AddSingleton<IContentEngineFileWatcher, MockContentEngineFileWatcher>();
         
         var mockContentService = ServiceMockFactory.CreateContentServiceWithCrossReferences();
-        services.AddSingleton<IContentService>(mockContentService.Object);
+        services.AddSingleton(mockContentService.Object);
         services.AddSingleton<IXrefResolver, XrefResolver>();
         
         var serviceProvider = services.BuildServiceProvider();
@@ -445,7 +442,7 @@ public class BaseUrlRewritingMiddlewareTests
         services.AddSingleton<IContentEngineFileWatcher, MockContentEngineFileWatcher>();
         
         var mockContentService = ServiceMockFactory.CreateContentServiceWithCrossReferences();
-        services.AddSingleton<IContentService>(mockContentService.Object);
+        services.AddSingleton(mockContentService.Object);
         services.AddSingleton<IXrefResolver, XrefResolver>();
         
         var serviceProvider = services.BuildServiceProvider();
@@ -494,7 +491,7 @@ public class BaseUrlRewritingMiddlewareTests
         services.AddSingleton<IContentEngineFileWatcher, MockContentEngineFileWatcher>();
         
         var mockContentService = ServiceMockFactory.CreateContentServiceWithCrossReferences();
-        services.AddSingleton<IContentService>(mockContentService.Object);
+        services.AddSingleton(mockContentService.Object);
         services.AddSingleton<IXrefResolver, XrefResolver>();
         
         var serviceProvider = services.BuildServiceProvider();
@@ -538,8 +535,8 @@ public class BaseUrlRewritingMiddlewareTests
         Assert.DoesNotContain("&#xA;", responseContent);
         
         // The actual srcset attribute value should not contain newlines
-        var srcsetValueStart = responseContent.IndexOf("srcset=\"") + 8;
-        var srcsetValueEnd = responseContent.IndexOf("\"", srcsetValueStart);
+        var srcsetValueStart = responseContent.IndexOf("srcset=\"", StringComparison.Ordinal) + 8;
+        var srcsetValueEnd = responseContent.IndexOf("\"", srcsetValueStart, StringComparison.Ordinal);
         var srcsetValue = responseContent.Substring(srcsetValueStart, srcsetValueEnd - srcsetValueStart);
         
         // Should not contain literal newlines in the srcset attribute value

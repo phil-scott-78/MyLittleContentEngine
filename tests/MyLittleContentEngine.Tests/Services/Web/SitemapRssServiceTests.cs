@@ -1,10 +1,8 @@
 using System.Collections.Immutable;
-using MyLittleContentEngine;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Content.TableOfContents;
 using MyLittleContentEngine.Services.Web;
-using Xunit;
 
 namespace MyLittleContentEngine.Tests.Services.Web;
 

@@ -85,17 +85,6 @@ internal static class LinkRewriter
     }
 
     /// <summary>
-    /// Converts a relative path to an absolute path
-    /// </summary>
-    /// <param name="relativePath">The relative path to convert</param>
-    /// <param name="baseUrl"></param>
-    /// <returns>The absolute path</returns>
-    private static string GetAbsolutePath(string relativePath, string baseUrl)
-    {
-        return GetAbsolutePathWithBaseUrl(relativePath, baseUrl, string.Empty);
-    }
-
-    /// <summary>
     /// Converts a relative path to an absolute path with BaseUrl support
     /// </summary>
     /// <param name="relativePath">The relative path to convert</param>

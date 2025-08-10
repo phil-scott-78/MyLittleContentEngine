@@ -1,8 +1,5 @@
-using System.Collections.Immutable;
 using MyLittleContentEngine.Models;
-using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Tests.TestHelpers;
-using Xunit;
 
 namespace MyLittleContentEngine.Tests.Content;
 
@@ -127,7 +124,6 @@ public class MarkdownContentServiceTests
 
         // Act - Simulate the filtering logic from GetContentTocEntriesAsync
         var filteredPages = pages
-            .Where(p => p.FrontMatter.Title != null)
             .Where(p => p.FrontMatter.RedirectUrl == null)
             .ToList();
 

@@ -1,4 +1,3 @@
-using MyLittleContentEngine.Tests.TestHelpers;
 using Shouldly;
 
 namespace MyLittleContentEngine.Tests.TestHelpers;
@@ -70,8 +69,7 @@ public class TestHelpersExampleTest
             "Rich Page", 
             "/rich", 
             10, 
-            ["tag1", "tag2"], 
-            false);
+            ["tag1", "tag2"]);
         
         // Assert
         simplePage.Metadata!.Title.ShouldBe("Test Page");
@@ -89,8 +87,7 @@ public class TestHelpersExampleTest
             "Custom Title",
             42,
             "# Custom Content\n\nThis is custom.",
-            ["custom", "test"],
-            false
+            ["custom", "test"]
         );
         
         // Assert

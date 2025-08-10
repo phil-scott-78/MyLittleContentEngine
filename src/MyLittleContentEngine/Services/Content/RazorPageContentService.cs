@@ -94,7 +94,7 @@ internal class RazorPageContentService : IContentService
 
             foreach (var component in components)
             {
-                var routes = GetRoutesFromComponent(component);
+                var routes = GetRoutesFromComponent(component).ToArray();
                 if (!routes.Any())
                 {
                     continue;

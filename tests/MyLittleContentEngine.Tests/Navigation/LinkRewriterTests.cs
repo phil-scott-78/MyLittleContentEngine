@@ -1,5 +1,4 @@
 using MyLittleContentEngine.Services.Content;
-using MyLittleContentEngine.Services.Content.MarkdigExtensions.Navigation;
 using Shouldly;
 
 namespace MyLittleContentEngine.Tests.Navigation;

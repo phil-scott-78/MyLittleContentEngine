@@ -1,4 +1,3 @@
-using System.IO.Abstractions;
 using System.Collections.Concurrent;
 using Microsoft.Build.Locator;
 using Microsoft.CodeAnalysis;
@@ -14,7 +13,6 @@ namespace MyLittleContentEngine.Services.Content.CodeAnalysis.SolutionWorkspace;
 /// </summary>
 internal class SolutionWorkspaceService : ISolutionWorkspaceService
 {
-    private readonly IFileSystem _fileSystem;
     private readonly ILogger<SolutionWorkspaceService> _logger;
     private readonly CodeAnalysisOptions _options;
     private readonly IContentEngineFileWatcher _fileWatcher;
@@ -38,12 +36,11 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
     public SolutionWorkspaceService(
         CodeAnalysisOptions options,
         ILogger<SolutionWorkspaceService> logger,
-        IContentEngineFileWatcher fileWatcher, IFileSystem fileSystem)
+        IContentEngineFileWatcher fileWatcher)
     {
         _options = options ?? throw new ArgumentNullException(nameof(options));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _fileWatcher = fileWatcher ?? throw new ArgumentNullException(nameof(fileWatcher));
-        _fileSystem = fileSystem;
 
         if (!_options.SolutionPath.HasValue || _options.SolutionPath.Value.IsEmpty)
         {

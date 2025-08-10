@@ -25,7 +25,7 @@
     
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="@_post.FrontMatter.Title" />
-    <meta name="twitter:description" content="@(_post.FrontMatter.Description ?? "")" />
+    <meta name="twitter:description" content="@_post.FrontMatter.Description" />
     @if (BlogOptions.SocialMediaImageUrlFactory != null)
     {
         <meta name="twitter:image" content="@GetSocialImageUrl()" />

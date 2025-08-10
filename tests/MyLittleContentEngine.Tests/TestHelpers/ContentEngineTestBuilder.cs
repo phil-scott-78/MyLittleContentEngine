@@ -16,7 +16,6 @@ namespace MyLittleContentEngine.Tests.TestHelpers;
 public class ContentEngineTestBuilder
 {
     private readonly MockFileSystem _fileSystem = new();
-    private readonly List<(string path, string content)> _markdownFiles = [];
     private readonly List<PageToGenerate> _pages = [];
     private MarkdownContentOptions<TestFrontMatter>? _contentOptions;
 
@@ -29,7 +28,6 @@ public class ContentEngineTestBuilder
     {
         foreach (var (path, content) in files)
         {
-            _markdownFiles.Add((path, content));
             _fileSystem.AddFile(path, new MockFileData(content));
         }
         return this;

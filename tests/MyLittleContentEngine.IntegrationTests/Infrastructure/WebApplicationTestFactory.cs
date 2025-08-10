@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace MyLittleContentEngine.IntegrationTests.Infrastructure;
@@ -10,7 +9,7 @@ public class WebApplicationTestFactory<TProgram> : WebApplicationFactory<TProgra
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
-        builder.ConfigureServices(services =>
+        builder.ConfigureServices(_ =>
         {
             // Override services for testing if needed
             // For now, keep it simple

@@ -16,7 +16,7 @@
             return;
         }
         
-        var result = await HighlighterService.HighlightAsync(Code, Language.CSharp);
+        var result = await HighlighterService.HighlightAsync(Code);
         _highlightedCode = result.Success ? $"<pre><code>{result.Html}</code></pre>" : $"<pre><code>{Code}</code></pre>";
         await base.OnInitializedAsync();
     }

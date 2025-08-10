@@ -157,8 +157,8 @@ internal sealed class CodeHighlightRenderer(
     {
         return modifier switch
         {
-            LanguageModifiers.XmlDocId => ProcessXmlDocIdModifier(codeBlock, baseLanguage, code, bodyOnly: false),
-            $"{LanguageModifiers.XmlDocId},{LanguageModifiers.BodyOnly}" => ProcessXmlDocIdModifier(codeBlock, baseLanguage, code, bodyOnly: true),
+            LanguageModifiers.XmlDocId => ProcessXmlDocIdModifier(baseLanguage, code, bodyOnly: false),
+            $"{LanguageModifiers.XmlDocId},{LanguageModifiers.BodyOnly}" => ProcessXmlDocIdModifier(baseLanguage, code, bodyOnly: true),
             LanguageModifiers.Path => ProcessPathModifier(codeBlock, baseLanguage, code),
             _ => null
         };
@@ -190,7 +190,7 @@ internal sealed class CodeHighlightRenderer(
     }
 
 
-    private string ProcessXmlDocIdModifier(CodeBlock codeBlock, string baseLanguage, string code, bool bodyOnly)
+    private string ProcessXmlDocIdModifier(string baseLanguage, string code, bool bodyOnly)
     {
         if (syntaxHighlighter == null)
             return AsPreCode(HtmlEncoder.Default.Encode(code));
@@ -224,17 +224,6 @@ internal sealed class CodeHighlightRenderer(
         {
             return AsPreCode($"Error loading file '{code.Trim()}': {HtmlEncoder.Default.Encode(fileResult.ErrorMessage ?? "File not found")}");
         }
-    }
-
-    private static string ExtractDataArgument(CodeBlock codeBlock)
-    {
-        if (codeBlock is FencedCodeBlock fencedCodeBlock &&
-            fencedCodeBlock.GetArgumentPairs().TryGetValue("data", out var arg))
-        {
-            return arg;
-        }
-
-        return string.Empty;
     }
 
     private string HighlightCodeUnified(string language, string code)

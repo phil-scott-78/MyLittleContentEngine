@@ -1,5 +1,3 @@
-using Spectre.Console;
-
 namespace Spectre.Console.Examples.Console.Tutorials;
 
 /// <summary>

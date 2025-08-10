@@ -1,6 +1,4 @@
 using Markdig;
-using Markdig.Extensions.AutoIdentifiers;
-using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions.Navigation;
 using Shouldly;
 

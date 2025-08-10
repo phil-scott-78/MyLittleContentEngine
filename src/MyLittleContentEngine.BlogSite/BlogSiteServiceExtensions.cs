@@ -72,11 +72,11 @@ public static class BlogSiteServiceExtensions
         var blogOptions = serviceProvider.GetRequiredService<BlogSiteOptions>();
 
         // Add connected solution only if solution path is configured
-        if (blogOptions.SolutionPath.HasValue && !blogOptions.SolutionPath.Value.IsEmpty)
+        if (blogOptions.SolutionPath is { IsEmpty: false })
         {
-            contentEngineService.WithConnectedRoslynSolution(serviceProvider =>
+            contentEngineService.WithConnectedRoslynSolution(sp =>
             {
-                var o = serviceProvider.GetRequiredService<BlogSiteOptions>();
+                var o = sp.GetRequiredService<BlogSiteOptions>();
                 return new CodeAnalysisOptions
                 {
                     SolutionPath = o.SolutionPath

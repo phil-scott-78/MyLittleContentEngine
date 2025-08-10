@@ -177,7 +177,7 @@ public class FileSystemUtilitiesTests
         });
         var pathUtilities = new FileSystemUtilities(fileSystem);
 
-        var (files, absolutePath) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), "*.md", recursive: false);
+        var (files, _) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), "*.md", recursive: false);
 
         files.ShouldContain(s => s.Value.Contains("file1.md"));
         files.ShouldContain(s => s.Value.Contains("file2.md"));
@@ -195,7 +195,7 @@ public class FileSystemUtilitiesTests
         });
         var pathUtilities = new FileSystemUtilities(fileSystem);
 
-        var (files, absolutePath) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), "*.md", recursive: true);
+        var (files, _) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), "*.md", recursive: true);
 
         files.ShouldContain(s => s.Value.Contains("file1.md"));
         files.ShouldContain(s => s.Value.Contains("file2.md"));
@@ -228,7 +228,7 @@ public class FileSystemUtilitiesTests
         });
         var pathUtilities = new FileSystemUtilities(fileSystem);
 
-        var (files, absolutePath) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), "*.md;*.mdx", recursive: true);
+        var (files, _) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), "*.md;*.mdx", recursive: true);
 
         files.Length.ShouldBe(4);
         files.ShouldContain(s => s.Value.Contains("file1.md"));
@@ -248,7 +248,7 @@ public class FileSystemUtilitiesTests
         });
         var pathUtilities = new FileSystemUtilities(fileSystem);
 
-        var (files, absolutePath) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), "*.md;*.md;*.mdx", recursive: true);
+        var (files, _) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), "*.md;*.md;*.mdx", recursive: true);
 
         files.Length.ShouldBe(2);
         files.ShouldContain(s => s.Value.Contains("file1.md"));
@@ -266,7 +266,7 @@ public class FileSystemUtilitiesTests
         });
         var pathUtilities = new FileSystemUtilities(fileSystem);
 
-        var (files, absolutePath) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), " *.md ; *.mdx ", recursive: true);
+        var (files, _) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), " *.md ; *.mdx ", recursive: true);
 
         files.Length.ShouldBe(2);
         files.ShouldContain(s => s.Value.Contains("file1.md"));
@@ -284,7 +284,7 @@ public class FileSystemUtilitiesTests
         });
         var pathUtilities = new FileSystemUtilities(fileSystem);
 
-        var (files, absolutePath) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), "*.md", recursive: true);
+        var (files, _) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), "*.md", recursive: true);
 
         files.Length.ShouldBe(1);
         files.ShouldContain(s => s.Value.Contains("file1.md"));

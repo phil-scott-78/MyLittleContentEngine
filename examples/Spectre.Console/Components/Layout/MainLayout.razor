@@ -1,12 +1,11 @@
 @using System.Collections.Immutable
 @using MyLittleContentEngine.Services.Content.TableOfContents
-@using MyLittleContentEngine.UI.Components
 @inherits LayoutComponentBase
 @inject ITableOfContentService TableOfContentService
 @inject NavigationManager NavigationManager
 
 <div class="min-h-screen bg-base-50 dark:bg-base-950">
-    <SharedHeader CurrentSection="@CurrentSection" HasTableOfContents="@(_toc is { Count: > 0 })" ShowSidebarToggle="true" ShowSearch="true" />
+    <SharedHeader CurrentSection="@_currentSection" HasTableOfContents="@(_toc is { Count: > 0 })" ShowSidebarToggle="true" ShowSearch="true" />
     
     <!-- Main Content Area -->
     <div class="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -17,7 +16,7 @@
                 <aside class="hidden lg:block lg:w-64 xl:w-72 shrink-0">
                     <div class="sticky top-16 scrollbar-gutter-thumb-900 dark:scrollbar-thin dark:scrollbar-thumb-base-700 dark:scrollbar-track-base-950 overflow-y-auto max-h-[calc(100vh-4rem)] pr-4 -mr-4">
                         <div class="py-8">
-                            <TableOfContentsNavigation TableOfContents="@_toc" Section="@CurrentSection"/>
+                            <TableOfContentsNavigation TableOfContents="@_toc" Section="@_currentSection"/>
                         </div>
                     </div>
                 </aside>
@@ -32,7 +31,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
                             </button>
-                            <TableOfContentsNavigation TableOfContents="@_toc" Section="@CurrentSection"/>
+                            <TableOfContentsNavigation TableOfContents="@_toc" Section="@_currentSection"/>
                         </div>
                     </div>
                 </div>
@@ -52,7 +51,7 @@
 
 @code{
     private ImmutableList<NavigationTreeItem>? _toc;
-    private string CurrentSection = "";
+    private string _currentSection = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -61,21 +60,21 @@
         // Determine the current section based on URL
         if (currentPath.StartsWith("/console", StringComparison.OrdinalIgnoreCase))
         {
-            CurrentSection = "Console";
+            _currentSection = "Console";
         }
         else if (currentPath.StartsWith("/cli", StringComparison.OrdinalIgnoreCase))
         {
-            CurrentSection = "Cli";
+            _currentSection = "Cli";
         }
         else
         {
-            CurrentSection = "";
+            _currentSection = "";
         }
 
         // Get the table of contents for the current section
-        if (!string.IsNullOrEmpty(CurrentSection))
+        if (!string.IsNullOrEmpty(_currentSection))
         {
-            _toc = (await TableOfContentService.GetNavigationTocAsync(currentPath, CurrentSection)).First().Items.ToImmutableList();
+            _toc = (await TableOfContentService.GetNavigationTocAsync(currentPath, _currentSection)).First().Items.ToImmutableList();
         }
         
         await base.OnInitializedAsync();

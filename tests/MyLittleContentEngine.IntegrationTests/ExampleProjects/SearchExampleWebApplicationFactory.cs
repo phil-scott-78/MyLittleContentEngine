@@ -46,7 +46,7 @@ public class SearchExampleWebApplicationFactory : WebApplicationFactory<SearchEx
             if (localHttpClientDescriptor != null)
             {
                 services.Remove(localHttpClientDescriptor);
-                services.AddTransient<ILocalHttpClient>(serviceProvider =>
+                services.AddTransient<ILocalHttpClient>(_ =>
                 {
                     var httpClient = CreateClient();
                     return new TestServerLocalHttpClient(httpClient);

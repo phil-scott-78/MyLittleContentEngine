@@ -9,7 +9,7 @@ using Markdig.Renderers.Html;
 namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.AlertBlock;
 
 /// <summary>
-/// A HTML renderer for a <see cref="MyLittleContentEngine.Services.Content.MarkdigExtensions.AlertBlock.AlertBlock"/>.
+/// A HTML renderer for a <see cref="MyLittleContentEngine.Services.Content.MarkdigExtensions.AlertBlock"/>.
 /// </summary>
 /// <seealso cref="HtmlObjectRenderer{AlertBlock}" />
 internal class CustomAlertBlockRenderer : HtmlObjectRenderer<Markdig.Extensions.Alerts.AlertBlock>

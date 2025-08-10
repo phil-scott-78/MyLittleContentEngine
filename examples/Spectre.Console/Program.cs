@@ -40,13 +40,13 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
     ExcludeSubfolders = false,
     PostFilePattern = "*.md;*.mdx"
 })
-.WithConnectedRoslynSolution(provider => new CodeAnalysisOptions()
+.WithConnectedRoslynSolution(_ => new CodeAnalysisOptions()
 {
     SolutionPath = "../../MyLittleContentEngine.sln",
 })
 ;
 
-builder.Services.AddMonorailCss(provider => new MonorailCssOptions()
+builder.Services.AddMonorailCss(_ => new MonorailCssOptions()
 {
     BaseColorName = () =>  ColorNames.Gray,
     PrimaryHue = () => 250,

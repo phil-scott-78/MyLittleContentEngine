@@ -1,4 +1,3 @@
-using System.IO.Abstractions;
 using System.Collections.Concurrent;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
@@ -24,7 +23,7 @@ internal class SymbolExtractionService : ISymbolExtractionService
     private readonly LazyAndForgetful<IReadOnlyDictionary<string, SymbolInfo>> _lazySymbols;
 
     public SymbolExtractionService(ISolutionWorkspaceService workspaceService, CodeAnalysisOptions options,
-        ILogger<SymbolExtractionService> logger, IFileSystem fileSystem, IContentEngineFileWatcher? fileWatcher = null)
+        ILogger<SymbolExtractionService> logger, IContentEngineFileWatcher? fileWatcher = null)
     {
         _workspaceService = workspaceService;
         _options = options;

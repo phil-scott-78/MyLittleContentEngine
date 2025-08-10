@@ -34,6 +34,6 @@ public class LocalHttpClient : ILocalHttpClient, IDisposable
     /// </summary>
     public void Dispose()
     {
-        _httpClient?.Dispose();
+        _httpClient.Dispose();
     }
 }

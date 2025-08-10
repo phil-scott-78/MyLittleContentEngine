@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using MyLittleContentEngine;
 using RecipeExample::RecipeExample;
 
 namespace MyLittleContentEngine.IntegrationTests.ExampleProjects;
@@ -44,7 +43,7 @@ public class RecipeExampleWebApplicationFactory : WebApplicationFactory<RecipeEx
             if (recipeOptionsDescriptor != null)
             {
                 services.Remove(recipeOptionsDescriptor);
-                services.AddTransient<RecipeContentOptions>(serviceProvider =>
+                services.AddTransient<RecipeContentOptions>(_ =>
                 {
                     var originalOptions = (RecipeContentOptions) recipeOptionsDescriptor.ImplementationInstance!;
                     

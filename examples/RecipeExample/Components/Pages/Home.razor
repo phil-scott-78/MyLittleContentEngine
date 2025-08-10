@@ -9,7 +9,7 @@
         <p class="text-xl text-base-600">Discover and cook amazing recipes with detailed instructions</p>
     </header>
 
-    @if (recipes == null)
+    @if (_recipes == null)
     {
         <div class="flex items-center justify-center min-h-64">
             <div class="text-center">
@@ -18,7 +18,7 @@
             </div>
         </div>
     }
-    else if (recipes.Count == 0)
+    else if (_recipes.Count == 0)
     {
         <div class="text-center py-12">
             <div class="w-24 h-24 mx-auto mb-6 bg-base-100 rounded-full flex items-center justify-center">
@@ -33,18 +33,18 @@
     else
     {
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            @foreach (var recipePage in recipes)
+            @foreach (var recipePage in _recipes)
             {
                 <RecipeCard Recipe="@recipePage" />
             }
         </div>
         
-        @if (recipes.Count > 0)
+        @if (_recipes.Count > 0)
         {
             <div class="mt-12 text-center">
                 <p class="text-base-600">
-                    Showing <span class="font-semibold text-base-800">@recipes.Count</span> 
-                    recipe@(recipes.Count == 1 ? "" : "s")
+                    Showing <span class="font-semibold text-base-800">@_recipes.Count</span> 
+                    recipe@(_recipes.Count == 1 ? "" : "s")
                 </p>
             </div>
         }
@@ -52,10 +52,10 @@
 </div>
 
 @code {
-    private ImmutableList<RecipeContentPage>? recipes;
+    private ImmutableList<RecipeContentPage>? _recipes;
     
     protected override async Task OnInitializedAsync()
     {
-        recipes = await RecipeService.GetAllRecipesAsync();
+        _recipes = await RecipeService.GetAllRecipesAsync();
     }
 }

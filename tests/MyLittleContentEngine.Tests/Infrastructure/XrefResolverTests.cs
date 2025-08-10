@@ -1,11 +1,7 @@
-using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using MyLittleContentEngine.Models;
-using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Infrastructure;
 using MyLittleContentEngine.Tests.TestHelpers;
-using Xunit;
 
 namespace MyLittleContentEngine.Tests.Infrastructure;
 
@@ -24,7 +20,7 @@ public class XrefResolverTests
             new CrossReference { Uid = "System.String", Title = "String Class", Url = "/api/system/string" },
             new CrossReference { Uid = "System.Int32", Title = "Int32 Struct", Url = "/api/system/int32" }
         );
-        services.AddSingleton<IContentService>(mockContentService.Object);
+        services.AddSingleton(mockContentService.Object);
         services.AddSingleton<IXrefResolver, XrefResolver>();
         
         var provider = services.BuildServiceProvider();
@@ -46,7 +42,7 @@ public class XrefResolverTests
         services.AddSingleton<IContentEngineFileWatcher, MockContentEngineFileWatcher>();
         
         var mockContentService = ServiceMockFactory.CreateContentServiceWithCrossReferences();
-        services.AddSingleton<IContentService>(mockContentService.Object);
+        services.AddSingleton(mockContentService.Object);
         services.AddSingleton<IXrefResolver, XrefResolver>();
         
         var provider = services.BuildServiceProvider();
@@ -68,7 +64,7 @@ public class XrefResolverTests
         services.AddSingleton<IContentEngineFileWatcher, MockContentEngineFileWatcher>();
         
         var mockContentService = ServiceMockFactory.CreateContentServiceWithCrossReferences();
-        services.AddSingleton<IContentService>(mockContentService.Object);
+        services.AddSingleton(mockContentService.Object);
         services.AddSingleton<IXrefResolver, XrefResolver>();
         
         var provider = services.BuildServiceProvider();
@@ -91,7 +87,7 @@ public class XrefResolverTests
         var mockContentService = ServiceMockFactory.CreateContentServiceWithCrossReferences(
             new CrossReference { Uid = "System.String", Title = "String Class", Url = "/api/system/string" }
         );
-        services.AddSingleton<IContentService>(mockContentService.Object);
+        services.AddSingleton(mockContentService.Object);
         services.AddSingleton<IXrefResolver, XrefResolver>();
         
         var provider = services.BuildServiceProvider();

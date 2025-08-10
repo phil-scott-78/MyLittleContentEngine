@@ -4,8 +4,6 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MinimalExample::MinimalExample;
-using MyLittleContentEngine;
-using MyLittleContentEngine.BlogSite;
 
 namespace MyLittleContentEngine.IntegrationTests.ExampleProjects;
 

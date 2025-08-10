@@ -1,5 +1,3 @@
-using Spectre.Console;
-
 namespace Spectre.Console.Examples.Console.Tutorials;
 
 /// <summary>
@@ -175,8 +173,7 @@ public class InteractivePromptAndDashboardTutorialExample : IExample
         AnsiConsole.MarkupLine("[bold yellow]Step 4: Live Display with Dynamic Updates[/]");
         
         var random = new Random();
-        var startTime = DateTime.Now;
-        
+
         AnsiConsole.Live(CreateStatusTable(0, 0, 0))
             .Start(ctx =>
             {
@@ -352,7 +349,7 @@ public class InteractivePromptAndDashboardTutorialExample : IExample
         
         if (autoRefresh)
         {
-            refreshInterval = AnsiConsole.Ask<int>("Refresh interval (seconds):", 30);
+            refreshInterval = AnsiConsole.Ask("Refresh interval (seconds):", 30);
         }
 
         AnsiConsole.MarkupLine($"[green]✓[/] Theme set to: [cyan]{theme}[/]");

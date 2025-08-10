@@ -1,13 +1,9 @@
 ﻿using System.Collections.Immutable;
 using System.IO.Abstractions.TestingHelpers;
-using System.Reflection;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging.Abstractions;
-using MyLittleContentEngine;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content;
-using MyLittleContentEngine.Services.Content.TableOfContents;
-using Xunit;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -16,13 +12,12 @@ namespace MyLittleContentEngine.Tests.Content;
 public class RazorPageContentServiceTests
 {
     private readonly MockFileSystem _fileSystem;
-    private readonly ContentEngineOptions _options;
     private readonly RazorPageContentService _service;
 
     public RazorPageContentServiceTests()
     {
         _fileSystem = new MockFileSystem();
-        _options = new ContentEngineOptions
+        var options = new ContentEngineOptions
         {
             SiteTitle = "Test Site",
             SiteDescription = "Test Description", 
@@ -33,7 +28,7 @@ public class RazorPageContentServiceTests
                 .IgnoreUnmatchedProperties()
                 .Build()
         };
-        _service = new RazorPageContentService(_fileSystem, NullLogger<RazorPageContentService>.Instance, _options);
+        _service = new RazorPageContentService(_fileSystem, NullLogger<RazorPageContentService>.Instance, options);
     }
 
     [Fact]
@@ -245,23 +240,6 @@ public class RazorPageContentServiceTests
         // The metadata should NOT be loaded since files are not side-by-side
         // This test verifies the service enforces the side-by-side requirement
     }
-
-    // Test component classes for testing route extraction
-    [Route("/test-route")]
-    private class TestComponent : ComponentBase { }
-
-    [Route("/parameterized-route/{id}")]
-    private class ParameterizedTestComponent : ComponentBase { }
-
-    [Route("/valid-route")]
-    [Route("/another-valid-route")]
-    private class MultipleRouteComponent : ComponentBase { }
-
-    [Route("/param-route/{param}")]
-    [Route("/valid-route-2")]
-    private class MixedRouteComponent : ComponentBase { }
-
-    private class NoRouteComponent : ComponentBase { }
 }
 
 /// <summary>

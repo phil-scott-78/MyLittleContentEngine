@@ -31,8 +31,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
         ISymbolExtractionService symbolService,
         ISolutionWorkspaceService workspaceService,
         CodeAnalysisOptions codeAnalysisOptions,
-        ILogger<ApiReferenceContentService> logger,
-        CodeHighlighterOptions? roslynOptions = null)
+        ILogger<ApiReferenceContentService> logger)
     {
         _options = options ?? throw new ArgumentNullException(nameof(options));
         _symbolService = symbolService ?? throw new ArgumentNullException(nameof(symbolService));

@@ -10,7 +10,7 @@ internal class FolderNodeHandler : NavigationNodeHandler
 
         return indexChildTreeNode != null
             ? BuildFolderWithIndexChild(node, indexChildTreeNode, currentUrl, children)
-            : BuildStandardFolder(node, currentUrl, children);
+            : BuildStandardFolder(node, children);
     }
 
     private static NavigationTreeItem BuildFolderWithIndexChild(TreeNode node, TreeNode indexChildTreeNode, string currentUrl, NavigationTreeItem[] children)
@@ -33,7 +33,7 @@ internal class FolderNodeHandler : NavigationNodeHandler
         // Fallback to standard folder if index child not found
         if (indexChildTocEntry == null)
         {
-            return BuildStandardFolder(node, currentUrl, children);
+            return BuildStandardFolder(node, children);
         }
 
         var itemsForFolder = children.Where((_, i) => i != indexOfIndexChildTocEntry).ToList();
@@ -53,7 +53,7 @@ internal class FolderNodeHandler : NavigationNodeHandler
         };
     }
 
-    private static NavigationTreeItem BuildStandardFolder(TreeNode node, string currentUrl, NavigationTreeItem[] children)
+    private static NavigationTreeItem BuildStandardFolder(TreeNode node, NavigationTreeItem[] children)
     {
         var folderOrder = children.Length != 0
             ? children.Min(e => e.Order)

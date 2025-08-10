@@ -12,7 +12,7 @@ namespace MyLittleContentEngine.Services.Web;
 /// </summary>
 public partial class SearchIndexService
 {
-    private static readonly JsonSerializerOptions _jsonSerializerOptions;
+    private static readonly JsonSerializerOptions JsonSerializerOptions;
     private string _searchIndexCache = string.Empty;
     private readonly IEnumerable<IContentService> _contentServices;
     private readonly ILocalHttpClient _localHttpClient;
@@ -35,7 +35,7 @@ public partial class SearchIndexService
 
     static SearchIndexService()
     {
-        _jsonSerializerOptions = new JsonSerializerOptions
+        JsonSerializerOptions = new JsonSerializerOptions
         {
             WriteIndented = false,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
@@ -80,7 +80,7 @@ public partial class SearchIndexService
             });
         }
 
-        _searchIndexCache = JsonSerializer.Serialize(searchIndex, _jsonSerializerOptions);
+        _searchIndexCache = JsonSerializer.Serialize(searchIndex, JsonSerializerOptions);
         return _searchIndexCache;
     }
 

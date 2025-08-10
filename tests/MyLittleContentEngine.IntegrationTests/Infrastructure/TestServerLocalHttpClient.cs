@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Mvc.Testing;
 using MyLittleContentEngine.Services.Infrastructure;
 
 namespace MyLittleContentEngine.IntegrationTests.Infrastructure;

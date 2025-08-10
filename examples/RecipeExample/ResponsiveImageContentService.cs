@@ -22,8 +22,7 @@ internal class ResponsiveImageContentService : IResponsiveImageContentService
     
     private readonly RecipeContentOptions _options;
     private readonly IFileSystem _fileSystem;
-    
-    private static readonly string[] ImageSizes = ["xs", "sm", "md", "lg", "xl"];
+
     private static readonly string[] AllSizes = ["lqip", "xs", "sm", "md", "lg", "xl"];
 
     public ResponsiveImageContentService(RecipeContentOptions options, IFileSystem fileSystem)
