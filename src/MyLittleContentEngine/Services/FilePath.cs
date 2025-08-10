@@ -1,5 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.IO.Abstractions;
+using Testably.Abstractions;
 
 namespace MyLittleContentEngine.Services;
 
@@ -10,8 +12,8 @@ namespace MyLittleContentEngine.Services;
 /// </summary>
 public readonly struct FilePath : IEquatable<FilePath>
 {
-    internal static IFileSystem FileSystem = new FileSystem();
-    
+    internal static IFileSystem FileSystem = new RealFileSystem();
+
     private readonly string _value;
 
     /// <summary>
@@ -186,7 +188,7 @@ public readonly struct FilePath : IEquatable<FilePath>
             return Empty;
 
         // Convert forward slashes to the appropriate path separator
-        var filePath = urlPath.Value.Replace('/', Path.DirectorySeparatorChar);
+        var filePath = urlPath.Value.Replace('/', FileSystem.Path.DirectorySeparatorChar);
         return new FilePath(filePath);
     }
 

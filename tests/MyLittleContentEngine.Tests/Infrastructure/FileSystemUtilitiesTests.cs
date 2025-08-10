@@ -1,4 +1,5 @@
-using System.IO.Abstractions.TestingHelpers;
+using System.IO.Abstractions;
+using Testably.Abstractions.Testing;
 using MyLittleContentEngine.Services;
 using MyLittleContentEngine.Services.Infrastructure;
 using Shouldly;
@@ -147,9 +148,9 @@ public class FileSystemUtilitiesTests
         var fileSystem = new MockFileSystem();
         var pathUtilities = new FileSystemUtilities(fileSystem);
 
-        var result = pathUtilities.Combine(new FilePath(""), new FilePath("relative/path"));
+        var result = pathUtilities.Combine(new FilePath(""), new FilePath("relative\\path"));
 
-        result.Value.ShouldBe("relative/path");
+        result.Value.ShouldBe("relative\\path");
     }
 
     [Fact]
@@ -169,12 +170,12 @@ public class FileSystemUtilitiesTests
     [Fact]
     public void GetFilesInDirectory_NonRecursive_OnlyReturnsTopLevelFiles()
     {
-        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
-        {
-            { "/content/file1.md", new MockFileData("content1") },
-            { "/content/file2.md", new MockFileData("content2") },
-            { "/content/subdirectory/file3.md", new MockFileData("content3") }
-        });
+        var fileSystem = new MockFileSystem();
+        fileSystem.Directory.CreateDirectory("/content");
+        fileSystem.Directory.CreateDirectory("/content/subdirectory");
+        fileSystem.File.WriteAllText("/content/file1.md", "content1");
+        fileSystem.File.WriteAllText("/content/file2.md", "content2");
+        fileSystem.File.WriteAllText("/content/subdirectory/file3.md", "content3");
         var pathUtilities = new FileSystemUtilities(fileSystem);
 
         var (files, _) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), "*.md", recursive: false);
@@ -187,12 +188,12 @@ public class FileSystemUtilitiesTests
     [Fact]
     public void GetFilesInDirectory_Recursive_OnlyReturnsAllFiles()
     {
-        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
-        {
-            { "/content/file1.md", new MockFileData("content1") },
-            { "/content/file2.md", new MockFileData("content2") },
-            { "/content/subdirectory/file3.md", new MockFileData("content3") }
-        });
+        var fileSystem = new MockFileSystem();
+        fileSystem.Directory.CreateDirectory("/content");
+        fileSystem.Directory.CreateDirectory("/content/subdirectory");
+        fileSystem.File.WriteAllText("/content/file1.md", "content1");
+        fileSystem.File.WriteAllText("/content/file2.md", "content2");
+        fileSystem.File.WriteAllText("/content/subdirectory/file3.md", "content3");
         var pathUtilities = new FileSystemUtilities(fileSystem);
 
         var (files, _) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), "*.md", recursive: true);
@@ -218,14 +219,14 @@ public class FileSystemUtilitiesTests
     [Fact]
     public void GetFilesInDirectory_MultiplePatterns_ReturnsAllMatchingFiles()
     {
-        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
-        {
-            { "/content/file1.md", new MockFileData("content1") },
-            { "/content/file2.mdx", new MockFileData("content2") },
-            { "/content/file3.txt", new MockFileData("content3") },
-            { "/content/subdirectory/file4.md", new MockFileData("content4") },
-            { "/content/subdirectory/file5.mdx", new MockFileData("content5") }
-        });
+        var fileSystem = new MockFileSystem();
+        fileSystem.Directory.CreateDirectory("/content");
+        fileSystem.Directory.CreateDirectory("/content/subdirectory");
+        fileSystem.File.WriteAllText("/content/file1.md", "content1");
+        fileSystem.File.WriteAllText("/content/file2.mdx", "content2");
+        fileSystem.File.WriteAllText("/content/file3.txt", "content3");
+        fileSystem.File.WriteAllText("/content/subdirectory/file4.md", "content4");
+        fileSystem.File.WriteAllText("/content/subdirectory/file5.mdx", "content5");
         var pathUtilities = new FileSystemUtilities(fileSystem);
 
         var (files, _) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), "*.md;*.mdx", recursive: true);
@@ -241,11 +242,10 @@ public class FileSystemUtilitiesTests
     [Fact]
     public void GetFilesInDirectory_MultiplePatterns_RemovesDuplicates()
     {
-        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
-        {
-            { "/content/file1.md", new MockFileData("content1") },
-            { "/content/file2.mdx", new MockFileData("content2") }
-        });
+        var fileSystem = new MockFileSystem();
+        fileSystem.Directory.CreateDirectory("/content");
+        fileSystem.File.WriteAllText("/content/file1.md", "content1");
+        fileSystem.File.WriteAllText("/content/file2.mdx", "content2");
         var pathUtilities = new FileSystemUtilities(fileSystem);
 
         var (files, _) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), "*.md;*.md;*.mdx", recursive: true);
@@ -258,12 +258,11 @@ public class FileSystemUtilitiesTests
     [Fact]
     public void GetFilesInDirectory_MultiplePatternsWithSpaces_HandlesCorrectly()
     {
-        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
-        {
-            { "/content/file1.md", new MockFileData("content1") },
-            { "/content/file2.mdx", new MockFileData("content2") },
-            { "/content/file3.txt", new MockFileData("content3") }
-        });
+        var fileSystem = new MockFileSystem();
+        fileSystem.Directory.CreateDirectory("/content");
+        fileSystem.File.WriteAllText("/content/file1.md", "content1");
+        fileSystem.File.WriteAllText("/content/file2.mdx", "content2");
+        fileSystem.File.WriteAllText("/content/file3.txt", "content3");
         var pathUtilities = new FileSystemUtilities(fileSystem);
 
         var (files, _) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), " *.md ; *.mdx ", recursive: true);
@@ -277,11 +276,10 @@ public class FileSystemUtilitiesTests
     [Fact]
     public void GetFilesInDirectory_SinglePattern_WorksAsExpected()
     {
-        var fileSystem = new MockFileSystem(new Dictionary<string, MockFileData>
-        {
-            { "/content/file1.md", new MockFileData("content1") },
-            { "/content/file2.mdx", new MockFileData("content2") }
-        });
+        var fileSystem = new MockFileSystem();
+        fileSystem.Directory.CreateDirectory("/content");
+        fileSystem.File.WriteAllText("/content/file1.md", "content1");
+        fileSystem.File.WriteAllText("/content/file2.mdx", "content2");
         var pathUtilities = new FileSystemUtilities(fileSystem);
 
         var (files, _) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), "*.md", recursive: true);

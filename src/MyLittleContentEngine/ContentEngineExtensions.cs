@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.IO.Abstractions;
+using Testably.Abstractions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.AspNetCore.Http;
@@ -123,7 +124,7 @@ public static class ContentEngineExtensions
         services.AddTransient<ITableOfContentService, TableOfContentService>();
         services.AddTransient<MarkdownParserService>();
         services.AddTransient<RoutesHelperService>();
-        services.AddSingleton<IFileSystem>(new FileSystem());
+        services.AddSingleton<IFileSystem>(new RealFileSystem());
         services.AddTransient<FileSystemUtilities>();
         services.AddSingleton<IXrefResolver, XrefResolver>();
         services.AddSyntaxHighlightingService();

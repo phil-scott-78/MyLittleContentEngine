@@ -1,4 +1,6 @@
+using System.IO;
 using System.IO.Abstractions;
+using Testably.Abstractions;
 
 namespace MyLittleContentEngine.Services;
 
@@ -16,7 +18,7 @@ public static class FilePathExtensions
     /// </summary>
     public static IFileSystem DefaultFileSystem
     {
-        get => _defaultFileSystem ??= new FileSystem();
+        get => _defaultFileSystem ??= new RealFileSystem();
         set => _defaultFileSystem = value;
     }
 

@@ -16,7 +16,8 @@
     <PackageReference Include="CooklangSharp" Version="0.0.0-alpha.0.8" />
     <PackageReference Include="Fractions" Version="8.3.2" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
-    <PackageReference Include="TestableIO.System.IO.Abstractions" Version="22.0.15" />
+    <PackageReference Include="Testably.Abstractions" Version="9.0.0" />
+    <PackageReference Include="Testably.Abstractions.Interface" Version="9.0.0" />
     <PackageReference Include="YamlDotNet" Version="16.3.0" />
   </ItemGroup>
 

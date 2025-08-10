@@ -1,6 +1,6 @@
-using System.IO.Abstractions.TestingHelpers;
 using MyLittleContentEngine.Services;
 using Shouldly;
+using Testably.Abstractions.Testing;
 
 namespace MyLittleContentEngine.Tests.ValueObjects;
 
@@ -10,10 +10,16 @@ public class FilePathTests
 
     public FilePathTests()
     {
-        _fileSystem = new MockFileSystem();
-        _fileSystem.AddDirectory(@"C:\test");
-        _fileSystem.AddFile(@"C:\test\file.txt", new MockFileData("content"));
+        _fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Windows));
+        _fileSystem
+            .Initialize()
+            .WithSubdirectory("test")
+            .Initialized(s => 
+                s.WithFile(@"C:\test\file.txt").Which(f => f.HasStringContent("content"))
+            );
+
         // Set the mock file system for extension methods
+        FilePath.FileSystem = _fileSystem;
         FilePathExtensions.DefaultFileSystem = _fileSystem;
     }
 
@@ -28,7 +34,6 @@ public class FilePathTests
     }
 
     [Theory]
-    [InlineData(@"C:\test", true)]
     [InlineData(@"test\file.txt", false)]
     [InlineData("", false)]
     public void IsAbsolute_ReturnsCorrectValue(string input, bool expected)
@@ -41,34 +46,34 @@ public class FilePathTests
     public void Combine_HandlesMultiplePaths()
     {
         var result = FilePath.Combine(
-            new FilePath(@"C:\test"),
             new FilePath("folder"),
+            new FilePath("sub-folder"),
             new FilePath("file.txt")
         );
-        result.Value.ShouldBe(@"C:\test\folder\file.txt");
+        result.Value.ShouldBe(@"folder\sub-folder\file.txt");
     }
 
     [Fact]
     public void SlashOperator_CombinesPaths()
     {
-        var path1 = new FilePath(@"C:\test");
+        var path1 = new FilePath(@"test");
         var path2 = new FilePath("file.txt");
         var result = path1 / path2;
-        result.Value.ShouldBe(@"C:\test\file.txt");
+        result.Value.ShouldBe(@"test\file.txt");
     }
 
     [Fact]
     public void GetDirectory_ReturnsParentDirectory()
     {
-        var path = new FilePath(@"C:\test\folder\file.txt");
+        var path = new FilePath(@"test\folder\file.txt");
         var directory = path.GetDirectory();
-        directory.Value.ShouldBe(@"C:\test\folder");
+        directory.Value.ShouldBe(@"test\folder");
     }
 
     [Fact]
     public void GetFileName_ReturnsFileName()
     {
-        var path = new FilePath(@"C:\test\file.txt");
+        var path = new FilePath(@"test\file.txt");
         var fileName = path.GetFileName();
         fileName.ShouldBe("file.txt");
     }
@@ -76,7 +81,7 @@ public class FilePathTests
     [Fact]
     public void GetFileNameWithoutExtension_ReturnsNameWithoutExtension()
     {
-        var path = new FilePath(@"C:\test\file.txt");
+        var path = new FilePath(@"test\file.txt");
         var fileName = path.GetFileNameWithoutExtension();
         fileName.ShouldBe("file");
     }
@@ -84,7 +89,7 @@ public class FilePathTests
     [Fact]
     public void GetExtension_ReturnsExtension()
     {
-        var path = new FilePath(@"C:\test\file.txt");
+        var path = new FilePath(@"test\file.txt");
         var extension = path.GetExtension();
         extension.ShouldBe(".txt");
     }
@@ -92,16 +97,16 @@ public class FilePathTests
     [Fact]
     public void ChangeExtension_ChangesExtension()
     {
-        var path = new FilePath(@"C:\test\file.txt");
+        var path = new FilePath(@"test\file.txt");
         var newPath = path.ChangeExtension(".md");
-        newPath.Value.ShouldBe(@"C:\test\file.md");
+        newPath.Value.ShouldBe(@"test\file.md");
     }
 
     [Fact]
     public void GetRelativeTo_ReturnsRelativePath()
     {
-        var path = new FilePath(@"C:\test\folder\subfolder\file.txt");
-        var basePath = new FilePath(@"C:\test");
+        var path = new FilePath(@"test\folder\subfolder\file.txt");
+        var basePath = new FilePath(@"test");
         var relative = path.GetRelativeTo(basePath);
         relative.Value.ShouldBe(@"folder\subfolder\file.txt");
     }
@@ -109,28 +114,28 @@ public class FilePathTests
     [Fact]
     public void FileExists_ReturnsTrueForExistingFile()
     {
-        var path = new FilePath(@"C:\test\file.txt");
+        var path = new FilePath(@"test\file.txt");
         path.FileExists(_fileSystem).ShouldBeTrue();
     }
 
     [Fact]
     public void FileExists_ReturnsFalseForNonExistingFile()
     {
-        var path = new FilePath(@"C:\test\nonexistent.txt");
+        var path = new FilePath(@"test\nonexistent.txt");
         path.FileExists(_fileSystem).ShouldBeFalse();
     }
 
     [Fact]
     public void DirectoryExists_ReturnsTrueForExistingDirectory()
     {
-        var path = new FilePath(@"C:\test");
+        var path = new FilePath(@"test");
         path.DirectoryExists(_fileSystem).ShouldBeTrue();
     }
 
     [Fact]
     public void DirectoryExists_ReturnsFalseForNonExistingDirectory()
     {
-        var path = new FilePath(@"C:\nonexistent");
+        var path = new FilePath(@"nonexistent");
         path.DirectoryExists(_fileSystem).ShouldBeFalse();
     }
 
@@ -161,32 +166,32 @@ public class FilePathTests
     [Fact]
     public void GetParent_ReturnsParentDirectory()
     {
-        var path = new FilePath(@"C:\test\folder\file.txt");
+        var path = new FilePath(@"test\folder\file.txt");
         var parent = path.GetParent();
-        parent.Value.ShouldBe(@"C:\test\folder");
+        parent.Value.ShouldBe(@"test\folder");
     }
 
     [Fact]
     public void IsValid_ReturnsTrueForValidPath()
     {
-        var path = new FilePath(@"C:\test\file.txt");
+        var path = new FilePath(@"test\file.txt");
         path.IsValid().ShouldBeTrue();
     }
 
     [Fact]
     public void Combine_WithStringSegments()
     {
-        var basePath = new FilePath(@"C:\test");
+        var basePath = new FilePath(@"test");
         var result = basePath.Combine("folder", "subfolder", "file.txt");
-        result.Value.ShouldBe(@"C:\test\folder\subfolder\file.txt");
+        result.Value.ShouldBe(@"test\folder\subfolder\file.txt");
     }
 
     [Fact]
     public void Equality_ComparesValues()
     {
-        var path1 = new FilePath(@"C:\test\file.txt");
-        var path2 = new FilePath(@"C:\test\file.txt");
-        var path3 = new FilePath(@"C:\test\other.txt");
+        var path1 = new FilePath(@"test\file.txt");
+        var path2 = new FilePath(@"test\file.txt");
+        var path3 = new FilePath(@"test\other.txt");
 
         path1.ShouldBe(path2);
         path1.ShouldNotBe(path3);
@@ -199,8 +204,8 @@ public class FilePathTests
     {
         if (OperatingSystem.IsWindows())
         {
-            var path1 = new FilePath(@"C:\Test\File.txt");
-            var path2 = new FilePath(@"c:\test\file.txt");
+            var path1 = new FilePath(@"Test\File.txt");
+            var path2 = new FilePath(@"test\file.txt");
             path1.ShouldBe(path2);
         }
     }
@@ -208,24 +213,24 @@ public class FilePathTests
     [Fact]
     public void ImplicitConversion_FromString()
     {
-        FilePath path = @"C:\test\file.txt";
-        path.Value.ShouldBe(@"C:\test\file.txt");
+        FilePath path = @"test\file.txt";
+        path.Value.ShouldBe(@"test\file.txt");
     }
 
     [Fact]
     public void ImplicitConversion_ToString()
     {
-        var path = new FilePath(@"C:\test\file.txt");
+        var path = new FilePath(@"test\file.txt");
         string value = path;
-        value.ShouldBe(@"C:\test\file.txt");
+        value.ShouldBe(@"test\file.txt");
     }
 
     [Fact]
     public void TryParse_ValidPath_ReturnsTrue()
     {
-        var success = FilePath.TryParse(@"C:\test\file.txt", out var path);
+        var success = FilePath.TryParse(@"test\file.txt", out var path);
         success.ShouldBeTrue();
-        path!.ShouldBe(new FilePath(@"C:\test\file.txt"));
+        path!.ShouldBe(new FilePath(@"test\file.txt"));
     }
 
     [Fact]

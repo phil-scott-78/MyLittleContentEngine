@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
-using System.IO.Abstractions.TestingHelpers;
+using System.IO.Abstractions;
+using Testably.Abstractions.Testing;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging.Abstractions;
 using MyLittleContentEngine.Models;
@@ -59,11 +60,14 @@ public class RazorPageContentServiceTests
             """;
 
         // Create project structure with .csproj file so it can be found as project root
-        _fileSystem.AddFile("/project/TestProject.csproj", new MockFileData("<Project />"));
+        _fileSystem.Directory.CreateDirectory("/project");
+        _fileSystem.Directory.CreateDirectory("/project/Components");
+        _fileSystem.Directory.CreateDirectory("/project/Components/Pages");
+        _fileSystem.File.WriteAllText("/project/TestProject.csproj", "<Project />");
         
         // Create a Razor component and its sidecar metadata file in the same directory
-        _fileSystem.AddFile("/project/Components/Pages/TestComponent.razor", new MockFileData("@page \"/test\""));
-        _fileSystem.AddFile("/project/Components/Pages/TestComponent.razor.metadata.yml", new MockFileData(yamlContent));
+        _fileSystem.File.WriteAllText("/project/Components/Pages/TestComponent.razor", "@page \"/test\"");
+        _fileSystem.File.WriteAllText("/project/Components/Pages/TestComponent.razor.metadata.yml", yamlContent);
 
         // Act
         var result = await _service.GetPagesToGenerateAsync();
@@ -86,9 +90,12 @@ public class RazorPageContentServiceTests
             """;
 
         // Create project structure with .csproj file and side-by-side files
-        _fileSystem.AddFile("/project/TestProject.csproj", new MockFileData("<Project />"));
-        _fileSystem.AddFile("/project/Components/Pages/TestComponent.razor", new MockFileData("@page \"/test\""));
-        _fileSystem.AddFile("/project/Components/Pages/TestComponent.razor.metadata.yml", new MockFileData(invalidYamlContent));
+        _fileSystem.Directory.CreateDirectory("/project");
+        _fileSystem.Directory.CreateDirectory("/project/Components");
+        _fileSystem.Directory.CreateDirectory("/project/Components/Pages");
+        _fileSystem.File.WriteAllText("/project/TestProject.csproj", "<Project />");
+        _fileSystem.File.WriteAllText("/project/Components/Pages/TestComponent.razor", "@page \"/test\"");
+        _fileSystem.File.WriteAllText("/project/Components/Pages/TestComponent.razor.metadata.yml", invalidYamlContent);
 
         // Act
         var result = await _service.GetPagesToGenerateAsync();
@@ -119,11 +126,14 @@ public class RazorPageContentServiceTests
             """;
 
         // Create project structure with .csproj file so it can be found as project root
-        _fileSystem.AddFile("/project/TestProject.csproj", new MockFileData("<Project />"));
+        _fileSystem.Directory.CreateDirectory("/project");
+        _fileSystem.Directory.CreateDirectory("/project/Components");
+        _fileSystem.Directory.CreateDirectory("/project/Components/Pages");
+        _fileSystem.File.WriteAllText("/project/TestProject.csproj", "<Project />");
         
         // Create a Razor component and its sidecar metadata file in the same directory
-        _fileSystem.AddFile("/project/Components/Pages/TestComponent.razor", new MockFileData("@page \"/test\""));
-        _fileSystem.AddFile("/project/Components/Pages/TestComponent.razor.metadata.yml", new MockFileData(yamlContent));
+        _fileSystem.File.WriteAllText("/project/Components/Pages/TestComponent.razor", "@page \"/test\"");
+        _fileSystem.File.WriteAllText("/project/Components/Pages/TestComponent.razor.metadata.yml", yamlContent);
 
         // Act
         var result = await _service.GetContentTocEntriesAsync();
@@ -215,14 +225,18 @@ public class RazorPageContentServiceTests
             """;
 
         // Create project structure with .csproj file
-        _fileSystem.AddFile("/project/TestProject.csproj", new MockFileData("<Project />"));
+        _fileSystem.Directory.CreateDirectory("/project");
+        _fileSystem.Directory.CreateDirectory("/project/Components");
+        _fileSystem.Directory.CreateDirectory("/project/Components/Pages");
+        _fileSystem.Directory.CreateDirectory("/project/metadata");
+        _fileSystem.File.WriteAllText("/project/TestProject.csproj", "<Project />");
         
         // Create component file
-        _fileSystem.AddFile("/project/Components/Pages/TestComponent.razor", new MockFileData("@page \"/test\""));
+        _fileSystem.File.WriteAllText("/project/Components/Pages/TestComponent.razor", "@page \"/test\"");
         
         // Place metadata file in DIFFERENT directory (should NOT be found)
-        _fileSystem.AddFile("/project/Components/TestComponent.razor.metadata.yml", new MockFileData(yamlContent));
-        _fileSystem.AddFile("/project/metadata/TestComponent.razor.metadata.yml", new MockFileData(yamlContent));
+        _fileSystem.File.WriteAllText("/project/Components/TestComponent.razor.metadata.yml", yamlContent);
+        _fileSystem.File.WriteAllText("/project/metadata/TestComponent.razor.metadata.yml", yamlContent);
 
         // Act
         var result = await _service.GetPagesToGenerateAsync();

@@ -1,8 +1,9 @@
 using System.Collections.Immutable;
+using System.IO.Abstractions;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Content.TableOfContents;
-using System.IO.Abstractions.TestingHelpers;
+using Testably.Abstractions.Testing;
 
 namespace MyLittleContentEngine.Tests.TestHelpers;
 
@@ -28,7 +29,12 @@ public class ContentEngineTestBuilder
     {
         foreach (var (path, content) in files)
         {
-            _fileSystem.AddFile(path, new MockFileData(content));
+            var directory = Path.GetDirectoryName(path);
+            if (!string.IsNullOrEmpty(directory))
+            {
+                _fileSystem.Directory.CreateDirectory(directory);
+            }
+            _fileSystem.File.WriteAllText(path, content);
         }
         return this;
     }
