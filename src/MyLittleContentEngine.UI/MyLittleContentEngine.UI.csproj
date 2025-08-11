@@ -16,4 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\MyLittleContentEngine\MyLittleContentEngine.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Components\Navigation\Breadcrumbs.razor" />
+  </ItemGroup>
 </Project>

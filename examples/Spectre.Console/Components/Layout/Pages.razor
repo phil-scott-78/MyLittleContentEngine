@@ -33,13 +33,13 @@
     <header class="mb-8 pb-8 border-b border-base-200 dark:border-base-700">
         <Breadcrumbs Items="@_navigationInfo.Breadcrumbs" />
         
-        <h1 class="text-4xl lg:text-5xl font-extrabold text-base-900 dark:text-base-100 mb-4">
+        <h1 class="text-4xl lg:text-5xl font-extrabold text-base-900 dark:text-base-100 mb-4 text-pretty">
             @_navigationInfo.PageTitle
         </h1>
         
         @if (!string.IsNullOrEmpty(_description))
         {
-            <p class="text-xl text-base-600 dark:text-base-400">
+            <p class="text-xl text-base-600 dark:text-base-400 text-pretty">
                 @_description
             </p>
         }

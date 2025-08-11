@@ -2,23 +2,27 @@
 
 @if (Items != null && Items.Any())
 {
-    <nav class="flex items-center text-sm text-base-600 dark:text-base-400 mb-4 flex-wrap">
+    <nav class="transition-all flex items-center text-xs md:text-sm text-base-600 dark:text-base-400 mb-4">
         @foreach (var (breadcrumb, index) in Items.Select((b, i) => (b, i)))
         {
             @if (index > 0)
             {
-                <svg class="w-4 h-4 mx-2" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 mx-1 lg:mx-2" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                 </svg>
             }
             
             @if (breadcrumb.IsCurrent)
             {
-                <span class="text-base-900 dark:text-base-100">@breadcrumb.Name</span>
+                <span class="text-base-900 dark:text-base-100  text-pretty">@breadcrumb.Name</span>
+            }
+            else if (breadcrumb.Href == null)
+            {
+                <span class="text-pretty">@breadcrumb.Name</span>
             }
             else
             {
-                <a href="@breadcrumb.Href" class="hover:text-base-900 dark:hover:text-base-100 transition-colors">@breadcrumb.Name</a>
+                <a href="@breadcrumb.Href" class="hover:text-base-900 dark:hover:text-base-100 transition-colors text-pretty">@breadcrumb.Name</a>
             }
         }
     </nav>

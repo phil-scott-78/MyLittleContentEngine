@@ -289,32 +289,78 @@ internal class TableOfContentService(IEnumerable<IContentService> contentService
         string section,
         ICollection<IContentService> services)
     {
-        var breadcrumbs = new List<BreadcrumbItem>
+        var allPages = await GetPageTitlesWithOrderAsync(services);
+        var breadcrumbs = new List<BreadcrumbItem>();
+        
+        // Find the actual home page instead of hardcoding
+        var homePage = allPages.FirstOrDefault(p => 
+            NavigationUrlComparer.AreEqual(p.Url, "/") || 
+            NavigationUrlComparer.AreEqual(p.Url, "/index"));
+        
+        if (homePage != null)
         {
-            // Always add Home as the first breadcrumb
-            new()
+            breadcrumbs.Add(new BreadcrumbItem
+            {
+                Name = homePage.PageTitle,
+                Href = "/",
+                IsCurrent = false
+            });
+        }
+        else
+        {
+            // Fallback to "Home" if no home page found
+            breadcrumbs.Add(new BreadcrumbItem
             {
                 Name = "Home",
                 Href = "/",
                 IsCurrent = false
-            }
-        };
+            });
+        }
 
         // Add section breadcrumb if we have a section
         if (!string.IsNullOrEmpty(section))
         {
-            breadcrumbs.Add(new BreadcrumbItem
+            // Check if the current page IS the section index page
+            var sectionUrl = $"/{section.ToLowerInvariant()}";
+            var isCurrentPageSectionIndex = NavigationUrlComparer.AreEqual(currentPage.Url, sectionUrl) ||
+                                           NavigationUrlComparer.AreEqual(currentPage.Url, $"{sectionUrl}/index");
+            
+            // Skip section breadcrumb if we're already on the section's index page
+            // (it will be added as the current page breadcrumb at the end)
+            if (!isCurrentPageSectionIndex)
             {
-                Name = FormatSectionName(section),
-                Href = $"/{section.ToLowerInvariant()}",
-                IsCurrent = false
-            });
+                // Check if the section URL is a valid link
+                var sectionPage = allPages.FirstOrDefault(p =>
+                    NavigationUrlComparer.AreEqual(p.Url, sectionUrl) ||
+                    NavigationUrlComparer.AreEqual(p.Url, $"{sectionUrl}/index"));
+                
+                if (sectionPage != null)
+                {
+                    // Section has a valid page, include href
+                    breadcrumbs.Add(new BreadcrumbItem
+                    {
+                        Name = sectionPage.PageTitle,
+                        Href = sectionUrl,
+                        IsCurrent = false
+                    });
+                }
+                else
+                {
+                    // Section doesn't have a page, set href to null
+                    breadcrumbs.Add(new BreadcrumbItem
+                    {
+                        Name = FormatSectionName(section),
+                        Href = null,
+                        IsCurrent = false
+                    });
+                }
+            }
         }
 
         // Build breadcrumbs from hierarchy parts
         if (currentPage.HierarchyParts.Length > 0)
         {
-            var allPages = await GetPageTitlesWithOrderAsync(services, section);
+            var sectionPages = await GetPageTitlesWithOrderAsync(services, section);
 
             // Skip the first hierarchy part if it matches the section name (case-insensitive)
             var hierarchyStartIndex = 0;
@@ -338,7 +384,7 @@ internal class TableOfContentService(IEnumerable<IContentService> contentService
                     ? $"/{partialPath}"
                     : $"/{section.ToLowerInvariant()}/{partialPath}";
 
-                var parentPage = allPages.FirstOrDefault(p =>
+                var parentPage = sectionPages.FirstOrDefault(p =>
                     NavigationUrlComparer.AreEqual(p.Url, parentUrl) ||
                     NavigationUrlComparer.AreEqual(p.Url, $"{parentUrl}/index"));
 
@@ -353,11 +399,11 @@ internal class TableOfContentService(IEnumerable<IContentService> contentService
                 }
                 else
                 {
-                    // Use formatted segment name if no page found
+                    // No page found at this URL, set href to null
                     breadcrumbs.Add(new BreadcrumbItem
                     {
                         Name = FormatSegmentName(currentPage.HierarchyParts[i]),
-                        Href = parentUrl,
+                        Href = null,  // No actual page, so no link
                         IsCurrent = false
                     });
                 }

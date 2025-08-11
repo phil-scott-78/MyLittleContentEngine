@@ -40,11 +40,11 @@ public class NavigationInfoTests
         navigationInfo.Breadcrumbs[0].IsCurrent.ShouldBeFalse();
         
         navigationInfo.Breadcrumbs[1].Name.ShouldBe("CLI");
-        navigationInfo.Breadcrumbs[1].Href.ShouldBe("/cli");
+        navigationInfo.Breadcrumbs[1].Href.ShouldBeNull();  // No actual page at /cli, so href should be null
         navigationInfo.Breadcrumbs[1].IsCurrent.ShouldBeFalse();
         
         navigationInfo.Breadcrumbs[2].Name.ShouldBe("Advanced");
-        navigationInfo.Breadcrumbs[2].Href.ShouldBe("/cli/advanced");
+        navigationInfo.Breadcrumbs[2].Href.ShouldBeNull();  // No actual page at /cli/advanced
         navigationInfo.Breadcrumbs[2].IsCurrent.ShouldBeFalse();
         
         navigationInfo.Breadcrumbs[3].Name.ShouldBe("Configuration");
@@ -105,9 +105,9 @@ public class NavigationInfoTests
         navigationInfo.SectionPath.ShouldBe("");
         navigationInfo.PageTitle.ShouldBe("Welcome");
         
-        // Root page should have Home and itself in breadcrumbs
+        // Root page should have Welcome (actual home page title) and itself in breadcrumbs
         navigationInfo.Breadcrumbs.Count.ShouldBe(2);
-        navigationInfo.Breadcrumbs[0].Name.ShouldBe("Home");
+        navigationInfo.Breadcrumbs[0].Name.ShouldBe("Welcome");  // Uses actual home page title
         navigationInfo.Breadcrumbs[0].Href.ShouldBe("/");
         navigationInfo.Breadcrumbs[0].IsCurrent.ShouldBeFalse();
         
@@ -190,8 +190,39 @@ public class NavigationInfoTests
         navigationInfo.Breadcrumbs[2].Name.ShouldBe("How To"); // Formatted from "How-To"
         navigationInfo.Breadcrumbs[3].Name.ShouldBe("Working with Multiple Command Hierarchies");
         
-        // The URL for "How To" should be correct
-        navigationInfo.Breadcrumbs[2].Href.ShouldBe("/cli/how-to");
+        // The URL for "How To" should be null since there's no page there
+        navigationInfo.Breadcrumbs[2].Href.ShouldBeNull();
+    }
+    
+    [Fact]
+    public async Task GetNavigationInfoAsync_SkipsSectionBreadcrumb_WhenOnSectionIndexPage()
+    {
+        // Arrange - Simulate visiting a section's index page
+        var mockContentService = new Mock<IContentService>();
+        mockContentService.Setup(x => x.DefaultSection).Returns("console");
+        mockContentService.Setup(x => x.GetContentTocEntriesAsync()).ReturnsAsync(
+            ImmutableList.Create(
+                new ContentTocItem("Console Documentation", "/console", 1, []),
+                new ContentTocItem("Getting Started", "/console/getting-started", 2, ["getting-started"])
+            )
+        );
+
+        var tableOfContentService = new TableOfContentService([mockContentService.Object]);
+
+        // Act - Navigate to the section index page
+        var navigationInfo = await tableOfContentService.GetNavigationInfoAsync("/console");
+
+        // Assert - Should not have duplicate "Console Documentation" in breadcrumbs
+        navigationInfo.ShouldNotBeNull();
+        navigationInfo.Breadcrumbs.Count.ShouldBe(2); // Home and current page only
+        
+        navigationInfo.Breadcrumbs[0].Name.ShouldBe("Home");
+        navigationInfo.Breadcrumbs[0].Href.ShouldBe("/");
+        navigationInfo.Breadcrumbs[0].IsCurrent.ShouldBeFalse();
+        
+        navigationInfo.Breadcrumbs[1].Name.ShouldBe("Console Documentation"); // Current page
+        navigationInfo.Breadcrumbs[1].Href.ShouldBeNull();
+        navigationInfo.Breadcrumbs[1].IsCurrent.ShouldBeTrue();
     }
     
     [Fact]
