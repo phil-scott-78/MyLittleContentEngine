@@ -35,13 +35,17 @@
 
     <!-- Console Output Showcase -->
     <section class="w-full">
-        <div class="bg-base-800 rounded-lg border border-base-700 p-4 shadow-2xl">
+        <div class="transition-all bg-base-800  border border-base-700 -mx-8 md:mx-0 p-1 md:p-4 rounded-sm md:rounded-2xl shadow-2xl">
             <div class="max-w-5xl mx-auto">
                 <div class="overflow-hidden rounded">
-                    <video autoplay="autoplay" loop="loop" muted="muted" playsinline="playsinline" preload="auto">
-                        <source media="(max-width: 640px)" src="/assets/hero-rich-sm.webm">
-                        <source media="(min-width: 641px)" src="/assets/hero-rich.webm">
-                    </video>
+                    <picture>
+                        <source media="(max-width: 640px)" srcset="/assets/hero-rich-sm.webp">
+                        <source media="(min-width: 641px)" srcset="/assets/hero-rich.webp">
+                        <img src="/assets/hero-rich.webp" 
+                             alt="Spectre.Console rich terminal output demonstration" 
+                             class="w-full h-auto block"
+                             loading="lazy">
+                    </picture>
                 </div>
             </div>
         </div>
