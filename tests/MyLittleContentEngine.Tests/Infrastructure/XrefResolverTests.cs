@@ -106,6 +106,6 @@ public class MockContentEngineFileWatcher : IContentEngineFileWatcher
 {
     public void AddPathWatch(string path, string filePattern, Action<string> onFileChanged, bool includeSubdirectories = true) { }
     public void AddPathsWatch(IEnumerable<string> paths, Action onUpdate, bool includeSubdirectories = true) { }
-    public void SubscribeToMetadataUpdate(Action onUpdate) { }
+    public void SubscribeToChanges(Action onUpdate) { }
     public void Dispose() { }
 }

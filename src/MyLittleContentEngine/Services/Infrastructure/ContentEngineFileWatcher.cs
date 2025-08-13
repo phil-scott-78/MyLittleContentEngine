@@ -33,7 +33,7 @@ public interface IContentEngineFileWatcher
     /// Subscribes to all update events for metadata changes.
     /// </summary>
     /// <param name="onUpdate"></param>
-    void SubscribeToMetadataUpdate(Action onUpdate);
+    void SubscribeToChanges(Action onUpdate);
 
     /// <summary>
     /// Releases all resources used by this instance.
@@ -117,7 +117,7 @@ public sealed class ContentEngineFileWatcher : IDisposable, IContentEngineFileWa
         }
     }
 
-    public void SubscribeToMetadataUpdate(Action onUpdate)
+    public void SubscribeToChanges(Action onUpdate)
     {
         UpdateActions.Add(onUpdate);
     }

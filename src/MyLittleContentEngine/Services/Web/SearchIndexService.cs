@@ -30,7 +30,7 @@ public partial class SearchIndexService
         _localHttpClient = localHttpClient;
         _logger = logger;
 
-        fileWatcher.SubscribeToMetadataUpdate(() => _searchIndexCache = string.Empty);
+        fileWatcher.SubscribeToChanges(() => _searchIndexCache = string.Empty);
     }
 
     static SearchIndexService()

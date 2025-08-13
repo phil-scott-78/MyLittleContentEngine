@@ -55,7 +55,7 @@ public class XrefResolver : IXrefResolver, IDisposable
         );
 
         // Subscribe to file changes to invalidate cache
-        _fileWatcher.SubscribeToMetadataUpdate(() =>
+        _fileWatcher.SubscribeToChanges(() =>
         {
             _logger.LogDebug("Content changed, refreshing cross-reference cache");
             _crossReferencesCache.Refresh();
