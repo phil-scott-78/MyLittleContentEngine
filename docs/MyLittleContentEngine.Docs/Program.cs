@@ -1,4 +1,5 @@
 ﻿using MonorailCss;
+using MyLittleContentEngine;
 using MyLittleContentEngine.DocSite;
 using WordbreakMiddleware;
 
@@ -14,8 +15,6 @@ builder.Services.AddDocSite(_ => new DocSiteOptions()
     GitHubUrl = "https://github.com/phil-scott-78/MyLittleContentEngine",
     CanonicalBaseUrl = Environment.GetEnvironmentVariable("CanonicalBaseUrl") ?? "https://phil-scott-78.github.io/MyLittleContentEngine/",
     SolutionPath = "../../MyLittleContentEngine.sln",
-    IncludeNamespaces = ["MyLittleContentEngine"],
-    ExcludeNamespaces = ["MyLittleContentEngine.Tests"],
     DisplayFontFamily = "Lexend, sans-serif",
     BodyFontFamily = "'Noto Sans', sans-serif",
     HeaderIcon = """

@@ -17,6 +17,7 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
     private readonly CodeAnalysisOptions _options;
     private readonly IContentEngineFileWatcher _fileWatcher;
     private readonly Lock _lock = new();
+    private readonly string _tempBuildPath;
 
     private MSBuildWorkspace? _workspace;
     private Solution? _solution;
@@ -47,6 +48,14 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
             throw new ArgumentException("Solution path must be specified in options", nameof(options));
         }
 
+        // Create temp folder for build artifacts
+        _tempBuildPath = Path.Combine(
+            Path.GetTempPath(), 
+            $"MyLittleContentEngine_Build_{Guid.NewGuid():N}"
+        );
+        Directory.CreateDirectory(_tempBuildPath);
+        _logger.LogDebug("Created temp build folder: {Path}", _tempBuildPath);
+
         // Register for file watching
         RegisterFileWatching();
     }
@@ -65,7 +74,15 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
 
         _logger.LogInformation("Loading solution from {SolutionPath}", solutionPath);
 
-        var workspace = MSBuildWorkspace.Create();
+        // Configure MSBuild properties to use temp folder for build artifacts
+        var properties = new Dictionary<string, string>
+        {
+            ["BaseIntermediateOutputPath"] = Path.Combine(_tempBuildPath, "obj") + Path.DirectorySeparatorChar,
+            ["IntermediateOutputPath"] = Path.Combine(_tempBuildPath, "obj", "$(Configuration)") + Path.DirectorySeparatorChar,
+            ["OutputPath"] = Path.Combine(_tempBuildPath, "bin", "$(Configuration)") + Path.DirectorySeparatorChar
+        };
+
+        var workspace = MSBuildWorkspace.Create(properties);
         workspace.WorkspaceFailed += (_, args) =>
         {
             _logger.LogWarning("Workspace failed: {Diagnostic}", args.Diagnostic);
@@ -208,6 +225,20 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
             _workspace?.Dispose();
             _compilationCache.Clear();
             _isDisposed = true;
+        }
+
+        // Clean up temp folder
+        if (Directory.Exists(_tempBuildPath))
+        {
+            try
+            {
+                Directory.Delete(_tempBuildPath, recursive: true);
+                _logger.LogDebug("Cleaned up temp build folder: {Path}", _tempBuildPath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to clean up temp build folder: {Path}", _tempBuildPath);
+            }
         }
     }
 }
