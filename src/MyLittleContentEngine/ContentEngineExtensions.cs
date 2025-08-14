@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Logging;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services;
 using MyLittleContentEngine.Services.Content;
@@ -149,6 +150,70 @@ public static class ContentEngineExtensions
     private static IServiceCollection AddSyntaxHighlightingService(this IServiceCollection services)
     {
         services.AddTransient<ISyntaxHighlightingService, SyntaxHighlightingService>();
+
+        return services;
+    }
+
+    /// <summary>
+    /// Adds a service with file-watch invalidated lifetime. The service instance will be cached
+    /// until file changes are detected by the content engine, providing optimal performance
+    /// while ensuring fresh instances when content changes.
+    /// </summary>
+    /// <typeparam name="T">The service type to register.</typeparam>
+    /// <param name="services">The service collection.</param>
+    /// <returns>The updated service collection for method chaining.</returns>
+    /// <remarks>
+    /// The service type T should be registered as transient or scoped before calling this method.
+    /// This method replaces the existing registration with a file-watched cached version.
+    /// Requires IContentEngineFileWatcher to be registered first.
+    /// </remarks>
+    public static IConfiguredContentEngineServiceCollection AddFileWatched<T>(
+        this IConfiguredContentEngineServiceCollection services) where T : class
+    {
+        // First, capture the original service descriptor before we modify it
+        var originalDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(T));
+        if (originalDescriptor == null)
+        {
+            throw new InvalidOperationException($"Service type {typeof(T).Name} must be registered before calling AddFileWatched<{typeof(T).Name}>().");
+        }
+
+        // Remove the original registration
+        services.Remove(originalDescriptor);
+
+        // Register the factory as singleton
+        services.AddSingleton<FileWatchDependencyFactory<T>>(provider =>
+        {
+            var fileWatcher = provider.GetRequiredService<IContentEngineFileWatcher>();
+            var logger = provider.GetService<ILogger<FileWatchDependencyFactory<T>>>();
+            
+            // Create a factory function that creates instances using the original descriptor
+            Func<IServiceProvider, T> serviceFactory = serviceProvider =>
+            {
+                // Use the original registration to create the service instance
+                if (originalDescriptor.ImplementationFactory != null)
+                {
+                    return (T)originalDescriptor.ImplementationFactory(serviceProvider);
+                }
+                else if (originalDescriptor.ImplementationType != null)
+                {
+                    return (T)ActivatorUtilities.CreateInstance(serviceProvider, originalDescriptor.ImplementationType);
+                }
+                else if (originalDescriptor.ImplementationInstance != null)
+                {
+                    return (T)originalDescriptor.ImplementationInstance;
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Unable to create instance of {typeof(T).Name}");
+                }
+            };
+            
+            return new FileWatchDependencyFactory<T>(fileWatcher, serviceFactory, provider, logger);
+        });
+
+        // Register the service as scoped, retrieved through the factory
+        services.AddScoped<T>(provider =>
+            provider.GetRequiredService<FileWatchDependencyFactory<T>>().GetInstance());
 
         return services;
     }
