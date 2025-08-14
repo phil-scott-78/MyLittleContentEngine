@@ -5,7 +5,8 @@ uid: "docs.index"
 order: 1
 ---
 
-An opinionated and inflexible static content generator, written in .NET!!!
+An opinionated and inflexible static content generator, written in .NET.
+
 * Written with `dotnet watch` in mind, see changes immediately as you edit your Markdown files
 * No JSON or YAML configuration files
 * No Node.js or JavaScript build dependencies

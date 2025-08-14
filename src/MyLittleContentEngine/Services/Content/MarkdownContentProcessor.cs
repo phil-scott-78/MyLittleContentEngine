@@ -6,6 +6,7 @@ using Testably.Abstractions;
 using Microsoft.Extensions.Logging;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions;
+using MyLittleContentEngine.Services.Infrastructure;
 
 namespace MyLittleContentEngine.Services.Content;
 
@@ -21,6 +22,7 @@ internal class MarkdownContentProcessor<TFrontMatter>
     private readonly TagService<TFrontMatter> _tagService;
     private readonly ContentFilesService<TFrontMatter> _contentFilesService;
     private readonly IFileSystem _fileSystem;
+    private readonly IContentEngineFileWatcher _fileWatcher;
     private readonly ILogger<MarkdownContentProcessor<TFrontMatter>> _logger;
 
     /// <summary>
@@ -31,6 +33,7 @@ internal class MarkdownContentProcessor<TFrontMatter>
     /// <param name="tagService">Tag service for handling tags.</param>
     /// <param name="contentFilesService">Content files service for file operations.</param>
     /// <param name="fileSystem">The file system.</param>
+    /// <param name="fileWatcher">File watcher for monitoring content changes.</param>
     /// <param name="logger">Logger instance.</param>
     public MarkdownContentProcessor(
         MarkdownContentOptions<TFrontMatter> markdownContentOptions,
@@ -38,6 +41,7 @@ internal class MarkdownContentProcessor<TFrontMatter>
         TagService<TFrontMatter> tagService,
         ContentFilesService<TFrontMatter> contentFilesService,
         IFileSystem fileSystem,
+        IContentEngineFileWatcher fileWatcher,
         ILogger<MarkdownContentProcessor<TFrontMatter>> logger)
     {
         _markdownContentOptions = markdownContentOptions;
@@ -45,7 +49,49 @@ internal class MarkdownContentProcessor<TFrontMatter>
         _tagService = tagService;
         _contentFilesService = contentFilesService;
         _fileSystem = fileSystem;
+        _fileWatcher = fileWatcher;
         _logger = logger;
+
+        // Set up file watching for markdown files
+        SetupFileWatching();
+    }
+
+    /// <summary>
+    /// Sets up file watching for markdown content files to enable hot reload.
+    /// </summary>
+    private void SetupFileWatching()
+    {
+        try
+        {
+            var contentPath = _markdownContentOptions.ContentPath.Value;
+            
+            // Parse the file patterns from PostFilePattern (e.g., "*.md;*.mdx")
+            var patterns = _markdownContentOptions.PostFilePattern.Split(';', StringSplitOptions.RemoveEmptyEntries);
+            
+            foreach (var pattern in patterns)
+            {
+                var trimmedPattern = pattern.Trim();
+                if (!string.IsNullOrEmpty(trimmedPattern))
+                {
+                    _logger.LogDebug("Setting up file watch for {ContentPath} with pattern {Pattern}", contentPath, trimmedPattern);
+                    
+                    _fileWatcher.AddPathWatch(
+                        contentPath,
+                        trimmedPattern,
+                        filePath => 
+                        {
+                            _logger.LogDebug("Markdown file changed: {FilePath}", filePath);
+                            // FileWatchDependencyFactory handles the actual invalidation
+                        },
+                        includeSubdirectories: !_markdownContentOptions.ExcludeSubfolders
+                    );
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to set up file watching for markdown content at {ContentPath}", _markdownContentOptions.ContentPath);
+        }
     }
 
     /// <summary>

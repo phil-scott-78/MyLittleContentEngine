@@ -94,7 +94,7 @@ public static class ContentEngineExtensions
         services.AddFileWatched<MarkdownContentProcessor<TFrontMatter>>();
 
         // Register the primary service
-        services.AddSingleton<IMarkdownContentService<TFrontMatter>, MarkdownContentService<TFrontMatter>>();
+        services.AddFileWatched<IMarkdownContentService<TFrontMatter>, MarkdownContentService<TFrontMatter>>();
         services.AddTransient<SitemapRssService>();
         services.AddHttpClient();
         services.AddTransient<ILocalHttpClient, LocalHttpClient>();
@@ -129,16 +129,14 @@ public static class ContentEngineExtensions
         services.AddTransient<FileSystemUtilities>();
         services.AddSyntaxHighlightingService();
 
-        // Register the Razor page content service
-        services.AddSingleton<RazorPageContentService>();
+        // Register the Razor page content service with file-watch invalidation
+        var configuredServices = new ConfiguredContentEngineServiceCollection(services);
+        configuredServices.AddFileWatched<RazorPageContentService>();
         services.AddSingleton<IContentService>(provider => provider.GetRequiredService<RazorPageContentService>());
         services.AddOutputOptions(Environment.GetCommandLineArgs());
-
-        var configuredServices = new ConfiguredContentEngineServiceCollection(services);
         
         // Register XrefResolver with file-watch invalidation
-        configuredServices.AddFileWatched<XrefResolver>();
-        services.AddSingleton<IXrefResolver>(provider => provider.GetRequiredService<XrefResolver>());
+        configuredServices.AddFileWatched<IXrefResolver, XrefResolver>();
         
         return configuredServices;
     }
@@ -197,6 +195,45 @@ public static class ContentEngineExtensions
     }
 
     /// <summary>
+    /// Adds a service with file-watch invalidated lifetime, with separate service and implementation types.
+    /// The service instance will be cached until file changes are detected by the content engine.
+    /// </summary>
+    /// <typeparam name="TService">The service type to register.</typeparam>
+    /// <typeparam name="TImplementation">The implementation type.</typeparam>
+    /// <param name="services">The service collection.</param>
+    /// <param name="lifetime">The service lifetime for the underlying service (default: Transient).</param>
+    /// <returns>The updated service collection for method chaining.</returns>
+    /// <remarks>
+    /// This method directly registers the service interface with file-watch invalidation capabilities.
+    /// Requires IContentEngineFileWatcher to be registered first.
+    /// </remarks>
+    public static IConfiguredContentEngineServiceCollection AddFileWatched<TService, TImplementation>(
+        this IConfiguredContentEngineServiceCollection services, 
+        ServiceLifetime lifetime = ServiceLifetime.Transient) 
+        where TService : class
+        where TImplementation : class, TService
+    {
+        // Register the factory for the implementation type
+        services.AddSingleton<FileWatchDependencyFactory<TImplementation>>(provider =>
+        {
+            var fileWatcher = provider.GetRequiredService<IContentEngineFileWatcher>();
+            var logger = provider.GetService<ILogger<FileWatchDependencyFactory<TImplementation>>>();
+            
+            // Create a factory function that creates instances using ActivatorUtilities
+            Func<IServiceProvider, TImplementation> serviceFactory = serviceProvider =>
+                ActivatorUtilities.CreateInstance<TImplementation>(serviceProvider);
+            
+            return new FileWatchDependencyFactory<TImplementation>(fileWatcher, serviceFactory, provider, logger);
+        });
+
+        // Register the service interface as singleton, retrieved through the factory
+        services.AddTransient<TService>(provider =>
+            provider.GetRequiredService<FileWatchDependencyFactory<TImplementation>>().GetInstance());
+
+        return services;
+    }
+
+    /// <summary>
     /// Adds connected Roslyn solution services for advanced code analysis and symbol extraction.
     /// </summary>
     /// <param name="services">The application's service collection.</param>
@@ -222,8 +259,7 @@ public static class ContentEngineExtensions
         
         // Register connected solution services
         services.AddSingleton<ISolutionWorkspaceService, SolutionWorkspaceService>();
-        services.AddFileWatched<SymbolExtractionService>();
-        services.AddSingleton<ISymbolExtractionService>(provider => provider.GetRequiredService<SymbolExtractionService>());
+        services.AddFileWatched<ISymbolExtractionService, SymbolExtractionService>();
 
         return services;
     }

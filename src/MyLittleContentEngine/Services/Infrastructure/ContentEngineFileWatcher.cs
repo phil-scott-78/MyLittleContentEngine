@@ -22,14 +22,6 @@ public interface IContentEngineFileWatcher
     void AddPathWatch(string path, string filePattern, Action<string> onFileChanged, bool includeSubdirectories = true);
 
     /// <summary>
-    /// Adds watches for multiple directories for any file changes.
-    /// </summary>
-    /// <param name="paths">Collection of directory paths to watch.</param>
-    /// <param name="onUpdate">Action to execute when any file changes in any of the watched directories.</param>
-    /// <param name="includeSubdirectories">Whether to include subdirectories in the watch. Default is true.</param>
-    void AddPathsWatch(IEnumerable<string> paths, Action onUpdate, bool includeSubdirectories = true);
-
-    /// <summary>
     /// Subscribes to all update events for metadata changes.
     /// </summary>
     /// <param name="onUpdate"></param>
@@ -104,11 +96,30 @@ public sealed class ContentEngineFileWatcher : IDisposable, IContentEngineFileWa
                                NotifyFilters.CreationTime
             };
 
-            watcher.Changed += (_, e) => onFileChanged(e.FullPath);
-            watcher.Created += (_, e) => onFileChanged(e.FullPath);
-            watcher.Deleted += (_, e) => onFileChanged(e.FullPath);
-            watcher.Renamed += (_, e) => onFileChanged(e.FullPath);
+            watcher.Changed += (_, e) =>
+            {
+                OnUpdate();
+                onFileChanged(e.FullPath);
+            };
+            
+            watcher.Created += (_, e) =>
+            {
+                OnUpdate();
+                onFileChanged(e.FullPath);
+            };
+            
+            watcher.Deleted += (_, e) =>
+            {
+                OnUpdate();
+                onFileChanged(e.FullPath);
+            };
+            watcher.Renamed += (_, e) =>
+            {
+                OnUpdate();
+                onFileChanged(e.FullPath);
+            };
 
+            
             _watchers.Add(watchKey, watcher);
         }
         catch (Exception ex)
@@ -120,56 +131,6 @@ public sealed class ContentEngineFileWatcher : IDisposable, IContentEngineFileWa
     public void SubscribeToChanges(Action onUpdate)
     {
         UpdateActions.Add(onUpdate);
-    }
-
-    /// <summary>
-    /// Adds watches for multiple directories for any file changes.
-    /// </summary>
-    /// <param name="paths">Collection of directory paths to watch.</param>
-    /// <param name="onUpdate">Action to execute when any file changes in any of the watched directories.</param>
-    /// <param name="includeSubdirectories">Whether to include subdirectories in the watch. Default is true.</param>
-    public void AddPathsWatch(IEnumerable<string> paths, Action onUpdate, bool includeSubdirectories = true)
-    {
-        UpdateActions.Add(onUpdate);
-
-        foreach (var path in paths)
-        {
-            if (!_fileSystem.Directory.Exists(path))
-            {
-                _logger?.LogWarning("Directory {Path} does not exist and will not be watched", path);
-                continue;
-            }
-
-            // Skip if we already have a watcher for this path
-            if (_watchers.ContainsKey(path))
-            {
-                continue;
-            }
-
-            _logger?.LogDebug("Watching {Path} for any file changes", path);
-
-            try
-            {
-                var watcher = new FileSystemWatcher(path)
-                {
-                    IncludeSubdirectories = includeSubdirectories,
-                    EnableRaisingEvents = true,
-                    NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName |
-                                   NotifyFilters.CreationTime
-                };
-
-                watcher.Changed += OnAnyContentChanged;
-                watcher.Created += OnAnyContentChanged;
-                watcher.Deleted += OnAnyContentChanged;
-                watcher.Renamed += OnAnyContentChanged;
-
-                _watchers.Add(path, watcher);
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogError(ex, "Error setting up file watcher for {Path}", path);
-            }
-        }
     }
 
     internal static void ClearCache(Type[]? _)
@@ -191,6 +152,7 @@ public sealed class ContentEngineFileWatcher : IDisposable, IContentEngineFileWa
 
     private static void OnUpdate()
     {
+        Console.WriteLine("OnUpdate");
         foreach (var action in UpdateActions)
         {
             action.Invoke();
