@@ -1,4 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
+
 using Microsoft.Extensions.Logging;
 
 namespace MyLittleContentEngine.Services.Infrastructure;
@@ -12,12 +12,11 @@ namespace MyLittleContentEngine.Services.Infrastructure;
 /// <typeparam name="T">The service type to manage.</typeparam>
 public sealed class FileWatchDependencyFactory<T> : IDisposable where T : class
 {
-    private readonly IContentEngineFileWatcher _fileWatcher;
     private readonly Func<IServiceProvider, T> _serviceFactory;
     private readonly IServiceProvider _serviceProvider;
-    private readonly ILogger? _logger;
+    private readonly ILogger<FileWatchDependencyFactory<T>> _logger;
     private readonly Lock _lock = new();
-    
+
     private T? _instance;
     private bool _disposed;
 
@@ -32,17 +31,16 @@ public sealed class FileWatchDependencyFactory<T> : IDisposable where T : class
         IContentEngineFileWatcher fileWatcher,
         Func<IServiceProvider, T> serviceFactory,
         IServiceProvider serviceProvider,
-        ILogger? logger = null)
+        ILogger<FileWatchDependencyFactory<T>> logger )
     {
-        _fileWatcher = fileWatcher ?? throw new ArgumentNullException(nameof(fileWatcher));
-        _serviceFactory = serviceFactory ?? throw new ArgumentNullException(nameof(serviceFactory));
-        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        _serviceFactory = serviceFactory;
+        _serviceProvider = serviceProvider;
         _logger = logger;
 
         // Subscribe to file changes for invalidation
-        _fileWatcher.SubscribeToChanges(InvalidateInstance);
+        fileWatcher.SubscribeToChanges(InvalidateInstance);
         
-        _logger?.LogDebug("FileWatchDependencyFactory<{ServiceType}> initialized with file-watch invalidation",
+        _logger.LogDebug("FileWatchDependencyFactory<{ServiceType}> initialized with file-watch invalidation",
             typeof(T).Name);
     }
 
@@ -55,16 +53,15 @@ public sealed class FileWatchDependencyFactory<T> : IDisposable where T : class
     {
         lock (_lock)
         {
-            if (_disposed)
-                throw new ObjectDisposedException(nameof(FileWatchDependencyFactory<T>));
-
-            // Create instance if needed
+            ObjectDisposedException.ThrowIf(_disposed, nameof(FileWatchDependencyFactory<T>));
             if (_instance == null)
             {
                 CreateNewInstance();
             }
 
             return _instance!;
+
+            // Create instance if needed
         }
     }
 
@@ -77,14 +74,14 @@ public sealed class FileWatchDependencyFactory<T> : IDisposable where T : class
         {
             if (_disposed || _instance == null) return;
 
-            _logger?.LogDebug("Invalidating {ServiceType} instance due to file change", typeof(T).Name);
+            _logger.LogDebug("Invalidating {ServiceType} instance due to file change", typeof(T).Name);
             DisposeCurrentInstance();
         }
     }
 
     private void CreateNewInstance()
     {
-        _logger?.LogDebug("Creating new {ServiceType} instance", typeof(T).Name);
+        _logger.LogDebug("Creating new {ServiceType} instance", typeof(T).Name);
         
         // The factory function handles creating the instance without circular dependencies
         _instance = _serviceFactory(_serviceProvider);
@@ -97,11 +94,11 @@ public sealed class FileWatchDependencyFactory<T> : IDisposable where T : class
             try
             {
                 disposableInstance.Dispose();
-                _logger?.LogDebug("Disposed {ServiceType} instance", typeof(T).Name);
+                _logger.LogDebug("Disposed {ServiceType} instance", typeof(T).Name);
             }
             catch (Exception ex)
             {
-                _logger?.LogWarning(ex, "Error disposing {ServiceType} instance", typeof(T).Name);
+                _logger.LogWarning(ex, "Error disposing {ServiceType} instance", typeof(T).Name);
             }
         }
 
@@ -123,6 +120,6 @@ public sealed class FileWatchDependencyFactory<T> : IDisposable where T : class
             _disposed = true;
         }
 
-        _logger?.LogDebug("FileWatchDependencyFactory<{ServiceType}> disposed", typeof(T).Name);
+        _logger.LogDebug("FileWatchDependencyFactory<{ServiceType}> disposed", typeof(T).Name);
     }
 }

@@ -208,8 +208,7 @@ public static class ContentEngineExtensions
     /// Requires IContentEngineFileWatcher to be registered first.
     /// </remarks>
     public static IConfiguredContentEngineServiceCollection AddFileWatched<TService, TImplementation>(
-        this IConfiguredContentEngineServiceCollection services, 
-        ServiceLifetime lifetime = ServiceLifetime.Transient) 
+        this IConfiguredContentEngineServiceCollection services)
         where TService : class
         where TImplementation : class, TService
     {
@@ -218,12 +217,11 @@ public static class ContentEngineExtensions
         {
             var fileWatcher = provider.GetRequiredService<IContentEngineFileWatcher>();
             var logger = provider.GetService<ILogger<FileWatchDependencyFactory<TImplementation>>>();
-            
+
+            return new FileWatchDependencyFactory<TImplementation>(fileWatcher, ServiceFactory, provider, logger);
+
             // Create a factory function that creates instances using ActivatorUtilities
-            Func<IServiceProvider, TImplementation> serviceFactory = serviceProvider =>
-                ActivatorUtilities.CreateInstance<TImplementation>(serviceProvider);
-            
-            return new FileWatchDependencyFactory<TImplementation>(fileWatcher, serviceFactory, provider, logger);
+            TImplementation ServiceFactory(IServiceProvider serviceProvider) => ActivatorUtilities.CreateInstance<TImplementation>(serviceProvider);
         });
 
         // Register the service interface as singleton, retrieved through the factory
