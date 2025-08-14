@@ -32,6 +32,7 @@ internal class RecipeContentService : IDisposable, IRecipeContentService
 
     public RecipeContentService(
         RecipeContentOptions options,
+        IContentEngineFileWatcher fileWatcher,
         IFileSystem fileSystem)
     {
         _options = options;
@@ -40,6 +41,7 @@ internal class RecipeContentService : IDisposable, IRecipeContentService
             .IgnoreUnmatchedProperties()
             .Build();
 
+        fileWatcher.AddPathWatch(options.ContentPath, "*.cook", s => { }, true );
         _recipeCache = new AsyncLazy<ConcurrentDictionary<string, RecipeContentPage>>(
             async () => await ProcessRecipeFiles(),
             AsyncLazyFlags.RetryOnFailure);
