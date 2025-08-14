@@ -125,9 +125,11 @@ Register your custom content service in `Program.cs`, both when the concrete typ
 an `IContentService`. You can use this pattern to ensure the same instance is used throughout the application:
 
 ```csharp
-builder.Services.AddSingleton<DatabaseContentService>();
+// For services that need file-watch cache invalidation, use AddFileWatched
+var configuredServices = new ConfiguredContentEngineServiceCollection(builder.Services);
+configuredServices.AddFileWatched<DatabaseContentService>();
 
-// Register as IContentService (this allows multiple IContentService implementations)
+// Register as IContentService (this allows multiple IContentService implementations)  
 builder.Services.AddSingleton<IContentService>(provider => provider.GetRequiredService<DatabaseContentService>());
 ```
 
@@ -163,7 +165,7 @@ new ContentTocItem("ContentService", "/api/contentservice", 300, ["documentation
 ### Caching for Performance
 
 For content services that make expensive operations (API calls, database queries),
-consider implementing caching using [`LazyAndForgetful<T>`](../under-the-hood/hot-reload-architecture). The built-in
+consider implementing caching using [`AsyncLazy<T>` with `AddFileWatched<T>()`](../under-the-hood/hot-reload-architecture). The built-in
 `IContentService` implementations use this pattern to cache results until a trigger occurs that requires a refresh.
 
 ### Content Transformation

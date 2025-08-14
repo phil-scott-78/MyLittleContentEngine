@@ -3,12 +3,13 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content;
+using MyLittleContentEngine.Services;
 
 namespace MyLittleContentEngine.Services.Infrastructure;
 
 /// <summary>
 /// Service that resolves cross-references (xref) by looking up UIDs across all registered IContentService instances.
-/// Uses LazyAndForgetful caching with file watcher integration to efficiently manage cross-reference lookups.
+/// Uses AsyncLazy caching to efficiently manage cross-reference lookups.
 /// </summary>
 public interface IXrefResolver
 {
@@ -28,38 +29,26 @@ public interface IXrefResolver
 }
 
 /// <summary>
-/// Implementation of IXrefResolver that caches cross-references from all content services
-/// and invalidates the cache when content files change.
+/// Implementation of IXrefResolver that caches cross-references from all content services.
 /// </summary>
 public class XrefResolver : IXrefResolver, IDisposable
 {
     private readonly IServiceProvider _serviceProvider;
-    private readonly IContentEngineFileWatcher _fileWatcher;
     private readonly ILogger<XrefResolver> _logger;
-    private readonly LazyAndForgetful<ImmutableDictionary<string, CrossReference>> _crossReferencesCache;
+    private readonly AsyncLazy<ImmutableDictionary<string, CrossReference>> _crossReferencesCache;
     private bool _disposed;
 
     public XrefResolver(
         IServiceProvider serviceProvider,
-        IContentEngineFileWatcher fileWatcher,
         ILogger<XrefResolver> logger)
     {
         _serviceProvider = serviceProvider;
-        _fileWatcher = fileWatcher;
         _logger = logger;
 
-        // Initialize the cache with debounced refresh
-        _crossReferencesCache = new LazyAndForgetful<ImmutableDictionary<string, CrossReference>>(
+        // Initialize the cache - AsyncLazy handles thread-safe initialization
+        _crossReferencesCache = new AsyncLazy<ImmutableDictionary<string, CrossReference>>(
             BuildCrossReferenceDictionaryAsync,
-            TimeSpan.FromMilliseconds(200) // 200ms debounce for content changes
-        );
-
-        // Subscribe to file changes to invalidate cache
-        _fileWatcher.SubscribeToChanges(() =>
-        {
-            _logger.LogDebug("Content changed, refreshing cross-reference cache");
-            _crossReferencesCache.Refresh();
-        });
+            AsyncLazyFlags.RetryOnFailure);
     }
 
     /// <summary>
@@ -74,7 +63,7 @@ public class XrefResolver : IXrefResolver, IDisposable
 
         try
         {
-            var crossReferences = await _crossReferencesCache.Value;
+            var crossReferences = await _crossReferencesCache;
             var crossRef = CollectionExtensions.GetValueOrDefault(crossReferences, uid);
             return crossRef?.Url;
         }
@@ -97,7 +86,7 @@ public class XrefResolver : IXrefResolver, IDisposable
 
         try
         {
-            var crossReferences = await _crossReferencesCache.Value;
+            var crossReferences = await _crossReferencesCache;
             return CollectionExtensions.GetValueOrDefault(crossReferences, uid);
         }
         catch (Exception ex)
@@ -167,8 +156,7 @@ public class XrefResolver : IXrefResolver, IDisposable
     public void Dispose()
     {
         if (_disposed) return;
-        _fileWatcher.Dispose();
-        _crossReferencesCache.Dispose();
+        // AsyncLazy doesn't need explicit disposal
         _disposed = true;
         GC.SuppressFinalize(this);
     }

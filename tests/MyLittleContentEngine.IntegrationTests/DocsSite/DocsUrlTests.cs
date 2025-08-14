@@ -11,7 +11,7 @@ public class DocsUrlTests : IClassFixture<DocsWebApplicationFactory>
         _client = factory.CreateClient();
     }
 
-    [Theory(Skip = "slooooow")]
+    [Theory]
     [MemberData(nameof(GetDocsUrlTestData))]
     public async Task DocsUrls_ShouldReturnSuccessWithExpectedContent(string url, string expectedContent)
     {

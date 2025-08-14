@@ -8,6 +8,7 @@ using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Content.TableOfContents;
 using MyLittleContentEngine.Services.Infrastructure;
+using MyLittleContentEngine.Services;
 using RecipeExample.Models;
 using YamlDotNet.Serialization;
 
@@ -25,14 +26,13 @@ internal class RecipeContentService : IDisposable, IRecipeContentService
 
     private readonly RecipeContentOptions _options;
     private readonly IFileSystem _fileSystem;
-    private readonly LazyAndForgetful<ConcurrentDictionary<string, RecipeContentPage>> _recipeCache;
+    private readonly AsyncLazy<ConcurrentDictionary<string, RecipeContentPage>> _recipeCache;
     private readonly IDeserializer _yamlDeserializer;
     private bool _isDisposed;
 
     public RecipeContentService(
         RecipeContentOptions options,
-        IFileSystem fileSystem,
-        IContentEngineFileWatcher fileWatcher)
+        IFileSystem fileSystem)
     {
         _options = options;
         _fileSystem = fileSystem;
@@ -40,13 +40,11 @@ internal class RecipeContentService : IDisposable, IRecipeContentService
             .IgnoreUnmatchedProperties()
             .Build();
 
-        _recipeCache = new LazyAndForgetful<ConcurrentDictionary<string, RecipeContentPage>>(
-            async () => await ProcessRecipeFiles());
-
-        fileWatcher.AddPathsWatch([_options.RecipePath], NeedsRefresh);
+        _recipeCache = new AsyncLazy<ConcurrentDictionary<string, RecipeContentPage>>(
+            async () => await ProcessRecipeFiles(),
+            AsyncLazyFlags.RetryOnFailure);
     }
 
-    private void NeedsRefresh() => _recipeCache.Refresh();
 
     private async Task<ConcurrentDictionary<string, RecipeContentPage>> ProcessRecipeFiles()
     {
@@ -125,19 +123,19 @@ internal class RecipeContentService : IDisposable, IRecipeContentService
 
     public async Task<RecipeContentPage?> GetRecipeByUrlOrDefault(string url)
     {
-        var data = await _recipeCache.Value;
+        var data = await _recipeCache;
         return data.GetValueOrDefault(url);
     }
 
     public async Task<ImmutableList<RecipeContentPage>> GetAllRecipesAsync()
     {
-        var data = await _recipeCache.Value;
+        var data = await _recipeCache;
         return data.Values.ToImmutableList();
     }
 
     async Task<ImmutableList<PageToGenerate>> IContentService.GetPagesToGenerateAsync()
     {
-        var data = await _recipeCache.Value;
+        var data = await _recipeCache;
         var pages = new List<PageToGenerate>();
 
         // Add individual recipe pages
@@ -193,7 +191,7 @@ internal class RecipeContentService : IDisposable, IRecipeContentService
         {
             if (disposing)
             {
-                _recipeCache.Dispose();
+                // AsyncLazy doesn't need explicit disposal
             }
             _isDisposed = true;
         }

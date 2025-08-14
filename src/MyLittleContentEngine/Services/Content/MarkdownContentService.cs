@@ -4,6 +4,7 @@ using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions;
 using MyLittleContentEngine.Services.Content.TableOfContents;
 using MyLittleContentEngine.Services.Infrastructure;
+using MyLittleContentEngine.Services;
 
 namespace MyLittleContentEngine.Services.Content;
 
@@ -39,7 +40,7 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
 {
     /// <inheritdoc />
     public int SearchPriority => 10; // High priority for markdown content
-    private readonly LazyAndForgetful<ConcurrentDictionary<string, MarkdownContentPage<TFrontMatter>>> _contentCache;
+    private readonly AsyncLazy<ConcurrentDictionary<string, MarkdownContentPage<TFrontMatter>>> _contentCache;
     private readonly MarkdownContentProcessor<TFrontMatter> _contentProcessor;
     private readonly TagService<TFrontMatter> _tagService;
     private readonly ContentFilesService<TFrontMatter> _contentFilesService;
@@ -51,14 +52,12 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
     ///     Initializes a new instance of the MarkdownContentService.
     /// </summary>
     /// <param name="markdownContentOptions">Configuration options specific to content handling</param>
-    /// <param name="fileWatcher">File watcher for hot-reload functionality</param>
     /// <param name="tagService">Service for handling tags</param>
     /// <param name="contentFilesService">Service for handling content files</param>
     /// <param name="markdownParserService">Service for handling Markdown parsing</param>
     /// <param name="contentProcessor">Service for processing Markdown content</param>
     public MarkdownContentService(
         MarkdownContentOptions<TFrontMatter> markdownContentOptions,
-        IContentEngineFileWatcher fileWatcher,
         TagService<TFrontMatter> tagService,
         ContentFilesService<TFrontMatter> contentFilesService,
         MarkdownParserService markdownParserService,
@@ -70,24 +69,16 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
         _contentProcessor = contentProcessor;
         _markdownParserService = markdownParserService;
 
-        // Set up the Post cache
-        _contentCache =
-            new LazyAndForgetful<ConcurrentDictionary<string, MarkdownContentPage<TFrontMatter>>>(async () =>
-                await _contentProcessor.ProcessContentFiles());
-
-        // Set up file watching
-        fileWatcher.AddPathsWatch([markdownContentOptions.ContentPath], NeedsRefresh);
+        // Set up the Post cache - AsyncLazy handles thread-safe initialization
+        _contentCache = new AsyncLazy<ConcurrentDictionary<string, MarkdownContentPage<TFrontMatter>>>(
+            async () => await _contentProcessor.ProcessContentFiles(),
+            AsyncLazyFlags.RetryOnFailure);
     }
 
-    /// <summary>
-    ///     Marks the Posts collection as needing a refresh.
-    ///     This is called when content files change and during hot-reload events.
-    /// </summary>
-    private void NeedsRefresh() => _contentCache.Refresh();
 
     private async Task<MarkdownContentPage<TFrontMatter>?> GetContentPageByUrlOrDefault(string url)
     {
-        var data = await _contentCache.Value;
+        var data = await _contentCache;
         return data.GetValueOrDefault(url);
     }
 
@@ -138,7 +129,7 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
     /// <returns>An immutable list containing all parsed and processed content pages.</returns>
     public async Task<ImmutableList<MarkdownContentPage<TFrontMatter>>> GetAllContentPagesAsync()
     {
-        var data = await _contentCache.Value;
+        var data = await _contentCache;
         return data.Values.ToImmutableList();
     }
 
@@ -216,7 +207,7 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
     /// <inheritdoc />
     public async Task<ImmutableList<CrossReference>> GetCrossReferencesAsync()
     {
-        var data = await _contentCache.Value;
+        var data = await _contentCache;
         if (data.IsEmpty)
         {
             return ImmutableList<CrossReference>.Empty;
@@ -237,8 +228,7 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
         {
             if (disposing)
             {
-                // Dispose managed state (managed objects).
-                _contentCache.Dispose();
+                // AsyncLazy doesn't need explicit disposal
             }
 
             _isDisposed = true;

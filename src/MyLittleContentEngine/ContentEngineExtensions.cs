@@ -91,7 +91,7 @@ public static class ContentEngineExtensions
         // Register specialized services
         services.AddTransient<TagService<TFrontMatter>>();
         services.AddTransient<ContentFilesService<TFrontMatter>>();
-        services.AddTransient<MarkdownContentProcessor<TFrontMatter>>();
+        services.AddFileWatched<MarkdownContentProcessor<TFrontMatter>>();
 
         // Register the primary service
         services.AddSingleton<IMarkdownContentService<TFrontMatter>, MarkdownContentService<TFrontMatter>>();
@@ -127,7 +127,6 @@ public static class ContentEngineExtensions
         services.AddTransient<RoutesHelperService>();
         services.AddSingleton<IFileSystem>(new RealFileSystem());
         services.AddTransient<FileSystemUtilities>();
-        services.AddSingleton<IXrefResolver, XrefResolver>();
         services.AddSyntaxHighlightingService();
 
         // Register the Razor page content service
@@ -135,7 +134,13 @@ public static class ContentEngineExtensions
         services.AddSingleton<IContentService>(provider => provider.GetRequiredService<RazorPageContentService>());
         services.AddOutputOptions(Environment.GetCommandLineArgs());
 
-        return new ConfiguredContentEngineServiceCollection(services);
+        var configuredServices = new ConfiguredContentEngineServiceCollection(services);
+        
+        // Register XrefResolver with file-watch invalidation
+        configuredServices.AddFileWatched<XrefResolver>();
+        services.AddSingleton<IXrefResolver>(provider => provider.GetRequiredService<XrefResolver>());
+        
+        return configuredServices;
     }
 
     /// <summary>
@@ -161,58 +166,31 @@ public static class ContentEngineExtensions
     /// </summary>
     /// <typeparam name="T">The service type to register.</typeparam>
     /// <param name="services">The service collection.</param>
+    /// <param name="lifetime">The service lifetime for the underlying service (default: Transient).</param>
     /// <returns>The updated service collection for method chaining.</returns>
     /// <remarks>
-    /// The service type T should be registered as transient or scoped before calling this method.
-    /// This method replaces the existing registration with a file-watched cached version.
+    /// This method directly registers the service with file-watch invalidation capabilities.
     /// Requires IContentEngineFileWatcher to be registered first.
     /// </remarks>
     public static IConfiguredContentEngineServiceCollection AddFileWatched<T>(
-        this IConfiguredContentEngineServiceCollection services) where T : class
+        this IConfiguredContentEngineServiceCollection services, 
+        ServiceLifetime lifetime = ServiceLifetime.Transient) where T : class
     {
-        // First, capture the original service descriptor before we modify it
-        var originalDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(T));
-        if (originalDescriptor == null)
-        {
-            throw new InvalidOperationException($"Service type {typeof(T).Name} must be registered before calling AddFileWatched<{typeof(T).Name}>().");
-        }
-
-        // Remove the original registration
-        services.Remove(originalDescriptor);
-
         // Register the factory as singleton
         services.AddSingleton<FileWatchDependencyFactory<T>>(provider =>
         {
             var fileWatcher = provider.GetRequiredService<IContentEngineFileWatcher>();
             var logger = provider.GetService<ILogger<FileWatchDependencyFactory<T>>>();
             
-            // Create a factory function that creates instances using the original descriptor
+            // Create a factory function that creates instances using ActivatorUtilities
             Func<IServiceProvider, T> serviceFactory = serviceProvider =>
-            {
-                // Use the original registration to create the service instance
-                if (originalDescriptor.ImplementationFactory != null)
-                {
-                    return (T)originalDescriptor.ImplementationFactory(serviceProvider);
-                }
-                else if (originalDescriptor.ImplementationType != null)
-                {
-                    return (T)ActivatorUtilities.CreateInstance(serviceProvider, originalDescriptor.ImplementationType);
-                }
-                else if (originalDescriptor.ImplementationInstance != null)
-                {
-                    return (T)originalDescriptor.ImplementationInstance;
-                }
-                else
-                {
-                    throw new InvalidOperationException($"Unable to create instance of {typeof(T).Name}");
-                }
-            };
+                ActivatorUtilities.CreateInstance<T>(serviceProvider);
             
             return new FileWatchDependencyFactory<T>(fileWatcher, serviceFactory, provider, logger);
         });
 
-        // Register the service as scoped, retrieved through the factory
-        services.AddScoped<T>(provider =>
+        // Register the service as singleton, retrieved through the factory
+        services.AddSingleton<T>(provider =>
             provider.GetRequiredService<FileWatchDependencyFactory<T>>().GetInstance());
 
         return services;
@@ -244,7 +222,8 @@ public static class ContentEngineExtensions
         
         // Register connected solution services
         services.AddSingleton<ISolutionWorkspaceService, SolutionWorkspaceService>();
-        services.AddSingleton<ISymbolExtractionService, SymbolExtractionService>();
+        services.AddFileWatched<SymbolExtractionService>();
+        services.AddSingleton<ISymbolExtractionService>(provider => provider.GetRequiredService<SymbolExtractionService>());
 
         return services;
     }
@@ -288,8 +267,8 @@ public static class ContentEngineExtensions
             });
         }
         
-        // Register the API reference content service
-        services.AddSingleton<ApiReferenceContentService>();
+        // Register the API reference content service with file-watch invalidation
+        services.AddFileWatched<ApiReferenceContentService>();
 
         // Register as IContentService (this allows multiple IContentService implementations)
         services.AddSingleton<IContentService>(provider => provider.GetRequiredService<ApiReferenceContentService>());

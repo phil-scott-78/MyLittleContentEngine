@@ -5,7 +5,7 @@ uid: "docs.under-the-hood.hot-reload-architecture"
 order: 3001
 ---
 
-MyLittleContentEngine provides seamless hot reload functionality during development, allowing content changes to be reflected immediately without restarting the application. This capability is built on two key infrastructure components working together: **LazyAndForgetful** for intelligent caching and **ContentEngineFileWatcher** for file system monitoring.
+MyLittleContentEngine provides seamless hot reload functionality during development, allowing content changes to be reflected immediately without restarting the application. This capability is built on two key infrastructure components working together: **AsyncLazy** for thread-safe caching and **FileWatchDependencyFactory** for file system monitoring and cache invalidation.
 
 ## Architecture Overview
 
@@ -30,7 +30,7 @@ For example, in the Markdown `IContentService`, when a change is detected, we re
 ```mermaid
 graph TB
     A[File System Changes] --> B[ContentEngineFileWatcher]
-    B --> C[LazyAndForgetful.Refresh]
+    B --> C[FileWatchDependencyFactory.InvalidateInstance]
     C --> D[Debounced Refresh 50ms]
     D --> E[PerformRefreshAsync]
     E --> F[Factory Function Execution]
@@ -42,43 +42,49 @@ graph TB
     K --> C
 ```
 
-## LazyAndForgetful: Smart Caching
+## FileWatchDependencyFactory: Smart Caching with File Invalidation
 
-The `LazyAndForgetful<T>` class is a thread-safe, lazy-loading cache that can "forget" its value and reload it on demand. It's designed specifically for expensive operations that need to be invalidated when dependencies change.
+The `FileWatchDependencyFactory<T>` class combined with `AsyncLazy<T>` provides a thread-safe, lazy-loading cache that automatically invalidates when file changes are detected. Services use `AsyncLazy<T>` for thread-safe initialization while `AddFileWatched<T>()` registration handles automatic cache invalidation.
 
 For example, it's used to cache the results of processing markdown files into a dictionary of content pages. It's also used in the caching of the MSBuild workspace that drives the Roslyn interactions. This allows these expensive operations to be performed once with the ability to refresh the cache when the underlying files change.
 
 ### Key Features
 
 - **Lazy Loading**: Values are computed only when first accessed
-- **Thread Safety**: Safe for concurrent access from multiple threads
-- **Debounced Refresh**: Multiple refresh requests are coalesced to prevent excessive recomputation
+- **Thread Safety**: AsyncLazy provides safe concurrent access from multiple threads
+- **Automatic Invalidation**: FileWatchDependencyFactory handles cache invalidation on file changes
+- **Service Integration**: Integrates seamlessly with DI container service lifetimes
 - **Async-First**: Built for async operations throughout
 
 ### Usage Pattern
 
 ```csharp
-// Create a lazy cache with expensive factory operation
-var contentCache = new LazyAndForgetful<ConcurrentDictionary<string, MarkdownContentPage<TFrontMatter>>>(
-    async () => await ProcessAllMarkdownFiles()
-);
+// Register service with file-watch invalidation (direct registration)
+services.AddFileWatched<MarkdownContentProcessor<TFrontMatter>>();
+
+// In service, use AsyncLazy for thread-safe caching
+private readonly AsyncLazy<ConcurrentDictionary<string, MarkdownContentPage<TFrontMatter>>> _contentCache;
+
+public MarkdownContentService(MarkdownContentProcessor<TFrontMatter> processor)
+{
+    _contentCache = new AsyncLazy<ConcurrentDictionary<string, MarkdownContentPage<TFrontMatter>>>(
+        async () => await processor.ProcessContentFiles(),
+        AsyncLazyFlags.RetryOnFailure);
+}
 
 // Access cached value (computed on first access)
-var content = await contentCache.Value;
-
-// Invalidate cache when files change
-contentCache.Refresh(); // Triggers debounced recomputation
+var content = await _contentCache;
 ```
 
-### Debouncing Logic
+### Cache Invalidation
 
-The debouncing mechanism prevents excessive recomputation during rapid file changes:
+The FileWatchDependencyFactory automatically handles cache invalidation when file changes are detected:
 
-- **Default Delay**: 50ms (configurable)
-- **Coalescing**: Multiple refresh calls within the debounce window are combined
-- **Cancellation**: New refresh requests cancel pending ones
+- **Immediate Invalidation**: Cache is invalidated immediately when files change
+- **Lazy Recomputation**: New values are computed only when next accessed
+- **Thread Safety**: Invalidation is thread-safe across multiple concurrent requests
 
-This is particularly important during development when editors might save files multiple times in quick succession or when batch operations modify many files.
+This eliminates the need for manual debouncing logic while ensuring responsive cache updates during development.
 
 ## ContentEngineFileWatcher: File System Monitoring
 
@@ -141,7 +147,7 @@ The hot reload architecture is seamlessly integrated into content services. Here
 ```csharp
 public class MarkdownContentService<TFrontMatter> : IMarkdownContentService<TFrontMatter>
 {
-    private readonly LazyAndForgetful<ConcurrentDictionary<string, MarkdownContentPage<TFrontMatter>>> _contentCache;
+    private readonly AsyncLazy<ConcurrentDictionary<string, MarkdownContentPage<TFrontMatter>>> _contentCache;
 
     public MarkdownContentService(
         ContentEngineContentOptions<TFrontMatter> engineContentOptions,
@@ -150,19 +156,17 @@ public class MarkdownContentService<TFrontMatter> : IMarkdownContentService<TFro
     )
     {
         // Set up lazy cache with expensive content processing operation
-        _contentCache = new LazyAndForgetful<ConcurrentDictionary<string, MarkdownContentPage<TFrontMatter>>>(
-            async () => await _contentProcessor.ProcessContentFiles()
-        );
+        _contentCache = new AsyncLazy<ConcurrentDictionary<string, MarkdownContentPage<TFrontMatter>>>(
+            async () => await _contentProcessor.ProcessContentFiles(),
+            AsyncLazyFlags.RetryOnFailure);
 
-        // Set up file watching to trigger cache refresh
-        fileWatcher.AddPathsWatch([engineContentOptions.ContentPath], NeedsRefresh);
+        // File watching and cache invalidation is handled by AddFileWatched<T>() registration
+        // No need to manually register the service first - AddFileWatched does it all
     }
-
-    private void NeedsRefresh() => _contentCache.Refresh();
 
     public async Task<MarkdownContentPage<TFrontMatter>?> GetContentPageByUrlOrDefault(string url)
     {
-        var data = await _contentCache.Value; // May trigger recomputation if cache was invalidated
+        var data = await _contentCache; // May trigger recomputation if cache was invalidated
         return data.GetValueOrDefault(url);
     }
 }

@@ -8,6 +8,7 @@ using MyLittleContentEngine.Services.Content.CodeAnalysis.SolutionWorkspace;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
 using MyLittleContentEngine.Services.Content.TableOfContents;
 using MyLittleContentEngine.Services.Infrastructure;
+using MyLittleContentEngine.Services;
 
 namespace MyLittleContentEngine.Services.Content;
 
@@ -23,7 +24,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
     private readonly CodeAnalysisOptions _codeAnalysisOptions;
     private readonly ILogger<ApiReferenceContentService> _logger;
     private readonly ApiReferenceContentOptions _options;
-    private readonly LazyAndForgetful<ApiReferenceData> _apiDataCache;
+    private readonly AsyncLazy<ApiReferenceData> _apiDataCache;
     private bool _disposed;
 
     public ApiReferenceContentService(
@@ -39,13 +40,15 @@ public class ApiReferenceContentService : IContentService, IDisposable
         _codeAnalysisOptions = codeAnalysisOptions;
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
-        _apiDataCache = new LazyAndForgetful<ApiReferenceData>(async () => await BuildApiReferenceDataAsync());
+        _apiDataCache = new AsyncLazy<ApiReferenceData>(
+            async () => await BuildApiReferenceDataAsync(),
+            AsyncLazyFlags.RetryOnFailure);
     }
 
     /// <inheritdoc />
     public async Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync()
     {
-        var apiData = await _apiDataCache.Value;
+        var apiData = await _apiDataCache;
         var pages = new List<PageToGenerate>
         {
             // Add root API index page
@@ -129,7 +132,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
     /// <inheritdoc />
     public async Task<ImmutableList<CrossReference>> GetCrossReferencesAsync()
     {
-        var apiData = await _apiDataCache.Value;
+        var apiData = await _apiDataCache;
         var crossRefs = new List<CrossReference>();
 
         // Add namespace cross-references if namespace pages are enabled
@@ -181,7 +184,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
     /// </summary>
     public async Task<ImmutableList<ApiNamespace>> GetNamespacesAsync()
     {
-        var apiData = await _apiDataCache.Value;
+        var apiData = await _apiDataCache;
         return apiData.Namespaces.ToImmutableList();
     }
 
@@ -190,7 +193,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
     /// </summary>
     public async Task<ImmutableList<ApiType>> GetTypesAsync()
     {
-        var apiData = await _apiDataCache.Value;
+        var apiData = await _apiDataCache;
         return apiData.Types.ToImmutableList();
     }
 
@@ -199,7 +202,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
     /// </summary>
     public async Task<ImmutableList<ApiMember>> GetMembersAsync()
     {
-        var apiData = await _apiDataCache.Value;
+        var apiData = await _apiDataCache;
         return apiData.Members.ToImmutableList();
     }
 
@@ -208,7 +211,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
     /// </summary>
     public async Task<ApiNamespace?> GetNamespaceByNameAsync(string name)
     {
-        var apiData = await _apiDataCache.Value;
+        var apiData = await _apiDataCache;
         return apiData.Namespaces.FirstOrDefault(n =>
             string.Equals(n.Name, name, StringComparison.OrdinalIgnoreCase));
     }
@@ -218,7 +221,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
     /// </summary>
     public async Task<ApiNamespace?> GetNamespaceByXmlDocIdAsync(string xmlDocId)
     {
-        var apiData = await _apiDataCache.Value;
+        var apiData = await _apiDataCache;
         return apiData.Namespaces.FirstOrDefault(n =>
             string.Equals(n.XmlDocId, xmlDocId, StringComparison.OrdinalIgnoreCase));
     }
@@ -228,7 +231,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
     /// </summary>
     public async Task<ApiType?> GetTypeByNameAsync(string namespaceName, string typeName)
     {
-        var apiData = await _apiDataCache.Value;
+        var apiData = await _apiDataCache;
 
         // Find the namespace first, then get the type from it (which has populated members)
         var ns = apiData.Namespaces.FirstOrDefault(n =>
@@ -243,7 +246,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
     /// </summary>
     public async Task<ApiType?> GetTypeByXmlDocIdAsync(string xmlDocId)
     {
-        var apiData = await _apiDataCache.Value;
+        var apiData = await _apiDataCache;
         return apiData.Types.FirstOrDefault(t =>
             string.Equals(t.XmlDocId, xmlDocId, StringComparison.OrdinalIgnoreCase));
     }
@@ -253,7 +256,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
     /// </summary>
     public async Task<ApiNamespace?> GetNamespaceBySlugAsync(string slug)
     {
-        var apiData = await _apiDataCache.Value;
+        var apiData = await _apiDataCache;
         return apiData.Namespaces.FirstOrDefault(n =>
             string.Equals(n.Slug, slug, StringComparison.OrdinalIgnoreCase));
     }
@@ -263,7 +266,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
     /// </summary>
     public async Task<ApiType?> GetTypeBySlugAsync(string slug)
     {
-        var apiData = await _apiDataCache.Value;
+        var apiData = await _apiDataCache;
         return apiData.Types.FirstOrDefault(t =>
             string.Equals(t.Slug, slug, StringComparison.OrdinalIgnoreCase));
     }
@@ -273,7 +276,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
     /// </summary>
     public async Task<ImmutableList<ApiMember>> GetMembersBySlugAsync(string slug)
     {
-        var apiData = await _apiDataCache.Value;
+        var apiData = await _apiDataCache;
         var members = apiData.Members.Where(m =>
             string.Equals(m.Slug, slug, StringComparison.OrdinalIgnoreCase)).ToList();
         return members.ToImmutableList();
@@ -1171,7 +1174,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
         {
             if (disposing)
             {
-                _apiDataCache.Dispose();
+                // AsyncLazy doesn't need explicit disposal
             }
 
             _disposed = true;

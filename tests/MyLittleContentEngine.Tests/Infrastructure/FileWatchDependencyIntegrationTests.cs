@@ -20,12 +20,11 @@ public class FileWatchDependencyIntegrationTests
         // Register core dependencies first
         services.AddLogging();
         services.AddSingleton<IContentEngineFileWatcher, TestContentEngineFileWatcher>();
-        services.AddTransient<CacheableExpensiveService>(); // Use transient instead of singleton
         
         // Create configured content engine collection
         var configuredServices = new ConfiguredContentEngineServiceCollection(services);
 
-        // Act - Register service with file-watched lifetime
+        // Act - Register service with file-watched lifetime (direct registration)
         configuredServices.AddFileWatched<CacheableExpensiveService>();
 
         // Build service provider
@@ -46,7 +45,6 @@ public class FileWatchDependencyIntegrationTests
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddSingleton<IContentEngineFileWatcher, TestContentEngineFileWatcher>();
-        services.AddTransient<CacheableExpensiveService>(); // Use transient instead of singleton
         
         var configuredServices = new ConfiguredContentEngineServiceCollection(services);
         configuredServices.AddFileWatched<CacheableExpensiveService>();
@@ -70,7 +68,6 @@ public class FileWatchDependencyIntegrationTests
         services.AddLogging();
         var fileWatcher = new TestContentEngineFileWatcher();
         services.AddSingleton<IContentEngineFileWatcher>(fileWatcher);
-        services.AddTransient<CacheableExpensiveService>(); // Use transient instead of singleton
         
         var configuredServices = new ConfiguredContentEngineServiceCollection(services);
         configuredServices.AddFileWatched<CacheableExpensiveService>();
@@ -105,7 +102,6 @@ public class FileWatchDependencyIntegrationTests
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddSingleton<IContentEngineFileWatcher, TestContentEngineFileWatcher>();
-        services.AddTransient<SimulatedContentService>(); // Use transient instead of singleton
         
         var configuredServices = new ConfiguredContentEngineServiceCollection(services);
         

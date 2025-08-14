@@ -9,6 +9,7 @@ using MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.Extensions;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.SolutionWorkspace;
 using MyLittleContentEngine.Services.Infrastructure;
+using MyLittleContentEngine.Services;
 
 namespace MyLittleContentEngine.Services.Content.CodeAnalysis.SymbolAnalysis;
 
@@ -20,28 +21,19 @@ internal class SymbolExtractionService : ISymbolExtractionService
     private readonly ILogger<SymbolExtractionService> _logger;
     private readonly ISolutionWorkspaceService _workspaceService;
     private readonly CodeAnalysisOptions _options;
-    private readonly LazyAndForgetful<IReadOnlyDictionary<string, SymbolInfo>> _lazySymbols;
+    private readonly AsyncLazy<IReadOnlyDictionary<string, SymbolInfo>> _lazySymbols;
 
     public SymbolExtractionService(ISolutionWorkspaceService workspaceService, CodeAnalysisOptions options,
-        ILogger<SymbolExtractionService> logger, IContentEngineFileWatcher? fileWatcher = null)
+        ILogger<SymbolExtractionService> logger)
     {
         _workspaceService = workspaceService;
         _options = options;
         _logger = logger;
 
-        // Initialize lazy loading for symbols
-        _lazySymbols = new LazyAndForgetful<IReadOnlyDictionary<string, SymbolInfo>>(
-            async () => await LoadAllSymbolsAsync(), TimeSpan.FromMilliseconds(50));
-
-        // Register file watching if available
-        if (fileWatcher != null && _options.SolutionPath.HasValue && !_options.SolutionPath.Value.IsEmpty)
-        {
-            var solutionDir = _options.SolutionPath.Value.GetDirectory();
-            if (!solutionDir.IsEmpty)
-            {
-                fileWatcher.AddPathWatch(solutionDir.Value, "*.cs", InvalidateFile);
-            }
-        }
+        // Initialize lazy loading for symbols - AsyncLazy handles thread-safe initialization
+        _lazySymbols = new AsyncLazy<IReadOnlyDictionary<string, SymbolInfo>>(
+            async () => await LoadAllSymbolsAsync(),
+            AsyncLazyFlags.RetryOnFailure);
     }
 
     public async Task<IReadOnlyDictionary<string, SymbolInfo>> ExtractSymbolsAsync(Solution solution)
@@ -69,7 +61,7 @@ internal class SymbolExtractionService : ISymbolExtractionService
 
     public async Task<SymbolInfo?> FindSymbolAsync(string xmlDocId)
     {
-        var symbols = await _lazySymbols.Value;
+        var symbols = await _lazySymbols;
         return symbols.GetValueOrDefault(xmlDocId);
     }
 
@@ -139,13 +131,12 @@ internal class SymbolExtractionService : ISymbolExtractionService
 
     public void InvalidateFile(string filePath)
     {
-        // Invalidate the lazy loader
-        _lazySymbols.Refresh();
+        // Cache invalidation is now handled by FileWatchDependencyFactory
     }
 
     public void ClearCache()
     {
-        _lazySymbols.Refresh();
+        // Cache invalidation is now handled by FileWatchDependencyFactory
     }
 
     private async Task<IReadOnlyDictionary<string, SymbolInfo>> LoadAllSymbolsAsync()
