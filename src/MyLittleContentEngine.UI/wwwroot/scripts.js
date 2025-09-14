@@ -87,15 +87,17 @@ class OutlineManager {
     constructor() {
         this.outlineLinks = [];
         this.sectionMap = new Map();
-        this.observer = null;
-        this.visibleSections = new Set();
-        this.passedSections = new Set(); // Track sections that have been scrolled past
+        this.sections = [];
+        this.isScrolling = false;
+        this.scrollTimeout = null;
     }
 
     init() {
         this.setupOutline();
         if (this.outlineLinks.length > 0) {
-            this.setupIntersectionObserver();
+            this.setupScrollListener();
+            // Initial highlight
+            this.updateActiveSection();
         }
     }
 
@@ -111,8 +113,15 @@ class OutlineManager {
                 const section = document.getElementById(id);
                 if (section) {
                     this.sectionMap.set(section, link);
+                    this.sections.push(section);
                 }
             }
+        });
+
+        // Sort sections by document order
+        this.sections.sort((a, b) => {
+            const pos = a.compareDocumentPosition(b);
+            return pos & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
         });
     }
 
@@ -120,106 +129,53 @@ class OutlineManager {
         return href?.split('#')[1] || null;
     }
 
-    setupIntersectionObserver() {
-        this.observer = new IntersectionObserver(
-            this.handleIntersection.bind(this),
-            {
-                rootMargin: '-130px 0px -25%', // Very generous - catch sections with small margins
-                threshold: [0] // Any part visible
+    setupScrollListener() {
+        // Use passive listener for better performance
+        window.addEventListener('scroll', () => {
+            if (!this.isScrolling) {
+                this.isScrolling = true;
+                requestAnimationFrame(() => {
+                    this.updateActiveSection();
+                    this.isScrolling = false;
+                });
             }
-        );
-
-        // Observe all sections
-        this.sectionMap.forEach((link, section) => {
-            this.observer.observe(section);
-        });
+        }, { passive: true });
     }
 
-    handleIntersection(entries) {
-        let hasChanges = false;
-        
-        entries.forEach(entry => {
-            const section = entry.target;
-            
-            if (entry.isIntersecting) {
-                this.visibleSections.add(section);
-                this.passedSections.add(section);
-                hasChanges = true;
-            } else {
-                this.visibleSections.delete(section);
-                // Keep in passedSections - it was scrolled past
-                hasChanges = true;
-            }
-        });
-        
-        if (hasChanges) {
-            this.updateActiveLinks();
-        }
-    }
-    
-    updateActiveLinks() {
-        // Reset all links first
+    updateActiveSection() {
         this.resetAllLinks();
-        
-        const sectionToHighlight = this.findSectionToHighlight();
-        if (sectionToHighlight) {
-            const link = this.sectionMap.get(sectionToHighlight);
+
+        const activeSection = this.findActiveSection();
+        if (activeSection) {
+            const link = this.sectionMap.get(activeSection);
             if (link) {
                 this.activateLink(link);
             }
         }
     }
-    
-    findSectionToHighlight() {
-        // Get all sections sorted by document order
-        const allSections = Array.from(this.sectionMap.keys());
-        const sectionPositions = allSections.map(section => ({
-            section,
-            top: section.getBoundingClientRect().top
-        }));
-        
-        // Define what "visible" means for our highlighting logic
-        const viewportTop = 130; // Account for fixed header
-        const viewportBottom = window.innerHeight;
-        const actuallyVisible = sectionPositions.filter(({section, top}) => {
+
+    findActiveSection() {
+        if (this.sections.length === 0) return null;
+
+        const HEADER_OFFSET = 130; // Account for fixed header
+        const READING_POSITION = HEADER_OFFSET + 50; // Slightly below header for better UX
+
+        // Find the section that should be highlighted based on scroll position
+        let activeSection = null;
+
+        for (let i = this.sections.length - 1; i >= 0; i--) {
+            const section = this.sections[i];
             const rect = section.getBoundingClientRect();
-            // Section is visible if any part is between header and bottom of viewport
-            return rect.bottom > viewportTop && rect.top < viewportBottom;
-        });
-        
-        // Rule 1: If only one section is actually visible, highlight it
-        if (actuallyVisible.length === 1) {
-            return actuallyVisible[0].section;
+
+            // If section top is at or above our reading position, this is our active section
+            if (rect.top <= READING_POSITION) {
+                activeSection = section;
+                break;
+            }
         }
-        
-        // Rule 2: If multiple sections are actually visible, highlight the top-most
-        if (actuallyVisible.length > 1) {
-            actuallyVisible.sort((a, b) => a.top - b.top);
-            return actuallyVisible[0].section;
-        }
-        
-        // Rule 3: If none are actually visible, highlight the last item that was scrolled past
-        const sectionsAbove = sectionPositions.filter(({section}) => {
-            const rect = section.getBoundingClientRect();
-            return rect.bottom <= viewportTop; // Completely above the viewport
-        });
-        if (sectionsAbove.length > 0) {
-            // Sort by top position descending (closest to viewport from above)
-            sectionsAbove.sort((a, b) => b.top - a.top);
-            return sectionsAbove[0].section;
-        }
-        
-        // Rule 4: If no sections are above the viewport, highlight the first item
-        if (allSections.length > 0) {
-            // Sort sections by document order (using their DOM position)
-            const sortedSections = allSections.sort((a, b) => {
-                const posA = a.compareDocumentPosition(b);
-                return posA & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
-            });
-            return sortedSections[0];
-        }
-        
-        return null;
+
+        // If no section is above the reading position, use the first section
+        return activeSection || this.sections[0];
     }
 
     resetAllLinks() {
@@ -266,9 +222,8 @@ class OutlineManager {
     }
 
     destroy() {
-        if (this.observer) {
-            this.observer.disconnect();
-        }
+        // Clean up scroll listener if needed
+        // Note: In practice, this is rarely called as the page manager persists
     }
 }
 

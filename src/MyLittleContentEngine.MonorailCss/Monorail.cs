@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using MonorailCss;
+using MonorailCss.Css;
 using MonorailCss.Theme;
 
 namespace MyLittleContentEngine.MonorailCss;
@@ -92,7 +93,8 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
             ProseCustomization = GetCustomProseSettings()
         };
 
-        return new CssFramework(options.CustomCssFrameworkSettings(cssFrameworkSettings));
+        var optionsCustomCssFrameworkSettings = options.CustomCssFrameworkSettings(cssFrameworkSettings);
+        return new CssFramework(optionsCustomCssFrameworkSettings);
     }
 
 
