@@ -23,4 +23,8 @@
     <ProjectReference Include="..\MyLittleContentEngine.MonorailCss\MyLittleContentEngine.MonorailCss.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Remove="package.json" />
+  </ItemGroup>
+
 </Project>

@@ -25,7 +25,7 @@ public static class ColorPaletteGenerator
     /// <summary>
     /// Generates a primary and accent color palette based on a hue value in degrees (0-360)
     /// </summary>
-    public static ImmutableDictionary<string, CssColor> GenerateFromHue(double hue)
+    public static ImmutableDictionary<string, string> GenerateFromHue(double hue)
     {
         // Normalize the hue to 0-360 range
         hue = (hue % 360 + 360) % 360;
@@ -37,9 +37,9 @@ public static class ColorPaletteGenerator
     /// <summary>
     /// Generates a palette from a specific hue value
     /// </summary>
-    private static ImmutableDictionary<string, CssColor> GeneratePaletteFromHue(double hue)
+    private static ImmutableDictionary<string, string> GeneratePaletteFromHue(double hue)
     {
-        var palette = new Dictionary<string, CssColor>();
+        var palette = new Dictionary<string, string>();
         
         // Generate colors for each step in the palette
         for (var i = 0; i < PaletteKeys.Length; i++)
@@ -49,7 +49,7 @@ public static class ColorPaletteGenerator
             
             // Create the OKLCH color
             var oklchColor = $"oklch({lightness:F3} {chroma:F3} {hue:F3})";
-            palette.Add(PaletteKeys[i], new CssColor(oklchColor));
+            palette.Add(PaletteKeys[i],oklchColor );
         }
         
         return palette.ToImmutableDictionary();

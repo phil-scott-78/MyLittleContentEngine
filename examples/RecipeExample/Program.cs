@@ -1,4 +1,5 @@
 using MonorailCss;
+using MonorailCss.Theme;
 using MyLittleContentEngine;
 using MyLittleContentEngine.MonorailCss;
 using RecipeExample;
@@ -28,13 +29,9 @@ builder.Services.AddMonorailCss(_ => new MonorailCssOptions()
     BaseColorName = () => ColorNames.Neutral,
     CustomCssFrameworkSettings = settings => settings with
     {
-        DesignSystem = settings.DesignSystem with
-        {
-            FontFamilies =
-            settings.DesignSystem.FontFamilies
-                .SetItem("sans", new FontFamilyDefinition("Inter, sans-serif"))
-                .Add("display", new FontFamilyDefinition("'Montserrat Alternates', sans-serif"))
-        }
+        Theme = settings.Theme
+            .AddFontFamily("display","'Montserrat Alternates', sans-serif")
+            .AddFontFamily("sans", "Inter, sans-serif")
     }
 });
 

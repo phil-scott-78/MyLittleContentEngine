@@ -1,8 +1,6 @@
 ﻿using System.Collections.Immutable;
 using MonorailCss;
-using MonorailCss.Css;
-using MonorailCss.Plugins;
-using MonorailCss.Plugins.Prose;
+using MonorailCss.Theme;
 
 namespace MyLittleContentEngine.MonorailCss;
 
@@ -36,7 +34,7 @@ public class MonorailCssOptions
     /// </summary>
     public Func<CssFrameworkSettings, CssFrameworkSettings> CustomCssFrameworkSettings { get; init; } =
         settings => settings;
-    
+
     /// <summary>
     /// Gets or sets any extra CSS styles to be included in the generated stylesheet.
     /// </summary>
@@ -50,20 +48,19 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
         // we are only scanning razor files, not the generated files. if you use
         // code like bg-{color}-400 in the razor as a variable, that's not going to be detected.
         var cssClassValues = cssClassCollector.GetClasses();
-        var styleSheet = GetCssFramework().Process(cssClassValues);
+        var cssFramework = GetCssFramework();
+
+        var styleSheet = cssFramework.Process(cssClassValues);
 
         return $"""
                 {options.ExtraStyles}
-                
+
                 {styleSheet}
                 """;
     }
 
     private CssFramework GetCssFramework()
     {
-        var proseSettings = GetCustomProseSettings();
-
-
         var primaryHue = options.PrimaryHue;
 
         var hueValue = primaryHue.Invoke();
@@ -76,144 +73,183 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
         var tertiaryTwo = ColorPaletteGenerator.GenerateFromHue(tertiaryTwoHue);
 
 
-        var cssFrameworkSettings = new CssFrameworkSettings
+        var cssFrameworkSettings = new CssFrameworkSettings()
         {
-            OutputColorsAsVariables = true,
-            DesignSystem = DesignSystem.Default with
-            {
-                Colors = DesignSystem.Default.Colors.AddRange(
-                    new Dictionary<string, ImmutableDictionary<string, CssColor>>
-                    {
-                        { "primary", primary },
-                        { "accent", accent },
-                        { "tertiary-one", tertiaryOne }, // these two are only used for source highlighting
-                        { "tertiary-two", tertiaryTwo },
-                        { "base", DesignSystem.Default.Colors[options.BaseColorName()] }
-                    }),
-            },
-            PluginSettings = ImmutableList.Create<ISettings>(proseSettings),
-            Applies = ImmutableDictionary.Create<string, string>()
+            Theme = Theme.CreateWithDefaults()
+                .AddColorPalette("primary", primary)
+                .AddColorPalette("accent", accent)
+                .AddColorPalette("tertiary-one", tertiaryOne)
+                .AddColorPalette("tertiary-two", tertiaryTwo)
+                .MapColorPalette(options.BaseColorName.Invoke(), "base"),
+
+            Applies = ImmutableDictionary<string, string>.Empty
                 .AddRange(CodeBlockApplies())
                 .AddRange(TabApplies())
                 .AddRange(MarkdownAlertApplies())
                 .AddRange(HljsApplies())
-                .AddRange(SearchModalApplies())
+                .AddRange(SearchModalApplies()),
+            
+            ProseCustomization = GetCustomProseSettings()
         };
 
         return new CssFramework(options.CustomCssFrameworkSettings(cssFrameworkSettings));
     }
 
-    private static Prose.Settings GetCustomProseSettings()
+
+    private static ProseCustomization GetCustomProseSettings()
     {
-        var proseSettings = new Prose.Settings
+        var proseCustomization = new ProseCustomization
         {
-            CustomSettings = designSystem => new Dictionary<string, CssSettings>
+            Customization = theme =>
             {
+                // Helper to get color values from theme
+                string GetColorValue(string color, string shade) =>
+                    theme.ResolveValue(shade, [$"--color-{color}"]) ?? "#000000";
+
+                // Helper to add opacity to color (simplified - you might need a more robust implementation)
+                string WithOpacity(string color, string opacity) =>
+                    $"color-mix(in srgb, {color} {opacity}, transparent)";
+
+                return new Dictionary<string, ProseElementRules>
                 {
-                    "DEFAULT", new CssSettings
+                    ["DEFAULT"] = new()
                     {
-                        ChildRules =
-                        [
-                            new CssRuleSet("a",
-                            [
-                                new CssDeclaration(CssProperties.FontWeight, "700"),
-                                new CssDeclaration(CssProperties.TextDecoration, "none"),]
-                            ),
-                            new CssRuleSet("a:not(:has(> code))",
-                            [
-                                new CssDeclaration(CssProperties.BorderBottomWidth, "1px"),
-                                new CssDeclaration(CssProperties.BorderBottomColor,
-                                    designSystem.Colors["primary"][ColorLevels._500].AsStringWithOpacity("75%"))
-                            ]),
-
-                            new CssRuleSet("blockquote",
-                            [
-                                new CssDeclaration(CssProperties.BorderLeftWidth, "4px"),
-                                new CssDeclaration(CssProperties.PaddingLeft, "1rem"),
-                                new CssDeclaration(CssProperties.BorderColor,
-                                    designSystem.Colors["primary"][ColorLevels._700].AsString()),
-                            ]),
-                            new CssRuleSet("pre",
-                            [
-                                new CssDeclaration(CssProperties.BackgroundColor,
-                                    designSystem.Colors["base"][ColorLevels._200].AsStringWithOpacity(".50")),
-                                new CssDeclaration(CssProperties.BoxShadow,
-                                    "inset 0 0 0 1px oklch(87.1% .006 286.286)"),
-                                new CssDeclaration(CssProperties.BorderRadius, "0.4rem"),
-                            ]),
-                            new CssRuleSet("code", [
-                                new CssDeclaration(CssProperties.FontWeight, "400"),
-                            ]),
-                            new CssRuleSet(":not(pre) > code",
-                            [
-                                new CssDeclaration(CssProperties.Padding, "3px 8px"),
-                                new CssDeclaration(CssProperties.BoxShadow,
-                                    "inset 0 0 0 1px oklch(87.1% .006 286.286)"),
-                                new CssDeclaration(CssProperties.BorderRadius, "0.4rem"),
-
-                                new CssDeclaration(CssProperties.BackgroundColor,
-                                    designSystem.Colors["base"][ColorLevels._200].AsStringWithOpacity(".50")),
-                                new CssDeclaration(CssProperties.Color,
-                                    designSystem.Colors["base"][ColorLevels._700].AsString()),
-                                new CssDeclaration(CssProperties.WordBreak, "break-word")
-                            ]),
-
-                        ]
-                    }
-                },
-                {
-                    "base", new CssSettings
+                        Rules = new List<ProseElementRule>
+                        {
+                            new() { Selector = "a", Declarations = new List<ProseDeclaration> {
+                                    new() { Property = "font-weight", Value = "700" },
+                                    new() { Property = "text-decoration", Value = "none" }
+                                }.ToImmutableList()
+                            },
+                            new()
+                            {
+                                Selector = "a:not(:has(> code))",
+                                Declarations = new List<ProseDeclaration>
+                                {
+                                    new() { Property = "border-bottom-width", Value = "1px" },
+                                    new() { Property = "border-bottom-color", Value = WithOpacity(GetColorValue("primary", "500"), "75%")
+                                    }
+                                }.ToImmutableList()
+                            },
+                            new()
+                            {
+                                Selector = "blockquote",
+                                Declarations = new List<ProseDeclaration>
+                                {
+                                    new() { Property = "border-left-width", Value = "4px" },
+                                    new() { Property = "padding-left", Value = "1rem" },
+                                    new() { Property = "border-color", Value = GetColorValue("primary", "700") }
+                                }.ToImmutableList()
+                            },
+                            new()
+                            {
+                                Selector = "pre",
+                                Declarations = new List<ProseDeclaration>
+                                {
+                                    new() { Property = "background-color", Value = WithOpacity(GetColorValue("base", "200"), "50%") },
+                                    new() { Property = "box-shadow", Value = "inset 0 0 0 1px oklch(87.1% .006 286.286)" },
+                                    new() { Property = "border-radius", Value = "0.4rem" }
+                                }.ToImmutableList()
+                            },
+                            new()
+                            {
+                                Selector = "code",
+                                Declarations = new List<ProseDeclaration>
+                                {
+                                    new() { Property = "font-weight", Value = "400" }
+                                }.ToImmutableList()
+                            },
+                            new()
+                            {
+                                Selector = ":not(pre) > code",
+                                Declarations = new List<ProseDeclaration>
+                                {
+                                    new() { Property = "padding", Value = "3px 8px" },
+                                    new() { Property = "box-shadow", Value = "inset 0 0 0 1px oklch(87.1% .006 286.286)" },
+                                    new() { Property = "border-radius", Value = "0.4rem" },
+                                    new() { Property = "background-color", Value = WithOpacity(GetColorValue("base", "200"), "50%") },
+                                    new() { Property = "color", Value = GetColorValue("base", "700") },
+                                    new() { Property = "word-break", Value = "break-word" }
+                                }.ToImmutableList()
+                            }
+                        }.ToImmutableList()
+                    },
+                    ["base"] = new()
                     {
-                        ChildRules =
-                        [
-                            new CssRuleSet("pre > code", [new CssDeclaration(CssProperties.FontSize, "inherit")]),
-                            new CssRuleSet(":not(pre) > code", [new CssDeclaration(CssProperties.FontSize, "0.8em")]),
-
-                        ]
-                    }
-                },
-                {
-                    "sm", new CssSettings
+                        Rules = new List<ProseElementRule>
+                        {
+                            new()
+                            {
+                                Selector = "pre > code",
+                                Declarations = new List<ProseDeclaration>
+                                {
+                                    new() { Property = "font-size", Value = "inherit" }
+                                }.ToImmutableList()
+                            },
+                            new()
+                            {
+                                Selector = ":not(pre) > code",
+                                Declarations = new List<ProseDeclaration>
+                                {
+                                    new() { Property = "font-size", Value = "0.8em" }
+                                }.ToImmutableList()
+                            }
+                        }.ToImmutableList()
+                    },
+                    ["sm"] = new()
                     {
-                        ChildRules =
-                        [
-                            new CssRuleSet("pre > code", [new CssDeclaration(CssProperties.FontSize, "inherit")]),
-                            new CssRuleSet(":not(pre) > code", [new CssDeclaration(CssProperties.FontSize, "0.8em")]),
-
-                        ]
-                    }
-                },
-                {
-                    // dark mode color overrides
-                    "invert", new CssSettings
+                        Rules = new List<ProseElementRule>
+                        {
+                            new()
+                            {
+                                Selector = "pre > code",
+                                Declarations = new List<ProseDeclaration>
+                                {
+                                    new() { Property = "font-size", Value = "inherit" }
+                                }.ToImmutableList()
+                            },
+                            new()
+                            {
+                                Selector = ":not(pre) > code",
+                                Declarations = new List<ProseDeclaration>
+                                {
+                                    new() { Property = "font-size", Value = "0.8em" }
+                                }.ToImmutableList()
+                            }
+                        }.ToImmutableList()
+                    },
+                    ["invert"] = new()
                     {
-                        ChildRules =
-                        [
-                            new CssRuleSet("pre",
-                            [
-                                new CssDeclaration(CssProperties.FontWeight, "300"),
-                                new CssDeclaration(CssProperties.BackgroundColor,
-                                    designSystem.Colors["base"][ColorLevels._800].AsStringWithOpacity(".75")),
-                                new CssDeclaration(CssProperties.BoxShadow,
-                                    "inset 0 0 0 1px oklab(100% 0 5.96046e-8/.1)"),
-                            ]),
-                            new CssRuleSet(":not(pre) > code",
-                            [
-                                new CssDeclaration(CssProperties.BackgroundColor,
-                                    designSystem.Colors["base"][ColorLevels._800].AsStringWithOpacity(".75")),
-                                new CssDeclaration(CssProperties.Color,
-                                    designSystem.Colors["base"][ColorLevels._200].AsString()),
-                                new CssDeclaration(CssProperties.BoxShadow,
-                                    "inset 0 0 0 1px oklab(100% 0 5.96046e-8/.1)"),
-                            ])
-                        ]
+                        Rules = new List<ProseElementRule>
+                        {
+                            new()
+                            {
+                                Selector = "pre",
+                                Declarations = new List<ProseDeclaration>
+                                {
+                                    new() { Property = "font-weight", Value = "300" },
+                                    new() { Property = "background-color", Value = WithOpacity(GetColorValue("base", "800"), "75%") },
+                                    new() { Property = "box-shadow", Value = "inset 0 0 0 1px oklab(100% 0 5.96046e-8/.1)" }
+                                }.ToImmutableList()
+                            },
+                            new()
+                            {
+                                Selector = ":not(pre) > code",
+                                Declarations = new List<ProseDeclaration>
+                                {
+                                    new() { Property = "background-color", Value = WithOpacity(GetColorValue("base", "800"), "75%") },
+                                    new() { Property = "color", Value = GetColorValue("base", "200") },
+                                    new() { Property = "box-shadow", Value = "inset 0 0 0 1px oklab(100% 0 5.96046e-8/.1)" }
+                                }.ToImmutableList()
+                            }
+                        }.ToImmutableList()
                     }
-                },
-            }.ToImmutableDictionary()
+                }.ToImmutableDictionary();
+            }
         };
-        return proseSettings;
+        return proseCustomization;
     }
-    
+
     private static ImmutableDictionary<string, string> CodeBlockApplies()
     {
         return ImmutableDictionary.Create<string, string>()
@@ -235,7 +271,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                     ".code-highlight-wrapper pre code",
                     "font-mono"
                 },
-                
+
                 // Code transformation line containers
                 {
                     ".code-highlight-wrapper .line",
@@ -245,19 +281,19 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                     ".code-highlight-wrapper pre.has-focused .line",
                     "blur-[0.095rem] opacity-75"
                 },
-                
+
                 {
                     ".code-highlight-wrapper pre.has-focused:hover .line",
                     "blur-[0] opacity-100"
                 },
 
-                
+
                 // Line highlighting
                 {
                     ".code-highlight-wrapper .line.highlight",
                     "bg-primary-700/20 dark:bg-primary-500/20"
                 },
-                
+
                 // Diff notation
                 {
                     ".code-highlight-wrapper .line.diff-add",
@@ -267,7 +303,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                     ".code-highlight-wrapper .line.diff-remove",
                     "bg-red-600/20 dark:bg-red-900/20 opacity-50 before:font-bold before:content-['-'] before:hidden md:before:block before:text-sm before:absolute before:left-1 before:dark:text-red-500 before:text-red-700"
                 },
-                
+
                 // Focus and blur
                 {
                     ".code-highlight-wrapper pre.has-focused  .line.focused",
@@ -283,7 +319,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                     ".code-highlight-wrapper .line.warning",
                     "bg-amber-300/50 dark:bg-amber-400/20"
                 },
-                
+
                 // Word highlighting
                 {
                     ".code-highlight-wrapper .word-highlight",
@@ -323,7 +359,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 },
             });
     }
-    
+
     private static ImmutableDictionary<string, string> TabApplies()
     {
         return ImmutableDictionary.Create<string, string>()
@@ -333,27 +369,27 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                     ".tab-container",
                     "flex flex-col bg-base-100 border border-base-300/75 shadow-xs rounded rounded-xl overflow-x-auto dark:bg-base-950/25 dark:border-base-700/50"
                 },
-                { 
-                    ".tab-list", 
-                    "flex flex-row flex-wrap px-4 pt-1 bg-base-200/90 gap-x-2 lg:gap-x-4 dark:bg-base-800/50" },
+                {
+                    ".tab-list",
+                    "flex flex-row flex-wrap px-4 pt-1 bg-base-200/90 gap-x-2 lg:gap-x-4 dark:bg-base-800/50"
+                },
                 {
                     ".tab-button",
                     "whitespace-nowrap border-b border-transparent py-2 text-xs text-base-900/90 font-medium transition-colors hover:text-accent-500 disabled:pointer-events-none disabled:opacity-50 data-[selected=true]:text-accent-700 data-[selected=true]:border-accent-700 dark:text-base-100/90 dark:hover:text-accent-300 dark:data-[selected=true]:text-accent-400 dark:data-[selected=true]:border-accent-400"
                 },
                 {
-                    ".tab-panel", 
+                    ".tab-panel",
                     "hidden data-[selected=true]:block py-3 "
                 },
             });
     }
-    
+
     private static ImmutableDictionary<string, string> MarkdownAlertApplies()
     {
         const string alertFormatString =
             "fill-{0}-700 dark:fill-{0}-500 bg-{0}-100/75 border-{0}-500/20 dark:border-{0}-500/30 dark:bg-{0}-900/25 text-{0}-800 dark:text-{0}-200";
 
-         
-        
+
         return ImmutableDictionary.Create<string, string>()
             .AddRange(new Dictionary<string, string>
             {
@@ -428,33 +464,42 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
             {
                 // Modal backdrop and container
                 { ".search-modal-backdrop", "fixed inset-0 bg-base-950/50 backdrop-blur z-50 p-4 md:p-16" },
-                { ".search-modal-content", " top-16 mx-auto w-full mt-8 max-w-2xl bg-base-100 dark:bg-base-900 rounded-lg shadow-xl border border-base-200 dark:border-base-700" },
-                
+                {
+                    ".search-modal-content",
+                    " top-16 mx-auto w-full mt-8 max-w-2xl bg-base-100 dark:bg-base-900 rounded-lg shadow-xl border border-base-200 dark:border-base-700"
+                },
+
                 // Modal header and input
                 { ".search-modal-header", "p-4 border-b border-base-200 dark:border-base-700" },
                 { ".search-modal-input-container", "relative" },
-                { ".search-modal-input", "w-full px-4 py-2 pl-10 bg-base-50 dark:bg-base-800 border border-base-300 dark:border-base-600 rounded-md text-base-900 dark:text-base-100 placeholder-base-500 dark:placeholder-base-400 focus:outline-none focus:ring-1 focus:ring-primary-500/50 focus:border-primary-500" },
+                {
+                    ".search-modal-input",
+                    "w-full px-4 py-2 pl-10 bg-base-50 dark:bg-base-800 border border-base-300 dark:border-base-600 rounded-md text-base-900 dark:text-base-100 placeholder-base-500 dark:placeholder-base-400 focus:outline-none focus:ring-1 focus:ring-primary-500/50 focus:border-primary-500"
+                },
                 { ".search-modal-icon", "absolute left-3 top-2.5 h-4 w-4 text-base-400 dark:text-base-500" },
-                
+
                 // Results container
-                { ".search-modal-results", "max-h-96 overflow-y-auto px-4 dark:scheme-dark"  },
-                
+                { ".search-modal-results", "max-h-96 overflow-y-auto px-4 dark:scheme-dark" },
+
                 // Status messages
                 { ".search-modal-placeholder", "text-center text-base-600 dark:text-base-400 py-4" },
                 { ".search-modal-loading", "text-center text-base-600 dark:text-base-400 py-4" },
                 { ".search-modal-no-results", "text-center text-base-600 dark:text-base-400 py-4" },
                 { ".search-modal-error", "text-center text-red-600 dark:text-red-400 py-4" },
-                
+
                 // Search result items
                 { ".search-result-item", "border-b border-base-200 dark:border-base-800 py-4 last:border-b-0" },
-                { ".search-result-link", "block hover:bg-base-50 dark:hover:bg-base-800 rounded-md p-2 -m-2 transition-colors" },
+                {
+                    ".search-result-link",
+                    "block hover:bg-base-50 dark:hover:bg-base-800 rounded-md p-2 -m-2 transition-colors"
+                },
                 { ".search-result-header", "flex items-start justify-between mb-1" },
                 { ".search-result-title", "text-sm font-medium text-primary-700 dark:text-primary-400 flex-1" },
                 { ".search-result-score", "text-xs text-base-500 dark:text-base-500 ml-2" },
                 { ".search-result-description", "text-sm text-base-600 dark:text-base-400 mb-2" },
                 { ".search-result-snippet", "text-xs text-base-700 dark:text-base-500" },
                 { ".search-result-url", "text-xs text-base-500 dark:text-base-500 mt-2" },
-                
+
                 // Search highlighting
                 { ".search-result-title .search-highlight", "text-primary-500 dark:text-primary-100 bg-inherit" },
                 { ".search-highlight", "text-base-500 dark:text-base-50 bg-inherit" },

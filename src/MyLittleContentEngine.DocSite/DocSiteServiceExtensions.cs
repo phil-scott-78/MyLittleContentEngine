@@ -74,16 +74,9 @@ public static class DocSiteServiceExtensions
                 BaseColorName = () => options.BaseColorName,
                 CustomCssFrameworkSettings = defaultSettings => defaultSettings with
                 {
-                    DesignSystem = defaultSettings.DesignSystem with
-                    {
-                        FontFamilies = defaultSettings.DesignSystem.FontFamilies
-                            .Add("display",
-                                new FontFamilyDefinition(options.DisplayFontFamily ??
-                                                         "-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, Adwaita Sans, Cantarell, Ubuntu, roboto, noto, helvetica, arial, sans-serif;"))
-                            .SetItem("sans",
-                                new FontFamilyDefinition(options.BodyFontFamily ??
-                                                         "-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, Adwaita Sans, Cantarell, Ubuntu, roboto, noto, helvetica, arial, sans-serif;"))
-                    },
+                    Theme = defaultSettings.Theme
+                        .AddFontFamily("display", options.DisplayFontFamily ?? "-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, Adwaita Sans, Cantarell, Ubuntu, roboto, noto, helvetica, arial, sans-serif;")
+                        .AddFontFamily("sans", options.BodyFontFamily ?? "-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, Adwaita Sans, Cantarell, Ubuntu, roboto, noto, helvetica, arial, sans-serif;")
                 },
                 ExtraStyles = options.ExtraStyles ?? string.Empty
             };

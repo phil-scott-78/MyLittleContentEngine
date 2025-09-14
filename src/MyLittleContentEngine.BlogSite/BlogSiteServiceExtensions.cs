@@ -95,16 +95,9 @@ public static class BlogSiteServiceExtensions
                 BaseColorName = () => o.BaseColorName,
                 CustomCssFrameworkSettings = defaultSettings => defaultSettings with
                 {
-                    DesignSystem = defaultSettings.DesignSystem with
-                    {
-                        FontFamilies = defaultSettings.DesignSystem.FontFamilies
-                            .Add("display",
-                                new FontFamilyDefinition(o.DisplayFontFamily ??
-                                                         "-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, Adwaita Sans, Cantarell, Ubuntu, roboto, noto, helvetica, arial, sans-serif;"))
-                            .SetItem("sans",
-                                new FontFamilyDefinition(o.BodyFontFamily ??
-                                                         "-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, Adwaita Sans, Cantarell, Ubuntu, roboto, noto, helvetica, arial, sans-serif;"))
-                    },
+                    Theme = defaultSettings.Theme
+                        .AddFontFamily("display", o.DisplayFontFamily ?? "-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, Adwaita Sans, Cantarell, Ubuntu, roboto, noto, helvetica, arial, sans-serif;")
+                        .AddFontFamily("sans", o.BodyFontFamily ?? "-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, Adwaita Sans, Cantarell, Ubuntu, roboto, noto, helvetica, arial, sans-serif;")
                 },
                 ExtraStyles = o.ExtraStyles ?? string.Empty
             };
