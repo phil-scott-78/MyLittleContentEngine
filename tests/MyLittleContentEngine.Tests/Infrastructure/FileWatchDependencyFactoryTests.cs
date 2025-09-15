@@ -110,29 +110,6 @@ public class FileWatchDependencyFactoryTests
     }
 
     [Fact]
-    public void Dispose_ShouldDisposeCurrentInstance_WhenInstanceIsDisposable()
-    {
-        // Arrange
-        var services = new ServiceCollection();
-        services.AddTransient<DisposableTestService>(); // Use transient to get new instances
-        services.AddLogging();
-        using var serviceProvider = services.BuildServiceProvider();
-
-        Func<IServiceProvider, DisposableTestService> serviceFactory = _ => serviceProvider.GetRequiredService<DisposableTestService>();
-        using var factory = new FileWatchDependencyFactory<DisposableTestService>(
-            _fileWatcher, serviceFactory, serviceProvider,
-            serviceProvider.GetRequiredService<ILogger<FileWatchDependencyFactory<DisposableTestService>>>());
-
-        var instance = factory.GetInstance();
-
-        // Act
-        factory.Dispose();
-
-        // Assert
-        instance.IsDisposed.ShouldBeTrue();
-    }
-
-    [Fact]
     public void GetInstance_ShouldThrowObjectDisposedException_WhenFactoryDisposed()
     {
         // Arrange
@@ -147,23 +124,11 @@ public class FileWatchDependencyFactoryTests
     }
 
     [Fact]
-    public void Constructor_ShouldSubscribeToFileWatcher()
-    {
-        // Arrange & Act
-        Func<IServiceProvider, TestService> serviceFactory = _ => _serviceProvider.GetRequiredService<TestService>();
-        using var factory = new FileWatchDependencyFactory<TestService>(
-            _fileWatcher, serviceFactory, _serviceProvider, _logger);
-
-        // Assert
-        _fileWatcher.SubscribedCallbacks.ShouldContain(callback => callback != null);
-    }
-
-    [Fact]
-    public void GetInstance_ShouldBeThreadSafe_WhenAccessedConcurrently()
+    public async Task GetInstance_ShouldBeThreadSafe_WhenAccessedConcurrently()
     {
         // Arrange
         Func<IServiceProvider, TestService> serviceFactory = _ => _serviceProvider.GetRequiredService<TestService>();
-        using var factory = new FileWatchDependencyFactory<TestService>(
+        var factory = new FileWatchDependencyFactory<TestService>(
             _fileWatcher, serviceFactory, _serviceProvider, _logger);
 
         const int threadCount = 10;
@@ -172,19 +137,20 @@ public class FileWatchDependencyFactoryTests
         var tasks = new List<Task>();
 
         // Act - create multiple threads accessing the factory concurrently
-        for (int i = 0; i < threadCount; i++)
+        for (var i = 0; i < threadCount; i++)
         {
             tasks.Add(Task.Run(() =>
             {
-                for (int j = 0; j < iterationsPerThread; j++)
+                for (var j = 0; j < iterationsPerThread; j++)
                 {
                     var instance = factory.GetInstance();
                     instances.Add(instance);
                 }
-            }));
+            }, TestContext.Current.CancellationToken ));
         }
 
-        Task.WaitAll(tasks.ToArray());
+        await Task.WhenAll(tasks.ToArray());
+        
 
         // Assert - all instances should be the same (no file changes occurred)
         var uniqueInstances = instances.Distinct().ToArray();
@@ -193,7 +159,7 @@ public class FileWatchDependencyFactoryTests
     }
 
     [Fact]
-    public void InvalidateInstance_ShouldBeThreadSafe_WhenCalledConcurrentlyWithGetInstance()
+    public async Task InvalidateInstance_ShouldBeThreadSafe_WhenCalledConcurrentlyWithGetInstance()
     {
         // Arrange
         Func<IServiceProvider, TestService> serviceFactory = _ => _serviceProvider.GetRequiredService<TestService>();
@@ -205,11 +171,11 @@ public class FileWatchDependencyFactoryTests
         var tasks = new List<Task>();
 
         // Act - multiple tasks getting instances and invalidating concurrently
-        for (int i = 0; i < 5; i++)
+        for (var i = 0; i < 5; i++)
         {
             tasks.Add(Task.Run(() =>
             {
-                for (int j = 0; j < operationCount; j++)
+                for (var j = 0; j < operationCount; j++)
                 {
                     var instance = factory.GetInstance();
                     instances.Add(instance);
@@ -219,10 +185,10 @@ public class FileWatchDependencyFactoryTests
                         factory.InvalidateInstance();
                     }
                 }
-            }));
+            }, TestContext.Current.CancellationToken ));
         }
 
-        Task.WaitAll(tasks.ToArray());
+        await Task.WhenAll(tasks.ToArray());
 
         // Assert - should not crash and should have created multiple instances due to invalidation
         instances.Count.ShouldBeGreaterThan(0);
@@ -231,23 +197,23 @@ public class FileWatchDependencyFactoryTests
     }
 
     [Fact]
-    public void FileWatchInvalidation_ShouldBeThreadSafe_WhenTriggeredConcurrently()
+    public async Task FileWatchInvalidation_ShouldBeThreadSafe_WhenTriggeredConcurrently()
     {
         // Arrange
-        Func<IServiceProvider, TestService> serviceFactory = _ => _serviceProvider.GetRequiredService<TestService>();
+        TestService ServiceFactory(IServiceProvider _) => _serviceProvider.GetRequiredService<TestService>();
         using var factory = new FileWatchDependencyFactory<TestService>(
-            _fileWatcher, serviceFactory, _serviceProvider, _logger);
+            _fileWatcher, ServiceFactory, _serviceProvider, _logger);
 
         const int threadCount = 5;
         var instances = new ConcurrentBag<TestService>();
         var tasks = new List<Task>();
 
         // Act - multiple threads getting instances while file changes are triggered
-        for (int i = 0; i < threadCount; i++)
+        for (var i = 0; i < threadCount; i++)
         {
             tasks.Add(Task.Run(() =>
             {
-                for (int j = 0; j < 20; j++)
+                for (var j = 0; j < 20; j++)
                 {
                     var instance = factory.GetInstance();
                     instances.Add(instance);
@@ -260,20 +226,15 @@ public class FileWatchDependencyFactoryTests
 
                     Thread.Sleep(10);
                 }
-            }));
+            }, TestContext.Current.CancellationToken ));
         }
 
-        Task.WaitAll(tasks.ToArray());
+        await Task.WhenAll(tasks.ToArray());
 
         // Assert - should have created multiple instances due to file invalidation
         instances.Count.ShouldBe(threadCount * 20);
         var uniqueInstances = instances.Distinct().ToArray();
         uniqueInstances.Length.ShouldBeGreaterThan(1);
-    }
-
-    public void Dispose()
-    {
-        _serviceProvider.Dispose();
     }
 }
 

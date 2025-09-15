@@ -178,13 +178,12 @@ public static class ContentEngineExtensions
         services.AddSingleton<FileWatchDependencyFactory<T>>(provider =>
         {
             var fileWatcher = provider.GetRequiredService<IContentEngineFileWatcher>();
-            var logger = provider.GetService<ILogger<FileWatchDependencyFactory<T>>>();
-            
+            var logger = provider.GetRequiredService<ILogger<FileWatchDependencyFactory<T>>>();
+
+            return new FileWatchDependencyFactory<T>(fileWatcher, ServiceFactory, provider, logger);
+
             // Create a factory function that creates instances using ActivatorUtilities
-            Func<IServiceProvider, T> serviceFactory = serviceProvider =>
-                ActivatorUtilities.CreateInstance<T>(serviceProvider);
-            
-            return new FileWatchDependencyFactory<T>(fileWatcher, serviceFactory, provider, logger);
+            T ServiceFactory(IServiceProvider serviceProvider) => ActivatorUtilities.CreateInstance<T>(serviceProvider);
         });
 
         // Register the service as singleton, retrieved through the factory
@@ -216,7 +215,7 @@ public static class ContentEngineExtensions
         services.AddSingleton<FileWatchDependencyFactory<TImplementation>>(provider =>
         {
             var fileWatcher = provider.GetRequiredService<IContentEngineFileWatcher>();
-            var logger = provider.GetService<ILogger<FileWatchDependencyFactory<TImplementation>>>();
+            var logger = provider.GetRequiredService<ILogger<FileWatchDependencyFactory<TImplementation>>>();
 
             return new FileWatchDependencyFactory<TImplementation>(fileWatcher, ServiceFactory, provider, logger);
 
