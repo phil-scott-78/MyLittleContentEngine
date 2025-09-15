@@ -119,7 +119,7 @@
     {
         // Determine which section we're in based on the URL
         var uri = NavigationManager.Uri;
-        _isCliSection = uri.Contains("/cli/", StringComparison.OrdinalIgnoreCase);
+        _isCliSection = uri.Contains("/cli", StringComparison.OrdinalIgnoreCase);
 
         var fileName = FileName;
         if (string.IsNullOrWhiteSpace(fileName))
