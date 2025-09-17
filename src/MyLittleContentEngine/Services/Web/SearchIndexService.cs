@@ -12,7 +12,6 @@ namespace MyLittleContentEngine.Services.Web;
 /// </summary>
 public partial class SearchIndexService
 {
-    private static readonly JsonSerializerOptions JsonSerializerOptions;
     private string _searchIndexCache = string.Empty;
     private readonly IEnumerable<IContentService> _contentServices;
     private readonly ILocalHttpClient _localHttpClient;
@@ -33,14 +32,6 @@ public partial class SearchIndexService
         fileWatcher.SubscribeToChanges(() => _searchIndexCache = string.Empty);
     }
 
-    static SearchIndexService()
-    {
-        JsonSerializerOptions = new JsonSerializerOptions
-        {
-            WriteIndented = false,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
-    }
 
     /// <summary>
     /// Generates a search index JSON document
@@ -80,7 +71,7 @@ public partial class SearchIndexService
             });
         }
 
-        _searchIndexCache = JsonSerializer.Serialize(searchIndex, JsonSerializerOptions);
+        _searchIndexCache = JsonSerializer.Serialize(searchIndex, SearchIndexJsonContext.Default.SearchIndex);
         return _searchIndexCache;
     }
 
