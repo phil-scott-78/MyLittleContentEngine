@@ -38,10 +38,12 @@ jobs:
           ${{ runner.os }}-dotnet-
 
     - name: Install .NET
-      uses: actions/setup-dotnet@v4
+      uses: actions/setup-dotnet@v5
       with:
+        dotnet-version: '9.0.x'
         global-json-file: global.json
-        
+        cache: true
+       
     - name: Build, Test (Debug & Release), Publish (main only)
       shell: bash
       run: |
