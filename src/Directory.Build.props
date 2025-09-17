@@ -7,7 +7,6 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>Latest</LangVersion>
-        <NuGetAuditLevel>critical</NuGetAuditLevel>
 
         <!-- Common NuGet Package Properties -->
         <Authors>Phil Scott</Authors>
