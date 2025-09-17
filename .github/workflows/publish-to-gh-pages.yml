@@ -48,7 +48,7 @@ jobs:
           DOTNET_CLI_TELEMETRY_OPTOUT: true
         run: |
           dotnet build
-          dotnet run --environment ASPNETCORE_ENVIRONMENT=Production --project ${{ env.WEBAPP_PATH }} --configuration Release -- build "/MyLittleContentEngine/"
+          dotnet run --environment ASPNETCORE_ENVIRONMENT=Production --roll-forward LatestMajor --project ${{ env.WEBAPP_PATH }} --configuration Release -- build "/MyLittleContentEngine/"
 
       - name: Create examples directory
         run: mkdir -p ${{ env.WEBAPP_PATH }}output/examples
@@ -79,7 +79,7 @@ jobs:
               mkdir -p "${{ env.WEBAPP_PATH }}output/examples/$example_name"
 
               # Build the example with custom baseUrl and output path
-              dotnet run --project "$example_dir" --configuration Release -- build "/MyLittleContentEngine/examples/$example_name/" "../../docs/MyLittleContentEngine.Docs/output/examples/$example_name/"
+              dotnet run --project "$example_dir" --roll-forward LatestMajor --configuration Release -- build "/MyLittleContentEngine/examples/$example_name/" "../../docs/MyLittleContentEngine.Docs/output/examples/$example_name/"
             fi
           done
 

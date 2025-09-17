@@ -45,5 +45,5 @@ jobs:
     - name: Build, Test (Debug & Release), Publish (main only)
       shell: bash
       run: |
-        dotnet tool install --global dotnet-releaser
+        dotnet tool install --allow-roll-forward --global dotnet-releaser
         dotnet-releaser run --nuget-token "${{secrets.NUGET_TOKEN}}" --github-token "${{secrets.GITHUB_TOKEN}}" dotnet-releaser.toml
