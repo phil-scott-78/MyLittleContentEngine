@@ -281,7 +281,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 },
                 {
                     ".code-highlight-wrapper pre.has-focused .line",
-                    "blur-[0.095rem] opacity-75"
+                    "blur-[0.05rem] opacity-75"
                 },
 
                 {
