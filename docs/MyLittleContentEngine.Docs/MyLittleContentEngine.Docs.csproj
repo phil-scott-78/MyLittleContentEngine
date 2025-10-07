@@ -9,7 +9,7 @@
     <InternalsVisibleTo Include="MyLittleContentEngine.IntegrationTests" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Formats.Asn1" Version="9.0.6" />
+    <PackageReference Include="System.Formats.Asn1" Version="9.0.9" />
     <PackageReference Include="WordbreakMiddleware" Version="0.0.0-alpha.0.4" />
   </ItemGroup>
   <ItemGroup>

@@ -13,8 +13,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Spectre.Console" Version="0.50.1-preview.0.24" />
-      <PackageReference Include="Spectre.Console.Cli" Version="0.50.1-preview.0.21" />
+      <PackageReference Include="Spectre.Console" Version="0.51.2-preview.0.3" />
+      <PackageReference Include="Spectre.Console.Cli" Version="0.51.2-preview.0.3" />
     </ItemGroup>
 
 </Project>
