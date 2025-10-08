@@ -26,7 +26,8 @@
       "Bash(BaseHref=\"/env-base-url\" dotnet run)",
       "Bash(vhs:*)",
       "Bash(git tag:*)",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(dir:*)"
     ],
     "additionalDirectories": [
       "b:\\spectre\\"
