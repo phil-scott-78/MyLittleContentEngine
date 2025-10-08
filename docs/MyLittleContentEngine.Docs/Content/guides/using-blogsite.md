@@ -11,9 +11,6 @@ The `MyLittleContentEngine.BlogSite` package provides a complete blog site solut
 > While functional, the `BlogSite` package drives the documentation for my personal blog. It can and will
 > change as this site changes. It is better suited as inspiration or proof-of-concepts than a blog you want total control over.
 
-> [!TIP]  
-> For documentation-style sites, see [Using DocSite](xref:docs.getting-started.using-docsite). For custom styling options, see <xref:docs.guides.configure-custom-styling>.
-
 ## What You'll Build
 
 You'll create a blog site with:
@@ -30,10 +27,10 @@ You'll create a blog site with:
 <Step stepNumber="1">
 ## Create a New Blazor Project
 
-Start by creating a new empty Blazor Server project:
+Start by creating a new minimal web project:
 
 ```bash
-dotnet new blazorserver-empty -n MyBlogSite
+dotnet new web -n MyBlogSite
 cd MyBlogSite
 ```
 </Step>
@@ -68,7 +65,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddBlogSite(_ => new BlogSiteOptions
 {
-    ApplicationArgs = args,
     SiteTitle = "My Blog",
     Description = "A blog about my adventures in coding",
 });
@@ -145,7 +141,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddBlogSite(_ => new BlogSiteOptions
 {
-    ApplicationArgs = args,
     // Basic site information
     SiteTitle = "My Coding Blog",
     Description = "Adventures in software development",
@@ -192,10 +187,9 @@ For social media features, you can add social links and project showcases:
 ```csharp
 builder.Services.AddBlogSite(_ => new BlogSiteOptions
 {
-    ApplicationArgs = args,
     SiteTitle = "My Coding Blog",
     Description = "Adventures in software development",
-    
+
     // Social media links
     Socials = [
         new SocialLink(
@@ -240,10 +234,9 @@ For advanced customization, you can add custom HTML to the head section:
 ```csharp
 builder.Services.AddBlogSite(_ => new BlogSiteOptions
 {
-    ApplicationArgs = args,
     SiteTitle = "My Blog",
     Description = "A blog about coding",
-    
+
     // Custom HTML for head section
     AdditionalHtmlHeadContent = """
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -325,7 +318,6 @@ The `BlogSiteOptions` class provides many customization options:
 |--------|------|---------|-------------|
 | `SiteTitle` | string | required | The title displayed in the header |
 | `Description` | string | required | Site description for SEO |
-| `ApplicationArgs` | string[] | required | Command line arguments for BaseUrl handling |
 | `PrimaryHue` | int | 250 | Primary color hue (0-360) |
 | `BaseColorName` | string | "Slate" | Base color palette name |
 | `CanonicalBaseUrl` | string? | null | Canonical URL for SEO and RSS |

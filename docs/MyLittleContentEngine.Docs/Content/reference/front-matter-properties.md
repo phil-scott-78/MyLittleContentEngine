@@ -64,11 +64,11 @@ T:MyLittleContentEngine.Models.IFrontMatter
 
 ## Required Methods
 
-All front matter must implement `GetMetadata`, which returns a `Metadata` instance. This class contains fields that all content generations rely on being standard. The `GetMetadata` method acts as a conversion from custom metadata to this standard format.
+All front matter must implement `AsMetadata`, which returns a `Metadata` instance. This class contains fields that all content generations rely on being standard. The `AsMetadata` method acts as a conversion from custom metadata to this standard format.
 
 The `Metadata` class also provides additional computed information for RSS feeds and sitemaps.
 
-### The `GetMetadata` Method
+### The `AsMetadata` Method
 
 #### Title
 

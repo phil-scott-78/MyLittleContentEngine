@@ -23,7 +23,7 @@ graph TD
     B --> C[search-indexjson]
     C --> D[FlexSearch Engine]
     D --> E[Search Results UI]
-    
+
     F[User Types Query] --> D
     G[Ctrl+K Shortcut] --> E
     H[Search Button Click] --> E

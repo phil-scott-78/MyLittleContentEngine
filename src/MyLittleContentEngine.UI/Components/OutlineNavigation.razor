@@ -38,7 +38,7 @@
     
 
     private RenderFragment OutlineLink(OutlineEntry entry, string padding) =>
-        @<li class="flex">
+        @<li class="@padding flex">
             <a
                 class="@padding @OutlineLinkStructureClass @OutlineLinkColorClass"
                 href="#@entry.Id">@entry.Title</a>

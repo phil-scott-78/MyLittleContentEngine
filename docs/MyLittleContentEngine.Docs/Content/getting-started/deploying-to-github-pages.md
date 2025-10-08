@@ -54,8 +54,21 @@ your-repo/
 ```
 
 Note that we are using a [`global.json`](https://learn.microsoft.com/en-us/dotnet/core/tools/global-json) file to specify the
-.NET SDK version. This ensures consistent builds across different environments, and is used in the GH pages to install
+.NET SDK version. This ensures consistent builds across different environments, and is used in the GitHub Actions workflow to install
 the appropriate .NET version.
+
+Create a `global.json` file in your repository root:
+
+```json
+{
+  "sdk": {
+    "version": "9.0.0",
+    "rollForward": "latestMinor"
+  }
+}
+```
+
+This ensures GitHub Actions uses the same .NET version as your local development environment.
 </Step>
 <Step stepNumber="2">
 ## Configure GitHub Actions Workflow
@@ -157,11 +170,53 @@ deployed to GitHub Pages.
 See the [Linking Documents and Media](xref:docs.guides.linking-documents-and-media) guide for more details on how
 MyLittleContentEngine handles links.
 
-### Update Your Program.cs
+### How BaseUrl Configuration Works
 
-For basic usage, you typically don't need to configure anything special in your Program.cs for GitHub Pages deployment. The build command line arguments will handle the BaseUrl automatically.
+MyLittleContentEngine automatically handles BaseUrl configuration through command-line arguments. When you run the build command:
 
-The BaseUrl is now configured via command line arguments during the build process instead of being hardcoded in your Program.cs.
+```bash
+dotnet run -- build "/your-repository-name/"
+```
+
+The framework:
+1. Parses the command-line arguments passed to `RunBlogSiteAsync(args)` or `RunDocSiteAsync(args)`
+2. Extracts the BaseUrl (`/your-repository-name/`) from the second argument after `build`
+3. Configures `OutputOptions` internally with this BaseUrl
+4. Uses this BaseUrl to rewrite all links, assets, and navigation URLs during static generation
+
+**You don't need to modify your `Program.cs`** - the BlogSite and DocSite packages handle this automatically when you pass `args` to `RunBlogSiteAsync(args)` or `RunDocSiteAsync(args)`.
+
+### Command-Line Build Format
+
+```bash
+dotnet run --project YourProject.csproj -- build [BaseUrl] [OutputFolder]
+```
+
+**Arguments:**
+- `build` - Triggers static generation mode
+- `BaseUrl` (optional) - The base URL path (e.g., `/repository-name/` for GitHub Pages, `/` for root deployment)
+- `OutputFolder` (optional) - Output directory path (defaults to `output`)
+
+**Examples:**
+```bash
+# GitHub Pages subdirectory deployment
+dotnet run -- build "/my-blog/"
+
+# Root deployment (custom domain)
+dotnet run -- build "/"
+
+# Custom output folder
+dotnet run -- build "/my-blog/" "dist"
+```
+
+**Environment Variable Fallback:**
+
+If no BaseUrl is provided via command-line, the system checks for a `BaseHref` environment variable:
+
+```bash
+export BaseHref="/my-blog/"
+dotnet run -- build
+```
 </Step>
 <Step stepNumber="4">
 ## Set Up GitHub Pages

@@ -75,25 +75,33 @@ dotnet run -- build "/"
 
 ### For BlogSite and DocSite (Automatic)
 
-If you're using BlogSite or DocSite packages, BaseUrl configuration is handled automatically through the `ApplicationArgs` property:
+If you're using BlogSite or DocSite packages, BaseUrl configuration is handled automatically when you pass `args` to `RunBlogSiteAsync` or `RunDocSiteAsync`:
 
 ```csharp
-// BlogSite - BaseUrl handled automatically
+// BlogSite - BaseUrl handled automatically via args
 builder.Services.AddBlogSite(_ => new BlogSiteOptions
 {
-    ApplicationArgs = args, // Handles BaseUrl automatically
     SiteTitle = "My Blog",
     Description = "My awesome blog",
 });
 
-// DocSite - BaseUrl handled automatically  
+var app = builder.Build();
+app.UseBlogSite();
+await app.RunBlogSiteAsync(args); // args are used internally for BaseUrl
+
+// DocSite - BaseUrl handled automatically via args
 builder.Services.AddDocSite(_ => new DocSiteOptions
 {
-    ApplicationArgs = args, // Handles BaseUrl automatically
     SiteTitle = "My Documentation",
     Description = "My awesome docs",
 });
+
+var app = builder.Build();
+app.UseDocSite();
+await app.RunDocSiteAsync(args); // args are used internally for BaseUrl
 ```
+
+The `args` parameter is passed through to the framework's `RunOrBuildContent` method, which automatically parses the command-line arguments and configures `OutputOptions` with the appropriate BaseUrl.
 
 ### For Custom Sites
 
@@ -227,7 +235,7 @@ When a cross-reference cannot be resolved, the middleware:
 ## Best Practices
 
 1. **Use command line arguments** for BaseUrl to support multiple deployment targets
-2. **Use BlogSite/DocSite packages** for automatic BaseUrl handling, or register OutputOptions manually for custom sites
+2. **Pass args to Run methods** - BlogSite/DocSite automatically handle BaseUrl when you pass `args` to `RunBlogSiteAsync(args)` or `RunDocSiteAsync(args)`
 3. **Use root-relative URLs** in your content (`/page` not `page`)
 4. **Test locally** with different BaseUrl values using: `dotnet run -- build "/test-path"`
 5. **Monitor for unresolved xrefs** using browser developer tools to check for error attributes

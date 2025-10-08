@@ -11,9 +11,6 @@ The `MyLittleContentEngine.DocSite` package provides a complete documentation si
 > While functional, the `DocSite` package drives the documentation for MyLittleContentEngine. It can and will
 > change as this site changes. It is better suited as inspiration or proof-of-concepts than production documentation.
 
-> [!TIP]
-> For blog-style sites, see [Using Blogsite](xref:docs.getting-started.using-blogsite). For API documentation generation, see <xref:docs.guides.generate-api-documentation>.
-
 ## What You'll Build
 
 You'll create a documentation site with:
@@ -36,10 +33,10 @@ Before starting, ensure you have:
 <Step stepNumber="1">
 ## Create a New Blazor Project
 
-Start by creating a new empty Blazor Server project:
+Start by creating a new minimal web project:
 
 ```bash
-dotnet new blazorserver-empty -n MyDocSite
+dotnet new web -n MyDocSite
 cd MyDocSite
 ```
 </Step>
@@ -74,7 +71,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDocSite(_ => new DocSiteOptions
 {
-    ApplicationArgs = args,
     SiteTitle = "My Documentation Site",
     Description = "Documentation for my project",
 });
@@ -136,7 +132,6 @@ You can customize various aspects of your documentation site by modifying the op
 ```csharp
 builder.Services.AddDocSite(_ => new DocSiteOptions
 {
-    ApplicationArgs = args,
     // Basic site information
     SiteTitle = "My Documentation Site",
     Description = "Comprehensive documentation for my project",
@@ -171,9 +166,8 @@ For advanced customization, you can add custom header content or logos:
 ```csharp
 builder.Services.AddDocSite(_ => new DocSiteOptions
 {
-    ApplicationArgs = args,
     SiteTitle = "My Documentation Site",
-    
+
     // Custom header with logo
     HeaderContent = """
         <div class="flex items-center gap-2">
@@ -244,7 +238,6 @@ The `DocSiteOptions` class provides many customization options:
 | `IncludeNamespaces` | string[]? | null | Namespaces to include in API docs |
 | `ExcludeNamespaces` | string[]? | null | Namespaces to exclude from API docs |
 | `ContentRootPath` | string | "Content" | Path to content directory |
-| `ApplicationArgs` | string[] | required | Command line arguments for BaseUrl handling |
 | `ExtraStyles` | string? | null | Additional CSS styles |
 | `HeaderIcon` | string? | null | Custom header icon HTML |
 | `HeaderContent` | string? | null | Custom header content HTML |

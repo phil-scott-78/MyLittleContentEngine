@@ -445,42 +445,42 @@ class MermaidManager {
                     fontFamily: 'Lexend, sans-serif',
                     
                     // Main colors
-                    primaryColor: getCSSVariable('--monorail-color-primary-600', '#BB2528'),
-                    primaryTextColor: getCSSVariable('--monorail-color-primary-50', '#ffffff'),
+                    primaryColor: getCSSVariable('--color-primary-600', '#BB2528'),
+                    primaryTextColor: getCSSVariable('--color-primary-50', '#ffffff'),
                     
                     // Secondary colors
-                    secondaryColor: getCSSVariable('--monorail-color-accent-600', '#006100'),
-                    tertiaryColor: getCSSVariable('--monorail-color-tertiary-one-600', '#666666'),
+                    secondaryColor: getCSSVariable('--color-accent-600', '#006100'),
+                    tertiaryColor: getCSSVariable('--color-tertiary-one-600', '#666666'),
                     
                     // Background colors
-                    background: getCSSVariable('--monorail-color-base-950', '#0a0a0a'),
-                    mainBkg: getCSSVariable('--monorail-color-base-900', '#1a1a1a'),
-                    secondaryBkg: getCSSVariable('--monorail-color-base-800', '#2a2a2a'),
-                    tertiaryBkg: getCSSVariable('--monorail-color-base-700', '#333333'),
+                    background: getCSSVariable('--color-base-950', '#0a0a0a'),
+                    mainBkg: getCSSVariable('--color-base-900', '#1a1a1a'),
+                    secondaryBkg: getCSSVariable('--color-base-800', '#2a2a2a'),
+                    tertiaryBkg: getCSSVariable('--color-base-700', '#333333'),
 
                     // Note colors
-                    noteBorderColor: getCSSVariable('--monorail-color-base-600', '#333333'),
-                    noteBkgColor: getCSSVariable('--monorail-color-base-800', '#333333'),
+                    noteBorderColor: getCSSVariable('--color-base-600', '#333333'),
+                    noteBkgColor: getCSSVariable('--color-base-800', '#333333'),
                     
                     // Lines and borders
-                    lineColor: getCSSVariable('--monorail-color-accent-400', '#4ade80'),
-                    primaryBorderColor: getCSSVariable('--monorail-color-primary-500', '#dc2626'),
-                    secondaryBorderColor: getCSSVariable('--monorail-color-accent-500', '#22c55e'),
-                    tertiaryBorderColor: getCSSVariable('--monorail-color-tertiary-one-500', '#6b7280'),
+                    lineColor: getCSSVariable('--color-accent-400', '#4ade80'),
+                    primaryBorderColor: getCSSVariable('--color-primary-500', '#dc2626'),
+                    secondaryBorderColor: getCSSVariable('--color-accent-500', '#22c55e'),
+                    tertiaryBorderColor: getCSSVariable('--color-tertiary-one-500', '#6b7280'),
                     
                     // Text colors
-                    textColor: getCSSVariable('--monorail-color-base-300', '#f3f4f6'),
-                    nodeTextColor: getCSSVariable('--monorail-color-primary-50', '#ffffff'),
-                    edgeLabelColor: getCSSVariable('--monorail-color-base-200', '#e5e7eb'),
+                    textColor: getCSSVariable('--color-base-300', '#f3f4f6'),
+                    nodeTextColor: getCSSVariable('--color-primary-50', '#ffffff'),
+                    edgeLabelColor: getCSSVariable('--color-base-200', '#e5e7eb'),
                     
                     // Edge and label backgrounds
-                    edgeLabelBackground: getCSSVariable('--monorail-color-base-800', '#1f2937'),
+                    edgeLabelBackground: getCSSVariable('--color-base-800', '#1f2937'),
                     
                     // Additional node colors for variety
-                    node0: getCSSVariable('--monorail-color-primary-600', '#dc2626'),
-                    node1: getCSSVariable('--monorail-color-accent-600', '#059669'),
-                    node2: getCSSVariable('--monorail-color-tertiary-one-600', '#4b5563'),
-                    node3: getCSSVariable('--monorail-color-tertiary-two-600', '#7c3aed')
+                    node0: getCSSVariable('--color-primary-600', '#dc2626'),
+                    node1: getCSSVariable('--color-accent-600', '#059669'),
+                    node2: getCSSVariable('--color-tertiary-one-600', '#4b5563'),
+                    node3: getCSSVariable('--color-tertiary-two-600', '#7c3aed')
                 }
             };
         } else {
@@ -492,43 +492,43 @@ class MermaidManager {
                 darkMode: false,
                 themeVariables: {
                     // Main colors
-                    primaryColor: getCSSVariable('--monorail-color-primary-700', '#BB2528'),
-                    primaryTextColor: getCSSVariable('--monorail-color-base-500', '#ffffff'),
+                    primaryColor: getCSSVariable('--color-primary-700', '#BB2528'),
+                    primaryTextColor: getCSSVariable('--color-base-500', '#ffffff'),
                     
                     // Secondary colors
-                    secondaryColor: getCSSVariable('--monorail-color-accent-700', '#006100'),
-                    tertiaryColor: getCSSVariable('--monorail-color-tertiary-one-600', '#4b5563'),
+                    secondaryColor: getCSSVariable('--color-accent-700', '#006100'),
+                    tertiaryColor: getCSSVariable('--color-tertiary-one-600', '#4b5563'),
                     
                     // Background colors
-                    background: getCSSVariable('--monorail-color-base-50', '#f9fafb'),
-                    mainBkg: getCSSVariable('--monorail-color-base-100', '#f3f4f6'),
-                    secondaryBkg: getCSSVariable('--monorail-color-base-200', '#e5e7eb'),
-                    tertiaryBkg: getCSSVariable('--monorail-color-base-150', '#f0f0f0'),
+                    background: getCSSVariable('--color-base-50', '#f9fafb'),
+                    mainBkg: getCSSVariable('--color-base-100', '#f3f4f6'),
+                    secondaryBkg: getCSSVariable('--color-base-200', '#e5e7eb'),
+                    tertiaryBkg: getCSSVariable('--color-base-150', '#f0f0f0'),
 
                     // Note colors
-                    noteBorderColor: getCSSVariable('--monorail-color-base-200', '#333333'),
+                    noteBorderColor: getCSSVariable('--color-base-200', '#333333'),
                     noteBkgColor: getCSSVariable('--monorail-color-base-100', '#333333'),
 
 
                     // Lines and borders
-                    lineColor: getCSSVariable('--monorail-color-accent-600', '#16a34a'),
-                    primaryBorderColor: getCSSVariable('--monorail-color-primary-600', '#dc2626'),
-                    secondaryBorderColor: getCSSVariable('--monorail-color-accent-600', '#16a34a'),
-                    tertiaryBorderColor: getCSSVariable('--monorail-color-tertiary-one-400', '#9ca3af'),
+                    lineColor: getCSSVariable('--color-accent-600', '#16a34a'),
+                    primaryBorderColor: getCSSVariable('--color-primary-600', '#dc2626'),
+                    secondaryBorderColor: getCSSVariable('--color-accent-600', '#16a34a'),
+                    tertiaryBorderColor: getCSSVariable('--color-tertiary-one-400', '#9ca3af'),
                     
                     // Text colors
-                    textColor: getCSSVariable('--monorail-color-base-900', '#111827'),
-                    nodeTextColor: getCSSVariable('--monorail-color-base-900', '#ffffff'),
-                    edgeLabelColor: getCSSVariable('--monorail-color-base-700', '#374151'),
+                    textColor: getCSSVariable('--color-base-900', '#111827'),
+                    nodeTextColor: getCSSVariable('--color-base-900', '#ffffff'),
+                    edgeLabelColor: getCSSVariable('--color-base-700', '#374151'),
                     
                     // Edge and label backgrounds
-                    edgeLabelBackground: getCSSVariable('--monorail-color-base-100', '#f3f4f6'),
+                    edgeLabelBackground: getCSSVariable('--color-base-100', '#f3f4f6'),
                     
                     // Additional node colors for variety
-                    node0: getCSSVariable('--monorail-color-primary-600', '#dc2626'),
-                    node1: getCSSVariable('--monorail-color-accent-600', '#16a34a'),
-                    node2: getCSSVariable('--monorail-color-tertiary-one-600', '#4b5563'),
-                    node3: getCSSVariable('--monorail-color-tertiary-two-600', '#7c3aed')
+                    node0: getCSSVariable('--color-primary-600', '#dc2626'),
+                    node1: getCSSVariable('--color-accent-600', '#16a34a'),
+                    node2: getCSSVariable('--color-tertiary-one-600', '#4b5563'),
+                    node3: getCSSVariable('--color-tertiary-two-600', '#7c3aed')
                 }
             };
         }
