@@ -3,7 +3,7 @@ namespace MyLittleContentEngine.Services.Infrastructure;
 /// <summary>
 /// Production implementation of ILocalHttpClient that wraps HttpClient
 /// </summary>
-public class LocalHttpClient : ILocalHttpClient, IDisposable
+internal class LocalHttpClient : ILocalHttpClient, IDisposable
 {
     private readonly HttpClient _httpClient;
 

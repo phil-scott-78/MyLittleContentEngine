@@ -10,7 +10,7 @@ namespace MyLittleContentEngine.Services.Infrastructure;
 /// Integrates with IContentEngineFileWatcher for automatic cache invalidation.
 /// </summary>
 /// <typeparam name="T">The service type to manage.</typeparam>
-public sealed class FileWatchDependencyFactory<T> : IDisposable where T : class
+internal sealed class FileWatchDependencyFactory<T> : IDisposable where T : class
 {
     private readonly Func<IServiceProvider, T> _serviceFactory;
     private readonly IServiceProvider _serviceProvider;
