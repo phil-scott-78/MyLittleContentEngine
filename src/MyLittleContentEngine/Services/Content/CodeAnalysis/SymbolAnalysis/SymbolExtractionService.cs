@@ -8,8 +8,6 @@ using Microsoft.Extensions.Logging;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.Extensions;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.SolutionWorkspace;
-using MyLittleContentEngine.Services.Infrastructure;
-using MyLittleContentEngine.Services;
 
 namespace MyLittleContentEngine.Services.Content.CodeAnalysis.SymbolAnalysis;
 

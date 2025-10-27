@@ -7,8 +7,6 @@ using MyLittleContentEngine.Services.Content.CodeAnalysis.SymbolAnalysis;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.SolutionWorkspace;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
 using MyLittleContentEngine.Services.Content.TableOfContents;
-using MyLittleContentEngine.Services.Infrastructure;
-using MyLittleContentEngine.Services;
 
 namespace MyLittleContentEngine.Services.Content;
 

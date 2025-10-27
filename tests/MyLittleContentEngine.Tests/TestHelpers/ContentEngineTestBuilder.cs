@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.IO.Abstractions;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Content.TableOfContents;

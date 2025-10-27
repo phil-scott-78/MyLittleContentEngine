@@ -1,10 +1,8 @@
 using System.Collections.Concurrent;
-using System.IO;
 using System.IO.Abstractions;
 using System.Reflection.Metadata;
 using Microsoft.Extensions.Logging;
 using MyLittleContentEngine.Services.Infrastructure;
-using Testably.Abstractions;
 
 [assembly: MetadataUpdateHandler(typeof(ContentEngineFileWatcher))]
 

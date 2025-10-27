@@ -3,8 +3,6 @@ using System.Collections.Immutable;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions;
 using MyLittleContentEngine.Services.Content.TableOfContents;
-using MyLittleContentEngine.Services.Infrastructure;
-using MyLittleContentEngine.Services;
 
 namespace MyLittleContentEngine.Services.Content;
 
