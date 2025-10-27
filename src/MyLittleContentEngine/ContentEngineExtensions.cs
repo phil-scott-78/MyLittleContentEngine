@@ -201,7 +201,6 @@ public static class ContentEngineExtensions
     /// <typeparam name="TService">The service type to register.</typeparam>
     /// <typeparam name="TImplementation">The implementation type.</typeparam>
     /// <param name="services">The service collection.</param>
-    /// <param name="lifetime">The service lifetime for the underlying service (default: Transient).</param>
     /// <returns>The updated service collection for method chaining.</returns>
     /// <remarks>
     /// This method directly registers the service interface with file-watch invalidation capabilities.

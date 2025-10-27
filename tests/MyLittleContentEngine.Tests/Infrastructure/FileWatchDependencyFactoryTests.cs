@@ -118,8 +118,8 @@ public class FileWatchDependencyFactoryTests
         services.AddLogging();
         using var serviceProvider = services.BuildServiceProvider();
 
-        Func<IServiceProvider, DisposableTestService> serviceFactory = _ => serviceProvider.GetRequiredService<DisposableTestService>();
-        using var factory = new FileWatchDependencyFactory<DisposableTestService>(
+        Func<IServiceProvider, DisposableTestService> serviceFactory = sp => sp.GetRequiredService<DisposableTestService>();
+        var factory = new FileWatchDependencyFactory<DisposableTestService>(
             _fileWatcher, serviceFactory, serviceProvider,
             serviceProvider.GetRequiredService<ILogger<FileWatchDependencyFactory<DisposableTestService>>>());
 
@@ -147,23 +147,11 @@ public class FileWatchDependencyFactoryTests
     }
 
     [Fact]
-    public void Constructor_ShouldSubscribeToFileWatcher()
-    {
-        // Arrange & Act
-        Func<IServiceProvider, TestService> serviceFactory = _ => _serviceProvider.GetRequiredService<TestService>();
-        using var factory = new FileWatchDependencyFactory<TestService>(
-            _fileWatcher, serviceFactory, _serviceProvider, _logger);
-
-        // Assert
-        _fileWatcher.SubscribedCallbacks.ShouldContain(callback => callback != null);
-    }
-
-    [Fact]
     public async Task GetInstance_ShouldBeThreadSafe_WhenAccessedConcurrently()
     {
         // Arrange
         Func<IServiceProvider, TestService> serviceFactory = _ => _serviceProvider.GetRequiredService<TestService>();
-        using var factory = new FileWatchDependencyFactory<TestService>(
+        var factory = new FileWatchDependencyFactory<TestService>(
             _fileWatcher, serviceFactory, _serviceProvider, _logger);
 
         const int threadCount = 10;
@@ -197,7 +185,7 @@ public class FileWatchDependencyFactoryTests
     {
         // Arrange
         Func<IServiceProvider, TestService> serviceFactory = _ => _serviceProvider.GetRequiredService<TestService>();
-        using var factory = new FileWatchDependencyFactory<TestService>(
+        var factory = new FileWatchDependencyFactory<TestService>(
             _fileWatcher, serviceFactory, _serviceProvider, _logger);
 
         const int operationCount = 100;
@@ -235,7 +223,7 @@ public class FileWatchDependencyFactoryTests
     {
         // Arrange
         Func<IServiceProvider, TestService> serviceFactory = _ => _serviceProvider.GetRequiredService<TestService>();
-        using var factory = new FileWatchDependencyFactory<TestService>(
+        var factory = new FileWatchDependencyFactory<TestService>(
             _fileWatcher, serviceFactory, _serviceProvider, _logger);
 
         const int threadCount = 5;

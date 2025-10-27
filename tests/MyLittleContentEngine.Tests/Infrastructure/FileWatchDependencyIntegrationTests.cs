@@ -178,21 +178,21 @@ public class FileWatchDependencyIntegrationTests
         var factory1 = serviceProvider.GetRequiredService<FileWatchDependencyFactory<CacheableExpensiveService>>();
         var factory2 = serviceProvider.GetRequiredService<FileWatchDependencyFactory<TestServiceImplementation>>();
         
-        var service1a = serviceProvider.GetRequiredService<CacheableExpensiveService>();
-        var service1b = serviceProvider.GetRequiredService<CacheableExpensiveService>();
+        var service1A = serviceProvider.GetRequiredService<CacheableExpensiveService>();
+        var service1B = serviceProvider.GetRequiredService<CacheableExpensiveService>();
         
-        var service2a = serviceProvider.GetRequiredService<ITestService>();
-        var service2b = serviceProvider.GetRequiredService<ITestService>();
+        var service2A = serviceProvider.GetRequiredService<ITestService>();
+        var service2B = serviceProvider.GetRequiredService<ITestService>();
 
         // Assert - Each service type should have independent factories
         factory1.ShouldNotBeSameAs(factory2);
         
         // Same type should return same instance
-        service1a.ShouldBeSameAs(service1b);
-        service2a.ShouldBeSameAs(service2b);
+        service1A.ShouldBeSameAs(service1B);
+        service2A.ShouldBeSameAs(service2B);
         
         // Different types should be different instances
-        service1a.ShouldNotBeSameAs(service2a);
+        service1A.ShouldNotBeSameAs(service2A);
     }
 
 }

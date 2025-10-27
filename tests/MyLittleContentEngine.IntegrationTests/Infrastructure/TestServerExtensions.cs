@@ -10,7 +10,7 @@ public static class TestServerExtensions
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         
         var content = await response.Content.ReadAsStringAsync();
-        content.ShouldContain(expectedContent, Case.Insensitive);
+        content.ShouldContain(expectedContent);
     }
     
     public static async Task ShouldReturnSuccessWithTitle(this HttpResponseMessage response, string expectedTitle)
@@ -18,6 +18,6 @@ public static class TestServerExtensions
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
         
         var content = await response.Content.ReadAsStringAsync();
-        content.ShouldContain($"<title>{expectedTitle}</title>", Case.Insensitive);
+        content.ShouldContain($"<title>{expectedTitle}</title>");
     }
 }

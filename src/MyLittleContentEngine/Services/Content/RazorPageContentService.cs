@@ -168,10 +168,9 @@ internal class RazorPageContentService : IContentService
                         assemblies.Add(assembly);
                     }
                 }
-                catch (Exception)
+                catch
                 {
                     // Skip assemblies that can't be loaded (security, missing dependencies, etc.)
-                    continue;
                 }
             }
         }
