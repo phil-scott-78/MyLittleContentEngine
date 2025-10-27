@@ -24,9 +24,12 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 
 builder.Services.AddMonorailCss(_ => new MonorailCssOptions()
 {
-    ColorScheme = new AlgorithmicColorScheme
+    ColorScheme = new NamedColorScheme()
     {
-        PrimaryHue = 55,
+        PrimaryColorName = ColorNames.Amber,
+        AccentColorName = ColorNames.Sky,
+        TertiaryOneColorName = ColorNames.Orange,
+        TertiaryTwoColorName = ColorNames.Yellow,
         BaseColorName = ColorNames.Neutral
     },
     CustomCssFrameworkSettings = settings => settings with

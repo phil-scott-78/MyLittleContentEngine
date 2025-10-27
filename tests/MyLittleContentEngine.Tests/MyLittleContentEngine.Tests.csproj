@@ -38,5 +38,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\MyLittleContentEngine\MyLittleContentEngine.csproj" />
+    <ProjectReference Include="..\..\src\MyLittleContentEngine.MonorailCss\MyLittleContentEngine.MonorailCss.csproj" />
   </ItemGroup>
 </Project>

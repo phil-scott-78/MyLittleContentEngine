@@ -52,9 +52,9 @@ builder.Services.AddMonorailCss(_ => new MonorailCssOptions()
     {
         PrimaryColorName = ColorNames.Sky,
         BaseColorName = ColorNames.Zinc,
-        AccentColorName = ColorNames.Amber,
+        AccentColorName = ColorNames.Pink,
         TertiaryOneColorName = ColorNames.Indigo,
-        TertiaryTwoColorName = ColorNames.Pink
+        TertiaryTwoColorName = ColorNames.Violet
     }
 });
 

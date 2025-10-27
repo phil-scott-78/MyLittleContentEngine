@@ -12,7 +12,8 @@ builder.Services.AddDocSite(_ => new DocSiteOptions()
     SocialImageUrl = "/social.png",
     ColorScheme = new AlgorithmicColorScheme
     {
-        PrimaryHue = 225,
+        PrimaryHue = 330,
+        ColorSchemeGenerator = i => (i + 120, i - 60, i + 60),
         BaseColorName = ColorNames.Zinc
     },
     GitHubUrl = "https://github.com/phil-scott-78/MyLittleContentEngine",
