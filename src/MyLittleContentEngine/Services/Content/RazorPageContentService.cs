@@ -441,22 +441,14 @@ internal class RazorPageContentService : IContentService
 
     /// <summary>
     /// Creates hierarchy parts from a URL path for table of contents organization.
+    /// Returns all URL segments to maintain consistency with other content services.
     /// </summary>
     /// <param name="url">The URL path to create hierarchy from</param>
-    /// <returns>Array of hierarchy parts</returns>
+    /// <returns>Array of hierarchy parts containing all URL segments</returns>
     private static string[] CreateHierarchyParts(string url)
     {
-        // Remove leading slash and split by forward slashes
-        var parts = url.TrimStart('/').Split('/', StringSplitOptions.RemoveEmptyEntries);
-
-        // If empty (root path), return empty array
-        if (parts.Length == 0)
-        {
-            return [];
-        }
-
-        // For simple single-level paths like "/services" or "/portfolio", 
-        // we'll put them at the root level with no hierarchy
-        return parts.Length == 1 ? parts : parts[..^1]; // All parts except the last one
+        // Remove leading slash and split by forward slashes to get all segments
+        // This ensures Razor pages are placed at the same hierarchy level as other content types
+        return url.TrimStart('/').Split('/', StringSplitOptions.RemoveEmptyEntries);
     }
 }

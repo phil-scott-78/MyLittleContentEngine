@@ -229,10 +229,10 @@ public class RazorPageContentServiceTests
         _fileSystem.Directory.CreateDirectory("/project/Components/Pages");
         _fileSystem.Directory.CreateDirectory("/project/metadata");
         _fileSystem.File.WriteAllText("/project/TestProject.csproj", "<Project />");
-        
+
         // Create component file
         _fileSystem.File.WriteAllText("/project/Components/Pages/TestComponent.razor", "@page \"/test\"");
-        
+
         // Place metadata file in DIFFERENT directory (should NOT be found)
         _fileSystem.File.WriteAllText("/project/Components/TestComponent.razor.metadata.yml", yamlContent);
         _fileSystem.File.WriteAllText("/project/metadata/TestComponent.razor.metadata.yml", yamlContent);
@@ -245,6 +245,7 @@ public class RazorPageContentServiceTests
         // The metadata should NOT be loaded since files are not side-by-side
         // This test verifies the service enforces the side-by-side requirement
     }
+
 }
 
 /// <summary>

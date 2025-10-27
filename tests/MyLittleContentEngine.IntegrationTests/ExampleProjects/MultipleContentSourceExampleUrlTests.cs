@@ -24,8 +24,7 @@ public class MultipleContentSourceExampleUrlTests : IClassFixture<MultipleConten
         yield return ["/", "My Little Content Engine"];
         yield return ["/about", "About"];
         yield return ["/blog/best-pizza-toppings", "pizza"];
-        // Note: Skipping /docs routes since DocsFrontMatter is internal and can't be configured in tests
+        yield return ["/docs/services", "Services"];
         yield return ["/Portfolio", "Portfolio"];
-        yield return ["/Services", "Services"];
     }
 }
