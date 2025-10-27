@@ -4,12 +4,13 @@
 
 using MonorailCss;
 using MyLittleContentEngine.DocSite;
+using MyLittleContentEngine.MonorailCss;
 using Westwind.AspNetCore.LiveReload;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddLiveReload(config =>
-{ 
+{
     config.ClientFileExtensions =  ".css,.js,.md";
     config.FolderToMonitor = Path.Combine(Directory.GetCurrentDirectory(), "Content");
 });
@@ -17,8 +18,11 @@ builder.Services.AddDocSite(options =>
 {
     options.SiteTitle = "My Little Content Engine";
     options.Description = "An Inflexible Content Engine for .NET";
-    options.PrimaryHue = 235;
-    options.BaseColorName = ColorNames.Zinc;
+    options.ColorScheme = new AlgorithmicColorScheme
+    {
+        PrimaryHue = 235,
+        BaseColorName = ColorNames.Zinc
+    };
     options.GitHubUrl = "https://github.com/phil-scott-78/MyLittleContentEngine";
     options.BaseUrl = Environment.GetEnvironmentVariable("BaseUrl") ?? "/";
     options.CanonicalBaseUrl = Environment.GetEnvironmentVariable("CanonicalBaseUrl") ?? "https://phil-scott-78.github.io/MyLittleContentEngine/";

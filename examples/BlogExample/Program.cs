@@ -1,7 +1,7 @@
-﻿using MonorailCss;
-using MonorailCss.Theme;
+﻿using MonorailCss.Theme;
 using MyLittleContentEngine.BlogSite;
 using MyLittleContentEngine.BlogSite.Components;
+using MyLittleContentEngine.MonorailCss;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,8 +11,11 @@ builder.Services.AddBlogSite(_ => new BlogSiteOptions()
     SiteTitle = "Calvin's Chewing Chronicles",
     Description = "A sophisticated publication for the serious gum enthusiast",
     CanonicalBaseUrl = Environment.GetEnvironmentVariable("CanonicalBaseHref") ?? "https://calvins-chewing-chronicles.example.com",
-    PrimaryHue = 300,
-    BaseColorName = ColorNames.Zinc,
+    ColorScheme = new AlgorithmicColorScheme
+    {
+        PrimaryHue = 300,
+        BaseColorName = ColorNames.Zinc
+    },
     AdditionalRoutingAssemblies = [typeof(Program).Assembly],
     ContentRootPath = "Content",
     BlogContentPath = "Blog",

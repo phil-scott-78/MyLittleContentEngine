@@ -1,6 +1,6 @@
-﻿using MonorailCss;
-using MonorailCss.Theme;
+﻿using MonorailCss.Theme;
 using MyLittleContentEngine.DocSite;
+using MyLittleContentEngine.MonorailCss;
 using MyLittleContentEngine.Services.Content;
 using SearchExample.Services;
 using Random = SearchExample.Services.Random;
@@ -15,8 +15,11 @@ builder.Services.AddDocSite(_ => new DocSiteOptions()
     CanonicalBaseUrl = "https://mydocs.example.com",
 
     // Styling and branding
-    PrimaryHue = 235, // Blue theme (0-360)
-    BaseColorName = ColorNames.Slate, // Base color palette
+    ColorScheme = new AlgorithmicColorScheme
+    {
+        PrimaryHue = 235, // Blue theme (0-360)
+        BaseColorName = ColorNames.Slate // Base color palette
+    },
     GitHubUrl = "https://github.com/MyLittleContentEngine/MyLittleContentEngine",
     
     // Custom header with logo and branding

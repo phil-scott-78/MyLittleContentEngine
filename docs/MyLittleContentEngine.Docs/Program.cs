@@ -1,7 +1,6 @@
-﻿using MonorailCss;
-using MonorailCss.Theme;
-using MyLittleContentEngine;
+﻿using MonorailCss.Theme;
 using MyLittleContentEngine.DocSite;
+using MyLittleContentEngine.MonorailCss;
 using WordbreakMiddleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,8 +10,11 @@ builder.Services.AddDocSite(_ => new DocSiteOptions()
     SiteTitle = "My Little Content Engine",
     Description = "An Inflexible Content Engine for .NET",
     SocialImageUrl = "/social.png",
-    PrimaryHue = 225,
-    BaseColorName = ColorNames.Zinc,
+    ColorScheme = new AlgorithmicColorScheme
+    {
+        PrimaryHue = 225,
+        BaseColorName = ColorNames.Zinc
+    },
     GitHubUrl = "https://github.com/phil-scott-78/MyLittleContentEngine",
     CanonicalBaseUrl = Environment.GetEnvironmentVariable("CanonicalBaseUrl") ?? "https://phil-scott-78.github.io/MyLittleContentEngine/",
     SolutionPath = "../../MyLittleContentEngine.sln",

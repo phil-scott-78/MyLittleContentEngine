@@ -1,4 +1,3 @@
-using MonorailCss;
 using MonorailCss.Theme;
 using MyLittleContentEngine;
 using MyLittleContentEngine.MonorailCss;
@@ -25,8 +24,11 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 
 builder.Services.AddMonorailCss(_ => new MonorailCssOptions()
 {
-    PrimaryHue = () => 55,
-    BaseColorName = () => ColorNames.Neutral,
+    ColorScheme = new AlgorithmicColorScheme
+    {
+        PrimaryHue = 55,
+        BaseColorName = ColorNames.Neutral
+    },
     CustomCssFrameworkSettings = settings => settings with
     {
         Theme = settings.Theme

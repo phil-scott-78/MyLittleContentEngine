@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using MyLittleContentEngine.MonorailCss;
 using MyLittleContentEngine.Services;
 
 namespace MyLittleContentEngine.DocSite;
@@ -8,11 +9,10 @@ namespace MyLittleContentEngine.DocSite;
 /// </summary>
 public record DocSiteOptions
 {
-   
     /// <summary>
-    /// The primary hue for the site's color scheme (0-360)
+    /// Optional color scheme configuration. If not specified, the default MonorailCSS color scheme will be used.
     /// </summary>
-    public int PrimaryHue { get; init; } = 235;
+    public IColorScheme? ColorScheme { get; init; }
 
     /// <summary>
     /// Path to the solution file for API documentation generation
@@ -53,11 +53,6 @@ public record DocSiteOptions
     /// Custom header content HTML (replaces the default site title)
     /// </summary>
     public string? HeaderContent { get; init; }
-
-    /// <summary>
-    /// Base color name for the MonorailCSS theme
-    /// </summary>
-    public string BaseColorName { get; init; } = "Zinc";
 
     /// <summary>
     /// Path to the content directory

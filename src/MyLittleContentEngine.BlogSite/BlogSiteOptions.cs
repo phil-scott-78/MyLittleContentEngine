@@ -1,8 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using System.Reflection;
-using MonorailCss;
-using MonorailCss.Theme;
 using MyLittleContentEngine.Models;
+using MyLittleContentEngine.MonorailCss;
 using MyLittleContentEngine.Services;
 
 namespace MyLittleContentEngine.BlogSite;
@@ -13,9 +12,9 @@ namespace MyLittleContentEngine.BlogSite;
 public record BlogSiteOptions
 {
     /// <summary>
-    /// The primary hue for the site's color scheme (0-360)
+    /// Optional color scheme configuration. If not specified, the default MonorailCSS color scheme will be used.
     /// </summary>
-    public int PrimaryHue { get; init; } = 250;
+    public IColorScheme? ColorScheme { get; init; }
 
     /// <summary>
     /// The title of the blog site
@@ -31,11 +30,6 @@ public record BlogSiteOptions
     /// The canonical base URL for the site (used for sitemap and RSS)
     /// </summary>
     public string? CanonicalBaseUrl { get; init; }
-
-    /// <summary>
-    /// Base color name for the MonorailCSS theme
-    /// </summary>
-    public string BaseColorName { get; init; } = ColorNames.Slate;
 
     /// <summary>
     /// Links to display in the header and footer for navigation. 

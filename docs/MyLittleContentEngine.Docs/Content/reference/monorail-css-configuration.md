@@ -14,67 +14,73 @@ The `MonorailCssOptions` class provides the primary configuration interface for 
 ```csharp
 public class MonorailCssOptions
 {
-    public Func<int> PrimaryHue { get; init; } = () => 250;
-    public Func<string> BaseColorName { get; init; } = () => ColorNames.Gray;
-    public Func<int, (int, int, int)> ColorSchemeGenerator { get; init; } = 
-        primary => (primary + 180, primary + 90, primary - 90);
-    public Func<CssFrameworkSettings, CssFrameworkSettings> CustomCssFrameworkSettings { get; init; } = 
+    public IColorScheme ColorScheme { get; init; } = new NamedColorScheme
+    {
+        PrimaryColorName = ColorNames.Blue,
+        AccentColorName = ColorNames.Purple,
+        TertiaryOneColorName = ColorNames.Cyan,
+        TertiaryTwoColorName = ColorNames.Pink,
+        BaseColorName = ColorNames.Slate
+    };
+    public Func<CssFrameworkSettings, CssFrameworkSettings> CustomCssFrameworkSettings { get; init; } =
         settings => settings;
 }
 ```
 
 ### Configuration Properties
 
-#### PrimaryHue
-- **Type**: `Func<int>`
-- **Default**: `() => 250` (blue)
-- **Range**: 0-360 (HSL hue degrees)
-- **Purpose**: Sets the primary color for your site theme
+#### ColorScheme
+- **Type**: `IColorScheme`
+- **Default**: `NamedColorScheme` with Blue, Purple, Cyan, Pink, and Slate
+- **Purpose**: Defines the color palette for your site theme
+
+There are two built-in color scheme implementations:
+
+##### NamedColorScheme
+Uses named Tailwind color palettes. Requires specifying all five color roles:
 
 **Example Usage:**
 ```csharp
-builder.Services.AddMonorailCss(options => new MonorailCssOptions
+builder.Services.AddMonorailCss(_ => new MonorailCssOptions
 {
-    PrimaryHue = () => 200  // Cyan/teal theme
+    ColorScheme = new NamedColorScheme
+    {
+        PrimaryColorName = ColorNames.Blue,      // Main theme color
+        AccentColorName = ColorNames.Purple,     // Complementary accent
+        TertiaryOneColorName = ColorNames.Cyan,  // Syntax highlighting
+        TertiaryTwoColorName = ColorNames.Pink,  // Syntax highlighting
+        BaseColorName = ColorNames.Slate         // Neutral colors
+    }
 });
 ```
 
-#### BaseColorName
-- **Type**: `Func<string>`
-- **Default**: `() => ColorNames.Gray`
-- **Options**: `ColorNames.Gray`, `ColorNames.Slate`, `ColorNames.Zinc`, `ColorNames.Neutral`, `ColorNames.Stone`
-- **Purpose**: Sets the neutral color palette used for text, backgrounds, and borders
+**Available Color Names:**
+`Blue`, `Purple`, `Cyan`, `Pink`, `Slate`, `Gray`, `Zinc`, `Neutral`, `Stone`, `Red`, `Orange`, `Amber`, `Yellow`, `Lime`, `Green`, `Emerald`, `Teal`, `Sky`, `Indigo`, `Violet`, `Fuchsia`, `Rose`
+
+##### AlgorithmicColorScheme
+Generates color palettes algorithmically from hue values (0-360):
 
 **Example Usage:**
 ```csharp
-builder.Services.AddMonorailCss(options => new MonorailCssOptions
+builder.Services.AddMonorailCss(_ => new MonorailCssOptions
 {
-    BaseColorName = () => ColorNames.Slate  // Cooler neutral tones
+    ColorScheme = new AlgorithmicColorScheme
+    {
+        PrimaryHue = 200,                        // Cyan/teal theme
+        BaseColorName = ColorNames.Slate,        // Neutral base
+        ColorSchemeGenerator = primary => (      // Optional customization
+            primary + 120,  // Triadic accent
+            primary + 60,   // Analogous tertiary one
+            primary - 60    // Analogous tertiary two
+        )
+    }
 });
 ```
 
-#### ColorSchemeGenerator
-- **Type**: `Func<int, (int, int, int)>`
-- **Default**: `primary => (primary + 180, primary + 90, primary - 90)`
-- **Purpose**: Generates accent and tertiary colors based on primary hue
-- **Returns**: Tuple of (accent, tertiary-one, tertiary-two) hue values
-
-**Default Behavior:**
+**Default Color Generation:**
 - **Accent**: Primary + 180° (complementary color)
 - **Tertiary One**: Primary + 90° (for syntax highlighting)
 - **Tertiary Two**: Primary - 90° (for syntax highlighting)
-
-**Example Usage:**
-```csharp
-builder.Services.AddMonorailCss(options => new MonorailCssOptions
-{
-    ColorSchemeGenerator = primaryHue => (
-        primaryHue + 120,  // Triadic accent
-        primaryHue + 60,   // Analogous tertiary one
-        primaryHue - 60    // Analogous tertiary two
-    )
-});
-```
 
 #### CustomCssFrameworkSettings
 - **Type**: `Func<CssFrameworkSettings, CssFrameworkSettings>`

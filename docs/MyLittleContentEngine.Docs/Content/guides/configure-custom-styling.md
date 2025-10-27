@@ -102,39 +102,52 @@ Like TailwindCSS, MonorailCSS uses a numerical color scale:
 
 ## Customizing Color Palettes
 
-MonorailCSS generates complete color palettes from configuration in your `Program.cs` using
-a 4-color Tetrad scheme with a distance of 90 degrees for each color. The tertiary colors are primarily used for
-syntax highlighting, but you can use them for any purpose.
+MonorailCSS provides two approaches for defining color schemes: named color palettes (using predefined Tailwind colors) or algorithmic generation (generating palettes from hue values).
 
-### Basic Color Configuration
+### Named Color Scheme
+
+The simplest approach uses named Tailwind colors for all five color roles:
 
 ```csharp
 builder.Services.AddMonorailCss(_ => new MonorailCssOptions
 {
-    // Set the primary hue (0-360 degrees)
-    PrimaryHue = () => 230,  // Blue-ish hue
-    
-    // Choose base color palette
-    BaseColorName = () => ColorNames.Zinc,  // Options: Gray, Slate, Zinc, etc.
-    
-    // Customize accent color generation
-    ColorSchemeGenerator = primary => (
-        primary + 180,  // Accent hue (complementary)
-        primary + 90,   // Tertiary one hue
-        primary - 90    // Tertiary two hue
-    )
+    ColorScheme = new NamedColorScheme
+    {
+        PrimaryColorName = ColorNames.Blue,      // Main theme color
+        AccentColorName = ColorNames.Purple,     // Complementary accent
+        TertiaryOneColorName = ColorNames.Cyan,  // Syntax highlighting
+        TertiaryTwoColorName = ColorNames.Pink,  // Syntax highlighting
+        BaseColorName = ColorNames.Slate         // Neutral colors
+    }
 });
 ```
 
-### Available Base Colors
+### Algorithmic Color Scheme
 
-MonorailCSS supports TailwindCSS-compatible base color palettes:
+For more control, generate palettes from hue values (0-360 degrees):
 
-- `ColorNames.Gray` - Neutral gray tones
-- `ColorNames.Slate` - Blue-tinted grays
-- `ColorNames.Neutral` - Neutral grays
-- `ColorNames.Zinc` - Cooler neutral grays
-- `ColorNames.Stone` - Warmer neutral grays
+```csharp
+builder.Services.AddMonorailCss(_ => new MonorailCssOptions
+{
+    ColorScheme = new AlgorithmicColorScheme
+    {
+        PrimaryHue = 230,                        // Blue-ish hue
+        BaseColorName = ColorNames.Zinc,         // Base neutral palette
+        ColorSchemeGenerator = primary => (      // Optional customization
+            primary + 180,  // Accent hue (complementary)
+            primary + 90,   // Tertiary one hue
+            primary - 90    // Tertiary two hue
+        )
+    }
+});
+```
+
+### Available Color Names
+
+MonorailCSS supports all TailwindCSS-compatible color names:
+
+- **Neutrals**: `Gray`, `Slate`, `Zinc`, `Neutral`, `Stone`
+- **Colors**: `Red`, `Orange`, `Amber`, `Yellow`, `Lime`, `Green`, `Emerald`, `Teal`, `Cyan`, `Sky`, `Blue`, `Indigo`, `Violet`, `Purple`, `Fuchsia`, `Pink`, `Rose`
 
 All [colors defined by Tailwind CSS](https://tailwindcss.com/docs/colors) as of version 4.0 are available.
 
@@ -283,17 +296,18 @@ Here's a complete example showing advanced styling customization:
 // Program.cs
 builder.Services.AddMonorailCss(_ => new MonorailCssOptions
 {
-    // Custom brand colors
-    PrimaryHue = () => 205,  // Brand blue
-    BaseColorName = () => ColorNames.Slate,
-    
-    // Complementary color scheme
-    ColorSchemeGenerator = primary => (
-        primary + 155,  // Green accent
-        primary + 45,   // Purple tertiary
-        primary - 30    // Orange tertiary
-    ),
-    
+    // Custom brand colors using algorithmic generation
+    ColorScheme = new AlgorithmicColorScheme
+    {
+        PrimaryHue = 205,  // Brand blue
+        BaseColorName = ColorNames.Slate,
+        ColorSchemeGenerator = primary => (
+            primary + 155,  // Green accent
+            primary + 45,   // Purple tertiary
+            primary - 30    // Orange tertiary
+        )
+    },
+
     // Advanced framework customization
     CustomCssFrameworkSettings = defaultSettings => defaultSettings with
     {
@@ -304,7 +318,7 @@ builder.Services.AddMonorailCss(_ => new MonorailCssOptions
                 .Add("brand", new FontFamilyDefinition("Inter, sans-serif"))
                 .SetItem("mono", new FontFamilyDefinition("'JetBrains Mono', monospace"))
         },
-        
+
         // Custom component styles using TailwindCSS utilities
         Applies = new Dictionary<string, string>
         {

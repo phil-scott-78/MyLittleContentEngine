@@ -1,7 +1,6 @@
 using Mdazor;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
-using MonorailCss;
 using MyLittleContentEngine.BlogSite.Components;
 using MyLittleContentEngine.MonorailCss;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
@@ -91,8 +90,7 @@ public static class BlogSiteServiceExtensions
 
             return new MonorailCssOptions
             {
-                PrimaryHue = () => o.PrimaryHue,
-                BaseColorName = () => o.BaseColorName,
+                ColorScheme = o.ColorScheme ?? new MonorailCssOptions().ColorScheme,
                 CustomCssFrameworkSettings = defaultSettings => defaultSettings with
                 {
                     Theme = defaultSettings.Theme

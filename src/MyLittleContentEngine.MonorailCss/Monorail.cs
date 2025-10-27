@@ -1,6 +1,5 @@
 ﻿using System.Collections.Immutable;
 using MonorailCss;
-using MonorailCss.Css;
 using MonorailCss.Theme;
 
 namespace MyLittleContentEngine.MonorailCss;
@@ -11,23 +10,17 @@ namespace MyLittleContentEngine.MonorailCss;
 public class MonorailCssOptions
 {
     /// <summary>
-    /// Gets or sets the primary hue value used for generating the color palette.
-    /// The default value is 250.
+    /// Gets or sets the color scheme for the site.
+    /// The default is a NamedColorScheme with Blue (primary), Purple (accent), Cyan (tertiary-one), Pink (tertiary-two), and Slate (base).
     /// </summary>
-    public Func<int> PrimaryHue { get; init; } = () => 250;
-
-    /// <summary>
-    /// Gets or sets the name of the base color from the MonorailCSS color palette.
-    /// The default value is "Gray".
-    /// </summary>
-    public Func<string> BaseColorName { get; init; } = () => ColorNames.Gray;
-
-    /// <summary>
-    /// Gets or sets the function that generates the color scheme.
-    /// The function takes the primary hue as input and returns a tuple containing the accent, tertiary one, and tertiary two hues.
-    /// </summary>
-    public Func<int, (int, int, int)> ColorSchemeGenerator { get; init; } =
-        primary => (primary + 180, primary + 90, primary - 90);
+    public IColorScheme ColorScheme { get; init; } = new NamedColorScheme
+    {
+        PrimaryColorName = ColorNames.Blue,
+        AccentColorName = ColorNames.Purple,
+        TertiaryOneColorName = ColorNames.Cyan,
+        TertiaryTwoColorName = ColorNames.Pink,
+        BaseColorName = ColorNames.Slate
+    };
 
     /// <summary>
     /// Gets or sets a function to customize the CSS framework settings.
@@ -40,6 +33,97 @@ public class MonorailCssOptions
     /// Gets or sets any extra CSS styles to be included in the generated stylesheet.
     /// </summary>
     public string ExtraStyles { get; init; } = string.Empty;
+}
+
+/// <summary>
+/// Defines how color schemes are applied to the MonorailCSS theme.
+/// </summary>
+public interface IColorScheme
+{
+    /// <summary>
+    /// Applies the color scheme to the given theme.
+    /// </summary>
+    /// <param name="theme">The theme to apply colors to</param>
+    Theme ApplyToTheme(Theme theme);
+}
+
+/// <summary>
+/// A color scheme that generates palettes algorithmically from hue values.
+/// </summary>
+public class AlgorithmicColorScheme : IColorScheme
+{
+    /// <summary>
+    /// Gets or sets the primary hue value (0-360).
+    /// </summary>
+    public required int PrimaryHue { get; init; }
+
+    /// <summary>
+    /// Gets or sets the base color name from the MonorailCSS color palette.
+    /// The default value is "Gray".
+    /// </summary>
+    public string BaseColorName { get; init; } = ColorNames.Gray;
+
+    /// <summary>
+    /// Gets or sets the function that generates accent and tertiary hues from the primary hue.
+    /// The function takes the primary hue as input and returns a tuple containing the accent, tertiary one, and tertiary two hues.
+    /// </summary>
+    public Func<int, (int, int, int)> ColorSchemeGenerator { get; init; } =
+        primary => (primary + 180, primary + 90, primary - 90);
+
+    public Theme ApplyToTheme(Theme theme)
+    {
+        var primary = ColorPaletteGenerator.GenerateFromHue(PrimaryHue);
+        var (accentHue, tertiaryOneHue, tertiaryTwoHue) = ColorSchemeGenerator(PrimaryHue);
+        var accent = ColorPaletteGenerator.GenerateFromHue(accentHue);
+        var tertiaryOne = ColorPaletteGenerator.GenerateFromHue(tertiaryOneHue);
+        var tertiaryTwo = ColorPaletteGenerator.GenerateFromHue(tertiaryTwoHue);
+
+        return theme.AddColorPalette("primary", primary)
+             .AddColorPalette("accent", accent)
+             .AddColorPalette("tertiary-one", tertiaryOne)
+             .AddColorPalette("tertiary-two", tertiaryTwo)
+             .MapColorPalette(BaseColorName, "base");
+    }
+}
+
+/// <summary>
+/// A color scheme that uses named Tailwind colors.
+/// </summary>
+public class NamedColorScheme : IColorScheme
+{
+    /// <summary>
+    /// Gets or sets the color name to map to "primary".
+    /// </summary>
+    public required string PrimaryColorName { get; init; }
+
+    /// <summary>
+    /// Gets or sets the color name to map to "accent".
+    /// </summary>
+    public required string AccentColorName { get; init; }
+
+    /// <summary>
+    /// Gets or sets the color name to map to "tertiary-one".
+    /// </summary>
+    public required string TertiaryOneColorName { get; init; }
+
+    /// <summary>
+    /// Gets or sets the color name to map to "tertiary-two".
+    /// </summary>
+    public required string TertiaryTwoColorName { get; init; }
+
+    /// <summary>
+    /// Gets or sets the color name to map to "base".
+    /// </summary>
+    public required string BaseColorName { get; init; }
+
+    public Theme ApplyToTheme(Theme theme)
+    {
+        return theme.MapColorPalette(PrimaryColorName, "primary")
+             .MapColorPalette(AccentColorName, "accent")
+             .MapColorPalette(TertiaryOneColorName, "tertiary-one")
+             .MapColorPalette(TertiaryTwoColorName, "tertiary-two")
+             .MapColorPalette(BaseColorName, "base");
+    }
 }
 
 public class MonorailCssService(MonorailCssOptions options, CssClassCollector cssClassCollector)
@@ -62,26 +146,12 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
 
     private CssFramework GetCssFramework()
     {
-        var primaryHue = options.PrimaryHue;
-
-        var hueValue = primaryHue.Invoke();
-        var primary = ColorPaletteGenerator.GenerateFromHue(hueValue);
-
-        var (accentHue, tertiaryOneHue, tertiaryTwoHue) = options.ColorSchemeGenerator(hueValue);
-        var accent = ColorPaletteGenerator.GenerateFromHue(accentHue);
-
-        var tertiaryOne = ColorPaletteGenerator.GenerateFromHue(tertiaryOneHue);
-        var tertiaryTwo = ColorPaletteGenerator.GenerateFromHue(tertiaryTwoHue);
-
+        var theme = Theme.CreateWithDefaults();
+        theme = options.ColorScheme.ApplyToTheme(theme);
 
         var cssFrameworkSettings = new CssFrameworkSettings()
         {
-            Theme = Theme.CreateWithDefaults()
-                .AddColorPalette("primary", primary)
-                .AddColorPalette("accent", accent)
-                .AddColorPalette("tertiary-one", tertiaryOne)
-                .AddColorPalette("tertiary-two", tertiaryTwo)
-                .MapColorPalette(options.BaseColorName.Invoke(), "base"),
+            Theme = theme,
 
             Applies = ImmutableDictionary<string, string>.Empty
                 .AddRange(CodeBlockApplies())
@@ -89,7 +159,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 .AddRange(MarkdownAlertApplies())
                 .AddRange(HljsApplies())
                 .AddRange(SearchModalApplies()),
-            
+
             ProseCustomization = GetCustomProseSettings()
         };
 

@@ -1,5 +1,4 @@
-﻿using MonorailCss;
-using MonorailCss.Theme;
+﻿using MonorailCss.Theme;
 using Spectre.Console;
 using Spectre.Console.Components;
 using MyLittleContentEngine;
@@ -49,9 +48,14 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 
 builder.Services.AddMonorailCss(_ => new MonorailCssOptions()
 {
-    BaseColorName = () =>  ColorNames.Zinc,
-    PrimaryHue = () => 315,
-    ColorSchemeGenerator = i => (i + 180, i - 60, i + 60)
+    ColorScheme = new NamedColorScheme()
+    {
+        PrimaryColorName = ColorNames.Sky,
+        BaseColorName = ColorNames.Zinc,
+        AccentColorName = ColorNames.Amber,
+        TertiaryOneColorName = ColorNames.Indigo,
+        TertiaryTwoColorName = ColorNames.Pink
+    }
 });
 
 var app = builder.Build();
