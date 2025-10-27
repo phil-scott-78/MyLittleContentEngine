@@ -13,15 +13,22 @@ namespace MyLittleContentEngine.Services.Content;
 /// Content service responsible for discovering Razor pages and their associated metadata from sidecar .yml files.
 /// This service replaces the functionality previously handled by RoutesHelper.GetRoutesToRender().
 ///
-/// Searches for metadata files using the naming convention: "ComponentName.razor.metadata.yml"
+/// Discovery Process:
+/// 1. At initialization, recursively scans all project roots for .razor files (excluding bin/, obj/, node_modules/)
+/// 2. Builds a cache of component names to file paths for fast lookup
+/// 3. For each discovered component, looks for metadata files using the naming convention: "ComponentName.razor.metadata.yml"
+///
 /// The metadata file must be located in the same directory as the Razor component file.
 /// For example, for an "Index.razor" component, it looks for "Index.razor.metadata.yml" in the same directory.
+///
+/// Razor components can be placed in any directory within the project (e.g., Components/Pages, Content, custom folders).
 /// </summary>
 internal class RazorPageContentService : IContentService
 {
     private readonly IFileSystem _fileSystem;
     private readonly ILogger<RazorPageContentService> _logger;
     private readonly IDeserializer _yamlDeserializer;
+    private readonly Lazy<Dictionary<string, string>> _razorFileCache;
 
     /// <inheritdoc />
     public int SearchPriority => 5; // Medium priority for Razor pages
@@ -40,6 +47,7 @@ internal class RazorPageContentService : IContentService
         _fileSystem = fileSystem;
         _logger = logger;
         _yamlDeserializer = options.FrontMatterDeserializer;
+        _razorFileCache = new Lazy<Dictionary<string, string>>(BuildRazorFileCache);
     }
 
     /// <inheritdoc />
@@ -366,40 +374,19 @@ internal class RazorPageContentService : IContentService
     }
 
     /// <summary>
-    /// Finds a Razor component file in common component directories.
+    /// Finds a Razor component file using the cached component lookup.
+    /// The cache is built once at initialization by recursively scanning all project roots for .razor files.
     /// </summary>
-    /// <param name="projectRoot">The project root directory</param>
+    /// <param name="projectRoot">The project root directory (not used with cached lookup but kept for interface compatibility)</param>
     /// <param name="razorFileName">The Razor file name to search for</param>
     /// <returns>The path to the Razor file if found, null otherwise</returns>
     private string? FindRazorComponentFile(string projectRoot, string razorFileName)
     {
-        // Common directories where Razor components are typically located
-        var commonDirectories = new[]
-        {
-            "Components/Pages",
-            "Components",
-            "Pages",
-            "Views",
-            "Areas",
-            "src/Components/Pages",
-            "src/Components",
-            "src/Pages"
-        };
+        // Extract component name from filename (e.g., "Index" from "Index.razor")
+        var componentName = _fileSystem.Path.GetFileNameWithoutExtension(razorFileName);
 
-        foreach (var dir in commonDirectories)
-        {
-            var searchPath = _fileSystem.Path.Combine(projectRoot, dir);
-            if (_fileSystem.Directory.Exists(searchPath))
-            {
-                var filePath = _fileSystem.Path.Combine(searchPath, razorFileName);
-                if (_fileSystem.File.Exists(filePath))
-                {
-                    return filePath;
-                }
-            }
-        }
-
-        return null;
+        // Lookup in the cache (built once at initialization via recursive search)
+        return _razorFileCache.Value.GetValueOrDefault(componentName);
     }
 
     /// <summary>
@@ -450,5 +437,97 @@ internal class RazorPageContentService : IContentService
         // Remove leading slash and split by forward slashes to get all segments
         // This ensures Razor pages are placed at the same hierarchy level as other content types
         return url.TrimStart('/').Split('/', StringSplitOptions.RemoveEmptyEntries);
+    }
+
+    /// <summary>
+    /// Builds a cache of all Razor component files in the project by recursively searching from project roots.
+    /// This cache maps component names to their file paths for fast lookup.
+    /// </summary>
+    /// <returns>Dictionary mapping component names to their full file paths</returns>
+    private Dictionary<string, string> BuildRazorFileCache()
+    {
+        var cache = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        var assemblies = GetRelevantAssemblies();
+
+        foreach (var assembly in assemblies)
+        {
+            var assemblyLocation = assembly.Location;
+            if (string.IsNullOrEmpty(assemblyLocation))
+            {
+                continue;
+            }
+
+            var assemblyDir = _fileSystem.Path.GetDirectoryName(assemblyLocation);
+            if (string.IsNullOrEmpty(assemblyDir))
+            {
+                continue;
+            }
+
+            var projectRoot = FindProjectRoot(assemblyDir);
+            if (projectRoot == null || !_fileSystem.Directory.Exists(projectRoot))
+            {
+                continue;
+            }
+
+            try
+            {
+                // Recursively find all .razor files in the project
+                var enumerationOptions = new System.IO.EnumerationOptions
+                {
+                    IgnoreInaccessible = true,
+                    RecurseSubdirectories = true
+                };
+
+                var razorFiles = _fileSystem.Directory.GetFiles(projectRoot, "*.razor", enumerationOptions);
+
+                foreach (var filePath in razorFiles)
+                {
+                    // Skip files in build output or dependency directories
+                    if (ShouldExcludeFile(filePath))
+                    {
+                        continue;
+                    }
+
+                    var fileName = _fileSystem.Path.GetFileName(filePath);
+                    // Get component name without .razor extension
+                    var componentName = _fileSystem.Path.GetFileNameWithoutExtension(fileName);
+
+                    // Store first match only (don't overwrite if component name already exists)
+                    if (!cache.ContainsKey(componentName))
+                    {
+                        cache[componentName] = filePath;
+                        _logger.LogTrace("Cached Razor component: {ComponentName} -> {FilePath}", componentName, filePath);
+                    }
+                    else
+                    {
+                        _logger.LogDebug("Duplicate component name found: {ComponentName}. Using first match: {ExistingPath}, ignoring: {DuplicatePath}",
+                            componentName, cache[componentName], filePath);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogDebug(ex, "Error scanning for Razor files in project root {ProjectRoot}", projectRoot);
+            }
+        }
+
+        _logger.LogDebug("Built Razor file cache with {Count} components", cache.Count);
+        return cache;
+    }
+
+    /// <summary>
+    /// Determines if a file path should be excluded from the Razor component cache.
+    /// Excludes build output directories (bin, obj) and dependency directories (node_modules).
+    /// </summary>
+    /// <param name="filePath">The file path to check</param>
+    /// <returns>True if the file should be excluded, false otherwise</returns>
+    private bool ShouldExcludeFile(string filePath)
+    {
+        var normalizedPath = filePath.Replace('\\', '/');
+
+        // Exclude bin, obj, and node_modules directories
+        return normalizedPath.Contains("/bin/", StringComparison.OrdinalIgnoreCase) ||
+               normalizedPath.Contains("/obj/", StringComparison.OrdinalIgnoreCase) ||
+               normalizedPath.Contains("/node_modules/", StringComparison.OrdinalIgnoreCase);
     }
 }

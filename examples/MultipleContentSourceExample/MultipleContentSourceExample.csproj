@@ -14,6 +14,8 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Content\blog\" />
-    <Folder Include="Content\docs\" />
   </ItemGroup>
+    <ItemGroup>
+        <RazorComponent Include="Content\**\*.razor" />
+    </ItemGroup>
 </Project>

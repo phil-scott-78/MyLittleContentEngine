@@ -24,7 +24,7 @@ public class MultipleContentSourceExampleUrlTests : IClassFixture<MultipleConten
         yield return ["/", "My Little Content Engine"];
         yield return ["/about", "About"];
         yield return ["/blog/best-pizza-toppings", "pizza"];
-        yield return ["/docs/services", "Services"];
+        yield return ["/services", "Services"];
         yield return ["/Portfolio", "Portfolio"];
     }
 }
