@@ -351,7 +351,7 @@ internal class RazorPageContentService : IContentService
 
             // Look for the Razor component file first, then check for metadata file in same directory
             var razorFileName = $"{componentName}.razor";
-            var componentPath = FindRazorComponentFile(projectRoot, razorFileName);
+            var componentPath = FindRazorComponentFile(razorFileName);
 
             if (componentPath != null)
             {
@@ -377,10 +377,9 @@ internal class RazorPageContentService : IContentService
     /// Finds a Razor component file using the cached component lookup.
     /// The cache is built once at initialization by recursively scanning all project roots for .razor files.
     /// </summary>
-    /// <param name="projectRoot">The project root directory (not used with cached lookup but kept for interface compatibility)</param>
     /// <param name="razorFileName">The Razor file name to search for</param>
     /// <returns>The path to the Razor file if found, null otherwise</returns>
-    private string? FindRazorComponentFile(string projectRoot, string razorFileName)
+    private string? FindRazorComponentFile(string razorFileName)
     {
         // Extract component name from filename (e.g., "Index" from "Index.razor")
         var componentName = _fileSystem.Path.GetFileNameWithoutExtension(razorFileName);
@@ -472,7 +471,7 @@ internal class RazorPageContentService : IContentService
             try
             {
                 // Recursively find all .razor files in the project
-                var enumerationOptions = new System.IO.EnumerationOptions
+                var enumerationOptions = new EnumerationOptions
                 {
                     IgnoreInaccessible = true,
                     RecurseSubdirectories = true
