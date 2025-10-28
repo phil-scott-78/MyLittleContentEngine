@@ -123,12 +123,33 @@ public sealed class CodeHighlighterService : ICodeHighlighter
             return AsPreCode("Error: Only C# is supported for xmldocid modifier.");
         }
 
-        var symbolResult = RunSync(async () =>
-            await _syntaxHighlighter.HighlightSymbolAsync(code.Trim(), bodyOnly));
+        // Split code into lines and process each XML doc ID
+        var xmlDocIds = code.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var htmlFragments = new List<string>();
 
-        return symbolResult.Success
-            ? AsPreCode(symbolResult.Html)
-            : AsPreCode(HtmlEncoder.Default.Encode(symbolResult.ErrorMessage ?? "Symbol not found"));
+        foreach (var xmlDocId in xmlDocIds)
+        {
+            var symbolResult = RunSync(async () =>
+                await _syntaxHighlighter.HighlightSymbolAsync(xmlDocId, bodyOnly));
+
+            if (symbolResult.Success)
+            {
+                // Extract inner HTML from the <pre><code>...</code></pre> wrapper
+                var innerHtml = ExtractInnerCodeHtml(symbolResult.Html);
+                htmlFragments.Add(innerHtml);
+            }
+            else
+            {
+                // Add error as a comment in the code block
+                var errorMessage = symbolResult.ErrorMessage ?? "Symbol not found";
+                var errorComment = $"""<span class="comment">// Error: {HtmlEncoder.Default.Encode(errorMessage)} for '{HtmlEncoder.Default.Encode(xmlDocId)}'</span>""";
+                htmlFragments.Add(errorComment);
+            }
+        }
+
+        // Combine all fragments with blank lines
+        var combinedHtml = string.Join("\n\n", htmlFragments);
+        return AsPreCode(combinedHtml);
     }
 
     private string ProcessPathModifier(string baseLanguage, string code)
@@ -192,4 +213,26 @@ public sealed class CodeHighlighterService : ICodeHighlighter
     }
 
     private static string AsPreCode(string content) => $"<pre><code>{content}</code></pre>";
+
+    /// <summary>
+    /// Extracts the inner HTML content from between &lt;pre&gt;&lt;code&gt; and &lt;/code&gt;&lt;/pre&gt; tags.
+    /// </summary>
+    /// <param name="html">The HTML string containing pre/code tags.</param>
+    /// <returns>The inner content, or the original string if tags are not found.</returns>
+    private static string ExtractInnerCodeHtml(string html)
+    {
+        const string openTag = "<pre><code>";
+        const string closeTag = "</code></pre>";
+
+        var startIndex = html.IndexOf(openTag, StringComparison.Ordinal);
+        if (startIndex == -1)
+            return html;
+
+        startIndex += openTag.Length;
+        var endIndex = html.IndexOf(closeTag, startIndex, StringComparison.Ordinal);
+        if (endIndex == -1)
+            return html;
+
+        return html[startIndex..endIndex];
+    }
 }
