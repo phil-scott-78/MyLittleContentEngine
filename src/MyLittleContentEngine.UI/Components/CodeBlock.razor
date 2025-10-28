@@ -1,0 +1,116 @@
+@using MyLittleContentEngine.Services.Content
+@using MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting
+@using MyLittleContentEngine.Services.Content.CodeAnalysis.Extensions
+@using Microsoft.AspNetCore.Components.RenderTree
+@inject ICodeHighlighter CodeHighlighter
+
+@((MarkupString)_highlightedHtml)
+
+@code {
+
+    // Right now we get a compiler warning of: The types in 'Microsoft.AspNetCore.Components.RenderTree' are not
+    // recommended for use outside of the Blazor framework. These type definitions will change in future releases.
+    // Not sure how else to grab this content, so damn the torpedoes. 
+#pragma warning disable BL0006
+    
+    /// <summary>
+    /// The programming language for syntax highlighting (e.g., "csharp", "python", "javascript").
+    /// Supports language modifiers like "csharp:xmldocid" or "csharp:path".
+    /// </summary>
+    [Parameter, EditorRequired]
+    public string Language { get; set; } = string.Empty;
+
+    /// <summary>
+    /// The code content to highlight. Provide either this parameter or ChildContent.
+    /// </summary>
+    [Parameter]
+    public string? Code { get; set; }
+
+    /// <summary>
+    /// The code content to highlight as child content. Provide either this or the Code parameter.
+    /// Example: &lt;CodeSnippet Language="csharp"&gt;var x = 1;&lt;/CodeSnippet&gt;
+    /// </summary>
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Optional CSS customization options for the code block wrapper elements.
+    /// If not provided, uses CodeHighlightRenderOptions.Default.
+    /// </summary>
+    [Parameter]
+    public CodeHighlightRenderOptions? Options { get; set; }
+
+    /// <summary>
+    /// Indicates whether this code block is part of a tabbed code group.
+    /// When true, omits standalone container CSS classes. Default is false.
+    /// </summary>
+    [Parameter]
+    public bool IsInTabGroup { get; set; }
+
+    private string _highlightedHtml = string.Empty;
+
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrWhiteSpace(Language))
+        {
+            _highlightedHtml = "<div class=\"text-danger\">Error: Language parameter is required.</div>";
+            return;
+        }
+
+        // Get code from either parameter or child content
+        var codeToHighlight = Code ?? (ChildContent != null ? ExtractTextFromRenderFragment() : null);
+
+        if (string.IsNullOrWhiteSpace(codeToHighlight))
+        {
+            _highlightedHtml = "<div class=\"text-danger\">Error: Code content is required (provide Code parameter or ChildContent).</div>";
+            return;
+        }
+
+        // Normalize indentation (especially important for ChildContent which includes .razor file indentation)
+        codeToHighlight = TextFormatter.NormalizeIndents(codeToHighlight);
+
+        // Highlight the code using the service
+        var result = CodeHighlighter.Highlight(
+            code: codeToHighlight.Trim(),
+            language: Language,
+            options: Options,
+            isInTabGroup: IsInTabGroup);
+
+        _highlightedHtml = result.Html;
+    }
+
+    private string ExtractTextFromRenderFragment()
+    {
+        if (ChildContent == null)
+            return string.Empty;
+
+        // Simple approach: render to string writer
+        // This is a workaround since RenderFragment doesn't directly expose text
+        // For production use, prefer using the Code parameter directly
+        using var writer = new StringWriter();
+
+        // Note: This is a simplified extraction that assumes the content is plain text
+        // For complex scenarios, use the Code parameter instead
+        
+        try
+        {
+            var builder = new Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder();
+            ChildContent(builder);
+            var frames = builder.GetFrames();
+
+            foreach (var frame in frames.Array)
+            {
+                if (frame.FrameType is RenderTreeFrameType.Text or RenderTreeFrameType.Markup)
+                {
+                    writer.Write(frame.TextContent);
+                }
+            }
+
+            return writer.ToString();
+        }
+        catch
+        {
+            return string.Empty;
+        }
+    }
+}

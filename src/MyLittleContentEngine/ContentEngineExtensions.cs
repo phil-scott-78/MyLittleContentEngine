@@ -122,6 +122,7 @@ public static class ContentEngineExtensions
         services.AddTransient(configureOptions);
         services.AddTransient<OutputGenerationService>();
         services.AddSingleton<IContentEngineFileWatcher, ContentEngineFileWatcher>();
+        services.AddSingleton<ICodeHighlighter, CodeHighlighterService>();
         services.AddTransient<ITableOfContentService, TableOfContentService>();
         services.AddTransient<MarkdownParserService>();
         services.AddTransient<RoutesHelperService>();

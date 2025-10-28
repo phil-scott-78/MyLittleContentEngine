@@ -1,6 +1,9 @@
 ﻿namespace MyLittleContentEngine.Services.Content.CodeAnalysis.Extensions;
 
-internal static class TextFormatter
+/// <summary>
+/// Utility class for text formatting operations.
+/// </summary>
+public static class TextFormatter
 {
     public static string NormalizeIndents(string code)
     {
