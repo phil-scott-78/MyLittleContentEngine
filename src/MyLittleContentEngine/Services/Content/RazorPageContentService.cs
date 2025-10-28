@@ -29,9 +29,15 @@ internal class RazorPageContentService : IContentService
     private readonly ILogger<RazorPageContentService> _logger;
     private readonly IDeserializer _yamlDeserializer;
     private readonly Lazy<Dictionary<string, string>> _razorFileCache;
+    private readonly Lazy<List<ComponentWithMetadata>> _componentMetadataCache;
 
     /// <inheritdoc />
     public int SearchPriority => 5; // Medium priority for Razor pages
+
+    /// <summary>
+    /// Represents a Blazor component with its routes and metadata.
+    /// </summary>
+    private sealed record ComponentWithMetadata(Type Component, string[] Routes, Metadata? Metadata);
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RazorPageContentService"/> class.
@@ -48,92 +54,65 @@ internal class RazorPageContentService : IContentService
         _logger = logger;
         _yamlDeserializer = options.FrontMatterDeserializer;
         _razorFileCache = new Lazy<Dictionary<string, string>>(BuildRazorFileCache);
+        _componentMetadataCache = new Lazy<List<ComponentWithMetadata>>(BuildComponentMetadataCache);
     }
 
     /// <inheritdoc />
-    public async Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync()
+    public Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync()
     {
         var pages = ImmutableList<PageToGenerate>.Empty;
 
-        // Get all assemblies that might contain Razor components
-        var assemblies = GetRelevantAssemblies();
-
-        foreach (var assembly in assemblies)
+        // Use cached component metadata
+        foreach (var componentWithMetadata in _componentMetadataCache.Value)
         {
-            // Get all components that are Blazor components with routes
-            var components = GetComponentsFromAssembly(assembly);
-
-            foreach (var component in components)
+            foreach (var route in componentWithMetadata.Routes)
             {
-                var routes = GetRoutesFromComponent(component);
-                foreach (var route in routes)
+                var outputFile = route.TrimStart('/').Replace('/', Path.DirectorySeparatorChar).ToLowerInvariant();
+                if (string.IsNullOrEmpty(outputFile))
                 {
-                    // Try to find and load metadata from sidecar .yml file
-                    var metadata = await TryLoadMetadataAsync(component);
-                    var outputFile = route.TrimStart('/').Replace('/', Path.DirectorySeparatorChar).ToLowerInvariant();
-                    if (string.IsNullOrEmpty(outputFile))
-                    {
-                        outputFile = "index";
-                    }
-
-                    outputFile = $"{outputFile}.html";
-                    var pageToGenerate = new PageToGenerate(route, outputFile, metadata);
-
-                    pages = pages.Add(pageToGenerate);
+                    outputFile = "index";
                 }
+
+                outputFile = $"{outputFile}.html";
+                var pageToGenerate = new PageToGenerate(route, outputFile, componentWithMetadata.Metadata);
+
+                pages = pages.Add(pageToGenerate);
             }
         }
 
-        return pages;
+        return Task.FromResult(pages);
     }
 
     /// <inheritdoc />
-    public async Task<ImmutableList<ContentTocItem>> GetContentTocEntriesAsync()
+    public Task<ImmutableList<ContentTocItem>> GetContentTocEntriesAsync()
     {
         var tocItems = ImmutableList<ContentTocItem>.Empty;
 
-        // Get all assemblies that might contain Razor components
-        var assemblies = GetRelevantAssemblies();
-
-        foreach (var assembly in assemblies)
+        // Use cached component metadata, filtering to only those with metadata
+        foreach (var componentWithMetadata in _componentMetadataCache.Value)
         {
-            // Get all components that are Blazor components with routes
-            var components = GetComponentsFromAssembly(assembly).ToArray();
-
-            foreach (var component in components)
+            // Only include pages that have metadata in the TOC
+            if (componentWithMetadata.Metadata != null)
             {
-                var routes = GetRoutesFromComponent(component).ToArray();
-                if (!routes.Any())
-                {
-                    continue;
-                }
+                // Use the first route for the TOC entry
+                var primaryRoute = componentWithMetadata.Routes[0];
 
-                // Try to find and load metadata from sidecar .yml file
-                var metadata = await TryLoadMetadataAsync(component);
+                // Create hierarchy parts from the URL path
+                var hierarchyParts = CreateHierarchyParts(primaryRoute);
 
-                // Only include pages that have metadata in the TOC
-                if (metadata != null)
-                {
-                    // Use the first route for the TOC entry
-                    var primaryRoute = routes.First();
+                var tocItem = new ContentTocItem(
+                    Title: componentWithMetadata.Metadata.Title ?? componentWithMetadata.Component.Name,
+                    Url: primaryRoute,
+                    Order: componentWithMetadata.Metadata.Order,
+                    HierarchyParts: hierarchyParts,
+                    Section: componentWithMetadata.Metadata.Section
+                );
 
-                    // Create hierarchy parts from the URL path
-                    var hierarchyParts = CreateHierarchyParts(primaryRoute);
-
-                    var tocItem = new ContentTocItem(
-                        Title: metadata.Title ?? component.Name,
-                        Url: primaryRoute,
-                        Order: metadata.Order,
-                        HierarchyParts: hierarchyParts,
-                        Section: metadata.Section
-                    );
-
-                    tocItems = tocItems.Add(tocItem);
-                }
+                tocItems = tocItems.Add(tocItem);
             }
         }
 
-        return tocItems;
+        return Task.FromResult(tocItems);
     }
 
     /// <inheritdoc />
@@ -148,6 +127,40 @@ internal class RazorPageContentService : IContentService
     {
         // Razor pages don't have cross-references by default
         return Task.FromResult(ImmutableList<CrossReference>.Empty);
+    }
+
+    /// <summary>
+    /// Builds a cache of all Blazor components with their routes and metadata.
+    /// This cache is built once at initialization and reused by GetPagesToGenerateAsync and GetContentTocEntriesAsync.
+    /// </summary>
+    /// <returns>List of components with their associated routes and metadata</returns>
+    private List<ComponentWithMetadata> BuildComponentMetadataCache()
+    {
+        var components = new List<ComponentWithMetadata>();
+        var assemblies = GetRelevantAssemblies();
+
+        foreach (var assembly in assemblies)
+        {
+            var assemblyComponents = GetComponentsFromAssembly(assembly);
+
+            foreach (var component in assemblyComponents)
+            {
+                var routes = GetRoutesFromComponent(component).ToArray();
+                if (routes.Length == 0)
+                {
+                    continue;
+                }
+
+                // Load metadata synchronously for cache initialization
+                // Using GetAwaiter().GetResult() is acceptable here as this runs once during lazy initialization
+                var metadata =  TryLoadMetadata(component);
+
+                components.Add(new ComponentWithMetadata(component, routes, metadata));
+            }
+        }
+
+        _logger.LogDebug("Built component metadata cache with {Count} components", components.Count);
+        return components;
     }
 
     /// <summary>
@@ -265,7 +278,7 @@ internal class RazorPageContentService : IContentService
     /// </summary>
     /// <param name="component">The component type to find metadata for</param>
     /// <returns>Metadata object if sidecar file exists and is valid, null otherwise</returns>
-    private async Task<Metadata?> TryLoadMetadataAsync(Type component)
+    private Metadata? TryLoadMetadata(Type component)
     {
         var sidecarPath = GetSidecarFilePath(component);
         if (sidecarPath == null || !_fileSystem.File.Exists(sidecarPath))
@@ -275,7 +288,7 @@ internal class RazorPageContentService : IContentService
 
         try
         {
-            var yamlContent = await _fileSystem.File.ReadAllTextAsync(sidecarPath);
+            var yamlContent = _fileSystem.File.ReadAllText(sidecarPath);
             if (string.IsNullOrWhiteSpace(yamlContent))
             {
                 return null;
