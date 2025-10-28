@@ -98,7 +98,7 @@ internal class RazorPageContentService : IContentService
         foreach (var assembly in assemblies)
         {
             // Get all components that are Blazor components with routes
-            var components = GetComponentsFromAssembly(assembly);
+            var components = GetComponentsFromAssembly(assembly).ToArray();
 
             foreach (var component in components)
             {
@@ -448,6 +448,9 @@ internal class RazorPageContentService : IContentService
         var cache = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         var assemblies = GetRelevantAssemblies();
 
+        // First, collect all unique project roots from assemblies
+        var uniqueProjectRoots = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
         foreach (var assembly in assemblies)
         {
             var assemblyLocation = assembly.Location;
@@ -463,11 +466,15 @@ internal class RazorPageContentService : IContentService
             }
 
             var projectRoot = FindProjectRoot(assemblyDir);
-            if (projectRoot == null || !_fileSystem.Directory.Exists(projectRoot))
+            if (projectRoot != null && _fileSystem.Directory.Exists(projectRoot))
             {
-                continue;
+                uniqueProjectRoots.Add(projectRoot);
             }
+        }
 
+        // Now scan each unique project root for .razor files
+        foreach (var projectRoot in uniqueProjectRoots)
+        {
             try
             {
                 // Recursively find all .razor files in the project
@@ -492,7 +499,7 @@ internal class RazorPageContentService : IContentService
                     var componentName = _fileSystem.Path.GetFileNameWithoutExtension(fileName);
 
                     // Store first match only (don't overwrite if component name already exists)
-                    if (!cache.ContainsKey(componentName))
+                    if (!cache.TryGetValue(componentName, out var value))
                     {
                         cache[componentName] = filePath;
                         _logger.LogTrace("Cached Razor component: {ComponentName} -> {FilePath}", componentName, filePath);
@@ -500,7 +507,7 @@ internal class RazorPageContentService : IContentService
                     else
                     {
                         _logger.LogDebug("Duplicate component name found: {ComponentName}. Using first match: {ExistingPath}, ignoring: {DuplicatePath}",
-                            componentName, cache[componentName], filePath);
+                            componentName, value, filePath);
                     }
                 }
             }
