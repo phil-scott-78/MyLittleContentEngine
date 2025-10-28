@@ -59,8 +59,11 @@ internal class SymbolExtractionService : ISymbolExtractionService
 
     public async Task<SymbolInfo?> FindSymbolAsync(string xmlDocId)
     {
+        // Normalize the XML Doc ID to handle variations in parameter namespace qualification
+        var normalizedXmlDocId = XmlDocIdNormalizer.Normalize(xmlDocId);
+
         var symbols = await _lazySymbols;
-        return symbols.GetValueOrDefault(xmlDocId);
+        return symbols.GetValueOrDefault(normalizedXmlDocId);
     }
 
     public async Task<string> ExtractCodeFragmentAsync(string xmlDocId, bool bodyOnly = false)
@@ -270,6 +273,9 @@ internal class SymbolExtractionService : ISymbolExtractionService
             return;
         }
 
+        // Normalize the XML Doc ID to handle variations in parameter namespace qualification
+        var normalizedXmlDocId = XmlDocIdNormalizer.Normalize(xmlDocId);
+
         var xmlDoc = GetXmlDocumentation(symbol);
         var textSpan = syntaxNode.Span;
 
@@ -284,7 +290,7 @@ internal class SymbolExtractionService : ISymbolExtractionService
             Project = document.Project
         };
 
-        symbols.TryAdd(xmlDocId, symbolInfo);
+        symbols.TryAdd(normalizedXmlDocId, symbolInfo);
     }
 
     private static string? GetXmlDocumentation(ISymbol symbol)
