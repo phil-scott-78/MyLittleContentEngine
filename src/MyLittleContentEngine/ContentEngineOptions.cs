@@ -103,26 +103,42 @@ public record ContentEngineOptions
     public string IndexPageHtml { get; init; } = "index.html";
 
     /// <summary>
-    /// Gets or sets paths that should be excluded when copying content to the output folder.
+    /// Gets or sets paths and glob patterns that should be excluded when copying content to the output folder.
     /// </summary>
     /// <remarks>
     /// <para>
-    /// This list contains file or directory paths that should be skipped during the content copy process.
+    /// This list contains file or directory paths and glob patterns that should be skipped during the content copy process.
     /// Paths are specified relative to the destination location in the output folder, not the source location.
     /// </para>
     /// <para>
-    /// Example:
+    /// Supports both exact paths and glob patterns:
     /// </para>
     /// <list type="bullet">
-    ///     <item>
-    ///         <description>
-    ///             To ignore "wwwroot/app.css" when copying "wwwroot" to the root of the output folder,
-    ///             add FilePath("app.css") to this list.
-    ///         </description>
-    ///     </item>
+    ///     <item><description><c>*.md</c> - Ignores all markdown files</description></item>
+    ///     <item><description><c>**/*.razor</c> - Ignores razor files at any depth</description></item>
+    ///     <item><description><c>temp/*.txt</c> - Ignores text files in temp directory</description></item>
+    ///     <item><description><c>app.css</c> - Exact path match</description></item>
+    /// </list>
+    /// <para>
+    /// Default patterns exclude source files that should not be copied to the output:
+    /// <c>*.razor</c>, <c>*.razor.metadata.yml</c>, <c>*.md</c>, <c>*.mdx</c>
+    /// </para>
+    /// <para>
+    /// Glob pattern syntax:
+    /// </para>
+    /// <list type="bullet">
+    ///     <item><description><c>*</c> - Matches any characters except directory separators</description></item>
+    ///     <item><description><c>**</c> - Matches any directory depth</description></item>
+    ///     <item><description><c>?</c> - Matches a single character</description></item>
     /// </list>
     /// </remarks>
-    public ImmutableList<FilePath> IgnoredPathsOnContentCopy { get; init; } = [];
+    public ImmutableList<FilePath> IgnoredPathsOnContentCopy { get; init; } =
+    [
+        new("**/*.razor"),
+        new("**/*.razor.metadata.yml"),
+        new("**/*.md"),
+        new("**/*.mdx")
+    ];
 
     /// <summary>
     /// Gets or sets the YAML deserializer used for parsing front matter in Markdown files.

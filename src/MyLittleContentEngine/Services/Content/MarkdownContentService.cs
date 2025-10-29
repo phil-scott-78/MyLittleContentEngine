@@ -43,8 +43,9 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
     private readonly TagService<TFrontMatter> _tagService;
     private readonly ContentFilesService<TFrontMatter> _contentFilesService;
     private readonly MarkdownParserService _markdownParserService;
+    private readonly MarkdownContentOptions<TFrontMatter> _markdownContentOptions;
+
     private bool _isDisposed; // To detect redundant calls
-    private MarkdownContentOptions<TFrontMatter> _markdownContentOptions;
 
     /// <summary>
     ///     Initializes a new instance of the MarkdownContentService.

@@ -94,12 +94,6 @@ internal class OutputGenerationService(
         }
         _fileSystem.Directory.CreateDirectory(outputOptions.OutputFolderPath.Value);
 
-        // Prepare paths to ignore during content copy
-        var ignoredPathsWithOutputFolder = options
-            .IgnoredPathsOnContentCopy
-            .Select(x => _fileSystem.Path.Combine(outputOptions.OutputFolderPath.Value, x.Value))
-            .ToList();
-
         var contentToCopy = ImmutableList<ContentToCopy>.Empty;
         foreach (var content in contentServiceCollection)
         {
@@ -148,7 +142,7 @@ internal class OutputGenerationService(
             var targetPath = _fileSystem.Path.Combine(outputOptions.OutputFolderPath.Value, pathToCopy.TargetPath);
 
             logger.LogInformation("Copying {sourcePath} to {targetPath}", pathToCopy.SourcePath, targetPath);
-            CopyContent(pathToCopy.SourcePath, targetPath, ignoredPathsWithOutputFolder, pathToCopy.ExcludedExtensions);
+            CopyContent(pathToCopy.SourcePath, targetPath, pathToCopy.ExcludedExtensions);
         }
 
         // Collect content to create from all content services
@@ -345,18 +339,21 @@ internal class OutputGenerationService(
 
 
     /// <summary>
-    /// Copies content from a source path to a target path, respecting a list of ignored paths.
+    /// Copies content from a source path to a target path, respecting glob patterns for ignored paths.
     /// Handles both single file and directory copying.
     /// </summary>
     /// <param name="sourcePath">The source file or directory path</param>
     /// <param name="targetPath">The target file or directory path</param>
-    /// <param name="ignoredPaths">List of paths to ignore during copying</param>
     /// <param name="excludedExtensions">File extensions to exclude during copying (e.g., [".md", ".txt"])</param>
-    private void CopyContent(string sourcePath, string targetPath, List<string> ignoredPaths, string[]? excludedExtensions = null)
+    private void CopyContent(string sourcePath, string targetPath, string[]? excludedExtensions = null)
     {
-        // Check if the target is in ignored paths
-        if (ignoredPaths.Contains(targetPath))
+        // Calculate relative path from output folder to target path for glob matching
+        var relativePath = GetRelativePathFromOutputFolder(targetPath);
+
+        // Check if the target matches any ignored patterns
+        if (FilePathGlobMatcher.IsIgnored(relativePath, options.IgnoredPathsOnContentCopy))
         {
+            logger.LogDebug("Skipping ignored path: {targetPath}", targetPath);
             return;
         }
 
@@ -376,7 +373,7 @@ internal class OutputGenerationService(
                 return;
             }
 
-            CopyDirectory(sourcePath, targetPath, ignoredPaths, excludedExtensions);
+            CopyDirectory(sourcePath, targetPath, excludedExtensions);
         }
         catch (Exception ex)
         {
@@ -414,26 +411,24 @@ internal class OutputGenerationService(
     }
 
     /// <summary>
-    /// Copies a directory and its contents to the target location, respecting ignored paths
+    /// Copies a directory and its contents to the target location, respecting glob patterns for ignored paths
     /// </summary>
     /// <param name="sourceDir">The source directory path</param>
     /// <param name="targetDir">The target directory path</param>
-    /// <param name="ignoredPaths">List of paths to ignore during copying</param>
     /// <param name="excludedExtensions">File extensions to exclude during copying</param>
-    private void CopyDirectory(string sourceDir, string targetDir, List<string> ignoredPaths, string[]? excludedExtensions = null)
+    private void CopyDirectory(string sourceDir, string targetDir, string[]? excludedExtensions = null)
     {
         _fileSystem.Directory.CreateDirectory(targetDir);
-
-        // Transform ignored paths to be relative to the target
-        var ignoredTargetPaths = ignoredPaths
-            .ConvertAll(path => _fileSystem.Path.Combine(targetDir, path));
 
         // Create all subdirectories first (except ignored ones)
         foreach (var dirPath in _fileSystem.Directory.GetDirectories(sourceDir, "*", SearchOption.AllDirectories))
         {
             var newDirPath = GetTargetPath(dirPath, sourceDir, targetDir);
-            if (ignoredTargetPaths.Contains(newDirPath))
+            var relativePath = GetRelativePathFromOutputFolder(newDirPath);
+
+            if (FilePathGlobMatcher.IsIgnored(relativePath, options.IgnoredPathsOnContentCopy))
             {
+                logger.LogDebug("Skipping ignored directory: {newDirPath}", newDirPath);
                 continue;
             }
             _fileSystem.Directory.CreateDirectory(newDirPath);
@@ -443,11 +438,16 @@ internal class OutputGenerationService(
         foreach (var filePath in _fileSystem.Directory.GetFiles(sourceDir, "*.*", SearchOption.AllDirectories))
         {
             var targetFilePath = GetTargetPath(filePath, sourceDir, targetDir);
+            var relativePath = GetRelativePathFromOutputFolder(targetFilePath);
 
-            // Skip if the file path is ignored or the parent directory doesn't exist
+            // Skip if the file path matches ignored patterns or the parent directory doesn't exist
             var targetFileDir = _fileSystem.Path.GetDirectoryName(targetFilePath);
-            if (ignoredTargetPaths.Contains(targetFilePath) || !_fileSystem.Directory.Exists(targetFileDir))
+            if (FilePathGlobMatcher.IsIgnored(relativePath, options.IgnoredPathsOnContentCopy) || !_fileSystem.Directory.Exists(targetFileDir))
             {
+                if (FilePathGlobMatcher.IsIgnored(relativePath, options.IgnoredPathsOnContentCopy))
+                {
+                    logger.LogDebug("Skipping ignored file: {targetFilePath}", targetFilePath);
+                }
                 continue;
             }
 
@@ -470,6 +470,21 @@ internal class OutputGenerationService(
     {
         var relativePath = sourcePath[sourceDir.Length..].TrimStart(Path.DirectorySeparatorChar);
         return _fileSystem.Path.Combine(targetDir, relativePath);
+    }
+
+    /// <summary>
+    /// Calculates the relative path from the output folder to a target path for glob pattern matching
+    /// </summary>
+    /// <param name="targetPath">The full target path</param>
+    /// <returns>The relative path from the output folder</returns>
+    private string GetRelativePathFromOutputFolder(string targetPath)
+    {
+        var outputFolder = outputOptions.OutputFolderPath.Value;
+        if (targetPath.StartsWith(outputFolder, StringComparison.OrdinalIgnoreCase))
+        {
+            return targetPath[outputFolder.Length..].TrimStart(Path.DirectorySeparatorChar, '/');
+        }
+        return targetPath;
     }
 
     enum Priority
