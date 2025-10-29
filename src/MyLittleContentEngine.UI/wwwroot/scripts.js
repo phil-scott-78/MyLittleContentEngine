@@ -102,6 +102,16 @@ class OutlineManager {
     }
 
     setupOutline() {
+        const outlineContainer = document.querySelector('[data-role="page-outline"]');
+        if (!outlineContainer) return;
+
+        const contentSelector = outlineContainer.dataset.contentSelector;
+        if (contentSelector) {
+            // Build outline from content
+            this.buildOutlineFromContent(contentSelector, outlineContainer);
+        }
+
+        // Get all outline links (either pre-rendered or dynamically generated)
         this.outlineLinks = Array.from(document.querySelectorAll('[data-role="page-outline"] ul li a'));
 
         // Initialize all links and build section map
@@ -123,6 +133,128 @@ class OutlineManager {
             const pos = a.compareDocumentPosition(b);
             return pos & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
         });
+    }
+
+    buildOutlineFromContent(contentSelector, outlineContainer) {
+        const contentElement = document.querySelector(contentSelector);
+        if (!contentElement) {
+            console.warn(`Content selector "${contentSelector}" not found`);
+            return;
+        }
+
+        // Extract H2 and H3 headings
+        const headings = this.extractHeadings(contentElement);
+        if (headings.length === 0) return;
+
+        // Build outline structure (H2 as parent, H3 as children)
+        const outlineStructure = this.buildOutlineStructure(headings);
+
+        // Render the outline
+        this.renderOutline(outlineStructure, outlineContainer);
+    }
+
+    extractHeadings(contentElement) {
+        const headingElements = contentElement.querySelectorAll('h2, h3');
+        const headings = [];
+
+        headingElements.forEach(heading => {
+            // Ensure heading has an ID
+            if (!heading.id) {
+                heading.id = this.generateIdFromText(heading.textContent);
+            }
+
+            headings.push({
+                level: parseInt(heading.tagName[1]), // Extract 2 from H2, 3 from H3
+                id: heading.id,
+                text: heading.textContent.trim(),
+                element: heading
+            });
+        });
+
+        return headings;
+    }
+
+    generateIdFromText(text) {
+        return text
+            .toLowerCase()
+            .trim()
+            .replace(/[^\w\s-]/g, '') // Remove special characters
+            .replace(/\s+/g, '-') // Replace spaces with hyphens
+            .replace(/-+/g, '-') // Replace multiple hyphens with single hyphen
+            .replace(/^-|-$/g, ''); // Remove leading/trailing hyphens
+    }
+
+    buildOutlineStructure(headings) {
+        const structure = [];
+        let currentH2 = null;
+
+        headings.forEach(heading => {
+            if (heading.level === 2) {
+                // Create new parent entry
+                currentH2 = {
+                    id: heading.id,
+                    text: heading.text,
+                    children: []
+                };
+                structure.push(currentH2);
+            } else if (heading.level === 3 && currentH2) {
+                // Add as child to current H2
+                currentH2.children.push({
+                    id: heading.id,
+                    text: heading.text
+                });
+            }
+        });
+
+        return structure;
+    }
+
+    renderOutline(outlineStructure, outlineContainer) {
+        const ul = outlineContainer.querySelector('ul');
+        if (!ul) return;
+
+        // Get CSS classes from data attributes
+        const linkStructureClass = ul.dataset.outlineLinkStructureClass || '';
+        const linkColorClass = ul.dataset.outlineLinkColorClass || '';
+
+        // Clear existing content
+        ul.innerHTML = '';
+
+        // Render each entry
+        outlineStructure.forEach(entry => {
+            // Create parent link
+            const parentLi = this.createOutlineLink(entry.id, entry.text, '', linkStructureClass, linkColorClass);
+            ul.appendChild(parentLi);
+
+            // Create children if any
+            if (entry.children.length > 0) {
+                const childrenContainer = document.createElement('li');
+                const childrenUl = document.createElement('ul');
+                childrenUl.className = 'pb-1px';
+
+                entry.children.forEach(child => {
+                    const childLi = this.createOutlineLink(child.id, child.text, 'pl-4', linkStructureClass, linkColorClass);
+                    childrenUl.appendChild(childLi);
+                });
+
+                childrenContainer.appendChild(childrenUl);
+                ul.appendChild(childrenContainer);
+            }
+        });
+    }
+
+    createOutlineLink(id, text, padding, structureClass, colorClass) {
+        const li = document.createElement('li');
+        li.className = `${padding} flex`;
+
+        const a = document.createElement('a');
+        a.className = `${padding} ${structureClass} ${colorClass}`;
+        a.href = `#${id}`;
+        a.textContent = text;
+        a.dataset.selected = 'false';
+
+        li.appendChild(a);
+        return li;
     }
 
     extractIdFromHref(href) {

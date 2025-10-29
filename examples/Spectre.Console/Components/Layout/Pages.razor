@@ -61,9 +61,9 @@
     <div class="lg:flex lg:gap-8">
         <!-- Main Content -->
         <div class="flex-1 min-w-0">
-            <div class="prose dark:prose-invert max-w-full prose-headings:scroll-m-20" >
+            <main class="prose dark:prose-invert max-w-full prose-headings:scroll-m-20" >
                 @((MarkupString)_postContent)
-            </div>
+            </main>
         </div>
         
         <!-- Outline Navigation (Desktop) -->
@@ -75,7 +75,7 @@
                         On this page
                     </h3>
                     <div class="text-sm">
-                        <OutlineNavigation Outline="@_outline" />
+                        <OutlineNavigation ContentSelector="main" />
                     </div>
                 </div>
             </aside>
