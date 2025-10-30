@@ -149,7 +149,9 @@ public sealed class CodeHighlighterService : ICodeHighlighter
 
         // Combine all fragments with blank lines
         var combinedHtml = string.Join("\n\n", htmlFragments);
-        return AsPreCode(combinedHtml);
+        var wrappedHtml = AsPreCode(combinedHtml);
+        // Apply transformations (line highlighting, focus, diff, etc.)
+        return ApplyTransformations(wrappedHtml, baseLanguage);
     }
 
     private string ProcessPathModifier(string baseLanguage, string code)
