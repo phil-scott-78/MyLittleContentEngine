@@ -101,7 +101,7 @@ public static class ContentEngineExtensions
         services.AddTransient<SearchIndexService>();
 
         // Register interface implementations
-        services.AddSingleton<IContentService>(provider =>
+        services.AddTransient<IContentService>(provider =>
             provider.GetRequiredService<IMarkdownContentService<TFrontMatter>>());
         services.AddTransient<IContentOptions>(provider =>
             provider.GetRequiredService<MarkdownContentOptions<TFrontMatter>>());
@@ -123,7 +123,6 @@ public static class ContentEngineExtensions
         services.AddTransient<OutputGenerationService>();
         services.AddSingleton<IContentEngineFileWatcher, ContentEngineFileWatcher>();
         services.AddSingleton<ICodeHighlighter, CodeHighlighterService>();
-        services.AddTransient<ITableOfContentService, TableOfContentService>();
         services.AddTransient<MarkdownParserService>();
         services.AddTransient<RoutesHelperService>();
         services.AddSingleton<IFileSystem>(new RealFileSystem());
@@ -133,12 +132,13 @@ public static class ContentEngineExtensions
         // Register the Razor page content service with file-watch invalidation
         var configuredServices = new ConfiguredContentEngineServiceCollection(services);
         configuredServices.AddFileWatched<RazorPageContentService>();
-        services.AddSingleton<IContentService>(provider => provider.GetRequiredService<RazorPageContentService>());
+        configuredServices.AddTransient<IContentService>(provider => provider.GetRequiredService<RazorPageContentService>());
         services.AddOutputOptions(Environment.GetCommandLineArgs());
         
         // Register XrefResolver with file-watch invalidation
         configuredServices.AddFileWatched<IXrefResolver, XrefResolver>();
-        
+        configuredServices.AddFileWatched<ITableOfContentService, TableOfContentService>();
+
         return configuredServices;
     }
 
