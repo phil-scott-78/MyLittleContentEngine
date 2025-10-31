@@ -187,7 +187,7 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
             InvalidateSolution();
         });
 
-        // Watch for solution file changes  
+        // Watch for solution file changes
         _fileWatcher.AddPathWatch(solutionDir, "*.sln", path =>
         {
             if (path.Equals(_options.SolutionPath!.Value.Value, StringComparison.OrdinalIgnoreCase))
@@ -195,6 +195,13 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
                 _logger.LogDebug("Solution file changed: {Path}", path);
                 InvalidateSolution();
             }
+        });
+
+        // Watch for C# source file changes
+        _fileWatcher.AddPathWatch(solutionDir, "*.cs", path =>
+        {
+            _logger.LogDebug("C# source file changed: {Path}", path);
+            InvalidateSolution();
         });
     }
 
