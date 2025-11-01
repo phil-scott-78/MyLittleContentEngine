@@ -284,7 +284,7 @@ public class TestContentEngineFileWatcher : IContentEngineFileWatcher
 
     public IReadOnlyList<Action> SubscribedCallbacks => _callbacks.AsReadOnly();
 
-    public void AddPathWatch(string path, string filePattern, Action<string> onFileChanged, bool includeSubdirectories = true)
+    public void AddPathWatch(string path, string filePattern, Action<string, WatcherChangeTypes> onFileChanged, bool includeSubdirectories = true)
     {
         // Not used in these tests
     }

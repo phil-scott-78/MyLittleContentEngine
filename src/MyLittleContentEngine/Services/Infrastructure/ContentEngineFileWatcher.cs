@@ -15,9 +15,9 @@ public interface IContentEngineFileWatcher
     /// </summary>
     /// <param name="path">The directory path to watch.</param>
     /// <param name="filePattern">The file pattern to watch (e.g., "*.cs", "*.razor").</param>
-    /// <param name="onFileChanged">Action to execute when a file changes, with the full path of the changed file.</param>
+    /// <param name="onFileChanged">Action to execute when a file changes, with the full path of the changed file and the type of change.</param>
     /// <param name="includeSubdirectories">Whether to include subdirectories in the watch. Default is true.</param>
-    void AddPathWatch(string path, string filePattern, Action<string> onFileChanged, bool includeSubdirectories = true);
+    void AddPathWatch(string path, string filePattern, Action<string, WatcherChangeTypes> onFileChanged, bool includeSubdirectories = true);
 
     /// <summary>
     /// Subscribes to all update events for metadata changes.
@@ -62,9 +62,9 @@ public sealed class ContentEngineFileWatcher : IDisposable, IContentEngineFileWa
     /// </summary>
     /// <param name="path">The directory path to watch.</param>
     /// <param name="filePattern">The file pattern to watch (e.g., "*.cs", "*.razor").</param>
-    /// <param name="onFileChanged">Action to execute when a file changes, with the full path of the changed file.</param>
+    /// <param name="onFileChanged">Action to execute when a file changes, with the full path of the changed file and the type of change.</param>
     /// <param name="includeSubdirectories">Whether to include subdirectories in the watch. Default is true.</param>
-    public void AddPathWatch(string path, string filePattern, Action<string> onFileChanged,
+    public void AddPathWatch(string path, string filePattern, Action<string, WatcherChangeTypes> onFileChanged,
         bool includeSubdirectories = true)
     {
         if (!_fileSystem.Directory.Exists(path))
@@ -97,24 +97,24 @@ public sealed class ContentEngineFileWatcher : IDisposable, IContentEngineFileWa
             watcher.Changed += (_, e) =>
             {
                 OnUpdate();
-                onFileChanged(e.FullPath);
+                onFileChanged(e.FullPath, WatcherChangeTypes.Changed);
             };
-            
+
             watcher.Created += (_, e) =>
             {
                 OnUpdate();
-                onFileChanged(e.FullPath);
+                onFileChanged(e.FullPath, WatcherChangeTypes.Created);
             };
-            
+
             watcher.Deleted += (_, e) =>
             {
                 OnUpdate();
-                onFileChanged(e.FullPath);
+                onFileChanged(e.FullPath, WatcherChangeTypes.Deleted);
             };
             watcher.Renamed += (_, e) =>
             {
                 OnUpdate();
-                onFileChanged(e.FullPath);
+                onFileChanged(e.FullPath, WatcherChangeTypes.Renamed);
             };
 
             

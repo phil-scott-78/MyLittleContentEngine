@@ -138,8 +138,11 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
 
         if (_compilationCache.TryGetValue(project.Id, out var cachedCompilation))
         {
+            _logger.LogTrace("Compilation cache HIT for project {ProjectName} ({ProjectId})", project.Name, project.Id);
             return cachedCompilation;
         }
+
+        _logger.LogTrace("Compilation cache MISS for project {ProjectName} ({ProjectId}) - compiling", project.Name, project.Id);
 
         try
         {
@@ -149,6 +152,7 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
             if (compilation != null)
             {
                 _compilationCache.TryAdd(project.Id, compilation);
+                _logger.LogTrace("Compilation cached for project {ProjectName} ({ProjectId})", project.Name, project.Id);
             }
 
             return compilation;
@@ -162,13 +166,77 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
 
     public void InvalidateSolution()
     {
+        _logger.LogTrace("InvalidateSolution called");
+
         lock (_lock)
         {
-            _logger.LogDebug("Invalidating solution cache");
+            var cachedProjectCount = _compilationCache.Count;
+            _logger.LogTrace("Invalidating solution cache (clearing {Count} cached compilations)", cachedProjectCount);
+
             _solution = null;
             _workspace?.Dispose();
             _workspace = null;
             _compilationCache.Clear();
+
+            _logger.LogTrace("Solution cache invalidated, workspace disposed");
+        }
+    }
+
+    private void UpdateDocument(string filePath)
+    {
+        _logger.LogTrace("UpdateDocument called for {FilePath}", filePath);
+
+        lock (_lock)
+        {
+            if (_solution == null)
+            {
+                _logger.LogTrace("Solution not loaded, skipping document update for {FilePath}", filePath);
+                return;
+            }
+
+            var documentIds = _solution.GetDocumentIdsWithFilePath(filePath);
+            _logger.LogTrace("Found {Count} document(s) for {FilePath}", documentIds.Length, filePath);
+
+            if (documentIds.IsEmpty)
+            {
+                _logger.LogTrace("File {FilePath} not found in solution, may be a new file", filePath);
+                return;
+            }
+
+            try
+            {
+                // Use FileShare.ReadWrite to allow reading even when file is locked by editor
+                using var fileStream = new FileStream(
+                    filePath,
+                    FileMode.Open,
+                    FileAccess.Read,
+                    FileShare.ReadWrite);
+                using var reader = new StreamReader(fileStream, System.Text.Encoding.UTF8);
+                var fileContent = reader.ReadToEnd();
+                var newText = Microsoft.CodeAnalysis.Text.SourceText.From(fileContent, System.Text.Encoding.UTF8);
+
+                var updatedSolution = _solution;
+
+                foreach (var docId in documentIds)
+                {
+                    var document = _solution.GetDocument(docId);
+                    var projectName = document?.Project.Name ?? "Unknown";
+
+                    _logger.LogTrace("Updating document in project {ProjectName} for {FilePath}", projectName, filePath);
+                    updatedSolution = updatedSolution.WithDocumentText(docId, newText);
+
+                    _compilationCache.TryRemove(docId.ProjectId, out _);
+                    _logger.LogTrace("Invalidated compilation cache for project {ProjectName} ({ProjectId})", projectName, docId.ProjectId);
+                }
+
+                _solution = updatedSolution;
+                _logger.LogTrace("Successfully updated {Count} document(s) in-memory for {FilePath}", documentIds.Length, filePath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogTrace(ex, "Failed to update document {FilePath}, falling back to full solution invalidation", filePath);
+                InvalidateSolution();
+            }
         }
     }
 
@@ -180,28 +248,51 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
             return;
         }
 
-        // Watch for project file changes
-        _fileWatcher.AddPathWatch(solutionDir, "*.csproj", path =>
+        // Watch for project file changes - always invalidate
+        _fileWatcher.AddPathWatch(solutionDir, "*.csproj", (path, changeType) =>
         {
+            _logger.LogTrace("Project file watcher triggered: {ChangeType} for {Path}", changeType, path);
             _logger.LogDebug("Project file changed: {Path}", path);
             InvalidateSolution();
         });
 
-        // Watch for solution file changes
-        _fileWatcher.AddPathWatch(solutionDir, "*.sln", path =>
+        // Watch for solution file changes - always invalidate
+        _fileWatcher.AddPathWatch(solutionDir, "*.sln", (path, changeType) =>
         {
+            _logger.LogTrace("Solution file watcher triggered: {ChangeType} for {Path}", changeType, path);
+
             if (path.Equals(_options.SolutionPath!.Value.Value, StringComparison.OrdinalIgnoreCase))
             {
                 _logger.LogDebug("Solution file changed: {Path}", path);
                 InvalidateSolution();
             }
+            else
+            {
+                _logger.LogTrace("Solution file changed but not the configured solution, ignoring: {Path}", path);
+            }
         });
 
-        // Watch for C# source file changes
-        _fileWatcher.AddPathWatch(solutionDir, "*.cs", path =>
+        // Watch for C# source file changes - smart handling based on change type
+        _fileWatcher.AddPathWatch(solutionDir, "*.cs", (path, changeType) =>
         {
-            _logger.LogDebug("C# source file changed: {Path}", path);
-            InvalidateSolution();
+            _logger.LogTrace("C# source file watcher triggered: {ChangeType} for {Path}", changeType, path);
+
+            switch (changeType)
+            {
+                case WatcherChangeTypes.Changed:
+                    _logger.LogTrace("File content changed - calling UpdateDocument");
+                    // File content changed - update in-memory document
+                    UpdateDocument(path);
+                    break;
+
+                case WatcherChangeTypes.Created:
+                case WatcherChangeTypes.Deleted:
+                case WatcherChangeTypes.Renamed:
+                    _logger.LogTrace("Structural change detected - calling InvalidateSolution");
+                    // Structural change - full solution reload required
+                    InvalidateSolution();
+                    break;
+            }
         });
     }
 

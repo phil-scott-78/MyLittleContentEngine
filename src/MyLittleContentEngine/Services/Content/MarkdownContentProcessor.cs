@@ -77,7 +77,7 @@ internal class MarkdownContentProcessor<TFrontMatter>
                     _fileWatcher.AddPathWatch(
                         contentPath,
                         trimmedPattern,
-                        filePath => 
+                        (filePath, _) =>
                         {
                             _logger.LogDebug("Markdown file changed: {FilePath}", filePath);
                             // FileWatchDependencyFactory handles the actual invalidation

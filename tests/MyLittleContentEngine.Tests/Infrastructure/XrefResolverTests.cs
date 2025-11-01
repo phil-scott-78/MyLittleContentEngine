@@ -104,7 +104,7 @@ public class XrefResolverTests
 // Mock implementation for testing
 public class MockContentEngineFileWatcher : IContentEngineFileWatcher
 {
-    public void AddPathWatch(string path, string filePattern, Action<string> onFileChanged, bool includeSubdirectories = true) { }
+    public void AddPathWatch(string path, string filePattern, Action<string, WatcherChangeTypes> onFileChanged, bool includeSubdirectories = true) { }
     public void AddPathsWatch(IEnumerable<string> paths, Action onUpdate, bool includeSubdirectories = true) { }
     public void SubscribeToChanges(Action onUpdate) { }
     public void Dispose() { }
