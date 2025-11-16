@@ -7,7 +7,6 @@ on:
     - 'license.md'
     - 'readme.md'
     - 'README.md'
-    - 'tests/**'
     - 'docs/**'
     - 'examples/**'
     branches: [main]
