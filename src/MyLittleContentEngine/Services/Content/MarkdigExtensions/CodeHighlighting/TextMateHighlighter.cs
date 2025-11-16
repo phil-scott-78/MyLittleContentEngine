@@ -5,20 +5,19 @@ using TextMateSharp.Registry;
 
 namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
 
-internal static class TextMateHighlighter
+/// <summary>
+/// Provides syntax highlighting for code blocks using TextMate grammars.
+/// </summary>
+internal class TextMateHighlighter : ITextMateHighlighter
 {
-    private static readonly Registry Registry;
-    private static readonly RegistryOptions RegistryOptions;
+    private readonly TextMateLanguageRegistry _languageRegistry;
+    private readonly Registry _registry;
     private static readonly List<Tuple<string, string>> ScopeMappings;
     private static readonly TimeSpan TokenizeTimeLimit = TimeSpan.FromSeconds(5); // Default time limit for tokenization
     private static readonly Lock RegistryAccessLock = new Lock(); // Added for thread safety
 
     static TextMateHighlighter()
     {
-        // Initialize the TextMate registry with grammars.
-        RegistryOptions = new RegistryOptions(ThemeName.DarkPlus);
-        Registry = new Registry(RegistryOptions);
-
         // Initialize the mapping from TextMate scopes to highlight.js CSS classes.
         ScopeMappings =
         [
@@ -101,6 +100,16 @@ internal static class TextMateHighlighter
         ];
     }
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TextMateHighlighter"/> class.
+    /// </summary>
+    /// <param name="languageRegistry">The language registry for managing TextMate grammars.</param>
+    public TextMateHighlighter(TextMateLanguageRegistry languageRegistry)
+    {
+        _languageRegistry = languageRegistry ?? throw new ArgumentNullException(nameof(languageRegistry));
+        _registry = languageRegistry.Registry;
+    }
+
     private static string? GetHljsClassForScopes(List<string> scopes)
     {
         if (scopes.Count == 0)
@@ -118,7 +127,8 @@ internal static class TextMateHighlighter
         return null; // No mapping found
     }
 
-    public static string Highlight(string text, string language)
+    /// <inheritdoc />
+    public string Highlight(string text, string language)
     {
         if (string.IsNullOrWhiteSpace(text))
         {
@@ -130,11 +140,12 @@ internal static class TextMateHighlighter
         // the registry doesn't seem to be thread-safe, so we need to lock access to it
         lock (RegistryAccessLock)
         {
-            var scopeName = RegistryOptions.GetScopeByLanguageId(language.ToLowerInvariant());
+            // Check custom language mappings first, then fall back to built-in
+            var scopeName = _languageRegistry.GetScopeNameForLanguage(language);
 
             if (!string.IsNullOrEmpty(scopeName))
             {
-                grammar = Registry.LoadGrammar(scopeName);
+                grammar = _registry.LoadGrammar(scopeName);
             }
 
             // Attempt a broader search if a specific scopeName not found or language ID is an alias
@@ -152,7 +163,7 @@ internal static class TextMateHighlighter
                 {
                     try
                     {
-                        grammar = Registry.LoadGrammar(potentialScope);
+                        grammar = _registry.LoadGrammar(potentialScope);
                         if (grammar != null) break;
                     }
                     catch

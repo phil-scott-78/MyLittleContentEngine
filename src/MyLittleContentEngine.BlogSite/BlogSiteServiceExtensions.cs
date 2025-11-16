@@ -44,7 +44,8 @@ public static class BlogSiteServiceExtensions
                     SiteTitle = o.SiteTitle,
                     SiteDescription = o.Description,
                     ContentRootPath = o.ContentRootPath,
-                    CanonicalBaseUrl = o.CanonicalBaseUrl
+                    CanonicalBaseUrl = o.CanonicalBaseUrl,
+                    ConfigureTextMate = o.ConfigureTextMate
                 };
             })
             .WithMarkdownContentService(sp =>

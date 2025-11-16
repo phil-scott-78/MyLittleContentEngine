@@ -11,6 +11,7 @@ using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services;
 using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions;
+using MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.SyntaxHighlighting;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.SymbolAnalysis;
@@ -122,7 +123,18 @@ public static class ContentEngineExtensions
         services.AddTransient(configureOptions);
         services.AddTransient<OutputGenerationService>();
         services.AddSingleton<IContentEngineFileWatcher, ContentEngineFileWatcher>();
+
+        // Register TextMate language registry and highlighter
+        services.AddSingleton(provider =>
+        {
+            var options = provider.GetRequiredService<ContentEngineOptions>();
+            return new TextMateLanguageRegistry(options.ConfigureTextMate);
+        });
+        services.AddTransient<ITextMateHighlighter, TextMateHighlighter>();
+
+        // Register code highlighter service
         services.AddSingleton<ICodeHighlighter, CodeHighlighterService>();
+
         services.AddTransient<MarkdownParserService>();
         services.AddTransient<RoutesHelperService>();
         services.AddSingleton<IFileSystem>(new RealFileSystem());

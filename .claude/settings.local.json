@@ -27,7 +27,8 @@
       "Bash(vhs:*)",
       "Bash(git tag:*)",
       "Bash(git log:*)",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ],
     "additionalDirectories": [
       "b:\\spectre\\"

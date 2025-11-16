@@ -2,7 +2,6 @@
 using MyLittleContentEngine.Services.Content.MarkdigExtensions.AlertBlock;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions.Tabs;
-using MyLittleContentEngine.Services.Content.CodeAnalysis.SyntaxHighlighting;
 
 namespace MyLittleContentEngine.Services.Content.MarkdigExtensions;
 
@@ -12,13 +11,13 @@ namespace MyLittleContentEngine.Services.Content.MarkdigExtensions;
 internal static class MarkdownPipelineBuilderExtensions
 {
     /// <summary>
-    ///     Use Roslyn to colorize HTML generated from Markdown.
+    ///     Adds syntax highlighting support to the Markdig pipeline using the specified code highlighter.
     /// </summary>
-    /// <returns>The <see cref="MarkdownPipelineBuilder"/> configured with ColorCode.</returns>
+    /// <returns>The <see cref="MarkdownPipelineBuilder"/> configured with syntax highlighting.</returns>
     public static MarkdownPipelineBuilder UseSyntaxHighlighting(this MarkdownPipelineBuilder markdownPipelineBuilder,
-        ISyntaxHighlightingService? syntaxHighlighter, Func<CodeHighlightRenderOptions>? options)
+        ICodeHighlighter highlighter, Func<CodeHighlightRenderOptions>? options)
     {
-        markdownPipelineBuilder.Extensions.AddIfNotAlready(new ColorCodingHighlighter(syntaxHighlighter, options));
+        markdownPipelineBuilder.Extensions.AddIfNotAlready(new ColorCodingHighlighter(highlighter, options));
 
         return markdownPipelineBuilder;
     }

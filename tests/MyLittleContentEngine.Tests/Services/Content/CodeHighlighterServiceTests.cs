@@ -10,11 +10,17 @@ namespace MyLittleContentEngine.Tests.Services.Content;
 
 public class CodeHighlighterServiceTests
 {
+    private static ITextMateHighlighter CreateTextMateHighlighter()
+    {
+        var registry = new TextMateLanguageRegistry();
+        return new TextMateHighlighter(registry);
+    }
+
     [Fact]
     public void Highlight_WithCSharpCode_ReturnsHighlightedHtml()
     {
         // Arrange
-        var service = new CodeHighlighterService();
+        var service = new CodeHighlighterService(CreateTextMateHighlighter());
         var code = """
             var message = "Hello, World!";
             Console.WriteLine(message);
@@ -37,7 +43,7 @@ public class CodeHighlighterServiceTests
     public void Highlight_WithJavaScriptCode_UsesTextMateHighlighter()
     {
         // Arrange
-        var service = new CodeHighlighterService();
+        var service = new CodeHighlighterService(CreateTextMateHighlighter());
         var code = """
             const message = "Hello, World!";
             console.log(message);
@@ -58,7 +64,7 @@ public class CodeHighlighterServiceTests
     public void Highlight_WithGbnfCode_UsesGbnfHighlighter()
     {
         // Arrange
-        var service = new CodeHighlighterService();
+        var service = new CodeHighlighterService(CreateTextMateHighlighter());
         var code = """
             root ::= (statement)+
             statement ::= "hello" | "world"
@@ -78,7 +84,7 @@ public class CodeHighlighterServiceTests
     public void Highlight_WithShellCode_UsesShellHighlighter()
     {
         // Arrange
-        var service = new CodeHighlighterService();
+        var service = new CodeHighlighterService(CreateTextMateHighlighter());
         var code = """
             echo "Hello, World!"
             ls -la
@@ -98,7 +104,7 @@ public class CodeHighlighterServiceTests
     public void Highlight_WithPlainText_ReturnsEncodedText()
     {
         // Arrange
-        var service = new CodeHighlighterService();
+        var service = new CodeHighlighterService(CreateTextMateHighlighter());
         var code = """
             This is plain text.
             No highlighting needed.
@@ -119,7 +125,7 @@ public class CodeHighlighterServiceTests
     public void Highlight_WithEmptyLanguage_ReturnsEncodedText()
     {
         // Arrange
-        var service = new CodeHighlighterService();
+        var service = new CodeHighlighterService(CreateTextMateHighlighter());
         var code = "Some code without a language";
 
         // Act
@@ -137,7 +143,7 @@ public class CodeHighlighterServiceTests
     public void Highlight_WithCustomOptions_UsesProvidedOptions()
     {
         // Arrange
-        var service = new CodeHighlighterService();
+        var service = new CodeHighlighterService(CreateTextMateHighlighter());
         var code = "var x = 1;";
         var customOptions = new CodeHighlightRenderOptions
         {
@@ -161,7 +167,7 @@ public class CodeHighlighterServiceTests
     public void Highlight_InTabGroup_OmitsStandaloneContainerCss()
     {
         // Arrange
-        var service = new CodeHighlighterService();
+        var service = new CodeHighlighterService(CreateTextMateHighlighter());
         var code = "var x = 1;";
 
         // Act
@@ -178,7 +184,7 @@ public class CodeHighlighterServiceTests
     public void Highlight_NotInTabGroup_IncludesStandaloneContainerCss()
     {
         // Arrange
-        var service = new CodeHighlighterService();
+        var service = new CodeHighlighterService(CreateTextMateHighlighter());
         var code = "var x = 1;";
 
         // Act
@@ -207,7 +213,7 @@ public class CodeHighlighterServiceTests
                 ErrorMessage = null
             });
 
-        var service = new CodeHighlighterService(mockSyntaxHighlighter.Object);
+        var service = new CodeHighlighterService(CreateTextMateHighlighter(), mockSyntaxHighlighter.Object);
         var code = "var x = 1;";
 
         // Act
@@ -226,7 +232,7 @@ public class CodeHighlighterServiceTests
     public void Highlight_WithCaseInsensitiveLanguage_WorksCorrectly()
     {
         // Arrange
-        var service = new CodeHighlighterService();
+        var service = new CodeHighlighterService(CreateTextMateHighlighter());
         var code = "var x = 1;";
 
         // Act
@@ -248,7 +254,7 @@ public class CodeHighlighterServiceTests
     public void Highlight_WithCSharpAliases_AllWork(string languageAlias)
     {
         // Arrange
-        var service = new CodeHighlighterService();
+        var service = new CodeHighlighterService(CreateTextMateHighlighter());
         var code = "var x = 1;";
 
         // Act
@@ -269,7 +275,7 @@ public class CodeHighlighterServiceTests
     public void Highlight_WithVisualBasicAliases_AllWork(string languageAlias)
     {
         // Arrange
-        var service = new CodeHighlighterService();
+        var service = new CodeHighlighterService(CreateTextMateHighlighter());
         var code = "Dim x As Integer = 1";
 
         // Act
@@ -290,7 +296,7 @@ public class CodeHighlighterServiceTests
     public void Highlight_WithShellAliases_AllWork(string languageAlias)
     {
         // Arrange
-        var service = new CodeHighlighterService();
+        var service = new CodeHighlighterService(CreateTextMateHighlighter());
         var code = "echo 'Hello'";
 
         // Act
@@ -306,7 +312,7 @@ public class CodeHighlighterServiceTests
     public void Highlight_WithHtmlSpecialCharacters_EscapesCorrectly()
     {
         // Arrange
-        var service = new CodeHighlighterService();
+        var service = new CodeHighlighterService(CreateTextMateHighlighter());
         var code = """
             var html = "<div>Hello & Goodbye</div>";
             """;
@@ -326,7 +332,7 @@ public class CodeHighlighterServiceTests
     public void Highlight_AppliesLineTransformations()
     {
         // Arrange
-        var service = new CodeHighlighterService();
+        var service = new CodeHighlighterService(CreateTextMateHighlighter());
         var code = """
             var x = 1; // [!code highlight]
             var y = 2;
@@ -348,7 +354,7 @@ public class CodeHighlighterServiceTests
     public void Highlight_WithMarkdown_SkipsTransformations(string languageAlias)
     {
         // Arrange
-        var service = new CodeHighlighterService();
+        var service = new CodeHighlighterService(CreateTextMateHighlighter());
         var code = """
             # Header
             Some text // [!code highlight]
@@ -384,7 +390,7 @@ public class CodeHighlighterServiceTests
                 ErrorMessage = null
             });
 
-        var service = new CodeHighlighterService(mockSyntaxHighlighter.Object);
+        var service = new CodeHighlighterService(CreateTextMateHighlighter(), mockSyntaxHighlighter.Object);
 
         // Act
         var result = service.Highlight("T:System.String", "csharp:xmldocid");
@@ -425,7 +431,7 @@ public class CodeHighlighterServiceTests
                 ErrorMessage = null
             });
 
-        var service = new CodeHighlighterService(mockSyntaxHighlighter.Object);
+        var service = new CodeHighlighterService(CreateTextMateHighlighter(), mockSyntaxHighlighter.Object);
         var code = """
             T:System.String
             T:System.Int32
@@ -474,7 +480,7 @@ public class CodeHighlighterServiceTests
                 ErrorMessage = "Symbol not found"
             });
 
-        var service = new CodeHighlighterService(mockSyntaxHighlighter.Object);
+        var service = new CodeHighlighterService(CreateTextMateHighlighter(), mockSyntaxHighlighter.Object);
         var code = """
             T:System.String
             T:System.NonExistent
@@ -508,7 +514,7 @@ public class CodeHighlighterServiceTests
                 ErrorMessage = null
             });
 
-        var service = new CodeHighlighterService(mockSyntaxHighlighter.Object);
+        var service = new CodeHighlighterService(CreateTextMateHighlighter(), mockSyntaxHighlighter.Object);
 
         // Act
         var result = service.Highlight("M:System.String.Concat(System.String,System.String)", "csharp:xmldocid,bodyonly");
@@ -548,7 +554,7 @@ public class CodeHighlighterServiceTests
                 ErrorMessage = null
             });
 
-        var service = new CodeHighlighterService(mockSyntaxHighlighter.Object);
+        var service = new CodeHighlighterService(CreateTextMateHighlighter(), mockSyntaxHighlighter.Object);
         var code = """
             M:MyClass.Method1
             M:MyClass.Method2
@@ -586,7 +592,7 @@ public class CodeHighlighterServiceTests
                 ErrorMessage = null
             });
 
-        var service = new CodeHighlighterService(mockSyntaxHighlighter.Object);
+        var service = new CodeHighlighterService(CreateTextMateHighlighter(), mockSyntaxHighlighter.Object);
         var code = """
             T:System.String
 
@@ -613,7 +619,7 @@ public class CodeHighlighterServiceTests
     {
         // Arrange
         var mockSyntaxHighlighter = new Mock<ISyntaxHighlightingService>();
-        var service = new CodeHighlighterService(mockSyntaxHighlighter.Object);
+        var service = new CodeHighlighterService(CreateTextMateHighlighter(), mockSyntaxHighlighter.Object);
 
         // Act
         var result = service.Highlight("T:System.String", "javascript:xmldocid");
@@ -631,7 +637,7 @@ public class CodeHighlighterServiceTests
     public void Highlight_WithXmlDocIdModifier_NoSyntaxHighlighter_ReturnsEncodedText()
     {
         // Arrange
-        var service = new CodeHighlighterService(syntaxHighlighter: null);
+        var service = new CodeHighlighterService(CreateTextMateHighlighter(), syntaxHighlighter: null);
 
         // Act
         var result = service.Highlight("T:System.String", "csharp:xmldocid");

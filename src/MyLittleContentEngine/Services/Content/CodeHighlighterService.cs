@@ -12,13 +12,18 @@ namespace MyLittleContentEngine.Services.Content;
 public sealed class CodeHighlighterService : ICodeHighlighter
 {
     private readonly ISyntaxHighlightingService? _syntaxHighlighter;
+    private readonly ITextMateHighlighter _textMateHighlighter;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CodeHighlighterService"/> class.
     /// </summary>
+    /// <param name="textMateHighlighter">The TextMate highlighter for code syntax highlighting.</param>
     /// <param name="syntaxHighlighter">Optional Roslyn-based syntax highlighter for C# and VB code.</param>
-    public CodeHighlighterService(ISyntaxHighlightingService? syntaxHighlighter = null)
+    public CodeHighlighterService(
+        ITextMateHighlighter textMateHighlighter,
+        ISyntaxHighlightingService? syntaxHighlighter = null)
     {
+        _textMateHighlighter = textMateHighlighter ?? throw new ArgumentNullException(nameof(textMateHighlighter));
         _syntaxHighlighter = syntaxHighlighter;
     }
 
@@ -181,17 +186,17 @@ public sealed class CodeHighlighterService : ICodeHighlighter
             "vb" or "vbnet" =>
                 _syntaxHighlighter != null
                     ? HighlightWithService(code, Language.VisualBasic, _syntaxHighlighter)
-                    : TextMateHighlighter.Highlight(code, "vb"),  // Normalize to "vb" for TextMate
+                    : _textMateHighlighter.Highlight(code, "vb"),  // Normalize to "vb" for TextMate
 
             "csharp" or "c#" or "cs" =>
                 _syntaxHighlighter != null
                     ? HighlightWithService(code, Language.CSharp, _syntaxHighlighter)
-                    : TextMateHighlighter.Highlight(code, "csharp"),  // Normalize to "csharp" for TextMate
+                    : _textMateHighlighter.Highlight(code, "csharp"),  // Normalize to "csharp" for TextMate
 
             "gbnf" => GbnfHighlighter.Highlight(code),
             "bash" or "shell" => ShellSyntaxHighlighter.Highlight(code),
             "text" or "" => AsPreCode(HtmlEncoder.Default.Encode(code)),
-            _ => TextMateHighlighter.Highlight(code, language)
+            _ => _textMateHighlighter.Highlight(code, language)
         };
     }
 

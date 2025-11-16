@@ -44,7 +44,8 @@ public static class DocSiteServiceExtensions
                     SiteTitle = options.SiteTitle,
                     SiteDescription = options.Description,
                     ContentRootPath = options.ContentRootPath,
-                    CanonicalBaseUrl = options.CanonicalBaseUrl
+                    CanonicalBaseUrl = options.CanonicalBaseUrl,
+                    ConfigureTextMate = options.ConfigureTextMate
                 };
             })
             .WithMarkdownContentService(sp =>

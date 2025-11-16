@@ -3,6 +3,7 @@ using System.Reflection;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.MonorailCss;
 using MyLittleContentEngine.Services;
+using MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
 
 namespace MyLittleContentEngine.BlogSite;
 
@@ -122,9 +123,30 @@ public record BlogSiteOptions
     public FilePath? SolutionPath { get; init; }
 
     /// <summary>
-    /// Function to generate a URL to be used in social media metadata links 
+    /// Function to generate a URL to be used in social media metadata links
     /// </summary>
     public Func<MarkdownContentPage<BlogSiteFrontMatter>, string>? SocialMediaImageUrlFactory { get; init; }
+
+    /// <summary>
+    /// Optional callback to configure custom TextMate language grammars for syntax highlighting.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Use this to register additional language grammars for syntax highlighting beyond
+    /// the built-in languages supported by TextMateSharp.
+    /// </para>
+    /// <para>
+    /// Example usage:
+    /// </para>
+    /// <code>
+    /// ConfigureTextMate = registry =>
+    /// {
+    ///     registry.AddGrammar("mylang", "source.mylang");
+    ///     registry.AddGrammarFromJson("custom", grammarJsonString);
+    /// }
+    /// </code>
+    /// </remarks>
+    public Action<TextMateLanguageRegistry>? ConfigureTextMate { get; init; }
 }
 
 public record SocialLink(RenderFragment Icon, string Url);

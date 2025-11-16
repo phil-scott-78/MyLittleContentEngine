@@ -3,7 +3,6 @@ using Markdig.Parsers;
 using Markdig.Renderers.Html;
 using Markdig.Syntax;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions.Tabs;
-using MyLittleContentEngine.Services.Content.CodeAnalysis.SyntaxHighlighting;
 using HtmlRenderer = Markdig.Renderers.HtmlRenderer;
 
 namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
@@ -55,14 +54,14 @@ The actual highlighting logic is handled by CodeHighlighterService which support
 - Post-processing transformations (line highlighting, focus, diff, etc.)
 */
 internal sealed class CodeHighlightRenderer(
-    ISyntaxHighlightingService? syntaxHighlighter,
+    ICodeHighlighter highlighter,
     Func<CodeHighlightRenderOptions>? options)
     : HtmlObjectRenderer<CodeBlock>
 {
     private readonly Func<CodeHighlightRenderOptions> _optionsFactory =
         options ?? (() => CodeHighlightRenderOptions.Default);
 
-    private readonly ICodeHighlighter _highlighter = new CodeHighlighterService(syntaxHighlighter);
+    private readonly ICodeHighlighter _highlighter = highlighter ?? throw new ArgumentNullException(nameof(highlighter));
 
     protected override void Write(HtmlRenderer renderer, CodeBlock codeBlock)
     {

@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using MyLittleContentEngine.MonorailCss;
 using MyLittleContentEngine.Services;
+using MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
 
 namespace MyLittleContentEngine.DocSite;
 
@@ -103,4 +104,25 @@ public record DocSiteOptions
     /// URL to the social media image for meta tags
     /// </summary>
     public string? SocialImageUrl { get; init; }
+
+    /// <summary>
+    /// Optional callback to configure custom TextMate language grammars for syntax highlighting.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Use this to register additional language grammars for syntax highlighting beyond
+    /// the built-in languages supported by TextMateSharp.
+    /// </para>
+    /// <para>
+    /// Example usage:
+    /// </para>
+    /// <code>
+    /// ConfigureTextMate = registry =>
+    /// {
+    ///     registry.AddGrammar("mylang", "source.mylang");
+    ///     registry.AddGrammarFromJson("custom", grammarJsonString);
+    /// }
+    /// </code>
+    /// </remarks>
+    public Action<TextMateLanguageRegistry>? ConfigureTextMate { get; init; }
 }

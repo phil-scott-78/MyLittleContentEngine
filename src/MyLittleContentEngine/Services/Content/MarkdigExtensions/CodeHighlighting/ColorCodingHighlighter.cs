@@ -1,12 +1,11 @@
 ﻿using Markdig;
 using Markdig.Renderers;
 using Markdig.Renderers.Html;
-using MyLittleContentEngine.Services.Content.CodeAnalysis.SyntaxHighlighting;
 
 namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting
 {
     internal class ColorCodingHighlighter(
-        ISyntaxHighlightingService? syntaxHighlighter,
+        ICodeHighlighter highlighter,
         Func<CodeHighlightRenderOptions>? options) : IMarkdownExtension
     {
         public void Setup(MarkdownPipelineBuilder pipeline)
@@ -28,7 +27,7 @@ namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlight
             }
 
             htmlRenderer.ObjectRenderers.AddIfNotAlready(
-                new CodeHighlightRenderer(syntaxHighlighter, options)
+                new CodeHighlightRenderer(highlighter, options)
             );
         }
     }

@@ -1,13 +1,14 @@
 ﻿using System.Collections.Immutable;
 using Markdig;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions;
+using MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
 using Markdig.Extensions.AutoIdentifiers;
 using Mdazor;
 using Microsoft.Extensions.DependencyInjection;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services;
+using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
-using MyLittleContentEngine.Services.Content.CodeAnalysis.SyntaxHighlighting;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -166,6 +167,27 @@ public record ContentEngineOptions
         .Build();
 
     /// <summary>
+    /// Gets or sets an optional callback to configure custom TextMate language grammars.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// Use this to register additional language grammars for syntax highlighting beyond
+    /// the built-in languages supported by TextMateSharp.
+    /// </para>
+    /// <para>
+    /// Example usage:
+    /// </para>
+    /// <code>
+    /// ConfigureTextMate = registry =>
+    /// {
+    ///     registry.AddGrammar("mylang", "source.mylang");
+    ///     registry.AddGrammar("customlang", "source.custom");
+    /// }
+    /// </code>
+    /// </remarks>
+    public Action<TextMateLanguageRegistry>? ConfigureTextMate { get; init; }
+
+    /// <summary>
     /// Gets or sets the function that builds the Markdown pipeline used for parsing and rendering markdown content.
     /// </summary>
     /// <remarks>
@@ -186,7 +208,7 @@ public record ContentEngineOptions
     /// </remarks>
     public Func<IServiceProvider, MarkdownPipeline> MarkdownPipelineBuilder { get; init; } = serviceProvider =>
     {
-        var syntaxHighlighter = serviceProvider.GetService<ISyntaxHighlightingService>();
+        var codeHighlighter = serviceProvider.GetRequiredService<ICodeHighlighter>();
         var roslynHighlighterOptions = serviceProvider.GetService<CodeHighlighterOptions>();
 
         var builder = new MarkdownPipelineBuilder()
@@ -211,7 +233,7 @@ public record ContentEngineOptions
             .UseDiagrams()
             .UseCustomAlertBlocks()
             .UseCustomContainers()
-            .UseSyntaxHighlighting(syntaxHighlighter, roslynHighlighterOptions?.CodeHighlightRenderOptionsFactory)
+            .UseSyntaxHighlighting(codeHighlighter, roslynHighlighterOptions?.CodeHighlightRenderOptionsFactory)
             .UseTabbedCodeBlocks(roslynHighlighterOptions?.TabbedCodeBlockRenderOptionsFactory)
             .UseYamlFrontMatter();
 
