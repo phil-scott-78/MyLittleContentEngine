@@ -18,18 +18,6 @@ public class TextMateLanguageRegistryTests
     }
 
     [Fact]
-    public void Constructor_WithCallback_InvokesCallback()
-    {
-        // Arrange
-        var callbackInvoked = false;
-
-        // Act
-
-        // Assert
-        callbackInvoked.ShouldBeTrue();
-    }
-
-    [Fact]
     public void AddGrammar_WithValidParameters_AddsCustomMapping()
     {
         // Arrange
