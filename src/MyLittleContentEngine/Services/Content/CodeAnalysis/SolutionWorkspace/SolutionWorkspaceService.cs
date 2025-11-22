@@ -83,11 +83,12 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
         };
 
         var workspace = MSBuildWorkspace.Create(properties);
-        workspace.WorkspaceFailed += (_, args) =>
+        workspace.RegisterWorkspaceFailedHandler(args =>
         {
             _logger.LogWarning("Workspace failed: {Diagnostic}", args.Diagnostic);
-        };
 
+        });
+        
         try
         {
             var solution = await workspace.OpenSolutionAsync(solutionPath);
