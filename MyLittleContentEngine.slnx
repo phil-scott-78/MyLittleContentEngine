@@ -1,0 +1,49 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/.Solution Items/">
+    <File Path=".gitignore" />
+    <File Path="claude.md" />
+    <File Path="Directory.Build.props" />
+    <File Path="dotnet-releaser.toml" />
+    <File Path="global.json" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Folder Name="/.Solution Items/.github/" />
+  <Folder Name="/.Solution Items/.github/workflows/">
+    <File Path=".github/workflows/ci.yml" />
+    <File Path=".github/workflows/publish-to-gh-pages.yml" />
+  </Folder>
+  <Folder Name="/docs/">
+    <Project Path="docs/MyLittleContentEngine.Docs/MyLittleContentEngine.Docs.csproj" />
+  </Folder>
+  <Folder Name="/examples/">
+    <File Path="examples/Directory.Build.props" />
+    <Project Path="examples/ApiReferenceExample/ApiReferenceExample.csproj" />
+    <Project Path="examples/BlogExample/BlogExample.csproj" />
+    <Project Path="examples/MinimalExample/MinimalExample.csproj" />
+    <Project Path="examples/MultipleContentSourceExample/MultipleContentSourceExample.csproj" />
+    <Project Path="examples/RecipeExample/RecipeExample.csproj" />
+    <Project Path="examples/RoslynIntegrationExample/RoslynIntegrationExample.csproj" />
+    <Project Path="examples/SearchExample/SearchExample.csproj" />
+    <Project Path="examples/Spectre.Console.Examples/Spectre.Console.Examples.csproj" />
+    <Project Path="examples/Spectre.Console/Spectre.Console.csproj" />
+    <Project Path="examples/UserInterfaceExample/UserInterfaceExample.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <File Path="src/Directory.Build.props" />
+    <Project Path="src/MyLittleContentEngine.BlogSite/MyLittleContentEngine.BlogSite.csproj" />
+    <Project Path="src/MyLittleContentEngine.DocSite/MyLittleContentEngine.DocSite.csproj" />
+    <Project Path="src/MyLittleContentEngine.MonorailCss/MyLittleContentEngine.MonorailCss.csproj" />
+    <Project Path="src/MyLittleContentEngine.UI/MyLittleContentEngine.UI.csproj" />
+    <Project Path="src/MyLittleContentEngine/MyLittleContentEngine.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/MyLittleContentEngine.IntegrationTests/MyLittleContentEngine.IntegrationTests.csproj" />
+    <Project Path="tests/MyLittleContentEngine.Tests/MyLittleContentEngine.Tests.csproj" />
+  </Folder>
+</Solution>

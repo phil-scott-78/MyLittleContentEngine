@@ -18,7 +18,7 @@ builder.Services.AddDocSite(_ => new DocSiteOptions()
     },
     GitHubUrl = "https://github.com/phil-scott-78/MyLittleContentEngine",
     CanonicalBaseUrl = Environment.GetEnvironmentVariable("CanonicalBaseUrl") ?? "https://phil-scott-78.github.io/MyLittleContentEngine/",
-    SolutionPath = "../../MyLittleContentEngine.sln",
+    SolutionPath = "../../MyLittleContentEngine.slnx",
     DisplayFontFamily = "Lexend, sans-serif",
     BodyFontFamily = "'Noto Sans', sans-serif",
     HeaderIcon = """
