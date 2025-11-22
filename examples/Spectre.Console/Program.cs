@@ -42,7 +42,7 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 })
 .WithConnectedRoslynSolution(_ => new CodeAnalysisOptions()
 {
-    SolutionPath = "../../MyLittleContentEngine.sln",
+    SolutionPath = "../../MyLittleContentEngine.slnx",
 })
 ;
 

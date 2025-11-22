@@ -27,7 +27,7 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
     .WithConnectedRoslynSolution(_ => new CodeAnalysisOptions()
     {
         // Add Roslyn service for documentation
-        SolutionPath = "../../MyLittleContentEngine.sln"
+        SolutionPath = "../../MyLittleContentEngine.slnx"
     });
 
 builder.Services.AddMonorailCss();

@@ -272,6 +272,21 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
                 _logger.LogTrace("Solution file changed but not the configured solution, ignoring: {Path}", path);
             }
         });
+        
+        _fileWatcher.AddPathWatch(solutionDir, "*.slnx", (path, changeType) =>
+        {
+            _logger.LogTrace("Solution file watcher triggered: {ChangeType} for {Path}", changeType, path);
+
+            if (path.Equals(_options.SolutionPath!.Value.Value, StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogDebug("Solution file changed: {Path}", path);
+                InvalidateSolution();
+            }
+            else
+            {
+                _logger.LogTrace("Solution file changed but not the configured solution, ignoring: {Path}", path);
+            }
+        });
 
         // Watch for C# source file changes - smart handling based on change type
         _fileWatcher.AddPathWatch(solutionDir, "*.cs", (path, changeType) =>

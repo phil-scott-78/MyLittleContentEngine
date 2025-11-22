@@ -17,7 +17,7 @@ builder.Services.AddDocSite(sp => new DocSiteOptions
 {
     SiteTitle = "My Docs",
     ContentRootPath = "content",
-    SolutionPath = "path/to/solution.sln", // Optional
+    SolutionPath = "path/to/solution.slnx", // Optional
 });
 
 var app = builder.Build();

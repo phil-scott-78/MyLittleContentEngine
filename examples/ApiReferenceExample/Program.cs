@@ -26,7 +26,7 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
     {
         // this is required if you are using the API content service
 
-        SolutionPath = "../../MyLittleContentEngine.sln"
+        SolutionPath = "../../MyLittleContentEngine.slnx"
     })
     .WithApiReferenceContentService(_ => new ApiReferenceContentOptions()
     {

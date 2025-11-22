@@ -138,7 +138,7 @@ public class ApiReferenceContentOptions : IContentOptions
     /// Gets or sets the path to the solution file for API extraction.
     /// </summary>
     /// <remarks>
-    /// This should be the full path to the .sln file to analyze for API documentation.
+    /// This should be the full path to the .sln or .slnx file to analyze for API documentation.
     /// If not provided, it will be obtained from RoslynHighlighterOptions.
     /// </remarks>
     public FilePath? SolutionPath { get; init; }

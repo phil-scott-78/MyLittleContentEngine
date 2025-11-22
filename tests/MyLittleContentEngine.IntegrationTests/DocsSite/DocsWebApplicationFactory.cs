@@ -39,7 +39,7 @@ public class DocsWebApplicationFactory : WebApplicationFactory<Program>
                     {
                         // Override the content root path to point to the test docs project
                         ContentRootPath = Path.Combine(docsProjectPath, "Content"),
-                        SolutionPath = Path.Combine(docsProjectPath, "..", "..", "MyLittleContentEngine.sln")
+                        SolutionPath = Path.Combine(docsProjectPath, "..", "..", "MyLittleContentEngine.slnx")
                     };
                 });
             }

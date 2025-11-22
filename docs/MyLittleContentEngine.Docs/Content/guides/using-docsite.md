@@ -143,7 +143,7 @@ builder.Services.AddDocSite(_ => new DocSiteOptions
     GitHubUrl = "https://github.com/myuser/myproject",
     
     // API Documentation (optional)
-    SolutionPath = "../../MySolution.sln",
+    SolutionPath = "../../MySolution.slnx",
     IncludeNamespaces = ["MyProject", "MyProject.Core"],
     ExcludeNamespaces = ["MyProject.Tests"],
     

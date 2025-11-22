@@ -10,7 +10,7 @@ public interface ISolutionWorkspaceService : IDisposable
     /// <summary>
     /// Loads a solution from the specified path
     /// </summary>
-    /// <param name="solutionPath">Path to the .sln file</param>
+    /// <param name="solutionPath">Path to the .sln or .slnx file</param>
     /// <returns>The loaded solution</returns>
     Task<Solution> LoadSolutionAsync(string solutionPath);
 
