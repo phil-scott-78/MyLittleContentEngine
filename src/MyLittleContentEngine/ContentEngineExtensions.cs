@@ -125,7 +125,7 @@ public static class ContentEngineExtensions
         services.AddSingleton<IContentEngineFileWatcher, ContentEngineFileWatcher>();
 
         // Register TextMate language registry and highlighter
-        services.AddSingleton(provider =>
+        services.AddTransient(provider =>
         {
             var options = provider.GetRequiredService<ContentEngineOptions>();
             return new TextMateLanguageRegistry(options.ConfigureTextMate);
@@ -133,7 +133,7 @@ public static class ContentEngineExtensions
         services.AddTransient<ITextMateHighlighter, TextMateHighlighter>();
 
         // Register code highlighter service
-        services.AddSingleton<ICodeHighlighter, CodeHighlighterService>();
+        services.AddTransient<ICodeHighlighter, CodeHighlighterService>();
 
         services.AddTransient<MarkdownParserService>();
         services.AddTransient<RoutesHelperService>();
@@ -317,7 +317,7 @@ public static class ContentEngineExtensions
         services.AddFileWatched<ApiReferenceContentService>();
 
         // Register as IContentService (this allows multiple IContentService implementations)
-        services.AddSingleton<IContentService>(provider => provider.GetRequiredService<ApiReferenceContentService>());
+        services.AddTransient<IContentService>(provider => provider.GetRequiredService<ApiReferenceContentService>());
 
         return services;
     }

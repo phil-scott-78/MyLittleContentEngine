@@ -22,6 +22,7 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
     private MSBuildWorkspace? _workspace;
     private Solution? _solution;
     private readonly ConcurrentDictionary<ProjectId, Compilation> _compilationCache = new();
+    private readonly ConcurrentQueue<string> _pendingUpdates = new();
     private bool _isDisposed;
 
     static SolutionWorkspaceService()
@@ -167,17 +168,23 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
 
     public void InvalidateSolution()
     {
-        _logger.LogTrace("InvalidateSolution called");
+        _logger.LogWarning("InvalidateSolution called - THIS WILL CLEAR {QueuedCount} PENDING UPDATES!", _pendingUpdates.Count);
 
         lock (_lock)
         {
             var cachedProjectCount = _compilationCache.Count;
-            _logger.LogTrace("Invalidating solution cache (clearing {Count} cached compilations)", cachedProjectCount);
+            var queuedCount = _pendingUpdates.Count;
+
+            _logger.LogTrace("Invalidating solution cache (clearing {Count} cached compilations, {QueuedCount} queued updates)",
+                cachedProjectCount, queuedCount);
 
             _solution = null;
             _workspace?.Dispose();
             _workspace = null;
             _compilationCache.Clear();
+
+            // Clear pending updates - they're no longer relevant
+            _pendingUpdates.Clear();
 
             _logger.LogTrace("Solution cache invalidated, workspace disposed");
         }
@@ -187,26 +194,60 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
     {
         _logger.LogTrace("UpdateDocument called for {FilePath}", filePath);
 
-        lock (_lock)
+        // Simply enqueue the file path for deferred processing
+        _pendingUpdates.Enqueue(filePath);
+
+        _logger.LogTrace("Enqueued document update for {FilePath} (queue depth: {Count})",
+            filePath, _pendingUpdates.Count);
+    }
+
+    private void ApplyPendingUpdates()
+    {
+        // IMPORTANT: Must be called within _lock
+
+        if (_solution == null)
         {
-            if (_solution == null)
-            {
-                _logger.LogTrace("Solution not loaded, skipping document update for {FilePath}", filePath);
-                return;
-            }
+            _logger.LogTrace("No solution loaded, clearing pending updates queue");
+            _pendingUpdates.Clear();
+            return;
+        }
 
-            var documentIds = _solution.GetDocumentIdsWithFilePath(filePath);
-            _logger.LogTrace("Found {Count} document(s) for {FilePath}", documentIds.Length, filePath);
+        if (_pendingUpdates.IsEmpty)
+        {
+            return; // Fast path - no updates pending
+        }
 
-            if (documentIds.IsEmpty)
-            {
-                _logger.LogTrace("File {FilePath} not found in solution, may be a new file", filePath);
-                return;
-            }
+        _logger.LogTrace("Applying {Count} pending document updates", _pendingUpdates.Count);
 
+        // Step 1: Dequeue all pending updates and deduplicate by file path
+        var updatesByPath = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
+
+        while (_pendingUpdates.TryDequeue(out var filePath))
+        {
+            updatesByPath[filePath] = true; // Last write wins (latest entry kept)
+        }
+
+        _logger.LogTrace("Deduplicated to {Count} unique file(s)", updatesByPath.Count);
+
+        // Step 2: Apply updates to solution
+        var updatedSolution = _solution;
+        var invalidatedProjects = new HashSet<ProjectId>();
+        var successCount = 0;
+
+        foreach (var filePath in updatesByPath.Keys)
+        {
             try
             {
-                // Use FileShare.ReadWrite to allow reading even when file is locked by editor
+                // Find documents for this file path
+                var documentIds = _solution.GetDocumentIdsWithFilePath(filePath);
+
+                if (documentIds.IsEmpty)
+                {
+                    _logger.LogTrace("File {FilePath} not found in solution during deferred update", filePath);
+                    continue;
+                }
+
+                // Read file content with sharing enabled (file may be locked by editor)
                 using var fileStream = new FileStream(
                     filePath,
                     FileMode.Open,
@@ -214,30 +255,59 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
                     FileShare.ReadWrite);
                 using var reader = new StreamReader(fileStream, System.Text.Encoding.UTF8);
                 var fileContent = reader.ReadToEnd();
-                var newText = Microsoft.CodeAnalysis.Text.SourceText.From(fileContent, System.Text.Encoding.UTF8);
+                var newText = Microsoft.CodeAnalysis.Text.SourceText.From(
+                    fileContent, System.Text.Encoding.UTF8);
 
-                var updatedSolution = _solution;
-
+                // Apply update to all documents with this file path
                 foreach (var docId in documentIds)
                 {
                     var document = _solution.GetDocument(docId);
                     var projectName = document?.Project.Name ?? "Unknown";
 
-                    _logger.LogTrace("Updating document in project {ProjectName} for {FilePath}", projectName, filePath);
-                    updatedSolution = updatedSolution.WithDocumentText(docId, newText);
+                    _logger.LogTrace("Applying deferred update to document in project {ProjectName} for {FilePath}",
+                        projectName, filePath);
 
-                    _compilationCache.TryRemove(docId.ProjectId, out _);
-                    _logger.LogTrace("Invalidated compilation cache for project {ProjectName} ({ProjectId})", projectName, docId.ProjectId);
+                    updatedSolution = updatedSolution.WithDocumentText(docId, newText);
+                    invalidatedProjects.Add(docId.ProjectId);
                 }
 
-                _solution = updatedSolution;
-                _logger.LogTrace("Successfully updated {Count} document(s) in-memory for {FilePath}", documentIds.Length, filePath);
+                successCount++;
+            }
+            catch (FileNotFoundException)
+            {
+                _logger.LogTrace("File {FilePath} not found during update (may have been deleted)", filePath);
+                // Not an error - file may have been deleted between queue and processing
             }
             catch (Exception ex)
             {
-                _logger.LogTrace(ex, "Failed to update document {FilePath}, falling back to full solution invalidation", filePath);
-                InvalidateSolution();
+                _logger.LogWarning(ex, "Failed to apply deferred update for {FilePath}, will invalidate solution", filePath);
+
+                // On any unexpected failure, invalidate entire solution for safety
+                _solution = null;
+                _workspace?.Dispose();
+                _workspace = null;
+                _compilationCache.Clear();
+                return;
             }
+        }
+
+        // Step 3: Commit the batched update
+        if (successCount > 0)
+        {
+            _solution = updatedSolution;
+
+            // Invalidate compilation cache for affected projects
+            foreach (var projectId in invalidatedProjects)
+            {
+                _compilationCache.TryRemove(projectId, out _);
+            }
+
+            _logger.LogTrace("Successfully applied {Count} deferred document update(s), invalidated {ProjectCount} project compilation(s)",
+                successCount, invalidatedProjects.Count);
+        }
+        else
+        {
+            _logger.LogTrace("No updates were successfully applied");
         }
     }
 

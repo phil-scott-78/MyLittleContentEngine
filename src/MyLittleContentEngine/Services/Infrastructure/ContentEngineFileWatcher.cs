@@ -150,7 +150,6 @@ public sealed class ContentEngineFileWatcher : IDisposable, IContentEngineFileWa
 
     private static void OnUpdate()
     {
-        Console.WriteLine("OnUpdate");
         foreach (var action in UpdateActions)
         {
             action.Invoke();
