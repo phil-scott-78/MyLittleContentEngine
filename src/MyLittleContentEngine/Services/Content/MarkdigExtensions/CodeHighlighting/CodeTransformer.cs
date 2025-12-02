@@ -1,5 +1,6 @@
 ﻿using AngleSharp.Dom;
 using AngleSharp.Html.Parser;
+using MyLittleContentEngine.Services.Content.CodeAnalysis.Extensions;
 
 namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
 
@@ -35,6 +36,7 @@ internal static class CodeTransformer
         var lineElements = StructureCodeIntoLines(codeElement);
         if (lineElements.Count == 0) return highlightedHtml;
 
+        var snippetDirectives = new List<(int LineNumber, DirectiveMatch Directive)>();
         var transformations = new List<LineTransformation>();
 
         for (var i = 0; i < lineElements.Count; i++)
@@ -45,8 +47,14 @@ internal static class CodeTransformer
 
             if (directive != null)
             {
+                // Handle snippet directives
+                if (IsSnippetDirective(directive.Notation))
+                {
+                    snippetDirectives.Add((i, directive));
+                    RemoveDirectiveFromLine(lineElement, directive, lineText);
+                }
                 // Handle word highlighting
-                if (directive.Notation.StartsWith("word:", StringComparison.OrdinalIgnoreCase))
+                else if (directive.Notation.StartsWith("word:", StringComparison.OrdinalIgnoreCase))
                 {
                     var wordInfo = ParseWordHighlight(directive.Notation);
                     if (wordInfo != null)
@@ -70,9 +78,25 @@ internal static class CodeTransformer
             }
         }
 
+        // Process snippet directives (validate and remove lines)
+        if (snippetDirectives.Count > 0)
+        {
+            var validationResult = ValidateAndBuildSnippetRegions(snippetDirectives);
+            if (validationResult.IsValid)
+            {
+                var linesToRemove = DetermineLinesToRemove(lineElements.Count, validationResult.Regions);
+                RemoveLinesFromDom(lineElements, linesToRemove);
+                transformations = AdjustTransformationsAfterLineRemoval(transformations, linesToRemove);
+            }
+        }
+
         ApplyTransformationsToDom(preElement, lineElements, transformations);
 
-        return preElement.OuterHtml;
+        // Normalize indents by removing common leading whitespace
+        NormalizeLineIndents(lineElements);
+
+        var transformedHtml = preElement.OuterHtml;
+        return transformedHtml;
     }
 
     /// <summary>
@@ -612,6 +636,114 @@ internal static class CodeTransformer
         }
     }
 
+    /// <summary>
+    /// Normalizes indentation across all line elements by finding and removing common leading whitespace.
+    /// This method operates on the DOM structure and preserves empty lines (lines containing only whitespace).
+    /// </summary>
+    /// <param name="lineElements">List of line span elements to normalize</param>
+    /// <remarks>
+    /// This is specifically designed for HTML line elements and works by:
+    /// 1. Finding the minimum indent (leading spaces) across all non-empty lines
+    /// 2. Removing that amount of leading spaces from each non-empty line
+    /// 3. Preserving empty lines as-is (typically "  " from StructureCodeIntoLines)
+    /// Unlike TextFormatter.NormalizeIndents which works on plain text, this method
+    /// operates on DOM elements and is HTML-aware.
+    /// </remarks>
+    private static void NormalizeLineIndents(List<IElement> lineElements)
+    {
+        if (lineElements.Count == 0)
+            return;
+
+        // Find minimum indent across all non-empty lines
+        var minIndent = int.MaxValue;
+        var hasNonEmptyLine = false;
+
+        foreach (var lineElement in lineElements)
+        {
+            var textContent = lineElement.TextContent;
+
+            // Skip empty lines (preserve as-is)
+            if (string.IsNullOrWhiteSpace(textContent))
+                continue;
+
+            // Count leading spaces
+            var leadingSpaces = 0;
+            while (leadingSpaces < textContent.Length && textContent[leadingSpaces] == ' ')
+            {
+                leadingSpaces++;
+            }
+
+            if (leadingSpaces < minIndent)
+            {
+                minIndent = leadingSpaces;
+            }
+            hasNonEmptyLine = true;
+        }
+
+        // No normalization needed
+        if (!hasNonEmptyLine || minIndent == 0 || minIndent == int.MaxValue)
+            return;
+
+        // Remove common indent from each non-empty line
+        foreach (var lineElement in lineElements)
+        {
+            var textContent = lineElement.TextContent;
+
+            // Skip empty lines
+            if (string.IsNullOrWhiteSpace(textContent))
+                continue;
+
+            RemoveLeadingSpaces(lineElement, minIndent);
+        }
+    }
+
+    /// <summary>
+    /// Removes specified number of leading spaces from a line element's content.
+    /// Handles both plain text (single text node) and syntax-highlighted (multi-node) content.
+    /// </summary>
+    /// <param name="lineElement">The line element to process</param>
+    /// <param name="count">Number of leading spaces to remove</param>
+    private static void RemoveLeadingSpaces(IElement lineElement, int count)
+    {
+        // Simple case: single text node
+        if (lineElement.ChildNodes.Length == 1 && lineElement.FirstChild is IText singleTextNode)
+        {
+            var text = singleTextNode.Text;
+            var spacesToRemove = Math.Min(count, text.Length);
+            singleTextNode.TextContent = text.Substring(spacesToRemove);
+            return;
+        }
+
+        // Complex case: syntax highlighting with multiple nodes
+        // Remove spaces from first text content encountered
+        var spacesRemaining = count;
+
+        foreach (var node in lineElement.ChildNodes)
+        {
+            if (spacesRemaining == 0)
+                break;
+
+            if (node is IText textNode)
+            {
+                var text = textNode.Text;
+                var toRemove = Math.Min(spacesRemaining, text.Length);
+                textNode.TextContent = text.Substring(toRemove);
+                spacesRemaining -= toRemove;
+            }
+            else if (node is IElement elementNode)
+            {
+                var firstText = elementNode.ChildNodes.OfType<IText>().FirstOrDefault();
+                if (firstText != null)
+                {
+                    var text = firstText.Text;
+                    var toRemove = Math.Min(spacesRemaining, text.Length);
+                    firstText.TextContent = text.Substring(toRemove);
+                    spacesRemaining -= toRemove;
+                }
+            }
+        }
+    }
+
     private static string? GetCssClassForNotation(string notation) => notation switch
     {
         "highlight" or "hl" => "highlight",
@@ -623,9 +755,191 @@ internal static class CodeTransformer
         _ => null
     };
 
+    private static bool IsSnippetDirective(string notation)
+    {
+        var lower = notation.ToLowerInvariant();
+        return lower is "include-start" or "include-end" or "exclude-start" or "exclude-end";
+    }
+
+    private static SnippetValidationResult ValidateAndBuildSnippetRegions(
+        List<(int LineNumber, DirectiveMatch Directive)> snippetDirectives)
+    {
+        var regions = new List<SnippetRegion>();
+        var includeStack = new Stack<int>();
+        var excludeStack = new Stack<int>();
+
+        foreach (var (lineNumber, directive) in snippetDirectives)
+        {
+            var notation = directive.Notation.ToLowerInvariant();
+
+            switch (notation)
+            {
+                case "include-start":
+                    if (includeStack.Count > 0)
+                    {
+                        return new SnippetValidationResult(
+                            [],
+                            false,
+                            $"Nested include regions are not allowed. Found include-start at line {lineNumber + 1} inside another include region starting at line {includeStack.Peek() + 1}.",
+                            lineNumber);
+                    }
+                    includeStack.Push(lineNumber);
+                    break;
+
+                case "include-end":
+                    if (includeStack.Count == 0) continue; // Unmatched - ignore
+                    var includeStart = includeStack.Pop();
+                    regions.Add(new SnippetRegion(includeStart, lineNumber, SnippetRegionType.Include));
+                    break;
+
+                case "exclude-start":
+                    if (excludeStack.Count > 0)
+                    {
+                        return new SnippetValidationResult(
+                            [],
+                            false,
+                            $"Nested exclude regions are not allowed. Found exclude-start at line {lineNumber + 1} inside another exclude region starting at line {excludeStack.Peek() + 1}.",
+                            lineNumber);
+                    }
+                    excludeStack.Push(lineNumber);
+                    break;
+
+                case "exclude-end":
+                    if (excludeStack.Count == 0) continue; // Unmatched - ignore
+                    var excludeStart = excludeStack.Pop();
+                    regions.Add(new SnippetRegion(excludeStart, lineNumber, SnippetRegionType.Exclude));
+                    break;
+            }
+        }
+
+        // Unmatched starts are silently ignored
+        return new SnippetValidationResult(regions, true, null, null);
+    }
+
+    private static HashSet<int> DetermineLinesToRemove(
+        int totalLineCount,
+        List<SnippetRegion> regions)
+    {
+        if (regions.Count == 0)
+            return new HashSet<int>();
+
+        var includeRegions = regions.Where(r => r.Type == SnippetRegionType.Include).ToList();
+        var excludeRegions = regions.Where(r => r.Type == SnippetRegionType.Exclude).ToList();
+
+        var linesToRemove = new HashSet<int>();
+
+        // Include mode: mark all lines for removal, then keep only included lines (excluding markers)
+        if (includeRegions.Count > 0)
+        {
+            for (var i = 0; i < totalLineCount; i++)
+            {
+                linesToRemove.Add(i);
+            }
+
+            foreach (var region in includeRegions)
+            {
+                // Keep lines between markers (exclusive of marker lines themselves)
+                for (var i = region.StartLine + 1; i < region.EndLine; i++)
+                {
+                    linesToRemove.Remove(i);
+                }
+            }
+        }
+
+        // Exclude mode: mark excluded lines for removal (including markers)
+        foreach (var region in excludeRegions)
+        {
+            // Remove marker lines and lines between them
+            for (var i = region.StartLine; i <= region.EndLine; i++)
+            {
+                linesToRemove.Add(i);
+            }
+        }
+
+        // Include mode also needs to remove marker lines
+        foreach (var region in includeRegions)
+        {
+            linesToRemove.Add(region.StartLine);
+            linesToRemove.Add(region.EndLine);
+        }
+
+        return linesToRemove;
+    }
+
+    private static void RemoveLinesFromDom(List<IElement> lineElements,
+        HashSet<int> linesToRemove)
+    {
+        if (linesToRemove.Count == 0)
+            return;
+
+        // Remove in reverse order to maintain indices
+        for (var i = lineElements.Count - 1; i >= 0; i--)
+        {
+            if (linesToRemove.Contains(i))
+            {
+                var lineElement = lineElements[i];
+
+                // Remove the newline after this line (if it exists)
+                var nextSibling = lineElement.NextSibling;
+                if (nextSibling is IText textNode && textNode.Text == "\n")
+                {
+                    textNode.Remove();
+                }
+
+                // Remove the line element
+                lineElement.Remove();
+                lineElements.RemoveAt(i);
+            }
+        }
+    }
+
+    private static List<LineTransformation> AdjustTransformationsAfterLineRemoval(
+        List<LineTransformation> transformations,
+        HashSet<int> removedLines)
+    {
+        if (removedLines.Count == 0)
+            return transformations;
+
+        var sortedRemovedLines = removedLines.OrderBy(x => x).ToList();
+        var adjusted = new List<LineTransformation>();
+
+        foreach (var transformation in transformations)
+        {
+            // Skip transformations for removed lines
+            if (removedLines.Contains(transformation.LineNumber))
+                continue;
+
+            // Calculate new line number
+            var linesBefore = sortedRemovedLines.Count(r => r < transformation.LineNumber);
+            var newLineNumber = transformation.LineNumber - linesBefore;
+
+            adjusted.Add(new LineTransformation
+            {
+                LineNumber = newLineNumber,
+                Notation = transformation.Notation
+            });
+        }
+
+        return adjusted;
+    }
+
     private sealed class LineTransformation
     {
         public int LineNumber { get; init; }
         public string Notation { get; init; } = string.Empty;
     }
+
+    private record SnippetRegion(int StartLine, int EndLine, SnippetRegionType Type);
+
+    private enum SnippetRegionType
+    {
+        Include,
+        Exclude
+    }
+
+    private record SnippetValidationResult(
+        List<SnippetRegion> Regions,
+        bool IsValid,
+        string? ErrorMessage,
+        int? ErrorLine);
 }
