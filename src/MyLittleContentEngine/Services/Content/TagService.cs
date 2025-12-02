@@ -73,7 +73,6 @@ public class TagService<TFrontMatter>
                 .Where(tag => !string.IsNullOrWhiteSpace(tag))
                 .ToArray();
 
-            _logger.LogTrace("Extracted {Count} tags from front matter", validTags.Length);
             return validTags.Select(BuildTag).ToImmutableList();
         }
         catch (Exception ex) when (ex is not ArgumentException)
@@ -104,7 +103,6 @@ public class TagService<TFrontMatter>
                 .DistinctBy(tag => tag.EncodedName)
                 .ToList();
 
-            _logger.LogTrace("Found {Count} unique tags across all content pages", uniqueTags.Count);
             return uniqueTags;
         }
         catch (Exception ex)

@@ -40,7 +40,7 @@ internal sealed class FileWatchDependencyFactory<T> : IDisposable where T : clas
         // Subscribe to file changes for invalidation
         fileWatcher.SubscribeToChanges(InvalidateInstance);
         
-        _logger.LogDebug("FileWatchDependencyFactory<{ServiceType}> initialized with file-watch invalidation",
+        _logger.LogTrace("FileWatchDependencyFactory<{ServiceType}> initialized with file-watch invalidation",
             typeof(T).Name);
     }
 
@@ -74,14 +74,14 @@ internal sealed class FileWatchDependencyFactory<T> : IDisposable where T : clas
         {
             if (_disposed || _instance == null) return;
 
-            _logger.LogDebug("Invalidating {ServiceType} instance due to file change", typeof(T).Name);
+            _logger.LogTrace("Invalidating {ServiceType} instance due to file change", typeof(T).Name);
             DisposeCurrentInstance();
         }
     }
 
     private void CreateNewInstance()
     {
-        _logger.LogDebug("Creating new {ServiceType} instance", typeof(T).Name);
+        _logger.LogTrace("Creating new {ServiceType} instance", typeof(T).Name);
         
         // The factory function handles creating the instance without circular dependencies
         _instance = _serviceFactory(_serviceProvider);
@@ -94,7 +94,7 @@ internal sealed class FileWatchDependencyFactory<T> : IDisposable where T : clas
             try
             {
                 disposableInstance.Dispose();
-                _logger.LogDebug("Disposed {ServiceType} instance", typeof(T).Name);
+                _logger.LogTrace("Disposed {ServiceType} instance", typeof(T).Name);
             }
             catch (Exception ex)
             {
@@ -120,6 +120,6 @@ internal sealed class FileWatchDependencyFactory<T> : IDisposable where T : clas
             _disposed = true;
         }
 
-        _logger.LogDebug("FileWatchDependencyFactory<{ServiceType}> disposed", typeof(T).Name);
+        _logger.LogTrace("FileWatchDependencyFactory<{ServiceType}> disposed", typeof(T).Name);
     }
 }

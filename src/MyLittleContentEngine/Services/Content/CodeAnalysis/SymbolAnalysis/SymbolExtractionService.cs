@@ -36,7 +36,7 @@ internal class SymbolExtractionService : ISymbolExtractionService
 
     public async Task<IReadOnlyDictionary<string, SymbolInfo>> ExtractSymbolsAsync(Solution solution)
     {
-        _logger.LogInformation("Extracting symbols from solution");
+        _logger.LogDebug("Extracting symbols from solution");
 
         var symbols = new ConcurrentDictionary<string, SymbolInfo>();
         var projects = await _workspaceService.GetProjectsAsync();
@@ -53,7 +53,7 @@ internal class SymbolExtractionService : ISymbolExtractionService
             }
         });
 
-        _logger.LogInformation("Extracted {Count} symbols from solution", symbols.Count);
+        _logger.LogDebug("Extracted {Count} symbols from solution", symbols.Count);
         return symbols;
     }
 

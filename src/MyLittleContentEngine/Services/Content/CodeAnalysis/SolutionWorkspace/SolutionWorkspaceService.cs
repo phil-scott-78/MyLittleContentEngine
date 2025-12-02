@@ -74,7 +74,7 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
             }
         }
 
-        _logger.LogInformation("Loading solution from {SolutionPath}", solutionPath);
+        _logger.LogDebug("Loading solution from {SolutionPath}", solutionPath);
 
         // Configure MSBuild properties to use temp folder for build artifacts
         var properties = new Dictionary<string, string>
@@ -103,7 +103,7 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
                 _compilationCache.Clear();
             }
 
-            _logger.LogInformation("Successfully loaded solution with {ProjectCount} projects", solution.Projects.Count());
+            _logger.LogDebug("Successfully loaded solution with {ProjectCount} projects", solution.Projects.Count());
             return solution;
         }
         catch (Exception ex)

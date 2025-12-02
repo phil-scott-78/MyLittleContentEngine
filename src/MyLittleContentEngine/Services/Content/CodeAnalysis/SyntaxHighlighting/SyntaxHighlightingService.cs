@@ -60,7 +60,7 @@ internal class SyntaxHighlightingService : ISyntaxHighlightingService
 
         try
         {
-            _logger.LogDebug("Highlighting symbol {XmlDocId}, bodyOnly: {BodyOnly}", xmlDocId, bodyOnly);
+            _logger.LogTrace("Highlighting symbol {XmlDocId}, bodyOnly: {BodyOnly}", xmlDocId, bodyOnly);
 
             var code = await _symbolService.ExtractCodeFragmentAsync(xmlDocId, bodyOnly);
             if (string.IsNullOrEmpty(code))
