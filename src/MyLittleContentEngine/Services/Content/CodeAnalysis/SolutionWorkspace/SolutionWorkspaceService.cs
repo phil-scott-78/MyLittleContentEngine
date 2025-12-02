@@ -69,6 +69,7 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
         {
             if (_solution != null && _workspace != null)
             {
+                ApplyPendingUpdates();
                 return _solution;
             }
         }
