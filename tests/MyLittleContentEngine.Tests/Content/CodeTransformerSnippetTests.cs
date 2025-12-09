@@ -1,4 +1,3 @@
-using MyLittleContentEngine.Services;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
 using Shouldly;
 
