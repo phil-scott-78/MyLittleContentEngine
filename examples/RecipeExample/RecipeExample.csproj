@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="CooklangSharp" Version="0.0.0-alpha.0.8" />
+    <PackageReference Include="CooklangSharp" Version="0.0.0-alpha.0.9" />
     <PackageReference Include="Fractions" Version="8.3.2" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.11" />
     <PackageReference Include="Testably.Abstractions" Version="9.0.0" />

@@ -10,6 +10,6 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MonorailCss" Version="0.0.5-alpha.0.31" />
+    <PackageReference Include="MonorailCss" Version="0.0.5-alpha.0.33" />
   </ItemGroup>
 </Project>
