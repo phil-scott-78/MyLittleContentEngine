@@ -231,8 +231,6 @@ public record ContentEngineOptions
             .UseAutoLinks()
             .UseGenericAttributes()
             .UseDiagrams()
-            .UseCustomAlertBlocks()
-            .UseCustomContainers()
             .UseSyntaxHighlighting(codeHighlighter, roslynHighlighterOptions?.CodeHighlightRenderOptionsFactory)
             .UseTabbedCodeBlocks(roslynHighlighterOptions?.TabbedCodeBlockRenderOptionsFactory)
             .UseYamlFrontMatter();

@@ -1,5 +1,4 @@
 ﻿using Markdig;
-using MyLittleContentEngine.Services.Content.MarkdigExtensions.AlertBlock;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions.Tabs;
 
@@ -32,17 +31,6 @@ internal static class MarkdownPipelineBuilderExtensions
         Func<TabbedCodeBlockRenderOptions>? options)
     {
         markdownPipelineBuilder.Extensions.AddIfNotAlready(new TabbedCodeBlocksExtension(options));
-        return markdownPipelineBuilder;
-    }
-
-    /// <summary>
-    /// Adds support for custom alert blocks to the specified Markdig pipeline.
-    /// </summary>
-    /// <param name="markdownPipelineBuilder">The <see cref="MarkdownPipelineBuilder"/> to which the custom alert extension will be added.</param>
-    /// <returns>The <paramref name="markdownPipelineBuilder"/> after the custom alert extension has been added.</returns>
-    public static MarkdownPipelineBuilder UseCustomAlertBlocks(this MarkdownPipelineBuilder markdownPipelineBuilder)
-    {
-        markdownPipelineBuilder.Extensions.AddIfNotAlready(new CustomAlertExtension());
         return markdownPipelineBuilder;
     }
 }

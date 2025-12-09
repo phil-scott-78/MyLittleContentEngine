@@ -466,14 +466,14 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
             .AddRange(new Dictionary<string, string>
             {
                 // Markdig Alert Styles
-                { ".markdown-alert", "my-6 p-4 flex flex-row gap-2.5 rounded-2xl border text-sm" },
+                { ".markdown-alert", "my-6 p-4 flex flex-row gap-2.5 rounded-2xl border text-sm items-center" },
                 { ".markdown-alert a", "underline" },
                 { ".markdown-alert-note", string.Format(alertFormatString, "emerald") },
                 { ".markdown-alert-tip", string.Format(alertFormatString, "blue") },
                 { ".markdown-alert-caution", string.Format(alertFormatString, "amber") },
                 { ".markdown-alert-warning", string.Format(alertFormatString, "rose") },
                 { ".markdown-alert-important", string.Format(alertFormatString, "sky") },
-                { ".markdown-alert-title span", "hidden" },
+                { ".markdown-alert-title", "text-[0px]" },
                 { ".markdown-alert svg", "h-4 w-4 mt-0.5" },
             });
     }
