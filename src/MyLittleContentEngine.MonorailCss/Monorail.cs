@@ -407,20 +407,10 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 },
                 {
                     ".code-highlight-wrapper .word-highlight-message",
-                    "font-sans font-semilight tracking-loose absolute top-full left-0 mt-3 px-2 py-1 text-xs text-base-800 bg-base-200/25 dark:bg-base-700/10 dark:text-base-400 rounded border border-base-500/50 whitespace-nowrap z-10 select-none pointer-events-none"
+                    "font-sans font-semilight tracking-loose absolute top-full left-0 mt-3 px-2 py-1 text-xs text-base-800 bg-base-200/25 dark:bg-primary-700/20 dark:text-primary-200 rounded border border-primary-500/50 whitespace-nowrap z-10 select-none pointer-events-none"
                 },
-                {
-                    ".word-highlight-arrow-container",
-                    "absolute -top-1.5 left-10 transform -translate-x-1/2"
-                },
-                {
-                    ".word-highlight-arrow-outer",
-                    "w-0 h-0 border-l-6 border-r-6 border-b-6 border-l-transparent border-r-transparent border-b-base-500/50"
-                },
-                {
-                    ".word-highlight-arrow-inner",
-                    "absolute w-0 h-0 border-l-5 border-r-5 border-b-5 border-l-transparent border-r-transparent border-b-base-200/25 dark:border-b-base-700/10 top-0 left-1/2 transform -translate-x-1/2"
-                },
+
+
                 {
                     ".code-highlight-wrapper .word-highlight-message::selection",
                     "bg-transparent"
