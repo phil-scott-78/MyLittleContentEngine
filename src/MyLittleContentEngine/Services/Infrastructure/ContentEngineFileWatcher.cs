@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.IO.Abstractions;
 using System.Reflection.Metadata;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using MyLittleContentEngine.Services.Infrastructure;
 
@@ -45,16 +46,37 @@ public sealed class ContentEngineFileWatcher : IDisposable, IContentEngineFileWa
     private readonly IFileSystem _fileSystem;
     private readonly ILogger? _logger;
     private bool _disposed;
+    private readonly string? _tempFilePath;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ContentEngineFileWatcher"/> class.
     /// </summary>
     /// <param name="fileSystem">The file system.</param>
+    /// <param name="webHostEnvironment">The web host environment.</param>
     /// <param name="logger">Optional logger for diagnostic information.</param>
-    public ContentEngineFileWatcher(IFileSystem fileSystem, ILogger? logger = null)
+    public ContentEngineFileWatcher(IFileSystem fileSystem, IWebHostEnvironment webHostEnvironment, ILogger? logger = null)
     {
         _fileSystem = fileSystem;
         _logger = logger;
+
+        // there's a bug in .net 10 that doesn't refresh on hot reload when the content being updated
+        // is a content file outside of wwwroot. we'll force the issue by writing to a temp file in wwwroot
+        // to keep things working.
+        if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("DOTNET_WATCH")) ||
+            !_fileSystem.Directory.Exists(webHostEnvironment.WebRootPath))
+        {
+            return;
+        }
+
+        _tempFilePath = _fileSystem.Path.Combine(webHostEnvironment.WebRootPath, ".hotreload.tmp");
+
+        UpdateActions.Add(() =>
+        {
+            if (_tempFilePath != null)
+            {
+                _fileSystem.File.WriteAllText(_tempFilePath, "This file is used to force hot reload to work :-/." + DateTime.Now.ToLongDateString());
+            }
+        });
     }
 
     /// <summary>
@@ -179,6 +201,18 @@ public sealed class ContentEngineFileWatcher : IDisposable, IContentEngineFileWa
 
             _watchers.Clear();
             UpdateActions.Clear();
+
+            if (_tempFilePath != null && _fileSystem.File.Exists(_tempFilePath))
+            {
+                try
+                {
+                    _fileSystem.File.Delete(_tempFilePath);
+                }
+                catch
+                {
+                    // we did our best
+                }
+            }
         }
 
         _disposed = true;
