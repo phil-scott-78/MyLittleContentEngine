@@ -100,7 +100,7 @@ internal class SymbolExtractionService : ISymbolExtractionService
             // Filter for only whitespace trivia
             var whitespaceTrivia = leadingTrivia
                 .Reverse() // start from closest to the node
-                .TakeWhile(t => t.IsKind(SyntaxKind.WhitespaceTrivia))
+                .TakeWhile(t => Microsoft.CodeAnalysis.CSharpExtensions.IsKind(t, SyntaxKind.WhitespaceTrivia))
                 .Reverse()
                 .ToList();
 
