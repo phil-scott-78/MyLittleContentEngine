@@ -778,9 +778,7 @@ internal static class CodeTransformer
                     {
                         return new SnippetValidationResult(
                             [],
-                            false,
-                            $"Nested include regions are not allowed. Found include-start at line {lineNumber + 1} inside another include region starting at line {includeStack.Peek() + 1}.",
-                            lineNumber);
+                            false);
                     }
                     includeStack.Push(lineNumber);
                     break;
@@ -796,9 +794,7 @@ internal static class CodeTransformer
                     {
                         return new SnippetValidationResult(
                             [],
-                            false,
-                            $"Nested exclude regions are not allowed. Found exclude-start at line {lineNumber + 1} inside another exclude region starting at line {excludeStack.Peek() + 1}.",
-                            lineNumber);
+                            false);
                     }
                     excludeStack.Push(lineNumber);
                     break;
@@ -812,7 +808,7 @@ internal static class CodeTransformer
         }
 
         // Unmatched starts are silently ignored
-        return new SnippetValidationResult(regions, true, null, null);
+        return new SnippetValidationResult(regions, true);
     }
 
     private static HashSet<int> DetermineLinesToRemove(
@@ -938,7 +934,5 @@ internal static class CodeTransformer
 
     private record SnippetValidationResult(
         List<SnippetRegion> Regions,
-        bool IsValid,
-        string? ErrorMessage,
-        int? ErrorLine);
+        bool IsValid);
 }
