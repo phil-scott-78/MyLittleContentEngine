@@ -1,6 +1,6 @@
 # Services/Content/TableOfContents
 
-Table of contents generation, hierarchical navigation tree building, breadcrumb navigation, and page sequencing for content sites.
+Table of contents generation, hierarchical navigation tree building, breadcrumb navigation, page sequencing, and folder metadata management for content sites.
 
 ## Files
 
@@ -41,7 +41,7 @@ Table of contents generation, hierarchical navigation tree building, breadcrumb 
 - **SelectionStateCalculator** - Static utility for determining if a navigation node should be marked as selected
 
 ### TableOfContentService.cs
-- **TableOfContentService** - Main implementation of ITableOfContentService that builds hierarchical navigation from content services
+- **TableOfContentService** - Main implementation of ITableOfContentService that builds hierarchical navigation from content services with integrated folder metadata discovery from `_index.metadata.yml` files
 
 ### TreeNode.cs
 - **TreeNode** - Internal record representing a tree node in the navigation hierarchy with children, page data, and metadata

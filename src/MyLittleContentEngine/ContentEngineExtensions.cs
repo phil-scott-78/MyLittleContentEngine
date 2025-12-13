@@ -150,9 +150,6 @@ public static class ContentEngineExtensions
         // Register XrefResolver with file-watch invalidation
         configuredServices.AddFileWatched<IXrefResolver, XrefResolver>();
 
-        // Register FolderMetadataService with file-watch invalidation
-        configuredServices.AddFileWatched<FolderMetadataService>();
-
         configuredServices.AddFileWatched<ITableOfContentService, TableOfContentService>();
 
         return configuredServices;

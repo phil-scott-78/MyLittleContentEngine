@@ -103,10 +103,11 @@ public static class ServiceMockFactory
     }
 
     /// <summary>
-    /// Creates a FolderMetadataService for testing with an empty file system.
+    /// Creates a mock TableOfContentService with predefined content services.
     /// </summary>
-    /// <returns>A FolderMetadataService that returns null for all lookups.</returns>
-    internal static FolderMetadataService CreateFolderMetadataService()
+    /// <param name="contentServices">Array of content services to include.</param>
+    /// <returns>A configured TableOfContentService.</returns>
+    internal static TableOfContentService CreateTableOfContentService(params IContentService[] contentServices)
     {
         var fileSystem = new MockFileSystem();
         var fileSystemUtilities = new FileSystemUtilities(fileSystem);
@@ -115,25 +116,15 @@ public static class ServiceMockFactory
             SiteTitle = "Test Site",
             SiteDescription = "Test Description"
         };
-        var logger = NullLogger<FolderMetadataService>.Instance;
+        var logger = NullLogger<TableOfContentService>.Instance;
 
-        return new FolderMetadataService(
+        return new TableOfContentService(
+            contentServices.ToList(),
             Array.Empty<IContentOptions>(),
             contentEngineOptions,
             fileSystemUtilities,
             fileSystem,
             logger);
-    }
-
-    /// <summary>
-    /// Creates a mock TableOfContentService with predefined content services.
-    /// </summary>
-    /// <param name="contentServices">Array of content services to include.</param>
-    /// <returns>A configured TableOfContentService.</returns>
-    internal static TableOfContentService CreateTableOfContentService(params IContentService[] contentServices)
-    {
-        var folderMetadataService = CreateFolderMetadataService();
-        return new TableOfContentService(contentServices.ToList(), folderMetadataService);
     }
 
     /// <summary>

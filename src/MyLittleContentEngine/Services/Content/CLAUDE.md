@@ -11,9 +11,6 @@ Content processing services for Markdown, Razor pages, and API reference documen
 ### ContentFilesService.cs
 - **ContentFilesService&lt;TFrontMatter&gt;** - Service for handling content file operations including file discovery, URL creation, and content copying
 
-### FolderMetadataService.cs
-- **FolderMetadataService** - Service for discovering and managing folder-level metadata files (`_index.metadata.yml`) to enable custom display names and ordering in navigation
-
 ### IContentService.cs
 - **IContentService** - Interface defining the contract for content services responsible for parsing and handling content (pages, TOC, cross-references, etc.)
 
