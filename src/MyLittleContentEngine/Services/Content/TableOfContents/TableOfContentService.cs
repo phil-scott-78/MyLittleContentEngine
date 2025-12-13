@@ -369,6 +369,10 @@ internal class TableOfContentService : ITableOfContentService
                     // Build the relative folder path from content root
                     var relativePath = _fileSystem.Path.GetRelativePath(contentRoot, currentDirectory);
 
+                    // Normalize path separators immediately for cross-platform consistency
+                    // Path.GetRelativePath may return different separators on different platforms
+                    relativePath = relativePath.Replace('\\', '/');
+
                     // Combine base segment with relative path to create cache key that matches lookup paths
                     var cacheKey = string.IsNullOrEmpty(baseSegment)
                         ? NormalizeFolderPath(relativePath)
