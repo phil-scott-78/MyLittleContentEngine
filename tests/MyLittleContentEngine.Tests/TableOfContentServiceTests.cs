@@ -618,7 +618,7 @@ public class TableOfContentServiceTests
     public async Task GetNavigationTocAsync_WithFolderMetadata_AppliesMetadataToFolderNames()
     {
         // Arrange - Create a content service with BasePageUrl and ContentPath
-        var fileSystem = new Testably.Abstractions.Testing.MockFileSystem();
+        var fileSystem = new Testably.Abstractions.Testing.MockFileSystem(options => options.SimulatingOperatingSystem(Testably.Abstractions.Testing.SimulationMode.Windows));
         var contentPath = fileSystem.Path.GetFullPath("Content/console");
 
         // Create metadata file for the "how-to" folder

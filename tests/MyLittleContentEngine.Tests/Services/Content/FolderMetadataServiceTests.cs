@@ -42,7 +42,7 @@ public class FolderMetadataServiceTests
 
     private static void CreateMetadataFile(MockFileSystem fileSystem, string path, string title, int order)
     {
-        var directory = Path.GetDirectoryName(path)!;
+        var directory = fileSystem.Path.GetDirectoryName(path)!;
         fileSystem.Directory.CreateDirectory(directory);
 
         var yamlContent = $"""
@@ -57,7 +57,7 @@ public class FolderMetadataServiceTests
     public async Task GetFolderMetadata_WithBasePageUrl_ReturnsCachedMetadataWithCorrectKey()
     {
         // Arrange
-        var fileSystem = new MockFileSystem();
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Windows));
         var contentPath = fileSystem.Path.GetFullPath("Content/console");
 
         CreateMetadataFile(
@@ -81,7 +81,7 @@ public class FolderMetadataServiceTests
     public async Task GetFolderMetadata_WithEmptyBasePageUrl_UsesRelativePathOnly()
     {
         // Arrange
-        var fileSystem = new MockFileSystem();
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Windows));
         var contentPath = fileSystem.Path.GetFullPath("Content");
 
         CreateMetadataFile(
@@ -105,7 +105,7 @@ public class FolderMetadataServiceTests
     public async Task GetFolderMetadata_MultipleServicesWithSameFolderNames_DifferentiatesByBasePageUrl()
     {
         // Arrange
-        var fileSystem = new MockFileSystem();
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Windows));
         var consolePath = fileSystem.Path.GetFullPath("Content/console");
         var cliPath = fileSystem.Path.GetFullPath("Content/cli");
 
@@ -144,7 +144,7 @@ public class FolderMetadataServiceTests
     public async Task GetFolderMetadata_WithMultiSegmentBasePageUrl_CreatesCorrectCacheKey()
     {
         // Arrange
-        var fileSystem = new MockFileSystem();
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Windows));
         var contentPath = fileSystem.Path.GetFullPath("Content/docs/api");
 
         CreateMetadataFile(
@@ -168,7 +168,7 @@ public class FolderMetadataServiceTests
     public async Task GetFolderMetadata_WithNestedFolders_WorksCorrectly()
     {
         // Arrange
-        var fileSystem = new MockFileSystem();
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Windows));
         var contentPath = fileSystem.Path.GetFullPath("Content/console");
 
         CreateMetadataFile(
@@ -192,7 +192,7 @@ public class FolderMetadataServiceTests
     public async Task GetFolderMetadata_CaseInsensitiveLookup_ReturnsMetadata()
     {
         // Arrange
-        var fileSystem = new MockFileSystem();
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Windows));
         var contentPath = fileSystem.Path.GetFullPath("Content/console");
 
         CreateMetadataFile(
@@ -223,7 +223,7 @@ public class FolderMetadataServiceTests
     public async Task GetFolderMetadata_NonExistentFolder_ReturnsNull()
     {
         // Arrange
-        var fileSystem = new MockFileSystem();
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Windows));
         var contentPath = fileSystem.Path.GetFullPath("Content/console");
         fileSystem.Directory.CreateDirectory(contentPath);
 
@@ -240,7 +240,7 @@ public class FolderMetadataServiceTests
     public async Task GetFolderMetadata_EmptyMetadataFile_ReturnsNull()
     {
         // Arrange
-        var fileSystem = new MockFileSystem();
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Windows));
         var contentPath = fileSystem.Path.GetFullPath("Content/console");
         var metadataPath = fileSystem.Path.Combine(contentPath, "how-to/_index.metadata.yml");
 
@@ -260,7 +260,7 @@ public class FolderMetadataServiceTests
     public async Task GetFolderMetadata_MalformedYaml_ReturnsNull()
     {
         // Arrange
-        var fileSystem = new MockFileSystem();
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Windows));
         var contentPath = fileSystem.Path.GetFullPath("Content/console");
         var metadataPath = fileSystem.Path.Combine(contentPath, "how-to/_index.metadata.yml");
 
@@ -280,7 +280,7 @@ public class FolderMetadataServiceTests
     public async Task GetFolderMetadata_SkipsBuildAndNodeModulesDirectories()
     {
         // Arrange
-        var fileSystem = new MockFileSystem();
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Windows));
         var contentPath = fileSystem.Path.GetFullPath("Content/console");
 
         // Create metadata in bin, obj, and node_modules folders (should be skipped)
@@ -319,7 +319,7 @@ public class FolderMetadataServiceTests
     public async Task GetFolderMetadata_WithNonExistentContentRoot_HandlesGracefully()
     {
         // Arrange
-        var fileSystem = new MockFileSystem();
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Windows));
         var contentPath = fileSystem.Path.GetFullPath("Content/NonExistent");
         // Don't create the directory
 
