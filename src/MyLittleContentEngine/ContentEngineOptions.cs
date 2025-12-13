@@ -137,6 +137,7 @@ public record ContentEngineOptions
     [
         new("**/*.razor"),
         new("**/*.razor.metadata.yml"),
+        new("**/_index.metadata.yml"),
         new("**/*.md"),
         new("**/*.mdx")
     ];

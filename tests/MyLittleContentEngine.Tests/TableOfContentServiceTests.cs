@@ -1,7 +1,9 @@
 ﻿using System.Collections.Immutable;
 using MyLittleContentEngine.Models;
+using MyLittleContentEngine.Services;
 using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Content.TableOfContents;
+using MyLittleContentEngine.Tests.TestHelpers;
 using Shouldly;
 
 namespace MyLittleContentEngine.Tests;
@@ -117,7 +119,7 @@ public class TableOfContentServiceTests
     public async Task GetNavigationTocAsync_WithEmptyContentServices_ReturnsEmptyList()
     {
         // Arrange
-        var service = new TableOfContentService([]);
+        var service = ServiceMockFactory.CreateTableOfContentService();
 
         // Act
         var result = await service.GetNavigationTocAsync("/current");
@@ -132,7 +134,7 @@ public class TableOfContentServiceTests
         // Arrange
         var contentService = new TestContentService(("Home", "index", 1));
         var contentServices = new List<IContentService> { contentService };
-        var service = new TableOfContentService(contentServices);
+        var service = ServiceMockFactory.CreateTableOfContentService(contentServices.ToArray());
 
         // Act
         var result = await service.GetNavigationTocAsync("/index");
@@ -157,7 +159,7 @@ public class TableOfContentServiceTests
             ("Second", "second", 2)
         );
         var contentServices = new List<IContentService> { contentService };
-        var service = new TableOfContentService(contentServices);
+        var service = ServiceMockFactory.CreateTableOfContentService(contentServices.ToArray());
 
         // Act
         var result = await service.GetNavigationTocAsync("/current");
@@ -185,7 +187,7 @@ public class TableOfContentServiceTests
             ("Contact", "contact", 4)
         );
         var contentServices = new List<IContentService> { contentService };
-        var service = new TableOfContentService(contentServices);
+        var service = ServiceMockFactory.CreateTableOfContentService(contentServices.ToArray());
 
         // Act
         var result = await service.GetNavigationTocAsync("/current");
@@ -209,7 +211,7 @@ public class TableOfContentServiceTests
             ("History", "about/history", 2)
         );
         var contentServices = new List<IContentService> { contentService };
-        var service = new TableOfContentService(contentServices);
+        var service = ServiceMockFactory.CreateTableOfContentService(contentServices.ToArray());
 
         // Act
         var result = await service.GetNavigationTocAsync("/current");
@@ -234,7 +236,7 @@ public class TableOfContentServiceTests
             ("Contact", "contact", 3)
         );
         var contentServices = new List<IContentService> { contentService };
-        var service = new TableOfContentService(contentServices);
+        var service = ServiceMockFactory.CreateTableOfContentService(contentServices.ToArray());
 
         // Act
         var result = await service.GetNavigationTocAsync("/about");
@@ -255,7 +257,7 @@ public class TableOfContentServiceTests
             ("History", "about/history", 3)
         );
         var contentServices = new List<IContentService> { contentService };
-        var service = new TableOfContentService(contentServices);
+        var service = ServiceMockFactory.CreateTableOfContentService(contentServices.ToArray());
 
         // Act
         var result = await service.GetNavigationTocAsync("/about/team");
@@ -281,7 +283,7 @@ public class TableOfContentServiceTests
         // Create a custom IContentService that returns the specific pages for this test
         var customContentService = new TestContentServiceWithSpecificPages(pages.ToImmutableList());
         var contentServices = new List<IContentService> { customContentService };
-        var service = new TableOfContentService(contentServices);
+        var service = ServiceMockFactory.CreateTableOfContentService(contentServices.ToArray());
 
         // Act
         var result = await service.GetNavigationTocAsync("/current");
@@ -309,7 +311,7 @@ public class TableOfContentServiceTests
         var contentService1 = new TestContentService(("Home", "index", 1));
         var contentService2 = new TestContentService2(("About", "about", 2));
         var contentServices = new List<IContentService> { contentService1, contentService2 };
-        var service = new TableOfContentService(contentServices);
+        var service = ServiceMockFactory.CreateTableOfContentService(contentServices.ToArray());
 
         // Act
         var result = await service.GetNavigationTocAsync("/current");
@@ -328,7 +330,7 @@ public class TableOfContentServiceTests
         var contentService2 = new ConsoleContentService(("Console Home", "/console-home", 1), ("Console Guide", "/console-guide", 2));
         var contentService3 = new TestContentService(("Global Page", "/global", 1)); // No section
         var contentServices = new List<IContentService> { contentService1, contentService2, contentService3 };
-        var service = new TableOfContentService(contentServices);
+        var service = ServiceMockFactory.CreateTableOfContentService(contentServices.ToArray());
 
         // Act
         var webResult = await service.GetNavigationTocAsync("/current", "Web");
@@ -356,7 +358,7 @@ public class TableOfContentServiceTests
     {
         // Arrange - Test item-level section override
         var contentService = new TestContentServiceWithItemSection();
-        var service = new TableOfContentService([contentService]);
+        var service = ServiceMockFactory.CreateTableOfContentService(contentService);
 
         // Act
         var webResult = await service.GetNavigationTocAsync("/current", "Web");
@@ -377,7 +379,7 @@ public class TableOfContentServiceTests
         var contentService1 = new WebContentService(("Web Page 1", "/web/page1", 1), ("Web Page 2", "/web/page2", 2));
         var contentService2 = new ConsoleContentService(("Console Page 1", "/console/page1", 1), ("Console Page 2", "/console/page2", 2));
         var contentServices = new List<IContentService> { contentService1, contentService2 };
-        var service = new TableOfContentService(contentServices);
+        var service = ServiceMockFactory.CreateTableOfContentService(contentServices.ToArray());
 
         // Act
         var webResult = await service.GetNextPreviousAsync("/web/page1", "Web");
@@ -402,7 +404,7 @@ public class TableOfContentServiceTests
         var contentService3 = new TestContentService(("Global Page", "/global", 1)); // No section (empty string)
         var contentService4 = new TestContentServiceWithItemSection(); // Mixed sections
         var contentServices = new List<IContentService> { contentService1, contentService2, contentService3, contentService4 };
-        var service = new TableOfContentService(contentServices);
+        var service = ServiceMockFactory.CreateTableOfContentService(contentServices.ToArray());
 
         // Act
         var sections = await service.GetSectionsAsync();
@@ -419,7 +421,7 @@ public class TableOfContentServiceTests
     {
         // Arrange
         var contentService = new TestContentService(("Global Page 1", "/global1", 1), ("Global Page 2", "/global2", 2));
-        var service = new TableOfContentService([contentService]);
+        var service = ServiceMockFactory.CreateTableOfContentService(contentService);
 
         // Act
         var sections = await service.GetSectionsAsync();
@@ -436,7 +438,7 @@ public class TableOfContentServiceTests
         var contentService1 = new WebContentService(("Web Page 1", "/web1", 1), ("Web Page 2", "/web2", 2));
         var contentService2 = new WebContentService2(("Web Page 3", "/web3", 1)); // Same section as service1 but different service type
         var contentServices = new List<IContentService> { contentService1, contentService2 };
-        var service = new TableOfContentService(contentServices);
+        var service = ServiceMockFactory.CreateTableOfContentService(contentServices.ToArray());
 
         // Act
         var sections = await service.GetSectionsAsync();
@@ -456,7 +458,7 @@ public class TableOfContentServiceTests
             ("API Reference", "/docs/api", 3)
         );
         var contentServices = new List<IContentService> { contentService };
-        var service = new TableOfContentService(contentServices);
+        var service = ServiceMockFactory.CreateTableOfContentService(contentServices.ToArray());
 
         // Act
         var result = await service.GetNavigationTocAsync("/current");
@@ -475,7 +477,7 @@ public class TableOfContentServiceTests
         // Arrange
         var contentService = new TestContentService(("Home", "index", 1));
         var contentServices = new List<IContentService> { contentService };
-        var service = new TableOfContentService(contentServices);
+        var service = ServiceMockFactory.CreateTableOfContentService(contentServices.ToArray());
 
         // Act - Test different URL formats that should all match the index page
         var resultWithSlash = await service.GetNavigationTocAsync("/");
@@ -500,7 +502,7 @@ public class TableOfContentServiceTests
             ("API", "api", 30)
         );
         var contentServices = new List<IContentService> { contentService };
-        var service = new TableOfContentService(contentServices);
+        var service = ServiceMockFactory.CreateTableOfContentService(contentServices.ToArray());
 
         // Act
         var result = await service.GetNavigationTocAsync("/current");
@@ -526,7 +528,7 @@ public class TableOfContentServiceTests
             ("API Reference", "api--reference/page2", 2)
         );
         var contentServices = new List<IContentService> { contentService };
-        var service = new TableOfContentService(contentServices);
+        var service = ServiceMockFactory.CreateTableOfContentService(contentServices.ToArray());
 
         // Act
         var result = await service.GetNavigationTocAsync("/current");
@@ -547,7 +549,7 @@ public class TableOfContentServiceTests
             ("Level 3", "level1/level2/level3/page", 3)
         );
         var contentServices = new List<IContentService> { contentService };
-        var service = new TableOfContentService(contentServices);
+        var service = ServiceMockFactory.CreateTableOfContentService(contentServices.ToArray());
 
         // Act
         var result = await service.GetNavigationTocAsync("/current");
@@ -577,7 +579,7 @@ public class TableOfContentServiceTests
             ("Third", "third", -1)
         );
         var contentServices = new List<IContentService> { contentService };
-        var service = new TableOfContentService(contentServices);
+        var service = ServiceMockFactory.CreateTableOfContentService(contentServices.ToArray());
 
         // Act
         var result = await service.GetNavigationTocAsync("/current");
@@ -601,7 +603,7 @@ public class TableOfContentServiceTests
         
         var customContentService = new TestContentServiceWithSpecificPages(pages.ToImmutableList());
         var contentServices = new List<IContentService> { customContentService };
-        var service = new TableOfContentService(contentServices);
+        var service = ServiceMockFactory.CreateTableOfContentService(contentServices.ToArray());
 
         // Act
         var result = await service.GetNavigationTocAsync("/current");
@@ -610,5 +612,104 @@ public class TableOfContentServiceTests
         result.Count.ShouldBe(2);
         result[0].Name.ShouldBe("First");
         result[1].Name.ShouldBe("Last");
+    }
+
+    [Fact]
+    public async Task GetNavigationTocAsync_WithFolderMetadata_AppliesMetadataToFolderNames()
+    {
+        // Arrange - Create a content service with BasePageUrl and ContentPath
+        var fileSystem = new Testably.Abstractions.Testing.MockFileSystem();
+        var contentPath = fileSystem.Path.GetFullPath("Content/console");
+
+        // Create metadata file for the "how-to" folder
+        var metadataPath = fileSystem.Path.Combine(contentPath, "how-to/_index.metadata.yml");
+        fileSystem.Directory.CreateDirectory(fileSystem.Path.GetDirectoryName(metadataPath)!);
+        fileSystem.File.WriteAllText(metadataPath, """
+            title: How-To Guides
+            order: 5
+            """);
+
+        // Create a test content service that implements both IContentService and IContentOptions
+        var testContentService = new TestContentServiceWithOptions(
+            contentPath,
+            "/console",
+            ("Getting Started", "/console/how-to/getting-started", 10),
+            ("Advanced Topics", "/console/how-to/advanced", 20)
+        );
+
+        // Create FolderMetadataService with the file system and content options
+        var fileSystemUtilities = new MyLittleContentEngine.Services.Infrastructure.FileSystemUtilities(fileSystem);
+        var contentEngineOptions = new ContentEngineOptions
+        {
+            SiteTitle = "Test Site",
+            SiteDescription = "Test Description"
+        };
+        var logger = Microsoft.Extensions.Logging.Abstractions.NullLogger<FolderMetadataService>.Instance;
+        var folderMetadataService = new FolderMetadataService(
+            [testContentService],
+            contentEngineOptions,
+            fileSystemUtilities,
+            fileSystem,
+            logger);
+
+        // Create TableOfContentService with the content service and folder metadata service
+        var tableOfContentService = new TableOfContentService([testContentService], folderMetadataService);
+
+        // Act
+        var result = await tableOfContentService.GetNavigationTocAsync("/console/how-to/getting-started");
+
+        // Assert
+        result.Count.ShouldBe(1);
+        var consoleNode = result[0];
+        consoleNode.Name.ShouldBe("Console"); // Folder name
+        consoleNode.Items.ShouldNotBeEmpty();
+        consoleNode.Items.Count().ShouldBe(1);
+
+        var howToNode = consoleNode.Items.First();
+        howToNode.Name.ShouldBe("How-To Guides"); // From metadata file, not "How To" from folder name
+        howToNode.Order.ShouldBe(5); // From metadata file
+        howToNode.Items.Count().ShouldBe(2);
+        howToNode.Items.ElementAt(0).Name.ShouldBe("Getting Started");
+        howToNode.Items.ElementAt(1).Name.ShouldBe("Advanced Topics");
+    }
+
+    private class TestContentServiceWithOptions : IContentService, IContentOptions
+    {
+        private readonly ImmutableList<PageToGenerate> _pages;
+        private readonly FilePath _contentPath;
+        private readonly UrlPath _basePageUrl;
+
+        public TestContentServiceWithOptions(string contentPath, string basePageUrl, params (string title, string url, int order)[] pages)
+        {
+            _contentPath = new FilePath(contentPath);
+            _basePageUrl = new UrlPath(basePageUrl);
+            _pages = pages.Select(p => new PageToGenerate(
+                p.url,
+                p.url,
+                new Metadata { Title = p.title, Order = p.order })).ToImmutableList();
+        }
+
+        // IContentService implementation
+        public int SearchPriority { get; } = 0;
+        public Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync() => Task.FromResult(_pages);
+        public Task<ImmutableList<ContentTocItem>> GetContentTocEntriesAsync() =>
+            Task.FromResult(_pages.Where(p => p.Metadata?.Title != null)
+                .Select(p => new ContentTocItem(p.Metadata!.Title!, p.Url, p.Metadata.Order, p.Url.GetSegments()))
+                .ToImmutableList());
+        public Task<ImmutableList<ContentToCopy>> GetContentToCopyAsync() => Task.FromResult(ImmutableList<ContentToCopy>.Empty);
+        public Task<ImmutableList<CrossReference>> GetCrossReferencesAsync() => Task.FromResult(ImmutableList<CrossReference>.Empty);
+
+        // IContentOptions implementation
+        public FilePath ContentPath
+        {
+            get => _contentPath;
+            init;
+        }
+
+        public UrlPath BasePageUrl
+        {
+            get => _basePageUrl;
+            init;
+        }
     }
 }

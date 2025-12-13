@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Content.TableOfContents;
+using MyLittleContentEngine.Tests.TestHelpers;
 using Moq;
 using Shouldly;
 
@@ -22,7 +23,7 @@ public class NavigationInfoTests
             )
         );
 
-        var tableOfContentService = new TableOfContentService([mockContentService.Object]);
+        var tableOfContentService = ServiceMockFactory.CreateTableOfContentService(mockContentService.Object);
 
         // Act
         var navigationInfo = await tableOfContentService.GetNavigationInfoAsync("/cli/advanced/configuration");
@@ -73,7 +74,7 @@ public class NavigationInfoTests
             )
         );
 
-        var tableOfContentService = new TableOfContentService([mockContentService.Object]);
+        var tableOfContentService = ServiceMockFactory.CreateTableOfContentService(mockContentService.Object);
 
         // Act
         var navigationInfo = await tableOfContentService.GetNavigationInfoAsync("/nonexistent/page");
@@ -94,7 +95,7 @@ public class NavigationInfoTests
             )
         );
 
-        var tableOfContentService = new TableOfContentService([mockContentService.Object]);
+        var tableOfContentService = ServiceMockFactory.CreateTableOfContentService(mockContentService.Object);
 
         // Act
         var navigationInfo = await tableOfContentService.GetNavigationInfoAsync("/");
@@ -128,7 +129,7 @@ public class NavigationInfoTests
             )
         );
 
-        var tableOfContentService = new TableOfContentService([mockApiService.Object]);
+        var tableOfContentService = ServiceMockFactory.CreateTableOfContentService(mockApiService.Object);
 
         // Act
         var apiInfo = await tableOfContentService.GetNavigationInfoAsync("/api/reference");
@@ -150,7 +151,7 @@ public class NavigationInfoTests
             )
         );
 
-        var tableOfContentService = new TableOfContentService([mockFaqService.Object]);
+        var tableOfContentService = ServiceMockFactory.CreateTableOfContentService(mockFaqService.Object);
 
         // Act
         var faqInfo = await tableOfContentService.GetNavigationInfoAsync("/faq/common");
@@ -176,7 +177,7 @@ public class NavigationInfoTests
             )
         );
 
-        var tableOfContentService = new TableOfContentService([mockContentService.Object]);
+        var tableOfContentService = ServiceMockFactory.CreateTableOfContentService(mockContentService.Object);
 
         // Act
         var navigationInfo = await tableOfContentService.GetNavigationInfoAsync("/cli/how-to/working-with-multiple-command-hierarchies");
@@ -207,7 +208,7 @@ public class NavigationInfoTests
             )
         );
 
-        var tableOfContentService = new TableOfContentService([mockContentService.Object]);
+        var tableOfContentService = ServiceMockFactory.CreateTableOfContentService(mockContentService.Object);
 
         // Act - Navigate to the section index page
         var navigationInfo = await tableOfContentService.GetNavigationInfoAsync("/console");
@@ -239,7 +240,7 @@ public class NavigationInfoTests
             )
         );
 
-        var tableOfContentService = new TableOfContentService([mockContentService.Object]);
+        var tableOfContentService = ServiceMockFactory.CreateTableOfContentService(mockContentService.Object);
 
         // Act - First page
         var firstPageInfo = await tableOfContentService.GetNavigationInfoAsync("/docs/intro");

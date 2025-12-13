@@ -4,7 +4,9 @@ using System.Globalization;
 
 namespace MyLittleContentEngine.Services.Content.TableOfContents;
 
-internal class TableOfContentService(IEnumerable<IContentService> contentServices) : ITableOfContentService
+internal class TableOfContentService(
+    IEnumerable<IContentService> contentServices,
+    FolderMetadataService folderMetadataService) : ITableOfContentService
 {
     private readonly ConcurrentDictionary<Type, IContentService> _contentServices =
         new(contentServices.ToDictionary(service => service.GetType(), service => service));
@@ -143,8 +145,35 @@ internal class TableOfContentService(IEnumerable<IContentService> contentService
             currentNode.IsIndex = string.Equals(lastSegment, "index", StringComparison.OrdinalIgnoreCase);
         }
 
+        // Enrich tree with folder metadata
+        await EnrichTreeWithFolderMetadata(root, string.Empty);
+
         // Build the top‐level entries from the root node
         return BuildEntries(root, currentUrl).ToImmutableList();
+    }
+
+    /// <summary>
+    /// Recursively enriches the tree with folder metadata from _index.metadata.yml files.
+    /// </summary>
+    /// <param name="node">The current tree node.</param>
+    /// <param name="currentPath">The accumulated path from the root to this node.</param>
+    private async Task EnrichTreeWithFolderMetadata(TreeNode node, string currentPath)
+    {
+        // Get folder metadata for this path
+        if (!string.IsNullOrEmpty(currentPath))
+        {
+            node.FolderMetadata = await folderMetadataService.GetFolderMetadata(currentPath);
+        }
+
+        // Recursively enrich children with updated path
+        foreach (var child in node.Children.Values)
+        {
+            var childPath = string.IsNullOrEmpty(currentPath)
+                ? child.Segment
+                : $"{currentPath}/{child.Segment}";
+
+            await EnrichTreeWithFolderMetadata(child, childPath);
+        }
     }
 
     private static async Task<List<PageWithOrder>> GetPageTitlesWithOrderAsync(ICollection<IContentService> services,

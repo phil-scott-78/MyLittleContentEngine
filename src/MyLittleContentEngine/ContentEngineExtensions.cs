@@ -137,7 +137,7 @@ public static class ContentEngineExtensions
 
         services.AddTransient<MarkdownParserService>();
         services.AddTransient<RoutesHelperService>();
-        services.AddSingleton<IFileSystem>(new RealFileSystem());
+        services.AddTransient<IFileSystem, RealFileSystem>();
         services.AddTransient<FileSystemUtilities>();
         services.AddSyntaxHighlightingService();
 
@@ -149,6 +149,10 @@ public static class ContentEngineExtensions
         
         // Register XrefResolver with file-watch invalidation
         configuredServices.AddFileWatched<IXrefResolver, XrefResolver>();
+
+        // Register FolderMetadataService with file-watch invalidation
+        configuredServices.AddFileWatched<FolderMetadataService>();
+
         configuredServices.AddFileWatched<ITableOfContentService, TableOfContentService>();
 
         return configuredServices;
@@ -184,27 +188,9 @@ public static class ContentEngineExtensions
     /// Requires IContentEngineFileWatcher to be registered first.
     /// </remarks>
     public static IConfiguredContentEngineServiceCollection AddFileWatched<T>(
-        this IConfiguredContentEngineServiceCollection services, 
-        ServiceLifetime lifetime = ServiceLifetime.Transient) where T : class
+        this IConfiguredContentEngineServiceCollection services) where T : class
     {
-        // Register the factory as singleton
-        services.AddSingleton<FileWatchDependencyFactory<T>>(provider =>
-        {
-            var fileWatcher = provider.GetRequiredService<IContentEngineFileWatcher>();
-            var logger = provider.GetRequiredService<ILogger<FileWatchDependencyFactory<T>>>();
-            
-            // Create a factory function that creates instances using ActivatorUtilities
-            Func<IServiceProvider, T> serviceFactory = serviceProvider =>
-                ActivatorUtilities.CreateInstance<T>(serviceProvider);
-            
-            return new FileWatchDependencyFactory<T>(fileWatcher, serviceFactory, provider, logger);
-        });
-
-        // Register the service as singleton, retrieved through the factory
-        services.AddSingleton<T>(provider =>
-            provider.GetRequiredService<FileWatchDependencyFactory<T>>().GetInstance());
-
-        return services;
+        return services.AddFileWatched<T, T>();
     }
 
     /// <summary>

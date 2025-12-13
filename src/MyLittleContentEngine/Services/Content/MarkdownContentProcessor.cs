@@ -65,7 +65,11 @@ internal class MarkdownContentProcessor<TFrontMatter>
             var contentPath = _markdownContentOptions.ContentPath.Value;
             
             // Parse the file patterns from PostFilePattern (e.g., "*.md;*.mdx")
-            var patterns = _markdownContentOptions.PostFilePattern.Split(';', StringSplitOptions.RemoveEmptyEntries);
+            var patterns = _markdownContentOptions
+                .PostFilePattern
+                .Split(';', StringSplitOptions.RemoveEmptyEntries)
+                .Append("*.yml")
+                .ToHashSet();
             
             foreach (var pattern in patterns)
             {

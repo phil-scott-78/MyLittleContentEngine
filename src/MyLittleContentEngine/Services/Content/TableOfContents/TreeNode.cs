@@ -1,3 +1,5 @@
+using MyLittleContentEngine.Models;
+
 namespace MyLittleContentEngine.Services.Content.TableOfContents;
 
 internal record TreeNode
@@ -11,4 +13,5 @@ internal record TreeNode
     public string? Title { get; set; }
     public string? Url { get; set; }
     public int Order { get; set; }
+    public Metadata? FolderMetadata { get; set; }
 }

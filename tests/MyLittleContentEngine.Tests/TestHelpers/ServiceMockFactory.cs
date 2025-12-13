@@ -1,9 +1,13 @@
 using System.Collections.Immutable;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Content.TableOfContents;
 using MyLittleContentEngine.Services.Generation;
+using MyLittleContentEngine.Services.Infrastructure;
+using Testably.Abstractions.Testing;
 
 namespace MyLittleContentEngine.Tests.TestHelpers;
 
@@ -99,13 +103,37 @@ public static class ServiceMockFactory
     }
 
     /// <summary>
+    /// Creates a FolderMetadataService for testing with an empty file system.
+    /// </summary>
+    /// <returns>A FolderMetadataService that returns null for all lookups.</returns>
+    internal static FolderMetadataService CreateFolderMetadataService()
+    {
+        var fileSystem = new MockFileSystem();
+        var fileSystemUtilities = new FileSystemUtilities(fileSystem);
+        var contentEngineOptions = new ContentEngineOptions
+        {
+            SiteTitle = "Test Site",
+            SiteDescription = "Test Description"
+        };
+        var logger = NullLogger<FolderMetadataService>.Instance;
+
+        return new FolderMetadataService(
+            Array.Empty<IContentOptions>(),
+            contentEngineOptions,
+            fileSystemUtilities,
+            fileSystem,
+            logger);
+    }
+
+    /// <summary>
     /// Creates a mock TableOfContentService with predefined content services.
     /// </summary>
     /// <param name="contentServices">Array of content services to include.</param>
     /// <returns>A configured TableOfContentService.</returns>
     internal static TableOfContentService CreateTableOfContentService(params IContentService[] contentServices)
     {
-        return new TableOfContentService(contentServices.ToList());
+        var folderMetadataService = CreateFolderMetadataService();
+        return new TableOfContentService(contentServices.ToList(), folderMetadataService);
     }
 
     /// <summary>

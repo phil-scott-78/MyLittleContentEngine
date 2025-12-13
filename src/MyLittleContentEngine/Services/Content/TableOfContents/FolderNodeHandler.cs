@@ -55,20 +55,40 @@ internal class FolderNodeHandler : NavigationNodeHandler
 
     private static NavigationTreeItem BuildStandardFolder(TreeNode node, NavigationTreeItem[] children)
     {
-        var folderOrder = children.Length != 0
-            ? children.Min(e => e.Order)
-            : int.MaxValue;
+        var folderOrder = node.FolderMetadata?.Order ??
+            (children.Length != 0 ? children.Min(e => e.Order) : int.MaxValue);
 
         var anyDescendantSelected = children.Any(e => e.IsSelected);
 
         return new NavigationTreeItem
         {
-            Name = FolderToTitle(node),
+            Name = GetFolderTitle(node),
             Href = null,
             Items = children,
             Order = folderOrder,
             IsSelected = anyDescendantSelected
         };
+    }
+
+    private static string GetFolderTitle(TreeNode node)
+    {
+        // Priority 1: Folder metadata (_index.metadata.yml Title property)
+        if (node.FolderMetadata?.Title != null)
+        {
+            return node.FolderMetadata.Title;
+        }
+
+        // Priority 2: Index.md frontmatter (check for index child with Title)
+        var indexChild = node.Children.Values
+            .FirstOrDefault(child => child is { IsIndex: true, HasPage: true, Title: not null });
+
+        if (indexChild?.Title != null)
+        {
+            return indexChild.Title;
+        }
+
+        // Priority 3: Folder name conversion (existing behavior)
+        return FolderToTitle(node);
     }
 
     private static string FolderToTitle(TreeNode node)
