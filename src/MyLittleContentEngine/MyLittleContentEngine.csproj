@@ -29,8 +29,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="System.ServiceModel.Syndication" Version="10.0.1" />
-    <PackageReference Include="Testably.Abstractions" Version="9.0.0" />
-    <PackageReference Include="Testably.Abstractions.Interface" Version="9.0.0" />
+    <PackageReference Include="Testably.Abstractions" Version="10.0.0" />
+    <PackageReference Include="Testably.Abstractions.Interface" Version="10.0.0" />
     <PackageReference Include="TextMateSharp" Version="1.0.70" />
     <PackageReference Include="TextMateSharp.Grammars" Version="1.0.70" />
     <PackageReference Include="YamlDotNet" Version="16.3.0" />
