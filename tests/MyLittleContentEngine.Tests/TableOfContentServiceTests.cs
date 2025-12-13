@@ -676,13 +676,11 @@ public class TableOfContentServiceTests
     private class TestContentServiceWithOptions : IContentService, IContentOptions
     {
         private readonly ImmutableList<PageToGenerate> _pages;
-        private readonly FilePath _contentPath;
-        private readonly UrlPath _basePageUrl;
 
         public TestContentServiceWithOptions(string contentPath, string basePageUrl, params (string title, string url, int order)[] pages)
         {
-            _contentPath = new FilePath(contentPath);
-            _basePageUrl = new UrlPath(basePageUrl);
+            ContentPath = new FilePath(contentPath);
+            BasePageUrl = new UrlPath(basePageUrl);
             _pages = pages.Select(p => new PageToGenerate(
                 p.url,
                 p.url,
@@ -700,16 +698,8 @@ public class TableOfContentServiceTests
         public Task<ImmutableList<CrossReference>> GetCrossReferencesAsync() => Task.FromResult(ImmutableList<CrossReference>.Empty);
 
         // IContentOptions implementation
-        public FilePath ContentPath
-        {
-            get => _contentPath;
-            init;
-        }
+        public FilePath ContentPath { get; init; }
 
-        public UrlPath BasePageUrl
-        {
-            get => _basePageUrl;
-            init;
-        }
+        public UrlPath BasePageUrl { get; init; }
     }
 }
