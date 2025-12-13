@@ -4,6 +4,9 @@ Table of contents generation, hierarchical navigation tree building, breadcrumb 
 
 ## Files
 
+### BreadcrumbBuilder.cs
+- **BreadcrumbBuilder** - Builds breadcrumb navigation trails from root to current page with support for home, section, hierarchy, and current page items
+
 ### BreadcrumbItem.cs
 - **BreadcrumbItem** - Represents a single item in a breadcrumb navigation trail with name, URL, and current state
 
@@ -33,6 +36,9 @@ Table of contents generation, hierarchical navigation tree building, breadcrumb 
 
 ### PageNodeHandler.cs
 - **PageNodeHandler** - Handles building navigation items for regular page nodes with selection state calculation
+
+### NextPreviousNavigationCalculator.cs
+- **NextPreviousNavigationCalculator** - Static helper for calculating previous and next navigation items in a sequential page list
 
 ### PageWithOrder.cs
 - **PageWithOrder** - Internal record holding page data with title, URL, order, and hierarchy parts for TOC building

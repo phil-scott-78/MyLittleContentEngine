@@ -53,31 +53,7 @@ internal class TableOfContentService : ITableOfContentService
             return (null, null);
         }
 
-        var previous = allPages
-            .Where(p => p.Order < currentPage.Order)
-            .OrderByDescending(p => p.Order)
-            .FirstOrDefault();
-
-        var next = allPages
-            .Where(p => p.Order > currentPage.Order)
-            .OrderBy(p => p.Order)
-            .FirstOrDefault();
-
-        return (AsNavigationTreeItem(previous), AsNavigationTreeItem(next));
-
-        NavigationTreeItem? AsNavigationTreeItem(PageWithOrder? page)
-        {
-            if (page == null) return null;
-
-            return new NavigationTreeItem
-            {
-                Name = page.PageTitle,
-                Href = page.Url.StartsWith('/') ? page.Url : '/' + page.Url,
-                Order = page.Order,
-                IsSelected = false,
-                Items = []
-            };
-        }
+        return NextPreviousNavigationCalculator.Calculate(allPages, currentPage);
     }
 
     public async Task<(NavigationTreeItem? Previous, NavigationTreeItem? Next)> GetNextPreviousAsync(
@@ -91,31 +67,7 @@ internal class TableOfContentService : ITableOfContentService
             return (null, null);
         }
 
-        var previous = allPages
-            .Where(p => p.Order < currentPage.Order)
-            .OrderByDescending(p => p.Order)
-            .FirstOrDefault();
-
-        var next = allPages
-            .Where(p => p.Order > currentPage.Order)
-            .OrderBy(p => p.Order)
-            .FirstOrDefault();
-
-        return (AsNavigationTreeItem(previous), AsNavigationTreeItem(next));
-
-        NavigationTreeItem? AsNavigationTreeItem(PageWithOrder? page)
-        {
-            if (page == null) return null;
-
-            return new NavigationTreeItem
-            {
-                Name = page.PageTitle,
-                Href = page.Url.StartsWith('/') ? page.Url : '/' + page.Url,
-                Order = page.Order,
-                IsSelected = false,
-                Items = []
-            };
-        }
+        return NextPreviousNavigationCalculator.Calculate(allPages, currentPage);
     }
 
     public async Task<ImmutableList<NavigationTreeItem>> GetNavigationTocAsync(string currentUrl)
@@ -305,15 +257,7 @@ internal class TableOfContentService : ITableOfContentService
         var allPages = await GetPageTitlesWithOrderAsync(services, effectiveSection);
 
         // Find previous and next pages
-        var previous = allPages
-            .Where(p => p.Order < foundPage.Order)
-            .OrderByDescending(p => p.Order)
-            .FirstOrDefault();
-
-        var next = allPages
-            .Where(p => p.Order > foundPage.Order)
-            .OrderBy(p => p.Order)
-            .FirstOrDefault();
+        var (previousPage, nextPage) = NextPreviousNavigationCalculator.Calculate(allPages, foundPage);
 
         // Format section name for display
         var sectionName = FormatSectionName(effectiveSection ?? "");
@@ -325,23 +269,9 @@ internal class TableOfContentService : ITableOfContentService
             SectionPath = sectionPath,
             PageTitle = foundPage.PageTitle,
             Breadcrumbs = breadcrumbs,
-            PreviousPage = AsNavigationTreeItem(previous),
-            NextPage = AsNavigationTreeItem(next)
+            PreviousPage = previousPage,
+            NextPage = nextPage
         };
-
-        NavigationTreeItem? AsNavigationTreeItem(PageWithOrder? page)
-        {
-            if (page == null) return null;
-
-            return new NavigationTreeItem
-            {
-                Name = page.PageTitle,
-                Href = page.Url.StartsWith('/') ? page.Url : '/' + page.Url,
-                Order = page.Order,
-                IsSelected = false,
-                Items = []
-            };
-        }
     }
 
     private async Task<ImmutableList<BreadcrumbItem>> BuildBreadcrumbsAsync(
@@ -349,136 +279,8 @@ internal class TableOfContentService : ITableOfContentService
         string section,
         ICollection<IContentService> services)
     {
-        var allPages = await GetPageTitlesWithOrderAsync(services);
-        var breadcrumbs = new List<BreadcrumbItem>();
-        
-        // Find the actual home page instead of hardcoding
-        var homePage = allPages.FirstOrDefault(p => 
-            NavigationUrlComparer.AreEqual(p.Url, "/") || 
-            NavigationUrlComparer.AreEqual(p.Url, "/index"));
-        
-        if (homePage != null)
-        {
-            breadcrumbs.Add(new BreadcrumbItem
-            {
-                Name = homePage.PageTitle,
-                Href = "/",
-                IsCurrent = false
-            });
-        }
-        else
-        {
-            // Fallback to "Home" if no home page found
-            breadcrumbs.Add(new BreadcrumbItem
-            {
-                Name = "Home",
-                Href = "/",
-                IsCurrent = false
-            });
-        }
-
-        // Add section breadcrumb if we have a section
-        if (!string.IsNullOrEmpty(section))
-        {
-            // Check if the current page IS the section index page
-            var sectionUrl = $"/{section.ToLowerInvariant()}";
-            var isCurrentPageSectionIndex = NavigationUrlComparer.AreEqual(currentPage.Url, sectionUrl) ||
-                                           NavigationUrlComparer.AreEqual(currentPage.Url, $"{sectionUrl}/index");
-            
-            // Skip section breadcrumb if we're already on the section's index page
-            // (it will be added as the current page breadcrumb at the end)
-            if (!isCurrentPageSectionIndex)
-            {
-                // Check if the section URL is a valid link
-                var sectionPage = allPages.FirstOrDefault(p =>
-                    NavigationUrlComparer.AreEqual(p.Url, sectionUrl) ||
-                    NavigationUrlComparer.AreEqual(p.Url, $"{sectionUrl}/index"));
-                
-                if (sectionPage != null)
-                {
-                    // Section has a valid page, include href
-                    breadcrumbs.Add(new BreadcrumbItem
-                    {
-                        Name = sectionPage.PageTitle,
-                        Href = sectionUrl,
-                        IsCurrent = false
-                    });
-                }
-                else
-                {
-                    // Section doesn't have a page, set href to null
-                    breadcrumbs.Add(new BreadcrumbItem
-                    {
-                        Name = FormatSectionName(section),
-                        Href = null,
-                        IsCurrent = false
-                    });
-                }
-            }
-        }
-
-        // Build breadcrumbs from hierarchy parts
-        if (currentPage.HierarchyParts.Length > 0)
-        {
-            var sectionPages = await GetPageTitlesWithOrderAsync(services, section);
-
-            // Skip the first hierarchy part if it matches the section name (case-insensitive)
-            var hierarchyStartIndex = 0;
-            if (!string.IsNullOrEmpty(section) &&
-                currentPage.HierarchyParts.Length > 0 &&
-                currentPage.HierarchyParts[0].Equals(section, StringComparison.OrdinalIgnoreCase))
-            {
-                hierarchyStartIndex = 1;
-            }
-
-            // Build intermediate breadcrumbs from hierarchy
-            var pathSegments = new List<string>();
-            for (var i = hierarchyStartIndex; i < currentPage.HierarchyParts.Length - 1; i++)
-            {
-                // Use lowercase for URL paths
-                pathSegments.Add(currentPage.HierarchyParts[i].ToLowerInvariant());
-                var partialPath = string.Join("/", pathSegments);
-
-                // Try to find a page for this partial path
-                var parentUrl = string.IsNullOrEmpty(section)
-                    ? $"/{partialPath}"
-                    : $"/{section.ToLowerInvariant()}/{partialPath}";
-
-                var parentPage = sectionPages.FirstOrDefault(p =>
-                    NavigationUrlComparer.AreEqual(p.Url, parentUrl) ||
-                    NavigationUrlComparer.AreEqual(p.Url, $"{parentUrl}/index"));
-
-                if (parentPage != null)
-                {
-                    breadcrumbs.Add(new BreadcrumbItem
-                    {
-                        Name = parentPage.PageTitle,
-                        Href = parentPage.Url.StartsWith('/') ? parentPage.Url : '/' + parentPage.Url,
-                        IsCurrent = false
-                    });
-                }
-                else
-                {
-                    // No page found at this URL, set href to null
-                    breadcrumbs.Add(new BreadcrumbItem
-                    {
-                        Name = FormatSegmentName(currentPage.HierarchyParts[i]),
-                        Href = null,  // No actual page, so no link
-                        IsCurrent = false
-                    });
-                }
-            }
-        }
-
-        // Add current page as the last breadcrumb (without href)
-        breadcrumbs.Add(new BreadcrumbItem
-        {
-            Name = currentPage.PageTitle,
-            Href = null,
-            IsCurrent = true
-        });
-
-        return breadcrumbs.ToImmutableList();
+        var builder = new BreadcrumbBuilder(services);
+        return await builder.BuildAsync(currentPage, section);
     }
 
     private static string FormatSectionName(string section)
