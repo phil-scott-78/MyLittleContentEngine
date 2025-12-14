@@ -216,6 +216,32 @@ internal class SymbolExtractionService : ISymbolExtractionService
                 ExtractGlobalStatement(member, semanticModel, document, sourceText, symbols);
             }
         }
+
+        // Extract delegate declarations (delegates don't inherit from TypeDeclarationSyntax)
+        var delegateDeclarations = root.DescendantNodes()
+            .OfType<DelegateDeclarationSyntax>();
+
+        foreach (var delegateDecl in delegateDeclarations)
+        {
+            var delegateSymbol = semanticModel.GetDeclaredSymbol(delegateDecl);
+            if (delegateSymbol != null)
+            {
+                AddSymbol(symbols, delegateSymbol, document, delegateDecl, sourceText);
+            }
+        }
+
+        // Extract enum declarations (enums don't inherit from TypeDeclarationSyntax)
+        var enumDeclarations = root.DescendantNodes()
+            .OfType<EnumDeclarationSyntax>();
+
+        foreach (var enumDecl in enumDeclarations)
+        {
+            var enumSymbol = semanticModel.GetDeclaredSymbol(enumDecl);
+            if (enumSymbol != null)
+            {
+                AddSymbol(symbols, enumSymbol, document, enumDecl, sourceText);
+            }
+        }
     }
 
     private void ExtractMemberSymbol(
@@ -233,6 +259,8 @@ internal class SymbolExtractionService : ISymbolExtractionService
                 ? semanticModel.GetDeclaredSymbol(variable)
                 : null,
             EventDeclarationSyntax evt => semanticModel.GetDeclaredSymbol(evt),
+            DelegateDeclarationSyntax dele => semanticModel.GetDeclaredSymbol(dele),
+            EnumDeclarationSyntax enumDecl => semanticModel.GetDeclaredSymbol(enumDecl),
             _ => null
         };
 
