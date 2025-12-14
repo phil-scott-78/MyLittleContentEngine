@@ -1,5 +1,4 @@
 ﻿using System.Collections.Immutable;
-using System.IO.Abstractions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using MyLittleContentEngine.Models;
@@ -619,11 +618,15 @@ public class TableOfContentServiceTests
         result[1].Name.ShouldBe("Last");
     }
 
-    [Fact]
-    public async Task GetNavigationTocAsync_WithFolderMetadata_AppliesMetadataToFolderNames()
+    [Theory]
+    [InlineData(SimulationMode.Windows)]
+    [InlineData(SimulationMode.Linux)]
+    public async Task GetNavigationTocAsync_WithFolderMetadata_AppliesMetadataToFolderNames(SimulationMode simulationMode)
     {
         // Arrange - Create a content service with BasePageUrl and ContentPath
-        var fileSystem = new Testably.Abstractions.Testing.MockFileSystem(options => options.SimulatingOperatingSystem(Testably.Abstractions.Testing.SimulationMode.Windows));
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(simulationMode));
+        // Set the mock file system for FilePath operations - critical for cross-platform path handling
+        FilePath.FileSystem = fileSystem;
         var contentPath = fileSystem.Path.GetFullPath("Content/console");
 
         // Create metadata file for the "how-to" folder
@@ -684,6 +687,10 @@ public class TableOfContentServiceTests
         MockFileSystem fileSystem,
         params (string contentPath, string basePageUrl)[] contentOptions)
     {
+        // Set the mock file system for FilePath operations
+        // This is critical for cross-platform path handling
+        FilePath.FileSystem = fileSystem;
+
         var contentOptionsMocks = contentOptions.Select(opt =>
         {
             var mock = new Mock<IContentOptions>();
@@ -722,11 +729,13 @@ public class TableOfContentServiceTests
         fileSystem.File.WriteAllText(path, yamlContent);
     }
 
-    [Fact]
-    public async Task GetFolderMetadata_WithBasePageUrl_ReturnsCachedMetadataWithCorrectKey()
+    [Theory]
+    [InlineData(SimulationMode.Windows)]
+    [InlineData(SimulationMode.Linux)]
+    public async Task GetFolderMetadata_WithBasePageUrl_ReturnsCachedMetadataWithCorrectKey(SimulationMode simulationMode)
     {
         // Arrange
-        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Windows));
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(simulationMode));
         var contentPath = fileSystem.Path.GetFullPath("Content/console");
 
         CreateMetadataFile(
@@ -746,11 +755,13 @@ public class TableOfContentServiceTests
         result.Order.ShouldBe(10);
     }
 
-    [Fact]
-    public async Task GetFolderMetadata_WithEmptyBasePageUrl_UsesRelativePathOnly()
+    [Theory]
+    [InlineData(SimulationMode.Windows)]
+    [InlineData(SimulationMode.Linux)]
+    public async Task GetFolderMetadata_WithEmptyBasePageUrl_UsesRelativePathOnly(SimulationMode simulationMode)
     {
         // Arrange
-        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Windows));
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(simulationMode));
         var contentPath = fileSystem.Path.GetFullPath("Content");
 
         CreateMetadataFile(
@@ -770,11 +781,13 @@ public class TableOfContentServiceTests
         result.Order.ShouldBe(5);
     }
 
-    [Fact]
-    public async Task GetFolderMetadata_MultipleServicesWithSameFolderNames_DifferentiatesByBasePageUrl()
+    [Theory]
+    [InlineData(SimulationMode.Windows)]
+    [InlineData(SimulationMode.Linux)]
+    public async Task GetFolderMetadata_MultipleServicesWithSameFolderNames_DifferentiatesByBasePageUrl(SimulationMode simulationMode)
     {
         // Arrange
-        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Windows));
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(simulationMode));
         var consolePath = fileSystem.Path.GetFullPath("Content/console");
         var cliPath = fileSystem.Path.GetFullPath("Content/cli");
 
@@ -809,11 +822,13 @@ public class TableOfContentServiceTests
         cliResult.Order.ShouldBe(20);
     }
 
-    [Fact]
-    public async Task GetFolderMetadata_WithMultiSegmentBasePageUrl_CreatesCorrectCacheKey()
+    [Theory]
+    [InlineData(SimulationMode.Windows)]
+    [InlineData(SimulationMode.Linux)]
+    public async Task GetFolderMetadata_WithMultiSegmentBasePageUrl_CreatesCorrectCacheKey(SimulationMode simulationMode)
     {
         // Arrange
-        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Windows));
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(simulationMode));
         var contentPath = fileSystem.Path.GetFullPath("Content/docs/api");
 
         CreateMetadataFile(
@@ -833,11 +848,13 @@ public class TableOfContentServiceTests
         result.Order.ShouldBe(15);
     }
 
-    [Fact]
-    public async Task GetFolderMetadata_WithNestedFolders_WorksCorrectly()
+    [Theory]
+    [InlineData(SimulationMode.Windows)]
+    [InlineData(SimulationMode.Linux)]
+    public async Task GetFolderMetadata_WithNestedFolders_WorksCorrectly(SimulationMode simulationMode)
     {
         // Arrange
-        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Windows));
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(simulationMode));
         var contentPath = fileSystem.Path.GetFullPath("Content/console");
 
         CreateMetadataFile(
@@ -857,11 +874,13 @@ public class TableOfContentServiceTests
         result.Order.ShouldBe(25);
     }
 
-    [Fact]
-    public async Task GetFolderMetadata_CaseInsensitiveLookup_ReturnsMetadata()
+    [Theory]
+    [InlineData(SimulationMode.Windows)]
+    [InlineData(SimulationMode.Linux)]
+    public async Task GetFolderMetadata_CaseInsensitiveLookup_ReturnsMetadata(SimulationMode simulationMode)
     {
         // Arrange
-        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Windows));
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(simulationMode));
         var contentPath = fileSystem.Path.GetFullPath("Content/console");
 
         CreateMetadataFile(
@@ -888,11 +907,13 @@ public class TableOfContentServiceTests
         upperCaseResult.Title.ShouldBe("How-To Guides");
     }
 
-    [Fact]
-    public async Task GetFolderMetadata_NonExistentFolder_ReturnsNull()
+    [Theory]
+    [InlineData(SimulationMode.Windows)]
+    [InlineData(SimulationMode.Linux)]
+    public async Task GetFolderMetadata_NonExistentFolder_ReturnsNull(SimulationMode simulationMode)
     {
         // Arrange
-        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Windows));
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(simulationMode));
         var contentPath = fileSystem.Path.GetFullPath("Content/console");
         fileSystem.Directory.CreateDirectory(contentPath);
 
@@ -905,11 +926,13 @@ public class TableOfContentServiceTests
         result.ShouldBeNull();
     }
 
-    [Fact]
-    public async Task GetFolderMetadata_EmptyMetadataFile_ReturnsNull()
+    [Theory]
+    [InlineData(SimulationMode.Windows)]
+    [InlineData(SimulationMode.Linux)]
+    public async Task GetFolderMetadata_EmptyMetadataFile_ReturnsNull(SimulationMode simulationMode)
     {
         // Arrange
-        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Windows));
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(simulationMode));
         var contentPath = fileSystem.Path.GetFullPath("Content/console");
         var metadataPath = fileSystem.Path.Combine(contentPath, "how-to/_index.metadata.yml");
 
@@ -925,11 +948,13 @@ public class TableOfContentServiceTests
         result.ShouldBeNull();
     }
 
-    [Fact]
-    public async Task GetFolderMetadata_MalformedYaml_ReturnsNull()
+    [Theory]
+    [InlineData(SimulationMode.Windows)]
+    [InlineData(SimulationMode.Linux)]
+    public async Task GetFolderMetadata_MalformedYaml_ReturnsNull(SimulationMode simulationMode)
     {
         // Arrange
-        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Windows));
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(simulationMode));
         var contentPath = fileSystem.Path.GetFullPath("Content/console");
         var metadataPath = fileSystem.Path.Combine(contentPath, "how-to/_index.metadata.yml");
 
@@ -945,11 +970,13 @@ public class TableOfContentServiceTests
         result.ShouldBeNull();
     }
 
-    [Fact]
-    public async Task GetFolderMetadata_SkipsBuildAndNodeModulesDirectories()
+    [Theory]
+    [InlineData(SimulationMode.Windows)]
+    [InlineData(SimulationMode.Linux)]
+    public async Task GetFolderMetadata_SkipsBuildAndNodeModulesDirectories(SimulationMode simulationMode)
     {
         // Arrange
-        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Windows));
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(simulationMode));
         var contentPath = fileSystem.Path.GetFullPath("Content/console");
 
         // Create metadata in bin, obj, and node_modules folders (should be skipped)
@@ -984,11 +1011,13 @@ public class TableOfContentServiceTests
         nodeModulesResult.ShouldBeNull();
     }
 
-    [Fact]
-    public async Task GetFolderMetadata_WithNonExistentContentRoot_HandlesGracefully()
+    [Theory]
+    [InlineData(SimulationMode.Windows)]
+    [InlineData(SimulationMode.Linux)]
+    public async Task GetFolderMetadata_WithNonExistentContentRoot_HandlesGracefully(SimulationMode simulationMode)
     {
         // Arrange
-        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Windows));
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(simulationMode));
         var contentPath = fileSystem.Path.GetFullPath("Content/NonExistent");
         // Don't create the directory
 
