@@ -489,7 +489,7 @@ class MermaidManager {
 
         const isDark = document.documentElement.classList.contains('dark');
         const config = this.getMermaidConfig(isDark);
-        
+
         // Use the correct initialization method
         this.mermaidInstance.default.initialize(config);
     }
@@ -513,11 +513,18 @@ class MermaidManager {
 
         // Convert OKLCH string to hex (e.g. "oklch(0.881 0.061 210)" → "#hex")
         function oklchToHex(oklchStr) {
-            // Parse the values from the string
-            const match = oklchStr.match(/oklch\(\s*([\d.]+)\s+([\d.]+)\s+([\d.]+)\s*\)/);
+            // Parse the values from the string (handle both decimal and percentage for lightness)
+            const match = oklchStr.match(/oklch\(\s*([\d.]+)%?\s+([\d.]+)\s+([\d.]+)\s*\)/);
             if (!match) return '#000000';
 
-            const [_, l, c, h] = match.map(Number);
+            let l = parseFloat(match[1]);
+            const c = parseFloat(match[2]);
+            const h = parseFloat(match[3]);
+
+            // Normalize lightness: if > 1, assume percentage and divide by 100
+            if (l > 1) {
+                l = l / 100;
+            }
 
             // Convert OKLCH to OKLab
             const hRad = (h * Math.PI) / 180; // Correct hue conversion (360° range)
@@ -574,8 +581,8 @@ class MermaidManager {
                 theme: 'base',
                 darkMode: true,
                 themeVariables: {
-                    fontFamily: 'Lexend, sans-serif',
-                    
+                    fontFamily: getCSSVariable('--font-sans', 'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"'),
+
                     // Main colors
                     primaryColor: getCSSVariable('--color-primary-600', '#BB2528'),
                     primaryTextColor: getCSSVariable('--color-primary-50', '#ffffff'),
@@ -587,6 +594,7 @@ class MermaidManager {
                     // Background colors
                     background: getCSSVariable('--color-base-950', '#0a0a0a'),
                     mainBkg: getCSSVariable('--color-base-900', '#1a1a1a'),
+                    nodeBkg: getCSSVariable('--color-base-900', '#1a1a1a'),
                     secondaryBkg: getCSSVariable('--color-base-800', '#2a2a2a'),
                     tertiaryBkg: getCSSVariable('--color-base-700', '#333333'),
 
@@ -597,6 +605,7 @@ class MermaidManager {
                     // Lines and borders
                     lineColor: getCSSVariable('--color-accent-400', '#4ade80'),
                     primaryBorderColor: getCSSVariable('--color-primary-500', '#dc2626'),
+                    nodeBorder: getCSSVariable('--color-primary-500', '#dc2626'),
                     secondaryBorderColor: getCSSVariable('--color-accent-500', '#22c55e'),
                     tertiaryBorderColor: getCSSVariable('--color-tertiary-one-500', '#6b7280'),
                     
@@ -623,6 +632,8 @@ class MermaidManager {
                 theme: 'base',
                 darkMode: false,
                 themeVariables: {
+                    fontFamily: getCSSVariable('--font-sans', 'ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji"'),
+
                     // Main colors
                     primaryColor: getCSSVariable('--color-primary-700', '#BB2528'),
                     primaryTextColor: getCSSVariable('--color-base-500', '#ffffff'),
@@ -634,6 +645,7 @@ class MermaidManager {
                     // Background colors
                     background: getCSSVariable('--color-base-50', '#f9fafb'),
                     mainBkg: getCSSVariable('--color-base-100', '#f3f4f6'),
+                    nodeBkg: getCSSVariable('--color-base-100', '#f3f4f6'),
                     secondaryBkg: getCSSVariable('--color-base-200', '#e5e7eb'),
                     tertiaryBkg: getCSSVariable('--color-base-150', '#f0f0f0'),
 
@@ -645,6 +657,7 @@ class MermaidManager {
                     // Lines and borders
                     lineColor: getCSSVariable('--color-accent-600', '#16a34a'),
                     primaryBorderColor: getCSSVariable('--color-primary-600', '#dc2626'),
+                    nodeBorder: getCSSVariable('--color-primary-600', '#dc2626'),
                     secondaryBorderColor: getCSSVariable('--color-accent-600', '#16a34a'),
                     tertiaryBorderColor: getCSSVariable('--color-tertiary-one-400', '#9ca3af'),
                     
@@ -698,15 +711,22 @@ class MermaidManager {
 
         // Re-initialize mermaid with new theme
         this.initializeMermaid();
-        
+
+        // Use timestamp to ensure unique diagram IDs force Mermaid to apply new theme
+        const timestamp = Date.now();
+
         // Re-render all existing diagrams
         for (let i = 0; i < this.renderedDiagrams.length; i++) {
             const diagramContainer = this.renderedDiagrams[i];
             const diagramText = diagramContainer.dataset.originalText;
-            
+
             if (diagramText) {
                 try {
-                    const {svg} = await this.mermaidInstance.default.render(`mermaid-diagram-theme-${i}`, diagramText);
+                    // Unique ID with timestamp forces fresh render with new theme
+                    const {svg} = await this.mermaidInstance.default.render(
+                        `mermaid-diagram-${timestamp}-${i}`,
+                        diagramText
+                    );
                     diagramContainer.innerHTML = svg;
                 } catch (error) {
                     console.error(`Failed to re-render mermaid diagram ${i} for theme:`, error);
