@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Bogus" Version="35.6.4" />
+    <PackageReference Include="Bogus" Version="35.6.5" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\MyLittleContentEngine.DocSite\MyLittleContentEngine.DocSite.csproj" />
