@@ -64,32 +64,19 @@ internal class MarkdownContentProcessor<TFrontMatter>
         {
             var contentPath = _markdownContentOptions.ContentPath.Value;
             
-            // Parse the file patterns from PostFilePattern (e.g., "*.md;*.mdx")
-            var patterns = _markdownContentOptions
-                .PostFilePattern
-                .Split(';', StringSplitOptions.RemoveEmptyEntries)
-                .Append("*.yml")
-                .ToHashSet();
-            
-            foreach (var pattern in patterns)
-            {
-                var trimmedPattern = pattern.Trim();
-                if (!string.IsNullOrEmpty(trimmedPattern))
-                {
-                    _logger.LogDebug("Setting up file watch for {ContentPath} with pattern {Pattern}", contentPath, trimmedPattern);
-                    
-                    _fileWatcher.AddPathWatch(
-                        contentPath,
-                        trimmedPattern,
-                        (filePath, _) =>
-                        {
-                            _logger.LogDebug("Markdown file changed: {FilePath}", filePath);
-                            // FileWatchDependencyFactory handles the actual invalidation
-                        },
-                        includeSubdirectories: !_markdownContentOptions.ExcludeSubfolders
-                    );
-                }
-            }
+
+                _logger.LogDebug("Setting up file watch for {ContentPath} with pattern {Pattern}", contentPath, "*.*");
+                
+                _fileWatcher.AddPathWatch(
+                    contentPath,
+                    "*.*",
+                    (filePath, _) =>
+                    {
+                        _logger.LogDebug("Markdown file changed: {FilePath}", filePath);
+                        // FileWatchDependencyFactory handles the actual invalidation
+                    },
+                    includeSubdirectories: !_markdownContentOptions.ExcludeSubfolders
+                );
         }
         catch (Exception ex)
         {
