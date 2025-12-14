@@ -93,11 +93,24 @@ Folder Absorption
 
 ## Automatic Naming
 
-When folders don't have explicit index pages, the system generates readable names from URL segments:
+The system uses a priority-based approach to determine folder titles in the navigation:
 
-### Converting Hierarchy Parts to Titles
+### Title Priority System
 
-Hierarchy parts like `getting-started` are automatically converted to proper titles like "Getting Started". The system:
+When generating navigation entries, the system determines folder titles using this priority order:
+
+Priority 1: Folder Metadata
+   : If a `_index.metadata.yml` file exists in the folder with a `title` property, that title is used. This gives you complete control over folder display names.
+
+Priority 2: Index Page Title
+   : If the folder contains an `index.md` file with a title in its front matter, that title is used for both the page and the folder.
+
+Priority 3: Auto-Generated Title
+   : If neither of the above exists, the system automatically generates a readable title from the folder name.
+
+### Auto-Generated Titles
+
+When no explicit title is provided through metadata or index pages, hierarchy parts like `getting-started` are automatically converted to proper titles like "Getting Started". The system:
 
 - Converts dashes to spaces
 - Handles double dashes specially (preserves them as single dashes)
@@ -135,7 +148,9 @@ All parent folders and sections containing the current page are also marked as s
 
 ## Ordering and Sorting
 
-Navigation items are sorted based on the `order` values from your front matter:
+Navigation items are sorted based on order values from your content:
+
+### Page Order Control
 
 Set explicit `order` values in your front matter to control navigation sequence:
 
@@ -148,39 +163,174 @@ order: 100
 
 Pages without explicit order values appear after those with order values, sorted alphabetically.
 
-Folders inherit the order of their lowest-ordered child page, ensuring logical grouping in the navigation.
+### Folder Order Control
+
+Folders can have their order controlled in two ways:
+
+Explicit Folder Order
+   : Create a `_index.metadata.yml` file in the folder with an `order` property to set the folder's position explicitly:
+
+   ```yaml
+   title: "Getting Started"
+   order: 100
+   ```
+
+   This gives you precise control over where folders appear in the navigation, independent of their contents.
+
+Inherited Order (default)
+   : Without explicit folder metadata, folders inherit the order of their lowest-ordered child page.
+
+This inheritance ensures logical grouping—a folder containing a page with `order: 100` will appear before a folder whose lowest child has `order: 200`.
 
 </Step>
 </Steps>
 
+## Folder Metadata Configuration
+
+You can customize folder behavior and appearance using `_index.metadata.yml` files. These files provide metadata for folders without requiring an index page.
+
+### Creating Folder Metadata Files
+
+Create a file named `_index.metadata.yml` in any content folder to customize that folder's properties:
+
+```yaml
+title: "Custom Folder Title"
+order: 100
+```
+
+The file will be discovered automatically at startup and cached for performance.
+
+### Available Properties
+
+The following properties can be configured in folder metadata files:
+
+title
+   : Override the auto-generated folder name with a custom title. This takes priority over both auto-generated names and index page titles.
+
+order
+   : Explicitly set the folder's position in navigation. This overrides the default behavior of inheriting the lowest child order.
+
+description
+   : Provide a description for the folder (used in RSS feeds and sitemaps if applicable).
+
+lastMod
+   : Specify when the folder was last modified (used in sitemaps). Format: `2024-01-15` or full ISO 8601 datetime.
+
+rssItem
+   : Control whether the folder appears in RSS feeds (boolean, defaults to `true`).
+
+section
+   : Specify which table of contents section this folder belongs to.
+
+### When to Use Folder Metadata
+
+Use folder metadata files when you need to:
+
+Customize folder titles without creating index pages
+   : When you want a readable folder name but don't need a landing page.
+
+   ```yaml
+   title: "How-To Guides"
+   order: 1000
+   ```
+
+Control folder ordering explicitly
+   : When you need a folder to appear in a specific position regardless of its children's order values.
+
+   ```yaml
+   title: "Getting Started"
+   order: 100
+   ```
+
+Handle special characters in folder names
+   : When your folder uses URL-safe naming (like `how--to` for "How-To") but you want a clean display title.
+
+   ```yaml
+   title: "How-To"
+   order: 2000
+   ```
+
+### Multi-Section Content
+
+Folder metadata works seamlessly with multi-section content. The metadata files are discovered across all registered content sources and differentiated by their base URLs:
+
+- `/console/how-to/_index.metadata.yml` → cache key: `console/how-to`
+- `/cli/how-to/_index.metadata.yml` → cache key: `cli/how-to`
+
+This allows different sections to have folders with the same name but different metadata.
+
 ## Practical Example
 
-Consider this content structure:
+Consider this content structure using both front matter and folder metadata:
 
 ```
 Content/
 ├── index.md (order: 1)
 ├── getting-started/
-│   ├── index.md (order: 100)
-│   ├── installation.md (order: 101)
-│   └── first-steps.md (order: 102)
+│   ├── _index.metadata.yml
+│   ├── installation.md (order: 110)
+│   └── first-steps.md (order: 120)
+├── guides/
+│   ├── index.md (order: 200)
+│   ├── basic-usage.md (order: 210)
+│   └── advanced-features.md (order: 220)
 └── api/
+    ├── _index.metadata.yml
     ├── classes/
-    │   └── ContentService.md (order: 200)
+    │   ├── _index.metadata.yml
+    │   └── ContentService.md (order: 311)
     └── interfaces/
-        └── IContentService.md (order: 201)
+        ├── _index.metadata.yml
+        └── IContentService.md (order: 321)
 ```
 
-This would generate navigation like:
+With folder metadata files:
 
-1. **Home** (clickable, goes to index.md)
-2. **Getting Started** (clickable, goes to getting-started/index.md)
-    - **Installation** (clickable, goes to installation.md)
-    - **First Steps** (clickable, goes to first-steps.md)
-3. **API** (folder container, not clickable)
-    - **Classes** (folder container, not clickable)
-        - **ContentService** (clickable, goes to API page)
-    - **Interfaces** (folder container, not clickable)
-        - **IContentService** (clickable, goes to API page)
+**getting-started/_index.metadata.yml:**
+```yaml
+title: "Getting Started"
+order: 100
+```
+
+**api/_index.metadata.yml:**
+```yaml
+title: "API Reference"
+order: 300
+description: "Complete API documentation for MyLittleContentEngine"
+```
+
+**api/classes/_index.metadata.yml:**
+```yaml
+title: "Classes"
+order: 310
+```
+
+**api/interfaces/_index.metadata.yml:**
+```yaml
+title: "Interfaces"
+order: 320
+```
+
+This generates navigation like:
+
+1. **Home** (clickable, order: 1)
+2. **Getting Started** (non-clickable folder, order: 100 from metadata)
+    - **Installation** (clickable, order: 110)
+    - **First Steps** (clickable, order: 120)
+3. **User Guides** (clickable, order: 200 from guides/index.md)
+    - **Basic Usage** (clickable, order: 210)
+    - **Advanced Features** (clickable, order: 220)
+4. **API Reference** (non-clickable folder, order: 300 from metadata)
+    - **Classes** (non-clickable folder, order: 310 from metadata)
+        - **ContentService** (clickable, order: 311)
+    - **Interfaces** (non-clickable folder, order: 320 from metadata)
+        - **IContentService** (clickable, order: 321)
+
+Key observations:
+
+- The **Getting Started** folder has a custom title and explicit order from `_index.metadata.yml`, but no index page (non-clickable)
+- The **User Guides** folder has both an index page and children (clickable, with title from index.md front matter)
+- The **API Reference** section uses folder metadata throughout to provide clean titles and explicit ordering
+- Without folder metadata, "API Reference" would be titled "Api" and inherit order 311 from its lowest child
 
 The system automatically handles the hierarchy, creates readable folder names, respects your custom ordering, and provides both tree-based and sequential navigation.
