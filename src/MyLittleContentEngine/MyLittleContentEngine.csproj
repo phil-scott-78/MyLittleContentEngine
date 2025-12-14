@@ -11,7 +11,7 @@
     <InternalsVisibleTo Include="MyLittleContentEngine.Tests" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="AngleSharp" Version="1.3.0" />
+    <PackageReference Include="AngleSharp" Version="1.4.0" />
     <PackageReference Include="JetBrains.Annotations.Sources" Version="2025.2.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
