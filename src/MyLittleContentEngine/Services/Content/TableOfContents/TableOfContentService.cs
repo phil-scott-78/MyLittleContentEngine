@@ -298,13 +298,6 @@ internal class TableOfContentService : ITableOfContentService
         };
     }
 
-    private static string FormatSegmentName(string segment)
-    {
-        // Convert kebab-case or snake_case to Title Case
-        var words = segment.Replace('-', ' ').Replace('_', ' ');
-        return CultureInfo.CurrentCulture.TextInfo.ToTitleCase(words.ToLowerInvariant());
-    }
-
     /// <summary>
     /// Gets folder metadata for the specified folder path.
     /// </summary>

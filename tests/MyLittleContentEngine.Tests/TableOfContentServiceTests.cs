@@ -625,8 +625,6 @@ public class TableOfContentServiceTests
     {
         // Arrange - Create a content service with BasePageUrl and ContentPath
         var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(simulationMode));
-        // Set the mock file system for FilePath operations - critical for cross-platform path handling
-        FilePath.FileSystem = fileSystem;
         var contentPath = fileSystem.Path.GetFullPath("Content/console");
 
         // Create metadata file for the "how-to" folder
@@ -646,7 +644,8 @@ public class TableOfContentServiceTests
         );
 
         // Create TableOfContentService with the file system and content options
-        var fileSystemUtilities = new FileSystemUtilities(fileSystem);
+        var filePathOps = new FilePathOperations(fileSystem);
+        var fileSystemUtilities = new FileSystemUtilities(fileSystem, filePathOps);
         var contentEngineOptions = new ContentEngineOptions
         {
             SiteTitle = "Test Site",
@@ -687,10 +686,6 @@ public class TableOfContentServiceTests
         MockFileSystem fileSystem,
         params (string contentPath, string basePageUrl)[] contentOptions)
     {
-        // Set the mock file system for FilePath operations
-        // This is critical for cross-platform path handling
-        FilePath.FileSystem = fileSystem;
-
         var contentOptionsMocks = contentOptions.Select(opt =>
         {
             var mock = new Mock<IContentOptions>();
@@ -699,7 +694,8 @@ public class TableOfContentServiceTests
             return mock.Object;
         }).ToList();
 
-        var fileSystemUtilities = new FileSystemUtilities(fileSystem);
+        var filePathOps = new FilePathOperations(fileSystem);
+        var fileSystemUtilities = new FileSystemUtilities(fileSystem, filePathOps);
         var contentEngineOptions = new ContentEngineOptions
         {
             SiteTitle = "Test Site",

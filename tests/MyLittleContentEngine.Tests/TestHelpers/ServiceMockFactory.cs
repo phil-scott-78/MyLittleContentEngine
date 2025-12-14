@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using MyLittleContentEngine.Models;
+using MyLittleContentEngine.Services;
 using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Content.TableOfContents;
 using MyLittleContentEngine.Services.Generation;
@@ -120,7 +121,8 @@ public static class ServiceMockFactory
     internal static TableOfContentService CreateTableOfContentService(SimulationMode simulationMode, params IContentService[] contentServices)
     {
         var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(simulationMode));
-        var fileSystemUtilities = new FileSystemUtilities(fileSystem);
+        var filePathOps = new FilePathOperations(fileSystem);
+        var fileSystemUtilities = new FileSystemUtilities(fileSystem, filePathOps);
         var contentEngineOptions = new ContentEngineOptions
         {
             SiteTitle = "Test Site",

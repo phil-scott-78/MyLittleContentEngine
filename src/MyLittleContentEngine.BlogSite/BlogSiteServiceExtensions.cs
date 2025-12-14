@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using MyLittleContentEngine.BlogSite.Components;
 using MyLittleContentEngine.MonorailCss;
+using MyLittleContentEngine.Services;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
 using MyLittleContentEngine.UI.Components;
 
@@ -53,10 +54,11 @@ public static class BlogSiteServiceExtensions
                 // Configure content service
 
                 var o = sp.GetRequiredService<BlogSiteOptions>();
+                var filePathOps = sp.GetRequiredService<FilePathOperations>();
 
                 return new MarkdownContentOptions<BlogSiteFrontMatter>
                 {
-                    ContentPath = o.ContentRootPath / o.BlogContentPath,
+                    ContentPath = filePathOps.Combine(o.ContentRootPath, o.BlogContentPath),
                     BasePageUrl = o.BlogBaseUrl,
                     Tags = new TagsOptions
                     {

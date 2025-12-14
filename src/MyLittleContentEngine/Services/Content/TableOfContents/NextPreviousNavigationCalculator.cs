@@ -12,7 +12,7 @@ internal static class NextPreviousNavigationCalculator
     /// <param name="currentPage">The current page to find neighbors for.</param>
     /// <returns>A tuple containing the previous and next NavigationTreeItems, or null if none exist.</returns>
     public static (NavigationTreeItem? Previous, NavigationTreeItem? Next) Calculate(
-        IEnumerable<PageWithOrder> allPages,
+        IList<PageWithOrder> allPages,
         PageWithOrder currentPage)
     {
         var previous = allPages

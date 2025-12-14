@@ -7,11 +7,17 @@ namespace MyLittleContentEngine.Tests.Infrastructure;
 
 public class FileSystemUtilitiesTests
 {
+    private static FileSystemUtilities CreateFileSystemUtilities(MockFileSystem fileSystem)
+    {
+        var filePathOps = new FilePathOperations(fileSystem);
+        return new FileSystemUtilities(fileSystem, filePathOps);
+    }
+
     [Fact]
     public void FilePathToUrlPath_SimpleFile_ReturnsSlugifiedName()
     {
         var fileSystem = new MockFileSystem();
-        var pathUtilities = new FileSystemUtilities(fileSystem);
+        var pathUtilities = CreateFileSystemUtilities(fileSystem);
         var filePath = new FilePath("/content/my-blog-post.md");
         var baseContentPath = new FilePath("/content");
 
@@ -24,7 +30,7 @@ public class FileSystemUtilitiesTests
     public void FilePathToUrlPath_FileInSubdirectory_PreservesDirectoryStructure()
     {
         var fileSystem = new MockFileSystem();
-        var pathUtilities = new FileSystemUtilities(fileSystem);
+        var pathUtilities = CreateFileSystemUtilities(fileSystem);
         var filePath = new FilePath("/content/blog/my-first-post.md");
         var baseContentPath = new FilePath("/content");
 
@@ -37,7 +43,7 @@ public class FileSystemUtilitiesTests
     public void FilePathToUrlPath_NestedSubdirectories_PreservesFullPath()
     {
         var fileSystem = new MockFileSystem();
-        var pathUtilities = new FileSystemUtilities(fileSystem);
+        var pathUtilities = CreateFileSystemUtilities(fileSystem);
         var filePath = new FilePath("/content/docs/guides/getting-started.md");
         var baseContentPath = new FilePath("/content");
 
@@ -50,7 +56,7 @@ public class FileSystemUtilitiesTests
     public void FilePathToUrlPath_FileWithSpecialCharacters_SlugifiesFilename()
     {
         var fileSystem = new MockFileSystem();
-        var pathUtilities = new FileSystemUtilities(fileSystem);
+        var pathUtilities = CreateFileSystemUtilities(fileSystem);
         var filePath = new FilePath("/content/My Blog Post With Spaces!.md");
         var baseContentPath = new FilePath("/content");
 
@@ -63,7 +69,7 @@ public class FileSystemUtilitiesTests
     public void FilePathToUrlPath_WindowsPathSeparators_ConvertsToForwardSlashes()
     {
         var fileSystem = new MockFileSystem();
-        var pathUtilities = new FileSystemUtilities(fileSystem);
+        var pathUtilities = CreateFileSystemUtilities(fileSystem);
         var filePath = new FilePath("/content/blog/posts/article.md");
         var baseContentPath = new FilePath("/content");
 
@@ -135,28 +141,17 @@ public class FileSystemUtilitiesTests
     public void ValidateDirectoryPath_NonExistingDirectory_ThrowsDirectoryNotFoundException()
     {
         var fileSystem = new MockFileSystem();
-        var pathUtilities = new FileSystemUtilities(fileSystem);
+        var pathUtilities = CreateFileSystemUtilities(fileSystem);
 
         Should.Throw<DirectoryNotFoundException>(() => 
             pathUtilities.ValidateDirectoryPath(new FilePath("/nonexistent")));
     }
 
     [Fact]
-    public void Combine_EmptyPaths_HandlesGracefully()
-    {
-        var fileSystem = new MockFileSystem();
-        var pathUtilities = new FileSystemUtilities(fileSystem);
-
-        var result = pathUtilities.Combine(new FilePath(""), new FilePath("relative\\path"));
-
-        result.Value.ShouldBe("relative\\path");
-    }
-
-    [Fact]
     public void FilePathToUrlPath_FileInRootDirectory_ReturnsJustFilename()
     {
         var fileSystem = new MockFileSystem();
-        var pathUtilities = new FileSystemUtilities(fileSystem);
+        var pathUtilities = CreateFileSystemUtilities(fileSystem);
         var filePath = new FilePath("/content/index.md");
         var baseContentPath = new FilePath("/content");
 
@@ -175,7 +170,7 @@ public class FileSystemUtilitiesTests
         fileSystem.File.WriteAllText("/content/file1.md", "content1");
         fileSystem.File.WriteAllText("/content/file2.md", "content2");
         fileSystem.File.WriteAllText("/content/subdirectory/file3.md", "content3");
-        var pathUtilities = new FileSystemUtilities(fileSystem);
+        var pathUtilities = CreateFileSystemUtilities(fileSystem);
 
         var (files, _) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), "*.md", recursive: false);
 
@@ -193,7 +188,7 @@ public class FileSystemUtilitiesTests
         fileSystem.File.WriteAllText("/content/file1.md", "content1");
         fileSystem.File.WriteAllText("/content/file2.md", "content2");
         fileSystem.File.WriteAllText("/content/subdirectory/file3.md", "content3");
-        var pathUtilities = new FileSystemUtilities(fileSystem);
+        var pathUtilities = CreateFileSystemUtilities(fileSystem);
 
         var (files, _) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), "*.md", recursive: true);
 
@@ -206,7 +201,7 @@ public class FileSystemUtilitiesTests
     public void FilePathToUrlPath_ComplexPath_HandlesCorrectly()
     {
         var fileSystem = new MockFileSystem();
-        var pathUtilities = new FileSystemUtilities(fileSystem);
+        var pathUtilities = CreateFileSystemUtilities(fileSystem);
         var filePath = new FilePath("/var/www/content/blog/2023/my-awesome-post.md");
         var baseContentPath = new FilePath("/var/www/content");
 
@@ -226,7 +221,7 @@ public class FileSystemUtilitiesTests
         fileSystem.File.WriteAllText("/content/file3.txt", "content3");
         fileSystem.File.WriteAllText("/content/subdirectory/file4.md", "content4");
         fileSystem.File.WriteAllText("/content/subdirectory/file5.mdx", "content5");
-        var pathUtilities = new FileSystemUtilities(fileSystem);
+        var pathUtilities = CreateFileSystemUtilities(fileSystem);
 
         var (files, _) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), "*.md;*.mdx", recursive: true);
 
@@ -245,7 +240,7 @@ public class FileSystemUtilitiesTests
         fileSystem.Directory.CreateDirectory("/content");
         fileSystem.File.WriteAllText("/content/file1.md", "content1");
         fileSystem.File.WriteAllText("/content/file2.mdx", "content2");
-        var pathUtilities = new FileSystemUtilities(fileSystem);
+        var pathUtilities = CreateFileSystemUtilities(fileSystem);
 
         var (files, _) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), "*.md;*.md;*.mdx", recursive: true);
 
@@ -262,7 +257,7 @@ public class FileSystemUtilitiesTests
         fileSystem.File.WriteAllText("/content/file1.md", "content1");
         fileSystem.File.WriteAllText("/content/file2.mdx", "content2");
         fileSystem.File.WriteAllText("/content/file3.txt", "content3");
-        var pathUtilities = new FileSystemUtilities(fileSystem);
+        var pathUtilities = CreateFileSystemUtilities(fileSystem);
 
         var (files, _) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), " *.md ; *.mdx ", recursive: true);
 
@@ -279,7 +274,7 @@ public class FileSystemUtilitiesTests
         fileSystem.Directory.CreateDirectory("/content");
         fileSystem.File.WriteAllText("/content/file1.md", "content1");
         fileSystem.File.WriteAllText("/content/file2.mdx", "content2");
-        var pathUtilities = new FileSystemUtilities(fileSystem);
+        var pathUtilities = CreateFileSystemUtilities(fileSystem);
 
         var (files, _) = pathUtilities.GetFilesInDirectory(new FilePath("/content"), "*.md", recursive: true);
 

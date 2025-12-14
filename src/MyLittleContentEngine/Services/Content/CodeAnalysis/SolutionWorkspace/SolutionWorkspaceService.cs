@@ -16,6 +16,7 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
     private readonly ILogger<SolutionWorkspaceService> _logger;
     private readonly CodeAnalysisOptions _options;
     private readonly IContentEngineFileWatcher _fileWatcher;
+    private readonly FilePathOperations _filePathOps;
     private readonly Lock _lock = new();
     private readonly string _tempBuildPath;
 
@@ -38,11 +39,13 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
     public SolutionWorkspaceService(
         CodeAnalysisOptions options,
         ILogger<SolutionWorkspaceService> logger,
-        IContentEngineFileWatcher fileWatcher)
+        IContentEngineFileWatcher fileWatcher,
+        FilePathOperations filePathOps)
     {
         _options = options ?? throw new ArgumentNullException(nameof(options));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _fileWatcher = fileWatcher ?? throw new ArgumentNullException(nameof(fileWatcher));
+        _filePathOps = filePathOps ?? throw new ArgumentNullException(nameof(filePathOps));
 
         if (!_options.SolutionPath.HasValue || _options.SolutionPath.Value.IsEmpty)
         {
@@ -314,7 +317,7 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
 
     private void RegisterFileWatching()
     {
-        var solutionDir = _options.SolutionPath!.Value.GetDirectory().Value;
+        var solutionDir = _filePathOps.GetDirectory(_options.SolutionPath!.Value).Value;
         if (string.IsNullOrEmpty(solutionDir))
         {
             return;

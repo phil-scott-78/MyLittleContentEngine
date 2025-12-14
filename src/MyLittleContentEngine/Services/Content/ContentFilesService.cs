@@ -14,6 +14,7 @@ internal class ContentFilesService<TFrontMatter>
 {
     private readonly MarkdownContentOptions<TFrontMatter> _markdownContentOptions;
     private readonly FileSystemUtilities _fileSystemUtilities;
+    private readonly FilePathOperations _filePathOps;
     private readonly ILogger<ContentFilesService<TFrontMatter>> _logger;
 
     /// <summary>
@@ -21,14 +22,17 @@ internal class ContentFilesService<TFrontMatter>
     /// </summary>
     /// <param name="markdownContentOptions">Content options.</param>
     /// <param name="fileSystemUtilities">Path utilities service.</param>
+    /// <param name="filePathOps">File path operations service.</param>
     /// <param name="logger">Logger instance.</param>
     public ContentFilesService(
         MarkdownContentOptions<TFrontMatter> markdownContentOptions,
         FileSystemUtilities fileSystemUtilities,
+        FilePathOperations filePathOps,
         ILogger<ContentFilesService<TFrontMatter>> logger)
     {
         _markdownContentOptions = markdownContentOptions;
         _fileSystemUtilities = fileSystemUtilities;
+        _filePathOps = filePathOps;
         _logger = logger;
     }
 
@@ -145,9 +149,9 @@ internal class ContentFilesService<TFrontMatter>
             _fileSystemUtilities.ValidateDirectoryPath(_markdownContentOptions.ContentPath);
 
             // Convert the base page URL to a relative file path for the output
-            var targetPath = _markdownContentOptions.BasePageUrl.IsEmpty 
-                ? new FilePath(string.Empty) 
-                : FilePath.FromUrlPath(_markdownContentOptions.BasePageUrl.RemoveLeadingSlash());
+            var targetPath = _markdownContentOptions.BasePageUrl.IsEmpty
+                ? new FilePath(string.Empty)
+                : _filePathOps.FromUrlPath(_markdownContentOptions.BasePageUrl.RemoveLeadingSlash());
             
             return new[]
             {

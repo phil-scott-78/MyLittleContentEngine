@@ -5,8 +5,9 @@ namespace MyLittleContentEngine.Services.Infrastructure;
 /// <summary>
 /// Provides utilities for working with paths and URLs in MyLittleContentEngine.
 /// </summary>
-internal class FileSystemUtilities(IFileSystem fileSystem)
+internal class FileSystemUtilities(IFileSystem fileSystem, FilePathOperations filePathOps)
 {
+    private readonly FilePathOperations _filePathOps = filePathOps;
     /// <summary>
     /// Converts a file path to a URL-friendly path.
     /// </summary>
@@ -18,11 +19,11 @@ internal class FileSystemUtilities(IFileSystem fileSystem)
         if (filePath.IsEmpty || baseContentPath.IsEmpty)
             return UrlPath.Empty;
 
-        var relativePath = filePath.GetRelativeTo(baseContentPath);
-        var directoryPath = relativePath.GetDirectory();
-        var fileNameWithoutExtension = relativePath.GetFileNameWithoutExtension().Slugify();
+        var relativePath = _filePathOps.GetRelativeTo(filePath, baseContentPath);
+        var directoryPath = _filePathOps.GetDirectory(relativePath);
+        var fileNameWithoutExtension = _filePathOps.GetFileNameWithoutExtension(relativePath).Slugify();
 
-        var result = FilePath.Combine(directoryPath, fileNameWithoutExtension);
+        var result = _filePathOps.Combine(directoryPath, fileNameWithoutExtension);
         return result.ToUrlPath();
     }
 
@@ -103,7 +104,7 @@ internal class FileSystemUtilities(IFileSystem fileSystem)
     /// <exception cref="DirectoryNotFoundException">Thrown when the directory doesn't exist and createIfNotExists is false.</exception>
     public FilePath ValidateDirectoryPath(FilePath path, bool createIfNotExists = false)
     {
-        var fullPath = path.GetFullPath();
+        var fullPath = _filePathOps.GetFullPath(path);
 
         if (fileSystem.Directory.Exists(fullPath.Value)) return fullPath;
 
@@ -117,16 +118,5 @@ internal class FileSystemUtilities(IFileSystem fileSystem)
         }
 
         return fullPath;
-    }
-
-    /// <summary>
-    /// Combines a base page URL with a relative path.
-    /// </summary>
-    /// <param name="basePageUrl"></param>
-    /// <param name="relativePath"></param>
-    /// <returns></returns>
-    public FilePath Combine(FilePath basePageUrl, FilePath relativePath)
-    {
-        return FilePath.Combine(basePageUrl, relativePath);
     }
 }

@@ -138,6 +138,7 @@ public static class ContentEngineExtensions
         services.AddTransient<MarkdownParserService>();
         services.AddTransient<RoutesHelperService>();
         services.AddTransient<IFileSystem, RealFileSystem>();
+        services.AddTransient<FilePathOperations>();
         services.AddTransient<FileSystemUtilities>();
         services.AddSyntaxHighlightingService();
 
@@ -178,7 +179,6 @@ public static class ContentEngineExtensions
     /// </summary>
     /// <typeparam name="T">The service type to register.</typeparam>
     /// <param name="services">The service collection.</param>
-    /// <param name="lifetime">The service lifetime for the underlying service (default: Transient).</param>
     /// <returns>The updated service collection for method chaining.</returns>
     /// <remarks>
     /// This method directly registers the service with file-watch invalidation capabilities.

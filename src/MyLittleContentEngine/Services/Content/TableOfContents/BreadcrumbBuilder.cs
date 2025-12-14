@@ -28,9 +28,9 @@ internal class BreadcrumbBuilder
     {
         var allPages = await GetPageTitlesWithOrderAsync(_services);
 
-        await AddHomeBreadcrumb(allPages);
-        await AddSectionBreadcrumb(currentPage, section, allPages);
-        await AddHierarchyBreadcrumbs(currentPage, section, allPages);
+        AddHomeBreadcrumb(allPages);
+        AddSectionBreadcrumb(currentPage, section, allPages);
+        await AddHierarchyBreadcrumbs(currentPage, section);
         AddCurrentPageBreadcrumb(currentPage);
 
         return _breadcrumbs.ToImmutableList();
@@ -39,7 +39,7 @@ internal class BreadcrumbBuilder
     /// <summary>
     /// Adds the home page as the first breadcrumb.
     /// </summary>
-    private async Task AddHomeBreadcrumb(List<PageWithOrder> allPages)
+    private void AddHomeBreadcrumb(List<PageWithOrder> allPages)
     {
         // Find the actual home page instead of hardcoding
         var homePage = allPages.FirstOrDefault(p =>
@@ -70,7 +70,7 @@ internal class BreadcrumbBuilder
     /// <summary>
     /// Adds the section breadcrumb if applicable.
     /// </summary>
-    private async Task AddSectionBreadcrumb(
+    private void AddSectionBreadcrumb(
         PageWithOrder currentPage,
         string section,
         List<PageWithOrder> allPages)
@@ -121,8 +121,7 @@ internal class BreadcrumbBuilder
     /// </summary>
     private async Task AddHierarchyBreadcrumbs(
         PageWithOrder currentPage,
-        string section,
-        List<PageWithOrder> allPages)
+        string section)
     {
         // Build breadcrumbs from hierarchy parts
         if (currentPage.HierarchyParts.Length > 0)
