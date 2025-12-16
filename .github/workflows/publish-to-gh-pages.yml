@@ -10,6 +10,7 @@ env:
   ASPNETCORE_ENVIRONMENT: Production
   WEBAPP_PATH: ./docs/MyLittleContentEngine.Docs/
   WEBAPP_CSPROJ: MyLittleContentEngine.Docs.csproj
+  GITHUB_REPOSITORY: "/MyLittleContentEngine/"
 
 permissions:
   contents: read
@@ -49,7 +50,7 @@ jobs:
           DOTNET_CLI_TELEMETRY_OPTOUT: true
         run: |
           dotnet build
-          dotnet run --environment ASPNETCORE_ENVIRONMENT=Production --project ${{ env.WEBAPP_PATH }} --configuration Release -- build "/MyLittleContentEngine/"
+          dotnet run --environment ASPNETCORE_ENVIRONMENT=Production --project ${{ env.WEBAPP_PATH }} --configuration Release -- build ${{ env.WEBAPP_PATH }}
 
       - name: Create examples directory
         run: mkdir -p ${{ env.WEBAPP_PATH }}output/examples

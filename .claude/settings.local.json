@@ -29,7 +29,8 @@
       "Bash(git log:*)",
       "Bash(dir:*)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "WebSearch"
+      "WebSearch",
+      "WebFetch(domain:mermaid.js.org)"
     ],
     "additionalDirectories": [
       "b:\\spectre\\"

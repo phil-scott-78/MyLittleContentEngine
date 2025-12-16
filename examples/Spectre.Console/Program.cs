@@ -16,6 +16,7 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
     SiteTitle = "Spectre.Console Documentation",
     SiteDescription = "Beautiful console applications with Spectre.Console",
     ContentRootPath = "Content",
+    CanonicalBaseUrl = "https://phil-scott-78.github.io/MyLittleContentEngine/",
 })
 // Console documentation service
 .WithMarkdownContentService(_ => new MarkdownContentOptions<SpectreConsoleFrontMatter>()
