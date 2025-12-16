@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.IO.Abstractions;
 using System.Text;
+using Microsoft.Extensions.Logging;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content.TableOfContents;
 using YamlDotNet.Core;
@@ -33,12 +34,15 @@ internal class RedirectContentService(
     ContentEngineOptions contentOptions,
     IFileSystem fileSystem,
     FilePathOperations filePathOperations,
-    ContentEngineOptions engineOptions) : IContentService
+    ContentEngineOptions engineOptions,
+    OutputOptions outputOptions,
+    ILogger<RedirectContentService> logger
+) : IContentService
 {
     private readonly IDeserializer _yamlDeserializer = engineOptions.FrontMatterDeserializer;
+    private readonly string _baseUrl = outputOptions.BaseUrl;
 
     public int SearchPriority { get; } = 0;
-
 
 
     public Task<ImmutableList<ContentToCreate>> GetContentToCreateAsync()
@@ -63,7 +67,7 @@ internal class RedirectContentService(
             // Deserialize YAML
             var config = _yamlDeserializer.Deserialize<RedirectsConfig>(yamlContent);
 
-            if (config?.Redirects == null || config.Redirects.Count == 0)
+            if (config.Redirects == null || config.Redirects.Count == 0)
             {
                 return Task.FromResult(ImmutableList<ContentToCreate>.Empty);
             }
@@ -87,9 +91,11 @@ internal class RedirectContentService(
                     // Create target file path with .html extension
                     var targetPath = new FilePath($"{normalizedPath}.html");
 
-                    // Generate redirect HTML
-                    var redirectHtml = RedirectHelper.GetRedirectHtml(targetUrl);
+                    // Rewrite target URL with BaseUrl handling (handles external URLs, relative paths, etc.)
+                    var finalTargetUrl = LinkRewriter.RewriteUrl(targetUrl, "/", _baseUrl);
 
+                    // Generate redirect HTML
+                    var redirectHtml = RedirectHelper.GetRedirectHtml(finalTargetUrl);
                     // Convert to UTF-8 bytes
                     var htmlBytes = Encoding.UTF8.GetBytes(redirectHtml);
 
@@ -97,9 +103,10 @@ internal class RedirectContentService(
                     var content = new ContentToCreate(targetPath, htmlBytes);
                     contentToCreate = contentToCreate.Add(content);
                 }
-                catch
+                catch (Exception ex)
                 {
-                    // Skip invalid entries and continue processing
+                    logger.LogWarning(ex, "Invalid rewrite entry. From {source} to {destination}", sourcePath,
+                        targetUrl);
                     continue;
                 }
             }
@@ -120,14 +127,18 @@ internal class RedirectContentService(
             throw new FileOperationException("Error processing redirects file", redirectFile.Value, ex);
         }
     }
-    
-    public Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync() => Task.FromResult(ImmutableList<PageToGenerate>.Empty);
 
-    public Task<ImmutableList<ContentTocItem>> GetContentTocEntriesAsync() => Task.FromResult(ImmutableList<ContentTocItem>.Empty);
+    public Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync() =>
+        Task.FromResult(ImmutableList<PageToGenerate>.Empty);
 
-    public Task<ImmutableList<ContentToCopy>> GetContentToCopyAsync() => Task.FromResult(ImmutableList<ContentToCopy>.Empty);
+    public Task<ImmutableList<ContentTocItem>> GetContentTocEntriesAsync() =>
+        Task.FromResult(ImmutableList<ContentTocItem>.Empty);
 
-    public Task<ImmutableList<CrossReference>> GetCrossReferencesAsync() => Task.FromResult(ImmutableList<CrossReference>.Empty);
+    public Task<ImmutableList<ContentToCopy>> GetContentToCopyAsync() =>
+        Task.FromResult(ImmutableList<ContentToCopy>.Empty);
+
+    public Task<ImmutableList<CrossReference>> GetCrossReferencesAsync() =>
+        Task.FromResult(ImmutableList<CrossReference>.Empty);
 }
 
 /// <summary>

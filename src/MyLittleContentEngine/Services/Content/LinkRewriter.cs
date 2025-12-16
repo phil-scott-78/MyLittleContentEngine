@@ -152,7 +152,7 @@ internal static class LinkRewriter
     /// <param name="path">The absolute path to prepend BaseUrl to</param>
     /// <param name="baseUrl">The BaseUrl to prepend (e.g., "/MyLittleContentEngine")</param>
     /// <returns>The path with BaseUrl prepended if applicable</returns>
-    private static string PrependBaseUrl(string path, string baseUrl)
+    internal static string PrependBaseUrl(string path, string baseUrl)
     {
         // If no BaseUrl is provided, return the path as-is
         if (string.IsNullOrWhiteSpace(baseUrl))

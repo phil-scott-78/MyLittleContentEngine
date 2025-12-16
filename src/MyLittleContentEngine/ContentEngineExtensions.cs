@@ -142,13 +142,15 @@ public static class ContentEngineExtensions
         services.AddTransient<FileSystemUtilities>();
         services.AddSyntaxHighlightingService();
 
+        // Register OutputOptions first so it's available to all dependent services
+        services.AddOutputOptions(Environment.GetCommandLineArgs());
+
         // Register the Razor page content service with file-watch invalidation
         var configuredServices = new ConfiguredContentEngineServiceCollection(services);
         configuredServices.AddFileWatched<RazorPageContentService>();
         configuredServices.AddFileWatched<RedirectContentService>();
         configuredServices.AddTransient<IContentService>(provider => provider.GetRequiredService<RazorPageContentService>());
         configuredServices.AddTransient<IContentService>(provider => provider.GetRequiredService<RedirectContentService>());
-        services.AddOutputOptions(Environment.GetCommandLineArgs());
         
         // Register XrefResolver with file-watch invalidation
         configuredServices.AddFileWatched<IXrefResolver, XrefResolver>();

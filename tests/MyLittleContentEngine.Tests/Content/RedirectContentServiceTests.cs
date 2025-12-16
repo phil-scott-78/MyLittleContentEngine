@@ -1,5 +1,8 @@
 using System.Collections.Immutable;
 using System.Text;
+using Microsoft.Build.Utilities;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Testably.Abstractions.Testing;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services;
@@ -8,6 +11,7 @@ using MyLittleContentEngine.Tests.TestHelpers;
 using Shouldly;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
+using Task = System.Threading.Tasks.Task;
 
 namespace MyLittleContentEngine.Tests.Content;
 
@@ -42,7 +46,9 @@ public class RedirectContentServiceTests
             engineOptions,
             _fileSystem,
             filePathOps,
-            engineOptions);
+            engineOptions,
+            new OutputOptions(),
+            new NullLogger<RedirectContentService>()); // OutputOptions
     }
 
     [Fact]
@@ -393,5 +399,165 @@ public class RedirectContentServiceTests
     {
         // Act & Assert
         _service.SearchPriority.ShouldBe(0);
+    }
+
+    [Fact]
+    public async Task GetContentToCreateAsync_WithBaseUrl_PrependsBaseUrlToRelativeRedirects()
+    {
+        // Arrange
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Linux));
+        var contentPath = new FilePath("/content");
+        fileSystem.Directory.CreateDirectory(contentPath.Value);
+
+        var yamlContent = """
+            redirects:
+              /old-page: /new-page
+              /docs/old: /docs/new
+            """;
+        fileSystem.File.WriteAllText($"{contentPath.Value}/_redirects.yml", yamlContent);
+
+        var engineOptions = new ContentEngineOptions
+        {
+            SiteTitle = "Test Site",
+            SiteDescription = "Test Description",
+            ContentRootPath = contentPath,
+            FrontMatterDeserializer = new DeserializerBuilder()
+                .WithNamingConvention(UnderscoredNamingConvention.Instance)
+                .WithCaseInsensitivePropertyMatching()
+                .IgnoreUnmatchedProperties()
+                .Build()
+        };
+
+        var outputOptions = new OutputOptions { BaseUrl = "/website/" };
+        var service = new RedirectContentService(
+            engineOptions,
+            fileSystem,
+            new FilePathOperations(fileSystem),
+            engineOptions,
+            outputOptions,
+            new NullLogger<RedirectContentService>());
+
+        // Act
+        var result = await service.GetContentToCreateAsync();
+
+        // Assert
+        result.Count.ShouldBe(2);
+
+        // Check that internal redirect has BaseUrl prepended
+        var firstRedirect = result.First(c => c.TargetPath.Value == "old-page.html");
+        var htmlContent = Encoding.UTF8.GetString(firstRedirect.Bytes);
+        htmlContent.ShouldContain("/website/new-page");
+        htmlContent.ShouldContain("URL='/website/new-page'");
+        htmlContent.ShouldContain("<a href=\"/website/new-page\">");
+
+        var secondRedirect = result.First(c => c.TargetPath.Value == "docs/old.html");
+        var html2 = Encoding.UTF8.GetString(secondRedirect.Bytes);
+        html2.ShouldContain("/website/docs/new");
+    }
+
+    [Fact]
+    public async Task GetContentToCreateAsync_WithBaseUrl_DoesNotModifyExternalUrls()
+    {
+        // Arrange
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Linux));
+        var contentPath = new FilePath("/content");
+        fileSystem.Directory.CreateDirectory(contentPath.Value);
+
+        var yamlContent = """
+            redirects:
+              /external: https://example.com/page
+              /http-url: http://example.org/other
+            """;
+        fileSystem.File.WriteAllText($"{contentPath.Value}/_redirects.yml", yamlContent);
+
+        var engineOptions = new ContentEngineOptions
+        {
+            SiteTitle = "Test Site",
+            SiteDescription = "Test Description",
+            ContentRootPath = contentPath,
+            FrontMatterDeserializer = new DeserializerBuilder()
+                .WithNamingConvention(UnderscoredNamingConvention.Instance)
+                .WithCaseInsensitivePropertyMatching()
+                .IgnoreUnmatchedProperties()
+                .Build()
+        };
+
+        var outputOptions = new OutputOptions { BaseUrl = "/website/" };
+        var service = new RedirectContentService(
+            engineOptions,
+            fileSystem,
+            new FilePathOperations(fileSystem),
+            engineOptions,
+            outputOptions,
+            new NullLogger<RedirectContentService>());
+
+        // Act
+        var result = await service.GetContentToCreateAsync();
+
+        // Assert
+        result.Count.ShouldBe(2);
+
+        // External URLs should remain unchanged
+        var httpsRedirect = result.First(c => c.TargetPath.Value == "external.html");
+        var htmlContent = Encoding.UTF8.GetString(httpsRedirect.Bytes);
+        htmlContent.ShouldContain("https://example.com/page");
+        htmlContent.ShouldNotContain("/website/https:");
+
+        var httpRedirect = result.First(c => c.TargetPath.Value == "http-url.html");
+        var html2 = Encoding.UTF8.GetString(httpRedirect.Bytes);
+        html2.ShouldContain("http://example.org/other");
+        html2.ShouldNotContain("/website/http:");
+    }
+
+    [Fact]
+    public async Task GetContentToCreateAsync_WithBaseUrl_MixedRelativeAndExternal()
+    {
+        // Arrange
+        var fileSystem = new MockFileSystem(options => options.SimulatingOperatingSystem(SimulationMode.Linux));
+        var contentPath = new FilePath("/content");
+        fileSystem.Directory.CreateDirectory(contentPath.Value);
+
+        var yamlContent = """
+            redirects:
+              /internal: /new-internal
+              /external: https://example.com
+            """;
+        fileSystem.File.WriteAllText($"{contentPath.Value}/_redirects.yml", yamlContent);
+
+        var engineOptions = new ContentEngineOptions
+        {
+            SiteTitle = "Test Site",
+            SiteDescription = "Test Description",
+            ContentRootPath = contentPath,
+            FrontMatterDeserializer = new DeserializerBuilder()
+                .WithNamingConvention(UnderscoredNamingConvention.Instance)
+                .WithCaseInsensitivePropertyMatching()
+                .IgnoreUnmatchedProperties()
+                .Build()
+        };
+
+        var outputOptions = new OutputOptions { BaseUrl = "/my-app" };
+        var service = new RedirectContentService(
+            engineOptions,
+            fileSystem,
+            new FilePathOperations(fileSystem),
+            engineOptions,
+            outputOptions,
+            new NullLogger<RedirectContentService>());
+
+        // Act
+        var result = await service.GetContentToCreateAsync();
+
+        // Assert
+        result.Count.ShouldBe(2);
+
+        var internalRedirect = result.First(c => c.TargetPath.Value == "internal.html");
+        var internalHtml = Encoding.UTF8.GetString(internalRedirect.Bytes);
+        internalHtml.ShouldContain("/my-app/new-internal");
+
+        var externalRedirect = result.First(c => c.TargetPath.Value == "external.html");
+        var externalHtml = Encoding.UTF8.GetString(externalRedirect.Bytes);
+        externalHtml.ShouldContain("https://example.com");
+        externalHtml.ShouldNotContain("/my-app/https:");
     }
 }
