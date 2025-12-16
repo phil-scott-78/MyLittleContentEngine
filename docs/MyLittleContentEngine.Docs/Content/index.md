@@ -5,6 +5,14 @@ uid: "docs.index"
 order: 1
 ---
 
+```mermaid
+graph TD;
+    A-->B;
+    A-->C;
+    B-->D;
+    C-->D;
+```
+
 An opinionated and inflexible static content generator, written in .NET.
 
 * Written with `dotnet watch` in mind, see changes immediately as you edit your Markdown files

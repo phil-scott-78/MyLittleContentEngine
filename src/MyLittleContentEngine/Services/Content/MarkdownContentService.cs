@@ -95,20 +95,7 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
         // Check if this is a redirect page
         if (!string.IsNullOrEmpty(page.FrontMatter.RedirectUrl))
         {
-            var redirectHtml = $"""
-                                 <!DOCTYPE html>
-                                 <html lang="en">
-                                   <head>
-                                     <meta charset="utf-8">
-                                     <meta http-equiv="refresh" content="0; URL='{page.FrontMatter.RedirectUrl}'">
-                                     <title>Redirecting...</title>
-                                     <meta name="robots" content="noindex">
-                                   </head>
-                                   <body>
-                                     <p>If you are not redirected automatically, <a href="{page.FrontMatter.RedirectUrl}">click here</a>.</p>
-                                   </body>
-                                 </html>
-                                 """;
+            var redirectHtml = RedirectHelper.GetRedirectHtml(page.FrontMatter.RedirectUrl);
 
             return (page, redirectHtml);
         }

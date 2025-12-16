@@ -145,7 +145,9 @@ public static class ContentEngineExtensions
         // Register the Razor page content service with file-watch invalidation
         var configuredServices = new ConfiguredContentEngineServiceCollection(services);
         configuredServices.AddFileWatched<RazorPageContentService>();
+        configuredServices.AddFileWatched<RedirectContentService>();
         configuredServices.AddTransient<IContentService>(provider => provider.GetRequiredService<RazorPageContentService>());
+        configuredServices.AddTransient<IContentService>(provider => provider.GetRequiredService<RedirectContentService>());
         services.AddOutputOptions(Environment.GetCommandLineArgs());
         
         // Register XrefResolver with file-watch invalidation
