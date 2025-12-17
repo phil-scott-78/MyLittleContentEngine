@@ -50,7 +50,7 @@ jobs:
           DOTNET_CLI_TELEMETRY_OPTOUT: true
         run: |
           dotnet build
-          dotnet run --environment ASPNETCORE_ENVIRONMENT=Production --project ${{ env.WEBAPP_PATH }} --configuration Release -- build ${{ env.WEBAPP_PATH }}
+          dotnet run --environment ASPNETCORE_ENVIRONMENT=Production --project ${{ env.WEBAPP_PATH }} --configuration Release -- build ${{ env.GITHUB_REPOSITORY }}
 
       - name: Create examples directory
         run: mkdir -p ${{ env.WEBAPP_PATH }}output/examples
