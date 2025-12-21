@@ -456,7 +456,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
             .AddRange(new Dictionary<string, string>
             {
                 // Markdig Alert Styles
-                { ".markdown-alert", "my-6 p-4 flex flex-row gap-2.5 rounded-2xl border text-sm items-center" },
+                { ".markdown-alert", "my-6 px-4 flex flex-row gap-2.5 rounded-2xl border text-sm items-center" },
                 { ".markdown-alert a", "underline" },
                 { ".markdown-alert-note", string.Format(alertFormatString, "emerald") },
                 { ".markdown-alert-tip", string.Format(alertFormatString, "blue") },
