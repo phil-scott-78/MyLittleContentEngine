@@ -15,7 +15,7 @@
 <h1 class="text-4xl font-bold pb-4">Welcome @ContentEngineOptions.SiteTitle!</h1>
 
 <ul class="list-disc pl-6 space-y-2">
-    @foreach (var p in _pages.OrderByDescending(i => i.FrontMatter.Date))
+    @foreach (var p in _pages.Where(p => p.Url != "/index").OrderByDescending(i => i.FrontMatter.Date))
     {
         <li><a href="@p.Url">@p.FrontMatter.Title</a></li>
     }

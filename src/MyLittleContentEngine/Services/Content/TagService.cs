@@ -43,7 +43,7 @@ public class TagService<TFrontMatter>
             {
                 Name = tagName,
                 EncodedName = tagEncodedName,
-                Url = $"/{_markdownContentOptions.Tags.TagsPageUrl}/{tagEncodedName}",
+                Url = (UrlPath.Root / _markdownContentOptions.Tags.TagsPageUrl / tagEncodedName).Value,
             };
         }
         catch (Exception ex)

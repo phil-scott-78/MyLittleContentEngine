@@ -17,4 +17,4 @@ This is the first page in our interconnected series. From here you can navigate 
 Explore our other pages:
 - [Sample Post with Images](sample-post) - Learn about image handling
 - [Page Two - Advanced Topics](/sub-folder/page-two) - Dive deeper into advanced features
-- [Home](/index) - Return to the home page
+- [Home](/) - Return to the home page

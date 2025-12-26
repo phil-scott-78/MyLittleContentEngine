@@ -1,3 +1,3 @@
 ---
-redirect_url: page-one
+redirect_url: /sub-folder/page-one
 ---

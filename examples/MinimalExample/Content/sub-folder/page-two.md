@@ -17,5 +17,5 @@ This page covers more advanced topics for working with MyLittleContentEngine and
 Continue your journey through our content:
 - [Page One - Getting Started](page-one) - Go back to the basics
 - [Sample Post with Images](../sub-folder/sample-post) - See how images are handled
-- [Home](../index) - Return to the home page
+- [Home](../) - Return to the home page
  
