@@ -243,7 +243,8 @@ internal class OutputGenerationService(
                     }
 
                     // Validate links in the generated HTML if verification is enabled
-                    if (outputOptions.VerifyLinks)
+                    // Only validate HTML files (skip JavaScript, CSS, JSON, etc.)
+                    if (outputOptions.VerifyLinks && IsHtmlFile(page.OutputFile))
                     {
                         var brokenLinksInPage = await linkVerificationService.ValidateLinksAsync(
                             content,
@@ -600,6 +601,35 @@ internal class OutputGenerationService(
         }
 
         return normalizedUrl;
+    }
+
+    /// <summary>
+    /// Determines if a file is an HTML file based on its extension.
+    /// Only HTML files should be validated for broken links to avoid false positives
+    /// from JavaScript template literals, CSS, JSON, and other text formats.
+    /// </summary>
+    /// <param name="outputFile">The output file path to check</param>
+    /// <returns>True if the file is HTML; false otherwise</returns>
+    private static bool IsHtmlFile(FilePath outputFile)
+    {
+        var extension = Path.GetExtension(outputFile.Value);
+
+        // HTML files with explicit extensions
+        if (extension.Equals(".html", StringComparison.OrdinalIgnoreCase) ||
+            extension.Equals(".htm", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        // Routes without extensions are typically HTML pages (e.g., "/about", "/blog/post")
+        // But we should exclude known non-HTML extensions
+        if (string.IsNullOrEmpty(extension))
+        {
+            return true;
+        }
+
+        // All other extensions (.js, .css, .json, .xml, .txt, .map, etc.) are not HTML
+        return false;
     }
 
     enum Priority
