@@ -42,9 +42,6 @@
     <ProjectReference Include="..\..\examples\BlogExample\BlogExample.csproj">
       <Aliases>BlogExample</Aliases>
     </ProjectReference>
-    <ProjectReference Include="..\..\examples\ApiReferenceExample\ApiReferenceExample.csproj">
-      <Aliases>ApiReferenceExample</Aliases>
-    </ProjectReference>
     <ProjectReference Include="..\..\examples\RecipeExample\RecipeExample.csproj">
       <Aliases>RecipeExample</Aliases>
     </ProjectReference>

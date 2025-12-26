@@ -23,7 +23,6 @@
   </Folder>
   <Folder Name="/examples/">
     <File Path="examples/Directory.Build.props" />
-    <Project Path="examples/ApiReferenceExample/ApiReferenceExample.csproj" />
     <Project Path="examples/BlogExample/BlogExample.csproj" />
     <Project Path="examples/MinimalExample/MinimalExample.csproj" />
     <Project Path="examples/MultipleContentSourceExample/MultipleContentSourceExample.csproj" />
