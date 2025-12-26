@@ -122,6 +122,7 @@ public static class ContentEngineExtensions
         // Register the main options for the content engine
         services.AddTransient(configureOptions);
         services.AddTransient<OutputGenerationService>();
+        services.AddTransient<LinkVerificationService>();
         services.AddSingleton<IContentEngineFileWatcher, ContentEngineFileWatcher>();
 
         // Register TextMate language registry and highlighter

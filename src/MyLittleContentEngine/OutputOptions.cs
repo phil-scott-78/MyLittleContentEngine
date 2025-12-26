@@ -43,4 +43,18 @@ public record OutputOptions
     /// </para>
     /// </remarks>
     public FilePath OutputFolderPath { get; init; } = new FilePath("output");
+
+    /// <summary>
+    /// Gets or sets whether to verify links during static site generation.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// When enabled, the build will fail if any broken internal links are detected.
+    /// This helps ensure all internal links in your site are valid before deployment.
+    /// </para>
+    /// <para>
+    /// The default value is true.
+    /// </para>
+    /// </remarks>
+    public bool VerifyLinks { get; init; } = true;
 }

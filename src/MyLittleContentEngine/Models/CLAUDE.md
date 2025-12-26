@@ -40,5 +40,9 @@ Core data models and domain entities for MyLittleContentEngine. Contains all DTO
 ### ContentToCreate.cs
 - **ContentToCreate** - Record defining content to write during build with target path and raw bytes
 
+### BrokenLink.cs
+- **BrokenLink** - Record representing a broken internal link found during static site generation validation (source page, broken URL, link type, element type)
+- **LinkType** - Enum categorizing link attribute types (Href, Src)
+
 ### SearchIndexJsonContext.cs
 - **SearchIndexJsonContext** - JSON source generator context for SearchIndex serialization with camelCase naming

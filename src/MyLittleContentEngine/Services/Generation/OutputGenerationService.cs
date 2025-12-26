@@ -20,6 +20,7 @@ namespace MyLittleContentEngine.Services.Generation;
 /// <param name="options">Configuration options for the static generation process</param>
 /// <param name="outputOptions">Output configuration options including folder path</param>
 /// <param name="serviceProvider">Service provider for accessing registered content options</param>
+/// <param name="linkVerificationService">Service for verifying internal links in generated HTML</param>
 /// <param name="logger">Logger for diagnostic output</param>
 internal class OutputGenerationService(
     IWebHostEnvironment environment,
@@ -29,6 +30,7 @@ internal class OutputGenerationService(
     ContentEngineOptions options,
     OutputOptions outputOptions,
     IServiceProvider serviceProvider,
+    LinkVerificationService linkVerificationService,
     ILogger<OutputGenerationService> logger)
 {
     private readonly IFileSystem _fileSystem = fileSystem;
@@ -178,6 +180,11 @@ internal class OutputGenerationService(
             .Select(g => g.First())
             .ToImmutableList();
 
+        // Build a lookup of all valid output paths for link verification (including static files)
+        var validOutputPaths = BuildValidOutputPathsLookup(pagesToGenerate, contentToCopy, outputOptions.BaseUrl);
+        var allBrokenLinks = ImmutableList<BrokenLink>.Empty;
+        var brokenLinksLock = new object();
+
         // Generate each page by making HTTP requests and saving the response
         foreach (var priority in pagesToGenerate.Select(i => i.Priority).Distinct().Order())
         {
@@ -235,6 +242,24 @@ internal class OutputGenerationService(
                         return;
                     }
 
+                    // Validate links in the generated HTML if verification is enabled
+                    if (outputOptions.VerifyLinks)
+                    {
+                        var brokenLinksInPage = await linkVerificationService.ValidateLinksAsync(
+                            content,
+                            page.Url,
+                            validOutputPaths,
+                            outputOptions.BaseUrl);
+
+                        if (brokenLinksInPage.Count > 0)
+                        {
+                            lock (brokenLinksLock)
+                            {
+                                allBrokenLinks = allBrokenLinks.AddRange(brokenLinksInPage);
+                            }
+                        }
+                    }
+
                     var outFilePath = _fileSystem.Path.Combine(outputOptions.OutputFolderPath.Value, page.OutputFile.RemoveLeadingSlash().Value);
 
                     var directoryPath = _fileSystem.Path.GetDirectoryName(outFilePath);
@@ -251,6 +276,12 @@ internal class OutputGenerationService(
 
         sw.Stop();
         logger.LogInformation("All pages generated in {elapsedMilliseconds}ms", sw.ElapsedMilliseconds);
+
+        // Report broken links if any were found
+        if (allBrokenLinks.Count > 0)
+        {
+            throw new BrokenLinksException(allBrokenLinks);
+        }
     }
 
     /// <summary>
@@ -485,6 +516,90 @@ internal class OutputGenerationService(
             return targetPath[outputFolder.Length..].TrimStart(Path.DirectorySeparatorChar, '/');
         }
         return targetPath;
+    }
+
+    /// <summary>
+    /// Builds a lookup set of all valid output paths for link verification.
+    /// Includes both generated pages and static files (scripts, CSS, images, etc.).
+    /// Includes variations with/without trailing slashes and index.html handling.
+    /// </summary>
+    private ImmutableHashSet<string> BuildValidOutputPathsLookup(
+        ImmutableList<(PageToGenerate Page, Priority Priority)> pagesToGenerate,
+        ImmutableList<ContentToCopy> contentToCopy,
+        UrlPath baseUrl)
+    {
+        var validPaths = ImmutableHashSet.CreateBuilder<string>(StringComparer.OrdinalIgnoreCase);
+
+        // Add all generated pages
+        foreach (var (page, _) in pagesToGenerate)
+        {
+            // Add the URL as-is (without BaseUrl)
+            var normalizedUrl = NormalizeUrlForValidation(page.Url, baseUrl);
+            validPaths.Add(normalizedUrl);
+
+            // Also add URL with index.html removed (for directory-style URLs)
+            if (normalizedUrl.EndsWith("/index.html", StringComparison.OrdinalIgnoreCase))
+            {
+                validPaths.Add(normalizedUrl[..^"index.html".Length]);
+            }
+
+            // Also add URL with trailing slash removed
+            if (normalizedUrl.EndsWith('/') && normalizedUrl.Length > 1)
+            {
+                validPaths.Add(normalizedUrl.TrimEnd('/'));
+            }
+
+            // Also add URL with trailing slash added
+            if (!normalizedUrl.EndsWith('/'))
+            {
+                validPaths.Add(normalizedUrl + "/");
+            }
+        }
+
+        // Add all static files (scripts, CSS, images, fonts, etc.)
+        foreach (var content in contentToCopy)
+        {
+            // Convert file system path to URL path (replace backslashes with forward slashes)
+            var urlPath = content.TargetPath.Value.Replace('\\', '/');
+
+            // Ensure it starts with /
+            if (!urlPath.StartsWith('/'))
+            {
+                urlPath = "/" + urlPath;
+            }
+
+            // Normalize and add to valid paths
+            var normalizedUrl = NormalizeUrlForValidation(new UrlPath(urlPath), baseUrl);
+            validPaths.Add(normalizedUrl);
+        }
+
+        return validPaths.ToImmutable();
+    }
+
+    /// <summary>
+    /// Normalizes a URL for validation by removing BaseUrl prefix and ensuring leading slash.
+    /// </summary>
+    private string NormalizeUrlForValidation(UrlPath url, UrlPath baseUrl)
+    {
+        var normalizedUrl = url.Value;
+
+        // Remove BaseUrl prefix if present
+        if (!string.IsNullOrEmpty(baseUrl.Value) && baseUrl.Value != "/")
+        {
+            var baseUrlNormalized = baseUrl.Value.TrimEnd('/');
+            if (normalizedUrl.StartsWith(baseUrlNormalized, StringComparison.OrdinalIgnoreCase))
+            {
+                normalizedUrl = normalizedUrl[baseUrlNormalized.Length..];
+            }
+        }
+
+        // Ensure it starts with /
+        if (!normalizedUrl.StartsWith('/'))
+        {
+            normalizedUrl = "/" + normalizedUrl;
+        }
+
+        return normalizedUrl;
     }
 
     enum Priority

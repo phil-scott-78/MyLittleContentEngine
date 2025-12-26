@@ -107,7 +107,6 @@ internal class RedirectContentService(
                 {
                     logger.LogWarning(ex, "Invalid rewrite entry. From {source} to {destination}", sourcePath,
                         targetUrl);
-                    continue;
                 }
             }
 

@@ -144,10 +144,11 @@ public partial class BaseUrlRewritingMiddleware
                 {
                     // Replace unresolved xref with a span containing error message
                     var content = link.TextContent;
-                    var errorSpan = document.CreateElement("span");
+                    var errorSpan = document.CreateElement("a");
                     errorSpan.SetAttribute("data-xref-error", "Reference not found");
                     errorSpan.SetAttribute("data-xref-uid", xrefUid);
                     errorSpan.SetAttribute("style", "color: red; text-decoration: line-through;");
+                    errorSpan.SetAttribute("href", href);
                     errorSpan.TextContent = content;
 
                     link.Parent?.ReplaceChild(errorSpan, link);

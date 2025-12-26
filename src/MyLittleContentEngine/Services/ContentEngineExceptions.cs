@@ -1,3 +1,7 @@
+using System.Collections.Immutable;
+using System.Text;
+using MyLittleContentEngine.Models;
+
 namespace MyLittleContentEngine.Services;
 
 /// <summary>
@@ -126,5 +130,48 @@ public class FileOperationException : ContentEngineException
     /// <inheritdoc />
     public FileOperationException(string message, Exception innerException) : base(message, innerException)
     {
+    }
+}
+
+/// <summary>
+/// Exception thrown when broken links are detected during static site generation.
+/// Contains detailed information about all broken links found.
+/// </summary>
+public class BrokenLinksException : ContentEngineException
+{
+    /// <summary>
+    /// Gets the collection of broken links that were detected.
+    /// </summary>
+    public ImmutableList<BrokenLink> BrokenLinks { get; }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BrokenLinksException"/> class.
+    /// </summary>
+    /// <param name="brokenLinks">The collection of broken links detected.</param>
+    public BrokenLinksException(ImmutableList<BrokenLink> brokenLinks)
+        : base(FormatMessage(brokenLinks))
+    {
+        BrokenLinks = brokenLinks;
+    }
+
+    private static string FormatMessage(ImmutableList<BrokenLink> brokenLinks)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine($"Found {brokenLinks.Count} broken link(s) during static site generation:");
+        sb.AppendLine();
+
+        // Group by source page for better readability
+        var grouped = brokenLinks.GroupBy(bl => bl.SourcePage.Value);
+        foreach (var group in grouped)
+        {
+            sb.AppendLine($"  In page: {group.Key}");
+            foreach (var link in group)
+            {
+                sb.AppendLine($"    - <{link.ElementType} {link.LinkType.ToString().ToLower()}=\"{link.BrokenUrl}\">");
+            }
+            sb.AppendLine();
+        }
+
+        return sb.ToString();
     }
 }
