@@ -7,12 +7,16 @@ order: 1
 
 An opinionated and inflexible static content generator, written in .NET.
 
-* Written with `dotnet watch` in mind, see changes immediately as you edit your Markdown files
-* No JSON or YAML configuration files
-* No Node.js or JavaScript build dependencies
-* Fast. This site requires less than 25 kb of JavaScript and CSS, combined.
-* Use Blazor for your layouts
-* Easy publishing to GitHub Pages, Azure Static Web Apps, or any other static hosting service
+Built for .NET developers who want instant feedback without leaving the .NET ecosystem. Perfect for technical documentation, API references, and developer blogs—all with the same hot reload experience you get with `dotnet watch`.
+
+* **Instant hot reload** — Built-in `dotnet watch` integration. See content, navigation, and cross-references update immediately as you edit
+* **No JavaScript build tools** — Zero Node.js dependencies. All configuration in C# code, no JSON or YAML files
+* **Roslyn-powered syntax highlighting** — Semantic C#/VB.NET highlighting using the actual compiler, plus 52+ server-side languages with Shiki-style transformations
+* **Automatic API documentation** — Generate comprehensive API reference docs from your .NET assemblies with XML documentation support
+* **Blazor for layouts** — Use Razor components for all layouts and pages, with Mdazor for embedding components in Markdown
+* **Fast & lightweight** — This site ships less than 25 KB of JavaScript and CSS, combined
+* **Built-in essentials** — FlexSearch-powered search, RSS feeds, sitemaps, and GitHub Pages deployment workflows included
+* **Rich Markdown extensions** — Tabbed code blocks, Mermaid diagrams, custom alerts, and Shiki-style code transformations (diffs, highlights, focus)
 
 ## Getting Started
 
