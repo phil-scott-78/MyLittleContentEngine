@@ -357,4 +357,63 @@ public class LinkVerificationServiceTests
         result.Count.ShouldBe(1);
         result[0].SourcePage.Value.ShouldBe("/blog/my-post");
     }
+
+    [Fact]
+    public async Task ValidateLinksAsync_IndexPageWithoutHtml_IsValid()
+    {
+        // Arrange - Link to /index should be valid when both variations are in valid paths
+        // (BuildValidOutputPathsLookup adds both /index.html and /index)
+        var html = """<a href="/index">Home</a>""";
+        var validPages = ImmutableHashSet.Create("/index.html", "/index");
+
+        // Act
+        var result = await _service.ValidateLinksAsync(html, new UrlPath("/test"), validPages, UrlPath.Empty);
+
+        // Assert
+        result.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task ValidateLinksAsync_PageWithoutHtmlExtension_IsValid()
+    {
+        // Arrange - Link to /about should be valid when both variations are in valid paths
+        // (BuildValidOutputPathsLookup adds both /about.html and /about)
+        var html = """<a href="/about">About</a>""";
+        var validPages = ImmutableHashSet.Create("/about.html", "/about");
+
+        // Act
+        var result = await _service.ValidateLinksAsync(html, new UrlPath("/test"), validPages, UrlPath.Empty);
+
+        // Assert
+        result.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task ValidateLinksAsync_PageWithHtmlExtension_IsValid()
+    {
+        // Arrange - Link to /about.html should be valid when both variations are in valid paths
+        // (BuildValidOutputPathsLookup adds both /about and /about.html)
+        var html = """<a href="/about.html">About</a>""";
+        var validPages = ImmutableHashSet.Create("/about", "/about.html");
+
+        // Act
+        var result = await _service.ValidateLinksAsync(html, new UrlPath("/test"), validPages, UrlPath.Empty);
+
+        // Assert
+        result.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task ValidateLinksAsync_NonHtmlFiles_NotAffected()
+    {
+        // Arrange - CSS/JS files should not get .html variations
+        var html = """<link href="/styles.css" />""";
+        var validPages = ImmutableHashSet.Create("/styles.css");
+
+        // Act
+        var result = await _service.ValidateLinksAsync(html, new UrlPath("/test"), validPages, UrlPath.Empty);
+
+        // Assert
+        result.ShouldBeEmpty();
+    }
 }

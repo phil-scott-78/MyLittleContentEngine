@@ -39,9 +39,9 @@ Start here if you're new to Spectre.Console.Cli:
 
 ### 🛠️ How-To Guides
 Learn how to accomplish specific tasks:
-- [Defining Commands and Arguments](/cli/how-to/defining-commands-and-arguments)
-- [Implementing Command Handlers](/cli/how-to/implementing-command-handlers)
-- [Working with Multiple Command Hierarchies](/cli/how-to/working-with-multiple-command-hierarchies)
+- [Defining Commands and Arguments](/cli/how--to/defining-commands-and-arguments)
+- [Implementing Command Handlers](/cli/how--to/implementing-command-handlers)
+- [Working with Multiple Command Hierarchies](/cli/how--to/working-with-multiple-command-hierarchies)
 
 ### 📖 Reference
 Quick lookups and API details:

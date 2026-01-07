@@ -43,6 +43,7 @@ internal class LinkVerificationService(ILogger<LinkVerificationService> logger)
         UrlPath baseUrl)
     {
         var brokenLinks = ImmutableList.CreateBuilder<BrokenLink>();
+        var normalizedValidPages = validPages.Select(page => NormalizeLink(page, baseUrl)).ToImmutableHashSet();
 
         // Parse the HTML using AngleSharp
         var document = await _browsingContext.OpenAsync(req => req.Content(htmlContent));
@@ -68,12 +69,12 @@ internal class LinkVerificationService(ILogger<LinkVerificationService> logger)
                         var srcsetUrls = ParseSrcsetAttribute(attributeValue);
                         foreach (var url in srcsetUrls)
                         {
-                            ValidateSingleLink(url, sourcePage, validPages, baseUrl, elementType, linkType, brokenLinks);
+                            ValidateSingleLink(url, sourcePage, normalizedValidPages, baseUrl, elementType, linkType, brokenLinks);
                         }
                     }
                     else
                     {
-                        ValidateSingleLink(attributeValue, sourcePage, validPages, baseUrl, elementType, linkType, brokenLinks);
+                        ValidateSingleLink(attributeValue, sourcePage, normalizedValidPages, baseUrl, elementType, linkType, brokenLinks);
                     }
                 }
             }
@@ -171,6 +172,11 @@ internal class LinkVerificationService(ILogger<LinkVerificationService> logger)
             }
         }
 
+        if (link.EndsWith("/index"))
+        {
+            link = link[..^6];
+        }
+        
         // Ensure it starts with /
         if (!link.StartsWith('/'))
         {

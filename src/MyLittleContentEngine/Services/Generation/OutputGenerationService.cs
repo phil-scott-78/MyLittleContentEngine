@@ -522,6 +522,7 @@ internal class OutputGenerationService(
     /// <summary>
     /// Builds a lookup set of all valid output paths for link verification.
     /// Includes both generated pages and static files (scripts, CSS, images, etc.).
+    /// For HTML pages, includes variations with and without .html extension.
     /// Includes variations with/without trailing slashes and index.html handling.
     /// </summary>
     private ImmutableHashSet<string> BuildValidOutputPathsLookup(
@@ -537,6 +538,21 @@ internal class OutputGenerationService(
             // Add the URL as-is (without BaseUrl)
             var normalizedUrl = NormalizeUrlForValidation(page.Url, baseUrl);
             validPaths.Add(normalizedUrl);
+
+            // Add .html extension variation for pages without it
+            // This allows both /about and /about.html to be valid
+            if (!normalizedUrl.EndsWith(".html", StringComparison.OrdinalIgnoreCase) &&
+                !normalizedUrl.EndsWith('/'))
+            {
+                validPaths.Add(normalizedUrl + ".html");
+            }
+
+            // Add version without .html extension for pages that have it
+            // This allows both /about.html and /about to be valid
+            if (normalizedUrl.EndsWith(".html", StringComparison.OrdinalIgnoreCase))
+            {
+                validPaths.Add(normalizedUrl[..^".html".Length]);
+            }
 
             // Also add URL with index.html removed (for directory-style URLs)
             if (normalizedUrl.EndsWith("/index.html", StringComparison.OrdinalIgnoreCase))

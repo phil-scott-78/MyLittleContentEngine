@@ -153,9 +153,9 @@ You've learned some powerful techniques that will serve you well in any interact
 
 Ready to explore more interactive features? Here are some great next steps:
 
-- **[Progress Bars and Task Management](../progress-bars-and-task-management.md)**: Learn to track complex multi-step operations
-- **[Custom Widgets and Layouts](../custom-widgets-and-layouts.md)**: Create your own interactive components  
-- **[Advanced Input Validation](../../how-to/input-validation-and-error-handling.md)**: Build robust validation for complex data types
-- **[Theming and Styling](../../how-to/customizing-colors-and-themes.md)**: Make your dashboards match your brand
+- **[Showing Progress Bars and Spinners](../how-to/showing-progress-bars-and-spinners.md)**: Learn to track and display progress of long-running tasks
+- **[Organizing Layout with Panels and Grids](../how-to/organizing-layout-with-panels-and-grids.md)**: Arrange multiple pieces of output using layout widgets
+- **[Prompting for User Input](../how-to/prompting-for-user-input.md)**: Interactively prompt the user for input with validation
+- **[Styling Text with Markup and Color](../how-to/styling-text-with-markup-and-color.md)**: Output text with rich styles and colors
 
 You've built something really impressive here—an interactive dashboard that users will actually enjoy using. That's the power of thoughtful user experience design combined with Spectre.Console's robust features!
