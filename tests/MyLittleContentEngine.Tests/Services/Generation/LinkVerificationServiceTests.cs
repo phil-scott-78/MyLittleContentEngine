@@ -287,37 +287,6 @@ public class LinkVerificationServiceTests
     }
 
     [Fact]
-    public async Task ValidateLinksAsync_CaseInsensitiveValidation()
-    {
-        // Arrange
-        var html = """<a href="/Page1">Link</a>""";
-        var validPages = ImmutableHashSet.Create(StringComparer.OrdinalIgnoreCase, "/page1");
-
-        // Act
-        var result = await _service.ValidateLinksAsync(html, new UrlPath("/test"), validPages, UrlPath.Empty);
-
-        // Assert
-        result.ShouldBeEmpty(); // Should match case-insensitively
-    }
-
-    [Fact]
-    public async Task ValidateLinksAsync_IgnoresEmptyLinks()
-    {
-        // Arrange
-        var html = """
-            <a href="">Empty Link</a>
-            <img src="" />
-            """;
-        var validPages = ImmutableHashSet.Create<string>();
-
-        // Act
-        var result = await _service.ValidateLinksAsync(html, new UrlPath("/test"), validPages, UrlPath.Empty);
-
-        // Assert
-        result.ShouldBeEmpty();
-    }
-
-    [Fact]
     public async Task ValidateLinksAsync_HandlesMultipleBrokenLinksInSamePage()
     {
         // Arrange

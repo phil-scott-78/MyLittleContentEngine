@@ -84,8 +84,20 @@ public sealed class CodeHighlighterService : ICodeHighlighter
     private static (string baseLanguage, string? modifier) ParseLanguageId(string languageId)
     {
         var trimmed = languageId.Trim();
+        const string xmlDocIdDiffMarker = ":xmldocid-diff";
         const string xmlDocIdMarker = ":xmldocid";
         const string pathMarker = ":path";
+
+        // Check for :xmldocid-diff first (before :xmldocid) to avoid false matches
+        if (trimmed.Contains(xmlDocIdDiffMarker, StringComparison.OrdinalIgnoreCase))
+        {
+            var baseIndex = trimmed.IndexOf(xmlDocIdDiffMarker, StringComparison.OrdinalIgnoreCase);
+            var baseLanguage = trimmed[..baseIndex];
+            var modifierPart = trimmed.Contains(",bodyonly", StringComparison.OrdinalIgnoreCase)
+                ? "xmldocid-diff,bodyonly"
+                : "xmldocid-diff";
+            return (baseLanguage, modifierPart);
+        }
 
         if (trimmed.Contains(xmlDocIdMarker, StringComparison.OrdinalIgnoreCase))
         {
@@ -112,6 +124,8 @@ public sealed class CodeHighlighterService : ICodeHighlighter
         {
             "xmldocid" => ProcessXmlDocIdModifier(baseLanguage, code, bodyOnly: false),
             "xmldocid,bodyonly" => ProcessXmlDocIdModifier(baseLanguage, code, bodyOnly: true),
+            "xmldocid-diff" => ProcessXmlDocIdDiffModifier(baseLanguage, code, bodyOnly: false),
+            "xmldocid-diff,bodyonly" => ProcessXmlDocIdDiffModifier(baseLanguage, code, bodyOnly: true),
             "path" => ProcessPathModifier(baseLanguage, code),
             _ => null
         };
@@ -158,6 +172,126 @@ public sealed class CodeHighlighterService : ICodeHighlighter
         // Apply transformations (line highlighting, focus, diff, etc.)
         return ApplyTransformations(wrappedHtml, baseLanguage);
     }
+
+    private string ProcessXmlDocIdDiffModifier(string baseLanguage, string code, bool bodyOnly)
+    {
+        if (_syntaxHighlighter == null)
+            return AsPreCode(HtmlEncoder.Default.Encode(code));
+
+        // Only C# is supported for XML doc ID highlighting
+        if (baseLanguage is not ("csharp" or "c#" or "cs"))
+        {
+            return AsPreCode("Error: Only C# is supported for xmldocid-diff modifier.");
+        }
+
+        // Split code into lines and validate exactly 2 XmlDocIds
+        var xmlDocIds = code.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        if (xmlDocIds.Length != 2)
+        {
+            return AsPreCode($"Error: xmldocid-diff requires exactly 2 XmlDocIds, but got {xmlDocIds.Length}.");
+        }
+
+        // Highlight both symbols
+        var result1 = RunSync(async () =>
+            await _syntaxHighlighter.HighlightSymbolAsync(xmlDocIds[0], bodyOnly));
+        var result2 = RunSync(async () =>
+            await _syntaxHighlighter.HighlightSymbolAsync(xmlDocIds[1], bodyOnly));
+
+        // Handle errors
+        if (!result1.Success || !result2.Success)
+        {
+            var errors = new List<string>();
+            if (!result1.Success)
+                errors.Add($"Error highlighting '{xmlDocIds[0]}': {result1.ErrorMessage ?? "Unknown error"}");
+            if (!result2.Success)
+                errors.Add($"Error highlighting '{xmlDocIds[1]}': {result2.ErrorMessage ?? "Unknown error"}");
+
+            var errorHtml = string.Join("\n", errors.Select(e =>
+                $"""<span class="comment">// {HtmlEncoder.Default.Encode(e)}</span>"""));
+            return AsPreCode(errorHtml);
+        }
+
+        // Extract inner HTML and compute diff
+        var html1 = ExtractInnerCodeHtml(result1.Html);
+        var html2 = ExtractInnerCodeHtml(result2.Html);
+
+        var diffResult = ComputeAndRenderDiff(html1, html2, result1.PlainText, result2.PlainText);
+
+        // Wrap in pre/code with has-diff class if differences exist
+        var preClass = diffResult.HasDifferences ? " class=\"has-diff\"" : "";
+        var wrappedHtml = $"<pre{preClass}><code>{diffResult.Html}</code></pre>";
+
+        // Skip CodeTransformer since we already structured the lines ourselves
+        return wrappedHtml;
+    }
+
+    private static DiffRenderResult ComputeAndRenderDiff(
+        string highlightedHtml1,
+        string highlightedHtml2,
+        string plainText1,
+        string plainText2)
+    {
+        // Split both highlighted HTML and plain text into lines
+        var htmlLines1 = highlightedHtml1.SplitNewLines();
+        var htmlLines2 = highlightedHtml2.SplitNewLines();
+
+        // Use DiffPlex to compute diff on plain text
+        var differ = new DiffPlex.Differ();
+        var diffResult = differ.CreateLineDiffs(plainText1, plainText2, ignoreWhitespace: true);
+
+        var outputLines = new List<string>();
+        var processedLinesA = 0; // Tracks how many lines from A we've processed
+        var hasDifferences = diffResult.DiffBlocks.Count > 0;
+
+        // Process each diff block
+        foreach (var diffBlock in diffResult.DiffBlocks)
+        {
+            // Add unchanged lines before this diff block
+            while (processedLinesA < diffBlock.DeleteStartA)
+            {
+                if (processedLinesA < htmlLines1.Length)
+                {
+                    outputLines.Add($"""<span class="line">{htmlLines1[processedLinesA]}</span>""");
+                }
+                processedLinesA++;
+            }
+
+            // Add deleted lines (from first snippet)
+            for (var i = 0; i < diffBlock.DeleteCountA; i++)
+            {
+                var lineIndex = diffBlock.DeleteStartA + i;
+                if (lineIndex < htmlLines1.Length)
+                {
+                    outputLines.Add($"""<span class="line diff-remove">{htmlLines1[lineIndex]}</span>""");
+                }
+            }
+
+            // Add inserted lines (from second snippet)
+            for (var i = 0; i < diffBlock.InsertCountB; i++)
+            {
+                var lineIndex = diffBlock.InsertStartB + i;
+                if (lineIndex < htmlLines2.Length)
+                {
+                    outputLines.Add($"""<span class="line diff-add">{htmlLines2[lineIndex]}</span>""");
+                }
+            }
+
+            // Move past the deleted lines in A
+            processedLinesA += diffBlock.DeleteCountA;
+        }
+
+        // Add any remaining unchanged lines from the end
+        while (processedLinesA < htmlLines1.Length)
+        {
+            outputLines.Add($"""<span class="line">{htmlLines1[processedLinesA]}</span>""");
+            processedLinesA++;
+        }
+
+        return new DiffRenderResult(string.Join("\n", outputLines), hasDifferences);
+    }
+
+    private record DiffRenderResult(string Html, bool HasDifferences);
 
     private string ProcessPathModifier(string baseLanguage, string code)
     {

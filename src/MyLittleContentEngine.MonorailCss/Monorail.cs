@@ -333,7 +333,7 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 },
                 {
                     ".code-highlight-wrapper pre ",
-                    "py-2 px-4 md:px-4  overflow-x-auto  font-mono text-xs md:text-sm  leading-relaxed w-full dark:scheme-dark"
+                    "py-2 md:py-3 px-4 md:px-8  overflow-x-auto  font-mono text-xs md:text-sm  leading-relaxed w-full dark:scheme-dark"
                 },
                 {
                     ".code-highlight-wrapper .standalone-code-highlight pre",
@@ -341,13 +341,13 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 },
                 {
                     ".code-highlight-wrapper pre code",
-                    "font-mono"
+                    "font-mono inline-block min-w-full"
                 },
 
                 // Code transformation line containers
                 {
                     ".code-highlight-wrapper .line",
-                    "inline-block transition-all duration-300 px-4  -mx-4  w-[calc(100%+2rem)] relative"
+                    "inline-block transition-all duration-300 lg:py-[1px] px-8 -mx-8 w-[calc(100%+4rem)] relative"
                 },
                 {
                     ".code-highlight-wrapper pre.has-focused .line",
@@ -373,9 +373,14 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 },
                 {
                     ".code-highlight-wrapper .line.diff-remove",
-                    "bg-red-600/20 dark:bg-red-900/20 opacity-50 before:font-bold before:content-['-'] before:hidden md:before:block before:text-sm before:absolute before:left-1 before:dark:text-red-500 before:text-red-700"
+                    "bg-red-600/20 dark:bg-red-900/20 before:font-bold  before:content-['-'] before:hidden md:before:block before:text-sm before:absolute before:left-1 before:dark:text-red-500 before:text-red-700"
                 },
 
+                {
+                    ".code-highlight-wrapper .line.diff-remove > *",
+                    "opacity-50 contrast-50"
+                },
+                
                 // Focus and blur
                 {
                     ".code-highlight-wrapper pre.has-focused  .line.focused",

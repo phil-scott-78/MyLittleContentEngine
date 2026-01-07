@@ -7,36 +7,6 @@ using HtmlRenderer = Markdig.Renderers.HtmlRenderer;
 
 namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
 
-public static class Test
-{
-    public static string AsTitleCase()
-    {
-        return "my name is phil scott and this is my title".ToApaTitleCase();
-    }
-}
-
-internal static class LanguageModifiers
-{
-    public const string XmlDocId = "xmldocid";
-    public const string Path = "path";
-    public const string BodyOnly = "bodyonly";
-}
-
-internal static class LanguageIds
-{
-    public const string CSharp = "csharp";
-    public const string CSharpShort = "c#";
-    public const string CSharpAbbrev = "cs";
-    public const string VisualBasic = "vb";
-    public const string VisualBasicNet = "vbnet";
-    public const string Gbnf = "gbnf";
-    public const string Bash = "bash";
-    public const string Shell = "shell";
-    public const string Text = "text";
-    public const string Markdown = "markdown";
-    public const string MarkdownShort = "md";
-}
-
 /*
 Renders code blocks with syntax highlighting using a pipeline approach.
 
