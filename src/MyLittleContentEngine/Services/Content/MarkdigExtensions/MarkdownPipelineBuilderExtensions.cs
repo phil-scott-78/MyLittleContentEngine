@@ -1,4 +1,9 @@
 ﻿using Markdig;
+using Markdig.Extensions.Alerts;
+using Markdig.Helpers;
+using Markdig.Parsers.Inlines;
+using Markdig.Renderers;
+using Markdig.Renderers.Html;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions.Tabs;
 
@@ -32,5 +37,48 @@ internal static class MarkdownPipelineBuilderExtensions
     {
         markdownPipelineBuilder.Extensions.AddIfNotAlready(new TabbedCodeBlocksExtension(options));
         return markdownPipelineBuilder;
+    }
+
+    /// <summary>
+    /// Adds custom alert block support to the Markdig pipeline, replacing the built-in alert inline parser
+    /// with a custom implementation.
+    /// </summary>
+    /// <param name="builder">The <see cref="MarkdownPipelineBuilder"/> to configure.</param>
+    /// <returns>The <paramref name="builder"/> configured with custom alert blocks.</returns>
+    public static MarkdownPipelineBuilder UseCustomAlerts(this MarkdownPipelineBuilder builder)
+    {
+        builder.UseAlertBlocks();
+        builder.Extensions.AddIfNotAlready(new CustomAlertsExtension());
+        return builder;
+    }
+
+    private class CustomAlertsExtension : IMarkdownExtension
+    {
+        
+        public Action<HtmlRenderer, StringSlice>? RenderKind { get; set; }
+
+        public void Setup(MarkdownPipelineBuilder pipeline)
+        {
+            var existing = pipeline.InlineParsers.Find<Markdig.Extensions.Alerts.AlertInlineParser>();
+            if (existing is not null)
+            {
+                pipeline.InlineParsers.Remove(existing);
+            }
+
+            pipeline.InlineParsers.InsertBefore<LinkInlineParser>(new AlertInlineParser());
+            
+        }
+
+        public void Setup(MarkdownPipeline pipeline, IMarkdownRenderer renderer)
+        {
+            var blockRenderer = renderer.ObjectRenderers.FindExact<AlertBlockRenderer>();
+            if (blockRenderer == null)
+            {
+                renderer.ObjectRenderers.InsertBefore<QuoteBlockRenderer>(new AlertBlockRenderer()
+                {
+                    RenderKind = RenderKind ?? AlertBlockRenderer.DefaultRenderKind
+                });
+            }
+        }
     }
 }

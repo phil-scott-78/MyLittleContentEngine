@@ -214,7 +214,7 @@ public record ContentEngineOptions
 
         var builder = new MarkdownPipelineBuilder()
             .UseAutoIdentifiers(AutoIdentifierOptions.GitHub) // This sets up GitHub-style header IDs
-            .UseAlertBlocks()
+            .UseCustomAlerts()
             .UseAbbreviations()
             .UseCitations()
             .UseCustomContainers()
