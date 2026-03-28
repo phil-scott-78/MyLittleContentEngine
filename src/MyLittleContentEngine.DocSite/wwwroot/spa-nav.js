@@ -86,6 +86,8 @@
 
     function isSameOriginDocLink(anchor) {
         if (!anchor.href) return false;
+        // Hash-only links (outline / in-page TOC) should scroll natively, not trigger SPA nav.
+        if ((anchor.getAttribute('href') || '').startsWith('#')) return false;
         try {
             const url = new URL(anchor.href);
             if (url.origin !== window.location.origin) return false;
@@ -234,6 +236,9 @@
     // ---------------------------------------------------------------------------
 
     let _navigating = false;
+    // Tracks the pathname of the page currently rendered in the article, so the
+    // popstate handler can tell hash-only history entries apart from real page changes.
+    let _currentPathname = window.location.pathname;
 
     function getSlug(url) {
         let p = url.pathname;
@@ -243,6 +248,7 @@
 
     /** Commit data to the DOM and finish navigation. */
     function commit(article, data, url, pushState) {
+        _currentPathname = url.pathname;
         if (pushState) history.pushState({ title: data.title }, data.title, url.href);
         applyMeta(data, url);
         article.innerHTML = buildArticleHtml(data);
@@ -313,7 +319,11 @@
     });
 
     window.addEventListener('popstate', (e) => {
-        navigate(new URL(window.location.href), false, e.state?.title || '');
+        const url = new URL(window.location.href);
+        // Hash-only history entries (from in-page anchor clicks) share the same
+        // pathname — let the browser handle scrolling rather than reloading the page.
+        if (url.pathname === _currentPathname) return;
+        navigate(url, false, e.state?.title || '');
     });
 
 })();
