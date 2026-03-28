@@ -118,13 +118,8 @@
             `</div>`;
     }
 
-    function buildArticleHtml(data) {
-        let html =
-            `<header class="transition-all mb-4 lg:mb-8">` +
-            `<h1 class="${H1_CLASSES}">${escapeHtml(data.title)}</h1>` +
-            `</header>` +
-            `<main class="${PROSE_CLASSES}">${data.htmlContent}</main>`;
-
+    function buildArticleBodyHtml(data) {
+        let html = `<main class="${PROSE_CLASSES}">${data.htmlContent}</main>`;
         if (data.previousPage || data.nextPage) {
             html +=
                 `<div class="flex my-12 border-t border-base-200 dark:border-base-700 pt-4 lg:pt-8">` +
@@ -135,6 +130,13 @@
         return html;
     }
 
+    function buildArticleHtml(data) {
+        return `<header class="transition-all mb-4 lg:mb-8">` +
+            `<h1 class="${H1_CLASSES}">${escapeHtml(data.title)}</h1>` +
+            `</header>` +
+            buildArticleBodyHtml(data);
+    }
+
     /** Skeleton shown while a slow page is loading.  Title is real; content is shimmer lines. */
     function buildSkeletonHtml(title) {
         const line = (w) =>
@@ -143,7 +145,7 @@
             `background-size:200% 100%;animation:spa-shimmer 1.4s ease-in-out infinite"></div>`;
         return `<header class="transition-all mb-4 lg:mb-8">` +
             `<h1 class="${H1_CLASSES}">${escapeHtml(title)}</h1></header>` +
-            `<div class="mt-8">` +
+            `<div data-role="skeleton-body" class="mt-8">` +
             line(88) + line(72) + line(80) +
             `<div style="height:1.5rem"></div>` +
             line(92) + line(65) + line(78) + line(55) +
@@ -316,9 +318,47 @@
 
             if (fetchFail) { window.location.href = url.href; _navigating = false; return; }
 
-            // Quick skeleton fade-out, then reveal real content
-            await fadeOut(article);
-            commit(article, fetchData, url, pushState);
+            // Cancel any in-progress article fade-in; ensure article is fully visible
+            article.style.transition = '';
+            article.style.opacity    = '1';
+            article.style.transform  = '';
+            ++_gen; // invalidate previous fadeIn cleanup timer
+
+            // Fade out only the shimmer block, leaving the title untouched
+            const skeletonBody = article.querySelector('[data-role="skeleton-body"]');
+            await fadeOut(skeletonBody);
+            skeletonBody?.remove();
+
+            // Update title in case the hint differed from the real page title
+            const h1 = article.querySelector('h1');
+            if (h1) h1.textContent = fetchData.title;
+
+            // Insert real body elements pre-hidden so fadeIn can animate them in
+            const tmp = document.createElement('div');
+            tmp.innerHTML = buildArticleBodyHtml(fetchData);
+            [...tmp.children].forEach(el => { el.style.opacity = '0'; });
+            while (tmp.firstChild) article.appendChild(tmp.firstChild);
+
+            // Apply metadata and state
+            _currentPathname = url.pathname;
+            if (pushState) history.pushState({ title: fetchData.title }, fetchData.title, url.href);
+            applyMeta(fetchData, url);
+            updateNavActive(url.pathname);
+            window.pageManager?.syntaxHighlighter?.init();
+            reloadStylesheetIfDev();
+
+            // Rebuild outline (needs <main> in DOM first)
+            rebuildOutline();
+
+            // Fade in new content elements + TOC together
+            const newMain = article.querySelector('main');
+            const newNav  = article.querySelector('.flex.my-12');
+            fadeIn(newMain, newNav, outlineEl);
+
+            if (url.hash) {
+                const t = document.querySelector(url.hash);
+                if (t) { t.scrollIntoView(); _navigating = false; return; }
+            }
         }
 
         _navigating = false;
