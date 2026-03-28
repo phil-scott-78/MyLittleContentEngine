@@ -1,21 +1,20 @@
 using System.Collections.Immutable;
 using System.IO.Abstractions;
-using System.Text;
-using Microsoft.Extensions.Logging;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content.TableOfContents;
 using YamlDotNet.Core;
-using YamlDotNet.Serialization;
 
 namespace MyLittleContentEngine.Services.Content;
 
 /// <summary>
-/// Content service responsible for generating redirect HTML files from a _redirects.yml configuration file.
+/// Content service responsible for handling redirects from a _redirects.yml configuration file.
 /// </summary>
 /// <remarks>
 /// <para>
-/// This service reads a _redirects.yml file from the content root directory and generates
-/// static HTML redirect files for each defined redirect mapping.
+/// This service reads a _redirects.yml file from the content root directory and exposes the
+/// source-to-target mapping. At runtime, <see cref="Infrastructure.ContentEngineRedirectMiddleware"/>
+/// uses this mapping to issue HTTP 301 responses. During static build,
+/// <c>OutputGenerationService</c> detects those 301 responses and writes redirect HTML files.
 /// </para>
 /// <para>
 /// The YAML format expected:
@@ -25,97 +24,105 @@ namespace MyLittleContentEngine.Services.Content;
 ///   /archived: https://archive.example.com
 /// </code>
 /// </para>
-/// <para>
-/// For each redirect, generates an HTML file using meta refresh and includes a fallback link.
-/// Source paths like "/old-page" generate files named "old-page.html" in the output directory.
-/// </para>
 /// </remarks>
 internal class RedirectContentService(
-    ContentEngineOptions contentOptions,
+    ContentEngineOptions options,
     IFileSystem fileSystem,
-    FilePathOperations filePathOperations,
-    ContentEngineOptions engineOptions,
-    OutputOptions outputOptions,
-    ILogger<RedirectContentService> logger
-) : IContentService
+    FilePathOperations filePathOperations) : IContentService
 {
-    private readonly IDeserializer _yamlDeserializer = engineOptions.FrontMatterDeserializer;
-    private readonly string _baseUrl = outputOptions.BaseUrl;
+    private readonly AsyncLazy<IReadOnlyDictionary<string, string>> _mappingsCache =
+        new(() => LoadMappingsAsync(options, fileSystem, filePathOperations));
 
     public int SearchPriority { get; } = 0;
 
+    /// <summary>
+    /// Returns the cached source-to-target redirect mapping loaded from _redirects.yml.
+    /// Used by <see cref="Infrastructure.ContentEngineRedirectMiddleware"/> to resolve redirects at runtime.
+    /// </summary>
+    internal async Task<IReadOnlyDictionary<string, string>> GetRedirectMappingsAsync() => await _mappingsCache;
 
-    public Task<ImmutableList<ContentToCreate>> GetContentToCreateAsync()
+    /// <summary>
+    /// Returns an empty list. Redirect HTML files are now written by <c>OutputGenerationService</c>
+    /// when it intercepts the 301 responses issued by <see cref="Infrastructure.ContentEngineRedirectMiddleware"/>.
+    /// </summary>
+    public Task<ImmutableList<ContentToCreate>> GetContentToCreateAsync() =>
+        Task.FromResult(ImmutableList<ContentToCreate>.Empty);
+
+    /// <summary>
+    /// Returns a <see cref="PageToGenerate"/> for each redirect source path so that the static
+    /// generator crawls those URLs and captures the 301 responses produced by the middleware.
+    /// </summary>
+    public async Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync()
     {
-        var root = contentOptions.ContentRootPath;
+        var mappings = await _mappingsCache;
+        var pages = ImmutableList<PageToGenerate>.Empty;
+
+        foreach (var sourcePath in mappings.Keys)
+        {
+            var normalizedPath = sourcePath.StartsWith('/') ? sourcePath : "/" + sourcePath;
+            var outputFile = new FilePath($"{normalizedPath.TrimStart('/')}.html");
+            pages = pages.Add(new PageToGenerate(new UrlPath(normalizedPath), outputFile));
+        }
+
+        return pages;
+    }
+
+    public Task<ImmutableList<ContentTocItem>> GetContentTocEntriesAsync() =>
+        Task.FromResult(ImmutableList<ContentTocItem>.Empty);
+
+    public Task<ImmutableList<ContentToCopy>> GetContentToCopyAsync() =>
+        Task.FromResult(ImmutableList<ContentToCopy>.Empty);
+
+    public Task<ImmutableList<CrossReference>> GetCrossReferencesAsync() =>
+        Task.FromResult(ImmutableList<CrossReference>.Empty);
+
+    private static Task<IReadOnlyDictionary<string, string>> LoadMappingsAsync(
+        ContentEngineOptions options,
+        IFileSystem fileSystem,
+        FilePathOperations filePathOperations)
+    {
+        var root = options.ContentRootPath;
         var redirectFile = filePathOperations.Combine(root, "_redirects.yml");
+
         if (!filePathOperations.FileExists(redirectFile))
         {
-            return Task.FromResult(ImmutableList<ContentToCreate>.Empty);
+            return Task.FromResult<IReadOnlyDictionary<string, string>>(ImmutableDictionary<string, string>.Empty);
         }
 
         try
         {
-            // Read file content
             var yamlContent = fileSystem.File.ReadAllText(redirectFile.Value);
 
             if (string.IsNullOrWhiteSpace(yamlContent))
             {
-                return Task.FromResult(ImmutableList<ContentToCreate>.Empty);
+                return Task.FromResult<IReadOnlyDictionary<string, string>>(ImmutableDictionary<string, string>.Empty);
             }
 
-            // Deserialize YAML
-            var config = _yamlDeserializer.Deserialize<RedirectsConfig>(yamlContent);
+            var config = options.FrontMatterDeserializer.Deserialize<RedirectsConfig>(yamlContent);
 
             if (config.Redirects == null || config.Redirects.Count == 0)
             {
-                return Task.FromResult(ImmutableList<ContentToCreate>.Empty);
+                return Task.FromResult<IReadOnlyDictionary<string, string>>(ImmutableDictionary<string, string>.Empty);
             }
 
-            // Process redirects
-            var contentToCreate = ImmutableList<ContentToCreate>.Empty;
+            var result = new Dictionary<string, string>();
 
             foreach (var (sourcePath, targetUrl) in config.Redirects)
             {
-                try
+                if (string.IsNullOrWhiteSpace(sourcePath) || string.IsNullOrWhiteSpace(targetUrl))
                 {
-                    // Validate entries
-                    if (string.IsNullOrWhiteSpace(sourcePath) || string.IsNullOrWhiteSpace(targetUrl))
-                    {
-                        continue;
-                    }
-
-                    // Normalize source path - remove leading slash
-                    var normalizedPath = sourcePath.TrimStart('/');
-
-                    // Create target file path with .html extension
-                    var targetPath = new FilePath($"{normalizedPath}.html");
-
-                    // Rewrite target URL with BaseUrl handling (handles external URLs, relative paths, etc.)
-                    var finalTargetUrl = LinkRewriter.RewriteUrl(targetUrl, "/", _baseUrl);
-
-                    // Generate redirect HTML
-                    var redirectHtml = RedirectHelper.GetRedirectHtml(finalTargetUrl);
-                    // Convert to UTF-8 bytes
-                    var htmlBytes = Encoding.UTF8.GetBytes(redirectHtml);
-
-                    // Create ContentToCreate instance
-                    var content = new ContentToCreate(targetPath, htmlBytes);
-                    contentToCreate = contentToCreate.Add(content);
+                    continue;
                 }
-                catch (Exception ex)
-                {
-                    logger.LogWarning(ex, "Invalid rewrite entry. From {source} to {destination}", sourcePath,
-                        targetUrl);
-                }
+
+                var normalizedSource = sourcePath.StartsWith('/') ? sourcePath : "/" + sourcePath;
+                result[normalizedSource] = targetUrl;
             }
 
-            return Task.FromResult(contentToCreate);
+            return Task.FromResult<IReadOnlyDictionary<string, string>>(result);
         }
         catch (YamlException)
         {
-            // YAML parsing error - return empty list
-            return Task.FromResult(ImmutableList<ContentToCreate>.Empty);
+            return Task.FromResult<IReadOnlyDictionary<string, string>>(ImmutableDictionary<string, string>.Empty);
         }
         catch (IOException ex)
         {
@@ -126,18 +133,6 @@ internal class RedirectContentService(
             throw new FileOperationException("Error processing redirects file", redirectFile.Value, ex);
         }
     }
-
-    public Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync() =>
-        Task.FromResult(ImmutableList<PageToGenerate>.Empty);
-
-    public Task<ImmutableList<ContentTocItem>> GetContentTocEntriesAsync() =>
-        Task.FromResult(ImmutableList<ContentTocItem>.Empty);
-
-    public Task<ImmutableList<ContentToCopy>> GetContentToCopyAsync() =>
-        Task.FromResult(ImmutableList<ContentToCopy>.Empty);
-
-    public Task<ImmutableList<CrossReference>> GetCrossReferencesAsync() =>
-        Task.FromResult(ImmutableList<CrossReference>.Empty);
 }
 
 /// <summary>

@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO.Abstractions;
+using System.Net;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
@@ -169,8 +170,8 @@ internal class OutputGenerationService(
             await _fileSystem.File.WriteAllBytesAsync(targetPath, contentItem.Bytes);
         }
 
-        // Create an HTTP client for fetching rendered pages
-        using HttpClient client = new();
+        // Create an HTTP client for fetching rendered pages (redirects are handled explicitly)
+        using HttpClient client = new(new HttpClientHandler { AllowAutoRedirect = false });
         client.BaseAddress = new Uri(appUrl);
 
         var sw = Stopwatch.StartNew();
@@ -200,47 +201,60 @@ internal class OutputGenerationService(
 
             await Parallel.ForEachAsync(pagesToGenerateByPriority, async (page, ctx) =>
             {
-                if (page.IsBinary)
+                HttpResponseMessage response;
+                try
                 {
-                    byte[] content;
-                    try
-                    {
-                        content = await client.GetByteArrayAsync(page.Url, ctx);
+                    response = await client.GetAsync(page.Url, ctx);
+                }
+                catch (HttpRequestException ex)
+                {
+                    logger.LogWarning("Failed to retrieve page at {pageUrl}. StatusCode:{statusCode}. Error: {exceptionMessage}", page.Url, ex.StatusCode, ex.Message);
+                    return;
+                }
 
-                        logger.LogInformation("Generated binary {pageUrl} into {pageOutputFile}", page.Url, page.OutputFile);
-
-                    }
-                    catch (HttpRequestException ex)
-                    {
-                        logger.LogWarning("Failed to retrieve page at {pageUrl}. StatusCode:{statusCode}. Error: {exceptionMessage}", page.Url, ex.StatusCode, ex.Message);
-                        return;
-                    }
-
+                // Handle redirects: write a redirect HTML file at the source path
+                if (response.StatusCode is HttpStatusCode.MovedPermanently or HttpStatusCode.Found)
+                {
+                    var location = response.Headers.Location?.ToString() ?? "";
+                    var redirectHtml = RedirectHelper.GetRedirectHtml(location);
                     var outFilePath = _fileSystem.Path.Combine(outputOptions.OutputFolderPath.Value, page.OutputFile.RemoveLeadingSlash().Value);
-
                     var directoryPath = _fileSystem.Path.GetDirectoryName(outFilePath);
                     if (!string.IsNullOrEmpty(directoryPath))
                     {
                         _fileSystem.Directory.CreateDirectory(directoryPath);
                     }
+                    logger.LogInformation("Generated redirect {pageUrl} into {pageOutputFile}", page.Url, page.OutputFile);
+                    await _fileSystem.File.WriteAllTextAsync(outFilePath, redirectHtml, ctx);
+                    return;
+                }
 
+                try
+                {
+                    response.EnsureSuccessStatusCode();
+                }
+                catch (HttpRequestException ex)
+                {
+                    logger.LogWarning("Failed to retrieve page at {pageUrl}. StatusCode:{statusCode}. Error: {exceptionMessage}", page.Url, ex.StatusCode, ex.Message);
+                    return;
+                }
+
+                if (page.IsBinary)
+                {
+                    var content = await response.Content.ReadAsByteArrayAsync(ctx);
+                    logger.LogInformation("Generated binary {pageUrl} into {pageOutputFile}", page.Url, page.OutputFile);
+
+                    var outFilePath = _fileSystem.Path.Combine(outputOptions.OutputFolderPath.Value, page.OutputFile.RemoveLeadingSlash().Value);
+                    var directoryPath = _fileSystem.Path.GetDirectoryName(outFilePath);
+                    if (!string.IsNullOrEmpty(directoryPath))
+                    {
+                        _fileSystem.Directory.CreateDirectory(directoryPath);
+                    }
                     await _fileSystem.File.WriteAllBytesAsync(outFilePath, content, ctx);
                 }
                 else
                 {
-                    string content;
-                    try
-                    {
-                        content = await client.GetStringAsync(page.Url, ctx);
-
-                        logger.LogInformation("Generated {pageUrl} into {pageOutputFile}", page.Url, page.OutputFile);
-
-                    }
-                    catch (HttpRequestException ex)
-                    {
-                        logger.LogWarning("Failed to retrieve page at {pageUrl}. StatusCode:{statusCode}. Error: {exceptionMessage}", page.Url, ex.StatusCode, ex.Message);
-                        return;
-                    }
+                    var content = await response.Content.ReadAsStringAsync(ctx);
+                    logger.LogInformation("Generated {pageUrl} into {pageOutputFile}", page.Url, page.OutputFile);
 
                     // Validate links in the generated HTML if verification is enabled
                     // Only validate HTML files (skip JavaScript, CSS, JSON, etc.)
@@ -262,16 +276,13 @@ internal class OutputGenerationService(
                     }
 
                     var outFilePath = _fileSystem.Path.Combine(outputOptions.OutputFolderPath.Value, page.OutputFile.RemoveLeadingSlash().Value);
-
                     var directoryPath = _fileSystem.Path.GetDirectoryName(outFilePath);
                     if (!string.IsNullOrEmpty(directoryPath))
                     {
                         _fileSystem.Directory.CreateDirectory(directoryPath);
                     }
-
                     await _fileSystem.File.WriteAllTextAsync(outFilePath, content, ctx);
                 }
-
             });
         }
 

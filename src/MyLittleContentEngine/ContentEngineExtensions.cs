@@ -312,6 +312,8 @@ public static class ContentEngineExtensions
 
     private static void MapContentEngineStaticAssets(this WebApplication app)
     {
+        app.UseContentEngineRedirects();
+
         var optionList = app.Services.GetServices<IContentOptions>().ToList();
         var engineOptions = app.Services.GetRequiredService<ContentEngineOptions>();
         if (optionList.Count == 0)
