@@ -155,30 +155,39 @@
     //   fadeOut  →  opacity held at 0  →  innerHTML replaced  →  fadeIn
     // ---------------------------------------------------------------------------
 
-    async function fadeOut(el) {
-        el.style.transition   = `opacity ${FADE_OUT_MS}ms ease-out`;
-        el.style.pointerEvents = 'none';
-        el.style.opacity      = '0';
+    async function fadeOut(...els) {
+        els.filter(Boolean).forEach(el => {
+            el.style.transition    = `opacity ${FADE_OUT_MS}ms ease-out`;
+            el.style.pointerEvents = 'none';
+            el.style.opacity       = '0';
+        });
         return delay(FADE_OUT_MS);
         // opacity intentionally left at '0' so there is no flash when innerHTML is replaced
     }
 
-    function fadeIn(el) {
+    function fadeIn(...els) {
+        els = els.filter(Boolean);
         const gen = ++_gen;
         // Start from translateY(6px) so the content appears to lift in slightly
-        el.style.transition = '';
-        el.style.transform  = 'translateY(6px)';
-        void el.offsetWidth; // force reflow to register the starting state
-        el.style.transition    = `opacity ${FADE_IN_MS}ms ease-out, transform ${FADE_IN_MS}ms ease-out`;
-        el.style.opacity       = '1';
-        el.style.transform     = 'translateY(0)';
-        el.style.pointerEvents = '';
+        els.forEach(el => {
+            el.style.transition = '';
+            el.style.transform  = 'translateY(6px)';
+        });
+        void els[0]?.offsetWidth; // force reflow to register the starting state for all elements
+        els.forEach(el => {
+            el.style.transition    = `opacity ${FADE_IN_MS}ms ease-out, transform ${FADE_IN_MS}ms ease-out`;
+            el.style.opacity       = '1';
+            el.style.transform     = 'translateY(0)';
+            el.style.pointerEvents = '';
+        });
         // Clean up after the animation unless a newer navigation has started
         setTimeout(() => {
             if (_gen !== gen) return;
-            el.style.transition = '';
-            el.style.transform  = '';
-            el.style.opacity    = '';
+            els.forEach(el => {
+                el.style.transition = '';
+                el.style.transform  = '';
+                el.style.opacity    = '';
+            });
         }, FADE_IN_MS + 60);
     }
 
@@ -223,9 +232,11 @@
     }
 
     function reloadStylesheetIfDev() {
+        // MonorailCSS only generates CSS dynamically on a live dev server.
+        // Deployed static sites have pre-built CSS — no reload needed or wanted.
+        if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') return;
         const link = document.querySelector('link[rel="stylesheet"]');
-        // In production App.razor adds ?v=TIMESTAMP; that signals we can skip the refetch.
-        if (!link || link.href.includes('?v=')) return;
+        if (!link) return;
         const u = new URL(link.href);
         u.searchParams.set('_t', Date.now());
         link.href = u.toString();
@@ -252,8 +263,9 @@
         if (pushState) history.pushState({ title: data.title }, data.title, url.href);
         applyMeta(data, url);
         article.innerHTML = buildArticleHtml(data);
-        fadeIn(article);
         rebuildOutline();
+        const outlineEl = document.querySelector('[data-role="page-outline"]');
+        fadeIn(article, outlineEl);
         updateNavActive(url.pathname);
         window.pageManager?.syntaxHighlighter?.init();
         reloadStylesheetIfDev();
@@ -282,7 +294,8 @@
             .catch(() => { fetchDone = true; fetchFail = true; });
 
         // ── Phase 1: fade out current content while the fetch runs in parallel ──
-        await fadeOut(article);
+        const outlineEl = document.querySelector('[data-role="page-outline"]');
+        await fadeOut(article, outlineEl);
 
         if (fetchFail) { window.location.href = url.href; _navigating = false; return; }
 
@@ -291,8 +304,13 @@
             commit(article, fetchData, url, pushState);
         } else {
             // ── Phase 2b: still loading — show skeleton with the page title ──
+            // Both article and outline are already at opacity 0 from Phase 1 fade-out.
+            // Clear the outline UL while it's invisible, scroll to top, show skeleton.
+            window.scrollTo(0, 0);
+            const _ol = outlineEl?.querySelector('ul');
+            if (_ol) _ol.innerHTML = '';
             article.innerHTML = buildSkeletonHtml(hint || '');
-            fadeIn(article);
+            fadeIn(article); // outline stays faded — nothing to show until real content arrives
 
             await dataPromise;          // wait for the rest of the fetch
 
