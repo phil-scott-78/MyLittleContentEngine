@@ -93,8 +93,8 @@
             if (url.origin !== window.location.origin) return false;
             if (url.pathname.includes('/_page-data/')) return false;
             if (url.pathname === window.location.pathname && url.hash) return false;
-            if (anchor.target === '_blank' || anchor.hasAttribute('download')) return false;
-            return true;
+            return !(anchor.target === '_blank' || anchor.hasAttribute('download'));
+            
         } catch { return false; }
     }
 
@@ -197,7 +197,7 @@
     // DOM helpers
     // ---------------------------------------------------------------------------
 
-    function applyMeta(data, url) {
+    function applyMeta(data) {
         document.title = `${SITE_TITLE} - ${data.title}`;
         const set = (sel, val) => {
             const el = document.querySelector(sel);
@@ -259,18 +259,22 @@
         return (!p || p === '/') ? 'index' : p.replace(/^\//, '');
     }
 
-    /** Commit data to the DOM and finish navigation. */
-    function commit(article, data, url, pushState) {
+    /** Apply navigation state — history, meta tags, nav highlight, syntax, stylesheet. */
+    function applyNavigationState(data, url, pushState) {
         _currentPathname = url.pathname;
         if (pushState) history.pushState({ title: data.title }, data.title, url.href);
-        applyMeta(data, url);
-        article.innerHTML = buildArticleHtml(data);
-        rebuildOutline();
-        const outlineEl = document.querySelector('[data-role="page-outline"]');
-        fadeIn(article, outlineEl);
+        applyMeta(data);
         updateNavActive(url.pathname);
         window.pageManager?.syntaxHighlighter?.init();
         reloadStylesheetIfDev();
+    }
+
+    /** Commit data to the DOM and finish navigation. */
+    function commit(article, data, url, pushState, outlineEl) {
+        applyNavigationState(data, url, pushState);
+        article.innerHTML = buildArticleHtml(data);
+        rebuildOutline();
+        fadeIn(article, outlineEl);
         if (url.hash) {
             const t = document.querySelector(url.hash);
             if (t) { t.scrollIntoView(); return; }
@@ -303,7 +307,7 @@
 
         if (fetchDone) {
             // ── Phase 2a: data arrived in time — seamless, no skeleton needed ──
-            commit(article, fetchData, url, pushState);
+            commit(article, fetchData, url, pushState, outlineEl);
         } else {
             // ── Phase 2b: still loading — show skeleton with the page title ──
             // Both article and outline are already at opacity 0 from Phase 1 fade-out.
@@ -319,9 +323,8 @@
             if (fetchFail) { window.location.href = url.href; _navigating = false; return; }
 
             // Cancel any in-progress article fade-in; ensure article is fully visible
-            article.style.transition = '';
-            article.style.opacity    = '1';
-            article.style.transform  = '';
+            article.style.transition = article.style.transform = '';
+            article.style.opacity = '1';
             ++_gen; // invalidate previous fadeIn cleanup timer
 
             // Fade out only the shimmer block, leaving the title untouched
@@ -339,13 +342,7 @@
             [...tmp.children].forEach(el => { el.style.opacity = '0'; });
             while (tmp.firstChild) article.appendChild(tmp.firstChild);
 
-            // Apply metadata and state
-            _currentPathname = url.pathname;
-            if (pushState) history.pushState({ title: fetchData.title }, fetchData.title, url.href);
-            applyMeta(fetchData, url);
-            updateNavActive(url.pathname);
-            window.pageManager?.syntaxHighlighter?.init();
-            reloadStylesheetIfDev();
+            applyNavigationState(fetchData, url, pushState);
 
             // Rebuild outline (needs <main> in DOM first)
             rebuildOutline();
