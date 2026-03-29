@@ -1,5 +1,4 @@
 using System.Net;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
@@ -11,14 +10,13 @@ using Microsoft.AspNetCore.Http;
 namespace MyLittleContentEngine.Services.Infrastructure;
 
 /// <summary>
-/// Middleware that rewrites URLs in HTML responses to handle both xref: cross-references and BaseUrl rewriting.
+/// Rewrites URLs in HTML and JSON responses to handle xref: cross-references and BaseUrl rewriting.
 /// First resolves xref: URLs to their actual targets, then rewrites root-relative URLs to include the configured BaseUrl.
 /// This ensures that links work correctly when the site is deployed to a subdirectory.
 /// Uses AngleSharp for robust HTML parsing and manipulation.
 /// </summary>
-public partial class BaseUrlRewritingMiddleware
+public partial class BaseUrlRewritingProcessor : IResponseProcessor
 {
-    private readonly RequestDelegate _next;
     private readonly IXrefResolver _xrefResolver;
     private readonly string _baseUrl;
     private readonly IBrowsingContext _browsingContext;
@@ -37,9 +35,8 @@ public partial class BaseUrlRewritingMiddleware
         { "form", ["action"] }
     };
 
-    public BaseUrlRewritingMiddleware(RequestDelegate next, OutputOptions? outputOptions, IXrefResolver xrefResolver)
+    public BaseUrlRewritingProcessor(OutputOptions? outputOptions, IXrefResolver xrefResolver)
     {
-        _next = next;
         _xrefResolver = xrefResolver;
         _baseUrl = outputOptions?.BaseUrl ?? string.Empty;
 
@@ -48,62 +45,29 @@ public partial class BaseUrlRewritingMiddleware
         _browsingContext = BrowsingContext.New(config);
     }
 
-    public async Task InvokeAsync(HttpContext context)
+    int IResponseProcessor.Order => 0;
+
+    bool IResponseProcessor.ShouldProcess(HttpContext context)
     {
-        // Capture the original response stream
-        var originalBodyStream = context.Response.Body;
+        if (context.Response.StatusCode is < 200 or >= 300)
+            return false;
 
-        try
-        {
-            await using var responseBody = new MemoryStream();
-            context.Response.Body = responseBody;
+        var contentType = context.Response.ContentType;
+        if (string.IsNullOrEmpty(contentType))
+            return false;
 
-            await _next(context);
-
-            var responseType = GetResponseType(context.Response);
-            if (responseType != ResponseType.None)
-            {
-                responseBody.Seek(0, SeekOrigin.Begin);
-                var responseContent = await new StreamReader(responseBody).ReadToEndAsync();
-
-                var rewrittenContent = responseType == ResponseType.Html
-                    ? await RewriteUrlsAsync(responseContent)
-                    : await RewriteJsonResponseAsync(responseContent);
-
-                var rewrittenBytes = Encoding.UTF8.GetBytes(rewrittenContent);
-                await originalBodyStream.WriteAsync(rewrittenBytes);
-            }
-            else
-            {
-                // For non-HTML/JSON responses, copy the content as-is
-                responseBody.Seek(0, SeekOrigin.Begin);
-                await responseBody.CopyToAsync(originalBodyStream);
-            }
-        }
-        finally
-        {
-            context.Response.Body = originalBodyStream;
-        }
+        return contentType.StartsWith("text/html", StringComparison.OrdinalIgnoreCase)
+            || contentType.Contains("application/json", StringComparison.OrdinalIgnoreCase);
     }
 
-    private enum ResponseType { None, Html, Json }
-
-    private static ResponseType GetResponseType(HttpResponse response)
+    async Task<string> IResponseProcessor.ProcessAsync(string responseBody, HttpContext context)
     {
-        if (response.StatusCode is < 200 or >= 300)
-            return ResponseType.None;
+        var contentType = context.Response.ContentType;
+        var isJson = contentType?.Contains("application/json", StringComparison.OrdinalIgnoreCase) == true;
 
-        var contentType = response.ContentType;
-        if (string.IsNullOrEmpty(contentType))
-            return ResponseType.None;
-
-        if (contentType.StartsWith("text/html", StringComparison.OrdinalIgnoreCase))
-            return ResponseType.Html;
-
-        if (contentType.Contains("application/json", StringComparison.OrdinalIgnoreCase))
-            return ResponseType.Json;
-
-        return ResponseType.None;
+        return isJson
+            ? await RewriteJsonResponseAsync(responseBody)
+            : await RewriteUrlsAsync(responseBody);
     }
 
     private async Task<string> RewriteUrlsAsync(string html)

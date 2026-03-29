@@ -65,10 +65,7 @@ else
 }
 
 <SectionContent SectionName="sidebar">
-    @if (IsLoaded)
-    {
-        <OutlineNavigation ContentSelector="main" />
-    }
+    <OutlineNavigation ContentSelector="article main" />
 </SectionContent>
 
 @code {

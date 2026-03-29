@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using MyLittleContentEngine.Services.Infrastructure;
 
 namespace MyLittleContentEngine.MonorailCss;
 
@@ -23,6 +24,7 @@ public static partial class MonorailServiceExtensions
 
         services.AddSingleton<CssClassCollector>();
         services.AddTransient<MonorailCssService>();
+        services.AddSingleton<IResponseProcessor, CssClassCollectorProcessor>();
 
         return services;
     }
@@ -56,7 +58,8 @@ public static partial class MonorailServiceExtensions
 
         // Custom CSS. The Blazor Static service will discover the mapped URL automatically
         // and include it with the static generation.
-        app.UseMiddleware<CssClassCollectorMiddleware>();
+        // Note: CSS class collection happens via CssClassCollectorProcessor registered as
+        // IResponseProcessor in AddMonorailCss, run by the unified ResponseProcessingMiddleware.
         app.MapGet(path, (MonorailCssService cssService) => Results.Content(cssService.GetStyleSheet(), "text/css"));
 
         return app;

@@ -158,6 +158,9 @@ public static class ContentEngineExtensions
 
         configuredServices.AddFileWatched<ITableOfContentService, TableOfContentService>();
 
+        // Register URL rewriting as a response processor
+        services.AddSingleton<IResponseProcessor, BaseUrlRewritingProcessor>();
+
         return configuredServices;
     }
 
@@ -346,7 +349,7 @@ public static class ContentEngineExtensions
             });
         }
 
-        app.UseBaseUrlRewriting();
+        app.UseResponseProcessing();
 
         if (app.Services.GetService<SitemapRssService>() != null)
         {
