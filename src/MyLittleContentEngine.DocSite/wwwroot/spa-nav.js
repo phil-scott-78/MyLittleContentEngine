@@ -216,14 +216,23 @@
         if (pushState) history.pushState({ title: data.title }, data.title, url.href);
         applyMeta(data);
         updateNavActive(url.pathname);
-        window.pageManager?.syntaxHighlighter?.init();
         reloadStylesheetIfDev();
+    }
+
+    /** Re-initialise interactive content managers after new HTML is in the DOM. */
+    function reinitContentManagers() {
+        const pm = window.pageManager;
+        if (!pm) return;
+        pm.syntaxHighlighter?.init();
+        pm.tabManager?.init();
+        pm.mermaidManager?.init();
     }
 
     /** Commit data to the DOM and finish navigation. */
     function commit(article, data, url, pushState, outlineEl) {
         applyNavigationState(data, url, pushState);
         article.innerHTML = buildArticleHtml(data);
+        reinitContentManagers();
         rebuildOutline();
         if (url.hash) {
             const t = document.querySelector(url.hash);
@@ -281,6 +290,7 @@
             while (tmp.firstChild) article.appendChild(tmp.firstChild);
 
             applyNavigationState(fetchData, url, pushState);
+            reinitContentManagers();
             rebuildOutline();
 
             if (url.hash) {
