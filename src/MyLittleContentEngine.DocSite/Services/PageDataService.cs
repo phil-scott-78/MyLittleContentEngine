@@ -1,8 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
 using MyLittleContentEngine.Models;
-using MyLittleContentEngine.MonorailCss;
 using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Content.TableOfContents;
 
@@ -49,11 +47,10 @@ internal partial class PageDataJsonContext : JsonSerializerContext;
 /// Generates <see cref="PageData"/> for a given page URL.
 /// Used both by the runtime endpoint and during static generation.
 /// </summary>
-internal partial class PageDataService(
+internal class PageDataService(
     IMarkdownContentService<DocSiteFrontMatter> markdownContentService,
     ITableOfContentService tableOfContentService,
-    DocSiteOptions docSiteOptions,
-    CssClassCollector cssClassCollector)
+    DocSiteOptions docSiteOptions)
 {
     internal async Task<PageData?> GetPageDataAsync(string slug)
     {
@@ -82,40 +79,8 @@ internal partial class PageDataService(
                 : null,
         };
 
-        CollectCssClasses(slug, pageData.HtmlContent);
-
         return pageData;
     }
-
-    /// <summary>
-    /// Extracts CSS classes from the rendered HTML content and registers them with the
-    /// <see cref="CssClassCollector"/> singleton. This ensures MonorailCSS generates the
-    /// correct styles even when the JSON endpoint is the only request for this page
-    /// (i.e. pure SPA navigation without a prior full HTML page load).
-    /// </summary>
-    private void CollectCssClasses(string slug, string htmlContent)
-    {
-        var matches = CssClassRegex().Matches(htmlContent);
-        var classes = matches
-            .SelectMany(m => m.Groups[1].Value.Split(' ', StringSplitOptions.RemoveEmptyEntries))
-            .Distinct()
-            .ToList();
-
-        if (classes.Count == 0) return;
-
-        cssClassCollector.BeginProcessing();
-        try
-        {
-            cssClassCollector.AddClasses($"/_page-data/{slug}", classes);
-        }
-        finally
-        {
-            cssClassCollector.EndProcessing();
-        }
-    }
-
-    [GeneratedRegex("""class\s*=\s*["']([^"']+)["']""", RegexOptions.IgnoreCase, "en-US")]
-    private static partial Regex CssClassRegex();
 
     internal static string Serialize(PageData data) =>
         JsonSerializer.Serialize(data, PageDataJsonContext.Default.PageData);

@@ -114,7 +114,8 @@ public static class DocSiteServiceExtensions
                         }
                     ]
                 },
-                ExtraStyles = options.ExtraStyles ?? string.Empty
+                ExtraStyles = options.ExtraStyles ?? string.Empty,
+                ContentPaths = ["_content/MyLittleContentEngine.DocSite/spa-nav.js"]
             };
         });
 

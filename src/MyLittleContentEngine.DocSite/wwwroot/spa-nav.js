@@ -5,11 +5,10 @@
  * Subsequent in-site navigation: intercept link clicks, fetch the pre-generated
  * /_page-data/{url}.json, and rehydrate the page content without a full reload.
  *
- * Two-phase transition strategy:
- *   Phase 1 — fade out current content (FADE_OUT_MS) while the fetch runs in parallel.
- *   Phase 2a — if data arrived before/during the fade-out, inject it immediately (fast/cached).
- *   Phase 2b — if still loading, show a skeleton with the page title; inject real content
- *              when the fetch completes, then fade in.
+ * Fast-path strategy:
+ *   Race the fetch against a short timeout (SKELETON_DELAY_MS).
+ *   - Fast/cached responses win the race → content committed immediately, no skeleton.
+ *   - Slow responses → skeleton shown with the page title until data arrives.
  *
  * Falls back to a full page load when no page-data file is available
  * (e.g. API reference pages, custom Razor pages).
@@ -26,9 +25,6 @@
     // ---------------------------------------------------------------------------
     // Constants
     // ---------------------------------------------------------------------------
-
-    const FADE_OUT_MS = 50;
-    const FADE_IN_MS  = 180;
 
     const PROSE_CLASSES =
         'prose dark:prose-invert dark:text-base-300 max-w-full prose-sm md:prose-base min-w-0 ' +
@@ -55,10 +51,6 @@
 
     // Base path prefix for subdirectory deployments (e.g. "/mybase"). Empty in dev.
     const BASE_PATH = (document.documentElement.dataset.basePath || '').replace(/\/$/, '');
-
-    // Generation counter prevents stale style-cleanup timeouts from clobbering
-    // a navigation that started after the one that set the timeout.
-    let _gen = 0;
 
     // ---------------------------------------------------------------------------
     // Utilities
@@ -153,47 +145,6 @@
     }
 
     // ---------------------------------------------------------------------------
-    // Transitions — inline styles give precise control over the fade sequence:
-    //   fadeOut  →  opacity held at 0  →  innerHTML replaced  →  fadeIn
-    // ---------------------------------------------------------------------------
-
-    async function fadeOut(...els) {
-        els.filter(Boolean).forEach(el => {
-            el.style.transition    = `opacity ${FADE_OUT_MS}ms ease-out`;
-            el.style.pointerEvents = 'none';
-            el.style.opacity       = '0';
-        });
-        return delay(FADE_OUT_MS);
-        // opacity intentionally left at '0' so there is no flash when innerHTML is replaced
-    }
-
-    function fadeIn(...els) {
-        els = els.filter(Boolean);
-        const gen = ++_gen;
-        // Start from translateY(6px) so the content appears to lift in slightly
-        els.forEach(el => {
-            el.style.transition = '';
-            el.style.transform  = 'translateY(6px)';
-        });
-        void els[0]?.offsetWidth; // force reflow to register the starting state for all elements
-        els.forEach(el => {
-            el.style.transition    = `opacity ${FADE_IN_MS}ms ease-out, transform ${FADE_IN_MS}ms ease-out`;
-            el.style.opacity       = '1';
-            el.style.transform     = 'translateY(0)';
-            el.style.pointerEvents = '';
-        });
-        // Clean up after the animation unless a newer navigation has started
-        setTimeout(() => {
-            if (_gen !== gen) return;
-            els.forEach(el => {
-                el.style.transition = '';
-                el.style.transform  = '';
-                el.style.opacity    = '';
-            });
-        }, FADE_IN_MS + 60);
-    }
-
-    // ---------------------------------------------------------------------------
     // DOM helpers
     // ---------------------------------------------------------------------------
 
@@ -274,7 +225,6 @@
         applyNavigationState(data, url, pushState);
         article.innerHTML = buildArticleHtml(data);
         rebuildOutline();
-        fadeIn(article, outlineEl);
         if (url.hash) {
             const t = document.querySelector(url.hash);
             if (t) { t.scrollIntoView(); return; }
@@ -299,58 +249,39 @@
             .then(d  => { fetchDone = true; fetchData = d; })
             .catch(() => { fetchDone = true; fetchFail = true; });
 
-        // ── Phase 1: fade out current content while the fetch runs in parallel ──
+        // Race the fetch against a short threshold: fast/cached responses skip the skeleton.
+        const SKELETON_DELAY_MS = 40;
         const outlineEl = document.querySelector('[data-role="page-outline"]');
-        await fadeOut(article, outlineEl);
+        await Promise.race([dataPromise, delay(SKELETON_DELAY_MS)]);
 
         if (fetchFail) { window.location.href = url.href; _navigating = false; return; }
 
         if (fetchDone) {
-            // ── Phase 2a: data arrived in time — seamless, no skeleton needed ──
+            // Fast path — data arrived before the threshold, commit immediately.
             commit(article, fetchData, url, pushState, outlineEl);
         } else {
-            // ── Phase 2b: still loading — show skeleton with the page title ──
-            // Both article and outline are already at opacity 0 from Phase 1 fade-out.
-            // Clear the outline UL while it's invisible, scroll to top, show skeleton.
+            // Slow path — show skeleton with the page title while the fetch finishes.
             window.scrollTo(0, 0);
             const _ol = outlineEl?.querySelector('ul');
             if (_ol) _ol.innerHTML = '';
             article.innerHTML = buildSkeletonHtml(hint || '');
-            fadeIn(article); // outline stays faded — nothing to show until real content arrives
 
-            await dataPromise;          // wait for the rest of the fetch
+            await dataPromise;
 
             if (fetchFail) { window.location.href = url.href; _navigating = false; return; }
 
-            // Cancel any in-progress article fade-in; ensure article is fully visible
-            article.style.transition = article.style.transform = '';
-            article.style.opacity = '1';
-            ++_gen; // invalidate previous fadeIn cleanup timer
-
-            // Fade out only the shimmer block, leaving the title untouched
-            const skeletonBody = article.querySelector('[data-role="skeleton-body"]');
-            await fadeOut(skeletonBody);
-            skeletonBody?.remove();
+            article.querySelector('[data-role="skeleton-body"]')?.remove();
 
             // Update title in case the hint differed from the real page title
             const h1 = article.querySelector('h1');
             if (h1) h1.textContent = fetchData.title;
 
-            // Insert real body elements pre-hidden so fadeIn can animate them in
             const tmp = document.createElement('div');
             tmp.innerHTML = buildArticleBodyHtml(fetchData);
-            [...tmp.children].forEach(el => { el.style.opacity = '0'; });
             while (tmp.firstChild) article.appendChild(tmp.firstChild);
 
             applyNavigationState(fetchData, url, pushState);
-
-            // Rebuild outline (needs <main> in DOM first)
             rebuildOutline();
-
-            // Fade in new content elements + TOC together
-            const newMain = article.querySelector('main');
-            const newNav  = article.querySelector('.flex.my-12');
-            fadeIn(newMain, newNav, outlineEl);
 
             if (url.hash) {
                 const t = document.querySelector(url.hash);

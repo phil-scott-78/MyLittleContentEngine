@@ -1,10 +1,13 @@
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 
 namespace MyLittleContentEngine.MonorailCss;
 
-public static class MonorailServiceExtensions
+public static partial class MonorailServiceExtensions
 {
     public static IServiceCollection AddMonorailCss(this IServiceCollection services,
         Func<IServiceProvider, MonorailCssOptions>? optionFactory = null)
@@ -40,6 +43,17 @@ public static class MonorailServiceExtensions
                 "CssClassCollector is not registered. Please call AddMonorailCss() in ConfigureServices.");
         }
 
+        // Scan configured content files for CSS classes at startup.
+        // This catches classes that only exist in client-side JS or other non-HTML files
+        // (the Tailwind "content" problem).
+        var options = app.Services.GetRequiredService<MonorailCssOptions>();
+        if (options.ContentPaths.Length > 0)
+        {
+            var collector = app.Services.GetRequiredService<CssClassCollector>();
+            var fileProvider = app.Environment.WebRootFileProvider;
+            ScanContentFiles(collector, fileProvider, options.ContentPaths);
+        }
+
         // Custom CSS. The Blazor Static service will discover the mapped URL automatically
         // and include it with the static generation.
         app.UseMiddleware<CssClassCollectorMiddleware>();
@@ -47,4 +61,77 @@ public static class MonorailServiceExtensions
 
         return app;
     }
+
+    /// <summary>
+    /// Scans files for potential CSS class names and registers them with the collector.
+    /// Uses a broad extraction approach — false positives are harmless since MonorailCSS
+    /// ignores tokens it doesn't recognize as utility classes.
+    /// </summary>
+    internal static void ScanContentFiles(CssClassCollector collector, IFileProvider fileProvider, string[] contentPaths)
+    {
+        foreach (var contentPath in contentPaths)
+        {
+            var fileInfo = fileProvider.GetFileInfo(contentPath);
+            if (!fileInfo.Exists)
+                continue;
+
+            using var stream = fileInfo.CreateReadStream();
+            using var reader = new StreamReader(stream);
+            var content = reader.ReadToEnd();
+
+            var classes = ExtractPotentialClasses(content);
+            if (classes.Count == 0)
+                continue;
+
+            collector.BeginProcessing();
+            try
+            {
+                collector.AddClasses(contentPath, classes);
+            }
+            finally
+            {
+                collector.EndProcessing();
+            }
+        }
+    }
+
+    /// <summary>
+    /// Extracts potential CSS class names from file content using two strategies:
+    /// 1. HTML class attribute extraction (class="..." patterns)
+    /// 2. Broad token extraction — splits on delimiters and keeps tokens that look
+    ///    like utility classes (contain hyphens, colons, slashes, or dots).
+    /// </summary>
+    internal static List<string> ExtractPotentialClasses(string content)
+    {
+        var classes = new HashSet<string>(StringComparer.Ordinal);
+
+        // Strategy 1: Extract from class="..." attributes (works for HTML, Razor, and JS template literals)
+        foreach (Match match in CssClassAttributeRegex().Matches(content))
+        {
+            foreach (var cls in match.Groups[1].Value.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+            {
+                classes.Add(cls);
+            }
+        }
+
+        // Strategy 2: Split on delimiter characters and treat every token as a potential class.
+        // This catches classes in JS string constants like: const PROSE = 'prose dark:prose-invert ...'
+        // False positives (e.g. JS keywords like "function") are harmless — MonorailCSS
+        // ignores tokens it doesn't recognize as utility classes.
+        foreach (var token in TokenSplitRegex().Split(content))
+        {
+            if (token.Length > 0)
+            {
+                classes.Add(token);
+            }
+        }
+
+        return classes.ToList();
+    }
+
+    [GeneratedRegex("""class\s*=\s*["']([^"']+)["']""", RegexOptions.IgnoreCase, "en-US")]
+    private static partial Regex CssClassAttributeRegex();
+
+    [GeneratedRegex("""[\s"'`<>{}()=;,!?#@$^&*|~\[\]\\]+""")]
+    private static partial Regex TokenSplitRegex();
 }

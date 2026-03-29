@@ -1,5 +1,7 @@
 using System.Net;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using AngleSharp;
 using AngleSharp.Dom;
@@ -58,21 +60,22 @@ public partial class BaseUrlRewritingMiddleware
 
             await _next(context);
 
-            // Only process HTML responses
-            if (ShouldProcessResponse(context.Response))
+            var responseType = GetResponseType(context.Response);
+            if (responseType != ResponseType.None)
             {
                 responseBody.Seek(0, SeekOrigin.Begin);
                 var responseContent = await new StreamReader(responseBody).ReadToEndAsync();
 
-                var rewrittenContent = await RewriteUrlsAsync(responseContent);
+                var rewrittenContent = responseType == ResponseType.Html
+                    ? await RewriteUrlsAsync(responseContent)
+                    : await RewriteJsonResponseAsync(responseContent);
 
                 var rewrittenBytes = Encoding.UTF8.GetBytes(rewrittenContent);
-
                 await originalBodyStream.WriteAsync(rewrittenBytes);
             }
             else
             {
-                // For non-HTML responses, copy the content as-is
+                // For non-HTML/JSON responses, copy the content as-is
                 responseBody.Seek(0, SeekOrigin.Begin);
                 await responseBody.CopyToAsync(originalBodyStream);
             }
@@ -83,19 +86,24 @@ public partial class BaseUrlRewritingMiddleware
         }
     }
 
-    private static bool ShouldProcessResponse(HttpResponse response)
-    {
-        // Only process successful responses
-        if (response.StatusCode is < 200 or >= 300)
-            return false;
+    private enum ResponseType { None, Html, Json }
 
-        // Check content type
+    private static ResponseType GetResponseType(HttpResponse response)
+    {
+        if (response.StatusCode is < 200 or >= 300)
+            return ResponseType.None;
+
         var contentType = response.ContentType;
         if (string.IsNullOrEmpty(contentType))
-            return false;
+            return ResponseType.None;
 
-        // Process HTML responses
-        return contentType.StartsWith("text/html", StringComparison.OrdinalIgnoreCase);
+        if (contentType.StartsWith("text/html", StringComparison.OrdinalIgnoreCase))
+            return ResponseType.Html;
+
+        if (contentType.Contains("application/json", StringComparison.OrdinalIgnoreCase))
+            return ResponseType.Json;
+
+        return ResponseType.None;
     }
 
     private async Task<string> RewriteUrlsAsync(string html)
@@ -115,6 +123,90 @@ public partial class BaseUrlRewritingMiddleware
         // Return the modified HTML
         return document.ToHtml();
     }
+
+    /// <summary>
+    /// Rewrites URLs in JSON responses by finding string values that contain HTML,
+    /// processing them through AngleSharp, and serializing back.
+    /// </summary>
+    private async Task<string> RewriteJsonResponseAsync(string jsonContent)
+    {
+        JsonNode? jsonNode;
+        try
+        {
+            jsonNode = JsonNode.Parse(jsonContent);
+        }
+        catch (JsonException)
+        {
+            return jsonContent;
+        }
+
+        if (jsonNode is JsonObject obj)
+        {
+            await RewriteJsonStringsAsync(obj);
+        }
+
+        return jsonNode?.ToJsonString(JsonSerializerOptions) ?? jsonContent;
+    }
+
+    private async Task RewriteJsonStringsAsync(JsonObject obj)
+    {
+        foreach (var key in obj.Select(p => p.Key).ToList())
+        {
+            switch (obj[key])
+            {
+                case JsonValue val when val.TryGetValue<string>(out var str) && LooksLikeHtml(str):
+                    obj[key] = await RewriteHtmlFragmentAsync(str);
+                    break;
+                case JsonObject nested:
+                    await RewriteJsonStringsAsync(nested);
+                    break;
+                case JsonArray array:
+                    await RewriteJsonArrayAsync(array);
+                    break;
+            }
+        }
+    }
+
+    private async Task RewriteJsonArrayAsync(JsonArray array)
+    {
+        for (var i = 0; i < array.Count; i++)
+        {
+            switch (array[i])
+            {
+                case JsonValue val when val.TryGetValue<string>(out var str) && LooksLikeHtml(str):
+                    array[i] = await RewriteHtmlFragmentAsync(str);
+                    break;
+                case JsonObject nested:
+                    await RewriteJsonStringsAsync(nested);
+                    break;
+                case JsonArray nestedArray:
+                    await RewriteJsonArrayAsync(nestedArray);
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Rewrites URLs in an HTML fragment (not a full document).
+    /// </summary>
+    private async Task<string> RewriteHtmlFragmentAsync(string htmlFragment)
+    {
+        var document = await _browsingContext.OpenAsync(req => req.Content(htmlFragment));
+
+        await ResolveXrefsAsync(document);
+        RewriteUrlAttributes(document);
+
+        return document.Body?.InnerHtml ?? htmlFragment;
+    }
+
+    private static bool LooksLikeHtml(string str) =>
+        str.Contains('<') || str.Contains("href=", StringComparison.OrdinalIgnoreCase) || str.Contains("xref:", StringComparison.Ordinal);
+
+    private static readonly JsonSerializerOptions JsonSerializerOptions = new()
+    {
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Default,
+        WriteIndented = false
+    };
 
     private async Task ResolveXrefsAsync(IDocument document)
     {

@@ -9,28 +9,28 @@
 <!DOCTYPE html>
 <html lang="en" data-base-path="@OutputOptions.BaseUrl.EnsureLeadingSlash().RemoveTrailingSlash()">
 
-<head>
+<head style="scrollbar-gutter: stable both-edges;">
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    
+
     <link rel="stylesheet" href="@GetVersioned("/styles.css")">
     <script src="@GetVersioned("/_content/MyLittleContentEngine.UI/scripts.js")" defer></script>
     <script src="@GetVersioned("/_content/MyLittleContentEngine.DocSite/spa-nav.js")" defer></script>
-    
+
     @if (!string.IsNullOrEmpty(DocSiteOptions.AdditionalHtmlHeadContent))
     {
         @((MarkupString)DocSiteOptions.AdditionalHtmlHeadContent)
     }
-    
+
     <script>
-       
+
         // this is actually duplicated in scripts.js, but we need it here to ensure the
         // theme is set before the page loads to avoid flash of unstyled content
         const isDarkMode = localStorage.theme === "dark" || (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches);
         document.documentElement.classList.toggle("dark", isDarkMode);
         document.documentElement.dataset.theme = isDarkMode ? "dark" : "light";
     </script>
-    
+
     <HeadOutlet/>
 </head>
 
@@ -44,8 +44,8 @@
 
 @code{
     static readonly string Version = DateTime.Now.Ticks.ToString();
-    
+
     string GetVersioned(string url) => WebHostEnvironment.IsDevelopment()
-        ? url 
+        ? url
         : QueryHelpers.AddQueryString(url, "v", Version);
 }

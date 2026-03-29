@@ -33,6 +33,13 @@ public class MonorailCssOptions
     /// Gets or sets any extra CSS styles to be included in the generated stylesheet.
     /// </summary>
     public string ExtraStyles { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets file paths (relative to the web root) to scan for CSS class usage at startup.
+    /// Similar to Tailwind's <c>content</c> configuration — ensures classes used only in
+    /// client-side JS or other non-HTML files are included in the generated stylesheet.
+    /// </summary>
+    public string[] ContentPaths { get; init; } = [];
 }
 
 /// <summary>
