@@ -24,75 +24,16 @@ Razor component library providing reusable UI components for content-driven webs
 
 ## JavaScript Functionality (`wwwroot/scripts.js`)
 
-The JavaScript is organized into modular ES6 classes managed by a central `PageManager`.
-
-### Core Manager
-
-**`PageManager`** - Main orchestrator that initializes all component managers on DOM ready.
+Modular ES6 classes managed by a central `PageManager` orchestrator.
 
 ### Component Managers
 
-**`ThemeManager`**
-- Dark/light theme switching
-- Persists theme preference to localStorage
-- Integrates with Mermaid diagrams for theme-aware rendering
-- Exposes global `swapTheme()` for backwards compatibility
-
-**`OutlineManager`**
-- Tracks scroll position and highlights active section in page outline
-- Uses IntersectionObserver-style logic with configurable header offset (130px)
-- Updates visual highlighter indicator with smooth transitions
-- Builds section map from outline links and heading IDs
-
-**`TabManager`**
-- Manages tab navigation with ARIA attributes
-- Handles tab activation, content panel visibility
-- Supports multiple tab groups per page via unique IDs
-
-**`MermaidManager`**
-- Dynamic loading of Mermaid.js from CDN
-- Theme-aware diagram rendering (light/dark modes)
-- Converts OKLCH CSS variables to hex for Mermaid theme configuration
-- Supports diagram re-rendering on theme change
-- Custom theme variables mapped to MonorailCSS color tokens
-
-**`MobileNavManager`**
-- Hamburger menu toggle for mobile navigation sidebar
-- Overlay backdrop with click-to-close
-- Auto-close on link click (mobile only)
-- Escape key support and body scroll prevention
-
-**`MainSiteNavManager`**
-- Mobile menu for main site navigation links
-- Auto-closes on window resize to desktop breakpoint (768px)
-- Click-outside and escape key handlers
-
-**`SidebarToggleManager`**
-- Table of contents sidebar toggle for Spectre.Console-style layouts
-- Overlay-based sidebar with close button
-- Prevents event propagation when clicking inside panel
-
-**`SearchManager`**
-- FlexSearch-powered client-side search
-- Modal interface with keyboard shortcuts (Cmd/Ctrl+K)
-- Lazy-loads search index and FlexSearch library on first use
-- Weighted field scoring (title > description > headings > content)
-- Search priority multiplier support
-- Snippet generation with query highlighting
-- Error handling for failed index loading
-
-**`SyntaxHighlighter`**
-- Highlight.js integration for code syntax highlighting
-- Supports 20+ languages (JavaScript, TypeScript, Python, C#, etc.)
-- Auto-detects language from CSS classes (`language-*`)
-- Excludes special classes (mermaid, text)
-- Fallback to auto-detection for unregistered languages
-
-### Utility Functions
-
-**OKLCH to Hex Conversion** - Converts CSS `oklch()` color values to hex for libraries that don't support modern CSS colors (used by Mermaid).
-
-### Global Exports
-
-- `window.pageManager` - Access to PageManager instance
-- `window.swapTheme()` - Legacy theme toggle function
+- **`ThemeManager`** - Dark/light theme switching with localStorage persistence; exposes `window.swapTheme()`
+- **`OutlineManager`** - Scroll-based active section highlighting for page outline (130px header offset)
+- **`TabManager`** - ARIA-compliant tab navigation; supports multiple tab groups per page
+- **`MermaidManager`** - Lazy-loads Mermaid.js from CDN with theme-aware rendering
+- **`MobileNavManager`** - Hamburger menu toggle with overlay, escape key, and body scroll lock
+- **`MainSiteNavManager`** - Mobile main-nav menu; auto-closes at 768px breakpoint
+- **`SidebarToggleManager`** - TOC sidebar overlay toggle for multi-section layouts
+- **`SearchManager`** - FlexSearch-powered modal search (Cmd/Ctrl+K); lazy-loads index on first use
+- **`SyntaxHighlighter`** - Highlight.js integration for 20+ languages

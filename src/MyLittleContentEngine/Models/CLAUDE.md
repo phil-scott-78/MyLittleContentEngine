@@ -26,7 +26,7 @@ Core data models and domain entities for MyLittleContentEngine. Contains all DTO
 - **ApiParameter** - Method parameter with type, default value, and documentation
 
 ### IFrontMatter.cs
-- **IFrontMatter** - Interface defining front matter contract for Markdown pages (title, tags, draft status, redirects, sections)
+- **IFrontMatter** - **Extension point**: implement this interface to define custom front matter schema for your content pages (title, tags, draft status, redirects, sections)
 
 ### Metadata.cs
 - **Metadata** - Additional computed page metadata for RSS/sitemap (last modified, description, order, section)

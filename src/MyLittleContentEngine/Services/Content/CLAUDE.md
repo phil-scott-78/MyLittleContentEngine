@@ -2,6 +2,10 @@
 
 Content processing services for Markdown, Razor pages, and API reference documentation. Handles content parsing, rendering, tagging, file operations, and folder metadata management.
 
+## Extension Points
+- **`IContentService`** - Implement this to create custom content sources (see `SearchExample` for a programmatic implementation)
+- **`IMarkdownContentService<TFrontMatter>`** - Extends `IContentService` with markdown-specific ops; use `MarkdownContentService<TFrontMatter>` for file-based markdown
+
 ## Files
 
 ### ApiReferenceContentService.cs

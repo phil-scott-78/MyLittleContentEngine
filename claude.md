@@ -4,8 +4,10 @@ MyLittleContentEngine is a .NET content management library with UI components an
 
 ## Project Structure
 - `src/MyLittleContentEngine/` - Core content engine library
-- `src/MyLittleContentEngine.UI/` - UI components  
+- `src/MyLittleContentEngine.UI/` - UI components
 - `src/MyLittleContentEngine.MonorailCSS/` - CSS styling integration
+- `src/MyLittleContentEngine.DocSite/` - Ready-to-use documentation site package
+- `src/MyLittleContentEngine.BlogSite/` - Ready-to-use blog site package
 - `tests/MyLittleContentEngine.Tests/` - Unit tests
 - `docs/` - Documentation (uses Diátaxis framework)
 - `examples/` - Usage examples
