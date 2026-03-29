@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -17,14 +17,14 @@ public partial class CssClassCollectorMiddleware(RequestDelegate next)
         }
 
         var originalBodyStream = context.Response.Body;
-        
+
         try
         {
             await using var memoryStream = new MemoryStream();
             context.Response.Body = memoryStream;
 
             await next(context); // Run the rest of the pipeline
-            
+
             // Make sure the response is HTML before proceeding
             var contentType = context.Response.ContentType;
             if (string.IsNullOrEmpty(contentType) || !contentType.Contains("text/html", StringComparison.OrdinalIgnoreCase))
@@ -33,7 +33,7 @@ public partial class CssClassCollectorMiddleware(RequestDelegate next)
                 await memoryStream.CopyToAsync(originalBodyStream);
                 return;
             }
-            
+
             logger.LogTrace("Gathering CSS for {url}", url);
             try
             {

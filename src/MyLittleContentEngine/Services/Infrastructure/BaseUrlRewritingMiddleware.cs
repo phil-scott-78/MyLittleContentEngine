@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
 using AngleSharp;
@@ -179,7 +179,7 @@ public partial class BaseUrlRewritingMiddleware
 
             // Create an <a> tag with the resolved URL and title
             replacement = crossRef != null
-                ? $"<a href=\"{crossRef.Url}\">{crossRef.Title}</a>" 
+                ? $"<a href=\"{crossRef.Url}\">{crossRef.Title}</a>"
                 : $"<span data-xref-error=\"Reference not found\" data-xref-uid=\"{xrefUid}\" class=\"text-red-500\">Reference not found: {xrefUid}</span>";
 
             htmlContent = htmlContent.Replace(xrefTag, replacement);

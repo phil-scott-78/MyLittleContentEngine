@@ -12,13 +12,13 @@ public class RecipeExampleWebApplicationFactory : WebApplicationFactory<RecipeEx
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
-        
+
         // Set the content root to the example project directory
-        var exampleProjectPath = Path.Combine(CurrentFilePath.GetUnitTestProjectRoot(), 
-            "..", "..",  "examples", "RecipeExample");
-        
+        var exampleProjectPath = Path.Combine(CurrentFilePath.GetUnitTestProjectRoot(),
+            "..", "..", "examples", "RecipeExample");
+
         builder.UseContentRoot(exampleProjectPath);
-        
+
         // Override content path configuration
         builder.ConfigureServices(services =>
         {
@@ -31,22 +31,22 @@ public class RecipeExampleWebApplicationFactory : WebApplicationFactory<RecipeEx
                 {
                     var originalFactory = (Func<IServiceProvider, ContentEngineOptions>)engineOptionsDescriptor.ImplementationFactory!;
                     var originalOptions = originalFactory(serviceProvider);
-                    
+
                     return originalOptions with
                     {
                         ContentRootPath = Path.Combine(exampleProjectPath, "recipes")
                     };
                 });
             }
-            
+
             var recipeOptionsDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(RecipeContentOptions));
             if (recipeOptionsDescriptor != null)
             {
                 services.Remove(recipeOptionsDescriptor);
                 services.AddTransient<RecipeContentOptions>(_ =>
                 {
-                    var originalOptions = (RecipeContentOptions) recipeOptionsDescriptor.ImplementationInstance!;
-                    
+                    var originalOptions = (RecipeContentOptions)recipeOptionsDescriptor.ImplementationInstance!;
+
                     return originalOptions with
                     {
                         RecipePath = Path.Combine(exampleProjectPath, "recipes"),
@@ -55,7 +55,7 @@ public class RecipeExampleWebApplicationFactory : WebApplicationFactory<RecipeEx
                 });
             }
         });
-        
+
         // Reduce logging noise in tests
         builder.ConfigureLogging(logging =>
         {

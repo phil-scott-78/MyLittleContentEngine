@@ -1,10 +1,10 @@
+using Moq;
 using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.SyntaxHighlighting;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
-using Moq;
 using Shouldly;
 
-[assembly:CaptureConsole(CaptureOut = true)]
+[assembly: CaptureConsole(CaptureOut = true)]
 
 namespace MyLittleContentEngine.Tests.Services.Content;
 
@@ -246,7 +246,6 @@ public class CodeHighlighterServiceTests
         resultMixed.Success.ShouldBeTrue();
     }
 
-    
     [Theory]
     [InlineData("c#")]
     [InlineData("cs")]

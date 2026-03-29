@@ -1,4 +1,4 @@
-﻿using MyLittleContentEngine.Models;
+using MyLittleContentEngine.Models;
 
 namespace MinimalExample;
 

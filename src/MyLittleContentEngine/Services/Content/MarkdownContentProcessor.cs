@@ -63,20 +63,19 @@ internal class MarkdownContentProcessor<TFrontMatter>
         try
         {
             var contentPath = _markdownContentOptions.ContentPath.Value;
-            
 
-                _logger.LogDebug("Setting up file watch for {ContentPath} with pattern {Pattern}", contentPath, "*.*");
-                
-                _fileWatcher.AddPathWatch(
-                    contentPath,
-                    "*.*",
-                    (filePath, _) =>
-                    {
-                        _logger.LogDebug("Markdown file changed: {FilePath}", filePath);
-                        // FileWatchDependencyFactory handles the actual invalidation
-                    },
-                    includeSubdirectories: !_markdownContentOptions.ExcludeSubfolders
-                );
+            _logger.LogDebug("Setting up file watch for {ContentPath} with pattern {Pattern}", contentPath, "*.*");
+
+            _fileWatcher.AddPathWatch(
+                contentPath,
+                "*.*",
+                (filePath, _) =>
+                {
+                    _logger.LogDebug("Markdown file changed: {FilePath}", filePath);
+                    // FileWatchDependencyFactory handles the actual invalidation
+                },
+                includeSubdirectories: !_markdownContentOptions.ExcludeSubfolders
+            );
         }
         catch (Exception ex)
         {

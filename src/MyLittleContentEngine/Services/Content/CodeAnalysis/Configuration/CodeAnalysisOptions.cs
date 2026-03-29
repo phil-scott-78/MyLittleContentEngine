@@ -36,7 +36,7 @@ public record ProjectFilter
     /// </summary>
     public static ProjectFilter Include(params string[] projectNames) => new()
     {
-        IncludedProjects = [..projectNames]
+        IncludedProjects = [.. projectNames]
     };
 
     /// <summary>
@@ -44,7 +44,7 @@ public record ProjectFilter
     /// </summary>
     public static ProjectFilter Exclude(params string[] projectNames) => new()
     {
-        ExcludedProjects = [..projectNames]
+        ExcludedProjects = [.. projectNames]
     };
 
     /// <summary>

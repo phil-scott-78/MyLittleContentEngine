@@ -1,6 +1,5 @@
-﻿using System.Collections;
+using System.Collections;
 using System.IO.Abstractions;
-using Testably.Abstractions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.AspNetCore.Http;
@@ -10,16 +9,17 @@ using Microsoft.Extensions.Logging;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services;
 using MyLittleContentEngine.Services.Content;
+using MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
+using MyLittleContentEngine.Services.Content.CodeAnalysis.SolutionWorkspace;
+using MyLittleContentEngine.Services.Content.CodeAnalysis.SymbolAnalysis;
+using MyLittleContentEngine.Services.Content.CodeAnalysis.SyntaxHighlighting;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
-using MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
-using MyLittleContentEngine.Services.Content.CodeAnalysis.SyntaxHighlighting;
-using MyLittleContentEngine.Services.Content.CodeAnalysis.SymbolAnalysis;
-using MyLittleContentEngine.Services.Content.CodeAnalysis.SolutionWorkspace;
 using MyLittleContentEngine.Services.Content.TableOfContents;
 using MyLittleContentEngine.Services.Generation;
 using MyLittleContentEngine.Services.Infrastructure;
 using MyLittleContentEngine.Services.Web;
+using Testably.Abstractions;
 
 namespace MyLittleContentEngine;
 
@@ -152,7 +152,7 @@ public static class ContentEngineExtensions
         configuredServices.AddFileWatched<RedirectContentService>();
         configuredServices.AddTransient<IContentService>(provider => provider.GetRequiredService<RazorPageContentService>());
         configuredServices.AddTransient<IContentService>(provider => provider.GetRequiredService<RedirectContentService>());
-        
+
         // Register XrefResolver with file-watch invalidation
         configuredServices.AddFileWatched<IXrefResolver, XrefResolver>();
 
@@ -251,10 +251,10 @@ public static class ContentEngineExtensions
         {
             services.Remove(existingDescriptor);
         }
-        
+
         // Register the new code analysis options
         services.AddSingleton(configureOptions);
-        
+
         // Register connected solution services
         services.AddSingleton<ISolutionWorkspaceService, SolutionWorkspaceService>();
         services.AddFileWatched<ISymbolExtractionService, SymbolExtractionService>();
@@ -278,7 +278,7 @@ public static class ContentEngineExtensions
         Func<IServiceProvider, ApiReferenceContentOptions> func)
     {
         services.AddTransient(func);
-        
+
         // Ensure connected solution services are registered
         // Check if ISolutionWorkspaceService is already registered
         var solutionServiceDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(ISolutionWorkspaceService));
@@ -288,19 +288,19 @@ public static class ContentEngineExtensions
             // Build a temporary service provider to get the API reference options
             var tempServiceProvider = services.BuildServiceProvider();
             var apiOptions = tempServiceProvider.GetRequiredService<ApiReferenceContentOptions>();
-            
+
             if (apiOptions.SolutionPath == null || apiOptions.SolutionPath.Value.IsEmpty)
             {
                 throw new InvalidOperationException(
                     "ApiReferenceContentService requires a solution path. Set SolutionPath in ApiReferenceContentOptions.");
             }
-            
+
             services.WithConnectedRoslynSolution(_ => new CodeAnalysisOptions
             {
                 SolutionPath = apiOptions.SolutionPath.Value.Value
             });
         }
-        
+
         // Register the API reference content service with file-watch invalidation
         services.AddFileWatched<ApiReferenceContentService>();
 

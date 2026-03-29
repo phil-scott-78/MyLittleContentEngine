@@ -1,4 +1,4 @@
-﻿using System.Collections.Concurrent;
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions;
@@ -73,7 +73,6 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
             async () => await _contentProcessor.ProcessContentFiles(),
             AsyncLazyFlags.RetryOnFailure);
     }
-
 
     private async Task<MarkdownContentPage<TFrontMatter>?> GetContentPageByUrlOrDefault(string url)
     {
@@ -156,7 +155,7 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
         var allContentPages = await GetAllContentPagesAsync();
 
         var defaultSection = _markdownContentOptions.TableOfContentsSectionKey;
-    
+
         return pages.Where(p => p.Metadata?.Title != null)
             .Where(p =>
             {

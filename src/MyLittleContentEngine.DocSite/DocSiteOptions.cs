@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using MyLittleContentEngine.MonorailCss;
 using MyLittleContentEngine.Services;
 using MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
@@ -68,13 +68,13 @@ public record DocSiteOptions
     /// <summary>
     /// Custom font family for display elements such as headers and navigation elements
     /// </summary>
-    public string? DisplayFontFamily { get; init; } 
+    public string? DisplayFontFamily { get; init; }
 
     /// <summary>
     /// Custom font family for body text
     /// </summary>
     public string? BodyFontFamily { get; init; }
-    
+
     /// <summary>
     /// Custom HTML for code to be injected into the head section, for example Google Fonts or DNS prefetch
     /// </summary>
@@ -89,17 +89,17 @@ public record DocSiteOptions
     /// Namespaces to exclude from API documentation
     /// </summary>
     public string[]? ExcludeNamespaces { get; init; }
-    
+
     /// <summary>
     /// Custom footer content HTML (replaces the default site title)
     /// </summary>
     public string? FooterContent { get; init; }
-    
+
     /// <summary>
     /// List of additional assemblies to scan for routing
     /// </summary>
     public Assembly[] AdditionalRoutingAssemblies { get; init; } = [];
-    
+
     /// <summary>
     /// URL to the social media image for meta tags
     /// </summary>

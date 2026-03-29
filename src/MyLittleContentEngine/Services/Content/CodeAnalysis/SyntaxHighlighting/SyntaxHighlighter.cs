@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Classification;
@@ -81,7 +81,6 @@ internal class SyntaxHighlighter : IDisposable
             return new ClassifiedSpan(span.ClassificationType, adjustedSpan);
         });
     }
-
 
     private static IEnumerable<Range> CreateRangesFromSpans(SourceText targetText,
         IEnumerable<ClassifiedSpan> adjustedSpans)
@@ -254,6 +253,5 @@ internal class SyntaxHighlighter : IDisposable
     {
         Dispose(false);
     }
-
 
 }

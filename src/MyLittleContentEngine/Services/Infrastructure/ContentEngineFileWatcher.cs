@@ -139,7 +139,6 @@ public sealed class ContentEngineFileWatcher : IDisposable, IContentEngineFileWa
                 onFileChanged(e.FullPath, WatcherChangeTypes.Renamed);
             };
 
-            
             _watchers.Add(watchKey, watcher);
         }
         catch (Exception ex)

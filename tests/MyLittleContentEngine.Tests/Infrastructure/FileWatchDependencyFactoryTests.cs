@@ -18,7 +18,7 @@ public class FileWatchDependencyFactoryTests
         services.AddTransient<TestService>(); // Use transient to get new instances
         services.AddLogging();
         _serviceProvider = services.BuildServiceProvider();
-        
+
         _fileWatcher = new TestContentEngineFileWatcher();
         _logger = _serviceProvider.GetRequiredService<ILogger<FileWatchDependencyFactory<TestService>>>();
     }
@@ -201,7 +201,7 @@ public class FileWatchDependencyFactoryTests
                 {
                     var instance = factory.GetInstance();
                     instances.Add(instance);
-                    
+
                     if (j % 10 == 0) // Invalidate occasionally
                     {
                         factory.InvalidateInstance();

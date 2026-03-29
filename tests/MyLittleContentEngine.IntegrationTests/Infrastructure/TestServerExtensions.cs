@@ -8,15 +8,15 @@ public static class TestServerExtensions
     public static async Task ShouldReturnSuccessWithContent(this HttpResponseMessage response, string expectedContent)
     {
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-        
+
         var content = await response.Content.ReadAsStringAsync();
         content.ShouldContain(expectedContent);
     }
-    
+
     public static async Task ShouldReturnSuccessWithTitle(this HttpResponseMessage response, string expectedTitle)
     {
         response.StatusCode.ShouldBe(HttpStatusCode.OK);
-        
+
         var content = await response.Content.ReadAsStringAsync();
         content.ShouldContain($"<title>{expectedTitle}</title>");
     }

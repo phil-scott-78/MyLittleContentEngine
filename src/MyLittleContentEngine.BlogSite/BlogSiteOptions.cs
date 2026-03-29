@@ -1,5 +1,5 @@
-using Microsoft.AspNetCore.Components;
 using System.Reflection;
+using Microsoft.AspNetCore.Components;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.MonorailCss;
 using MyLittleContentEngine.Services;
@@ -70,7 +70,7 @@ public record BlogSiteOptions
     /// <summary>
     /// Custom font family for display elements such as headers and navigation elements
     /// </summary>
-    public string? DisplayFontFamily { get; init; } 
+    public string? DisplayFontFamily { get; init; }
 
     /// <summary>
     /// Custom font family for body text
@@ -116,7 +116,7 @@ public record BlogSiteOptions
     /// Social Media Links
     /// </summary>
     public SocialLink[] Socials { get; init; } = [];
-    
+
     /// <summary>
     /// Path to the solution file for API documentation generation
     /// </summary>

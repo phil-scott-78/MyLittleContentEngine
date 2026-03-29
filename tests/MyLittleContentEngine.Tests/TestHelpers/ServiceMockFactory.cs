@@ -36,13 +36,13 @@ public static class ServiceMockFactory
 
         mock.Setup(x => x.GetPagesToGenerateAsync())
             .ReturnsAsync(pageList);
-        
+
         mock.Setup(x => x.GetContentTocEntriesAsync())
             .ReturnsAsync(pageList.Select(p => new ContentTocItem(p.Metadata!.Title!, p.Url, p.Metadata.Order, p.Url.GetSegments())).ToImmutableList());
-        
+
         mock.Setup(x => x.GetContentToCopyAsync())
             .ReturnsAsync(ImmutableList<ContentToCopy>.Empty);
-        
+
         mock.Setup(x => x.GetCrossReferencesAsync())
             .ReturnsAsync(ImmutableList<CrossReference>.Empty);
 
@@ -56,16 +56,16 @@ public static class ServiceMockFactory
     public static Mock<IContentService> CreateEmptyContentService()
     {
         var mock = new Mock<IContentService>();
-        
+
         mock.Setup(x => x.GetPagesToGenerateAsync())
             .ReturnsAsync(ImmutableList<PageToGenerate>.Empty);
-        
+
         mock.Setup(x => x.GetContentTocEntriesAsync())
             .ReturnsAsync(ImmutableList<ContentTocItem>.Empty);
-        
+
         mock.Setup(x => x.GetContentToCopyAsync())
             .ReturnsAsync(ImmutableList<ContentToCopy>.Empty);
-        
+
         mock.Setup(x => x.GetCrossReferencesAsync())
             .ReturnsAsync(ImmutableList<CrossReference>.Empty);
 
@@ -80,7 +80,7 @@ public static class ServiceMockFactory
     public static Mock<IContentService> CreateContentServiceWithStaticContent(params ContentToCopy[] contentToCopy)
     {
         var mock = CreateEmptyContentService();
-        
+
         mock.Setup(x => x.GetContentToCopyAsync())
             .ReturnsAsync(contentToCopy.ToImmutableList());
 
@@ -95,7 +95,7 @@ public static class ServiceMockFactory
     public static Mock<IContentService> CreateContentServiceWithCrossReferences(params CrossReference[] crossReferences)
     {
         var mock = CreateEmptyContentService();
-        
+
         mock.Setup(x => x.GetCrossReferencesAsync())
             .ReturnsAsync(crossReferences.ToImmutableList());
 
@@ -192,18 +192,18 @@ public static class ServiceMockFactory
         /// <param name="isDraft">Whether the page is a draft.</param>
         /// <returns>A PageToGenerate instance.</returns>
         public static PageToGenerate CreateRich(
-            string title, 
-            string url, 
-            int order = 1, 
-            string[]? tags = null, 
+            string title,
+            string url,
+            int order = 1,
+            string[]? tags = null,
             bool isDraft = false)
         {
             return new PageToGenerate(
                 url,
                 url,
-                new Metadata 
-                { 
-                    Title = title, 
+                new Metadata
+                {
+                    Title = title,
                     Order = order
                 }
             );

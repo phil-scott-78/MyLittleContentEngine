@@ -1,4 +1,4 @@
-﻿namespace MyLittleContentEngine.Models;
+namespace MyLittleContentEngine.Models;
 
 /// <summary>
 /// Represents a search index document for client-side searching with fuse.js

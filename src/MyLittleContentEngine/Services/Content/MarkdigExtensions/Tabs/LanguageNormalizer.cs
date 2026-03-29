@@ -1,4 +1,4 @@
-﻿namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.Tabs;
+namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.Tabs;
 
 internal static class LanguageNormalizer
 {

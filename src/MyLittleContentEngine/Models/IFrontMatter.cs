@@ -1,4 +1,4 @@
-﻿namespace MyLittleContentEngine.Models;
+namespace MyLittleContentEngine.Models;
 
 /// <summary>
 ///     Interface for front matter. FrontMatter is the metadata of a Markdown content page.

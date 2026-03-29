@@ -12,13 +12,13 @@ public class BlogExampleWebApplicationFactory : WebApplicationFactory<BlogExampl
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
-        
+
         // Set the content root to the blog example project directory
-        var exampleProjectPath = Path.Combine(CurrentFilePath.GetUnitTestProjectRoot(), 
-            "..", "..",  "examples", "BlogExample");
-        
+        var exampleProjectPath = Path.Combine(CurrentFilePath.GetUnitTestProjectRoot(),
+            "..", "..", "examples", "BlogExample");
+
         builder.UseContentRoot(exampleProjectPath);
-        
+
         // Override content path configuration
         builder.ConfigureServices(services =>
         {
@@ -31,7 +31,7 @@ public class BlogExampleWebApplicationFactory : WebApplicationFactory<BlogExampl
                 {
                     var originalFactory = (Func<IServiceProvider, BlogSiteOptions>)blogOptionsDescriptor.ImplementationFactory!;
                     var originalOptions = originalFactory(serviceProvider);
-                    
+
                     return originalOptions with
                     {
                         ContentRootPath = Path.Combine(exampleProjectPath, "Content")
@@ -39,7 +39,7 @@ public class BlogExampleWebApplicationFactory : WebApplicationFactory<BlogExampl
                 });
             }
         });
-        
+
         // Reduce logging noise in tests
         builder.ConfigureLogging(logging =>
         {

@@ -1,4 +1,4 @@
-﻿using MonorailCss.Theme;
+using MonorailCss.Theme;
 using MyLittleContentEngine.DocSite;
 using MyLittleContentEngine.MonorailCss;
 using MyLittleContentEngine.Services.Content;
@@ -21,7 +21,7 @@ builder.Services.AddDocSite(_ => new DocSiteOptions()
         BaseColorName = ColorNames.Slate // Base color palette
     },
     GitHubUrl = "https://github.com/MyLittleContentEngine/MyLittleContentEngine",
-    
+
     // Custom header with logo and branding
     HeaderContent = """
             <span class="text-xl font-bold">Random Docs</span>
@@ -37,24 +37,24 @@ builder.Services.AddDocSite(_ => new DocSiteOptions()
             © 2024 Random Content Site. Built with MyLittleContentEngine.
         </div>
         """,
-    
+
     // Additional HTML for head section
     AdditionalHtmlHeadContent = """
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&family=Petrona:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
         """,
-    
+
     BodyFontFamily = "Manrope, sans-serif",
     DisplayFontFamily = "Petrona, serif",
-    
+
     // Custom styles
     ExtraStyles = """
         .custom-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
         """,
-    
+
     AdditionalRoutingAssemblies = [typeof(Random).Assembly]
 });
 

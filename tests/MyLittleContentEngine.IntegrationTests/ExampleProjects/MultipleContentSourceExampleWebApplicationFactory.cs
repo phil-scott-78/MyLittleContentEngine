@@ -12,13 +12,13 @@ public class MultipleContentSourceExampleWebApplicationFactory : WebApplicationF
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
-        
+
         // Set the content root to the example project directory
-        var exampleProjectPath = Path.Combine(CurrentFilePath.GetUnitTestProjectRoot(), 
-            "..", "..",  "examples", "MultipleContentSourceExample");
-        
+        var exampleProjectPath = Path.Combine(CurrentFilePath.GetUnitTestProjectRoot(),
+            "..", "..", "examples", "MultipleContentSourceExample");
+
         builder.UseContentRoot(exampleProjectPath);
-        
+
         // Override content path configuration
         builder.ConfigureServices(services =>
         {
@@ -31,14 +31,14 @@ public class MultipleContentSourceExampleWebApplicationFactory : WebApplicationF
                 {
                     var originalFactory = (Func<IServiceProvider, ContentEngineOptions>)engineOptionsDescriptor.ImplementationFactory!;
                     var originalOptions = originalFactory(serviceProvider);
-                    
+
                     return originalOptions with
                     {
                         ContentRootPath = Path.Combine(exampleProjectPath, "Content")
                     };
                 });
             }
-            
+
             // Override ContentEngineContentOptions services (only public types accessible)
             var contentOptionsDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(MarkdownContentOptions<ContentFrontMatter>));
             if (contentOptionsDescriptor != null)
@@ -48,14 +48,14 @@ public class MultipleContentSourceExampleWebApplicationFactory : WebApplicationF
                 {
                     var originalFactory = (Func<IServiceProvider, MarkdownContentOptions<ContentFrontMatter>>)contentOptionsDescriptor.ImplementationFactory!;
                     var originalOptions = originalFactory(serviceProvider);
-                    
+
                     return originalOptions with
                     {
                         ContentPath = Path.Combine(exampleProjectPath, "Content")
                     };
                 });
             }
-            
+
             var blogOptionsDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(MarkdownContentOptions<BlogFrontMatter>));
             if (blogOptionsDescriptor != null)
             {
@@ -64,14 +64,14 @@ public class MultipleContentSourceExampleWebApplicationFactory : WebApplicationF
                 {
                     var originalFactory = (Func<IServiceProvider, MarkdownContentOptions<BlogFrontMatter>>)blogOptionsDescriptor.ImplementationFactory!;
                     var originalOptions = originalFactory(serviceProvider);
-                    
+
                     return originalOptions with
                     {
                         ContentPath = Path.Combine(exampleProjectPath, "Content", "blog")
                     };
                 });
             }
-            
+
             var docOptionsDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(MarkdownContentOptions<DocsFrontMatter>));
             if (docOptionsDescriptor != null)
             {
@@ -80,7 +80,7 @@ public class MultipleContentSourceExampleWebApplicationFactory : WebApplicationF
                 {
                     var originalFactory = (Func<IServiceProvider, MarkdownContentOptions<DocsFrontMatter>>)docOptionsDescriptor.ImplementationFactory!;
                     var originalOptions = originalFactory(serviceProvider);
-                    
+
                     return originalOptions with
                     {
                         ContentPath = Path.Combine(exampleProjectPath, "Content", "docs")
@@ -88,7 +88,7 @@ public class MultipleContentSourceExampleWebApplicationFactory : WebApplicationF
                 });
             }
         });
-        
+
         // Reduce logging noise in tests
         builder.ConfigureLogging(logging =>
         {

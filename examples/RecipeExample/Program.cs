@@ -8,13 +8,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorComponents();
 
-
 builder.Services.AddContentEngineService(_ => new ContentEngineOptions
-    {
-        SiteTitle = "Recipe Collection",
-        SiteDescription = "CookLang Recipe Website",
-        ContentRootPath = "recipes",
-    })
+{
+    SiteTitle = "Recipe Collection",
+    SiteDescription = "CookLang Recipe Website",
+    ContentRootPath = "recipes",
+})
     .AddRecipeContentService(options =>
     {
         options.RecipePath = "recipes";
@@ -35,7 +34,7 @@ builder.Services.AddMonorailCss(_ => new MonorailCssOptions()
     CustomCssFrameworkSettings = settings => settings with
     {
         Theme = settings.Theme
-            .AddFontFamily("display","'Montserrat Alternates', sans-serif")
+            .AddFontFamily("display", "'Montserrat Alternates', sans-serif")
             .AddFontFamily("sans", "Inter, sans-serif")
     }
 });

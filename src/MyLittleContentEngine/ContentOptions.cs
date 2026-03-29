@@ -1,4 +1,4 @@
-﻿using MyLittleContentEngine.Models;
+using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services;
 
 namespace MyLittleContentEngine;

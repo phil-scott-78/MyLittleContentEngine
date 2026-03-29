@@ -1,4 +1,4 @@
-﻿using MinimalExample;
+using MinimalExample;
 using MinimalExample.Components;
 using MyLittleContentEngine;
 using MyLittleContentEngine.MonorailCss;

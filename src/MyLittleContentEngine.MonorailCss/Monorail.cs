@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using MonorailCss;
 using MonorailCss.Theme;
 
@@ -166,7 +166,6 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
         var optionsCustomCssFrameworkSettings = options.CustomCssFrameworkSettings(cssFrameworkSettings);
         return new CssFramework(optionsCustomCssFrameworkSettings);
     }
-
 
     private static ProseCustomization GetCustomProseSettings()
     {
@@ -359,7 +358,6 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                     "blur-[0] opacity-100"
                 },
 
-
                 // Line highlighting
                 {
                     ".code-highlight-wrapper .line.highlight",
@@ -415,7 +413,6 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                     "font-sans font-semilight tracking-loose absolute top-full left-0 mt-3 px-2 py-1 text-xs text-base-800 bg-base-200/25 dark:bg-primary-700/20 dark:text-primary-200 rounded border border-primary-500/50 whitespace-nowrap z-10 select-none pointer-events-none"
                 },
 
-
                 {
                     ".code-highlight-wrapper .word-highlight-message::selection",
                     "bg-transparent"
@@ -456,7 +453,6 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
         const string alertFormatString =
             "fill-{0}-700 dark:fill-{0}-500 bg-{0}-100/75 border-{0}-500/20 dark:border-{0}-500/30 dark:bg-{0}-900/25 text-{0}-800 dark:text-{0}-200";
 
-
         return ImmutableDictionary.Create<string, string>()
             .AddRange(new Dictionary<string, string>
             {
@@ -472,7 +468,6 @@ public class MonorailCssService(MonorailCssOptions options, CssClassCollector cs
                 { ".markdown-alert svg", "h-4 w-4 mt-0.5" },
             });
     }
-
 
     private static ImmutableDictionary<string, string> HljsApplies()
     {

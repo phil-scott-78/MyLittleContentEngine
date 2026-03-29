@@ -176,7 +176,7 @@ internal class LinkVerificationService(ILogger<LinkVerificationService> logger)
         {
             link = link[..^6];
         }
-        
+
         // Ensure it starts with /
         if (!link.StartsWith('/'))
         {

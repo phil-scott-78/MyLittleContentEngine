@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Markdig.Renderers.Html;
 using Markdig.Syntax;
 using Markdig.Syntax.Inlines;

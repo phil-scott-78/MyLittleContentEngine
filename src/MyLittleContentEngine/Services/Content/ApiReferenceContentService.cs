@@ -1,11 +1,11 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.Extensions.Logging;
 using MyLittleContentEngine.Models;
-using MyLittleContentEngine.Services.Content.CodeAnalysis.SymbolAnalysis;
-using MyLittleContentEngine.Services.Content.CodeAnalysis.SolutionWorkspace;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
+using MyLittleContentEngine.Services.Content.CodeAnalysis.SolutionWorkspace;
+using MyLittleContentEngine.Services.Content.CodeAnalysis.SymbolAnalysis;
 using MyLittleContentEngine.Services.Content.TableOfContents;
 
 namespace MyLittleContentEngine.Services.Content;
@@ -471,24 +471,24 @@ public class ApiReferenceContentService : IContentService, IDisposable
             case IMethodSymbol method:
                 declaration = CreateMethodDeclaration(method);
                 returnType = method.ReturnType.ToDisplayString();
-                returnTypeDisplayName= method.ReturnType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+                returnTypeDisplayName = method.ReturnType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
                 parameters = CreateApiParameters(method, xmlDoc ?? string.Empty);
                 break;
             case IPropertySymbol property:
                 declaration = CreatePropertyDeclaration(property);
                 returnType = property.Type.ToDisplayString();
-                returnTypeDisplayName= property.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+                returnTypeDisplayName = property.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
                 break;
             case IFieldSymbol field:
                 declaration = CreateFieldDeclaration(field);
                 returnType = field.Type.ToDisplayString();
-                returnTypeDisplayName= field.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+                returnTypeDisplayName = field.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
 
                 break;
             case IEventSymbol eventSymbol:
                 declaration = CreateEventDeclaration(eventSymbol);
                 returnType = eventSymbol.Type.ToDisplayString();
-                returnTypeDisplayName= eventSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
+                returnTypeDisplayName = eventSymbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat);
 
                 break;
             default:

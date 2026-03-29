@@ -1,8 +1,8 @@
-﻿using RoslynIntegrationExample;
-using RoslynIntegrationExample.Components;
 using MyLittleContentEngine;
 using MyLittleContentEngine.MonorailCss;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
+using RoslynIntegrationExample;
+using RoslynIntegrationExample.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,11 +11,11 @@ builder.Services.AddRazorComponents();
 // configures site wide settings
 // hot reload note - these will not be reflected until the application restarts
 builder.Services.AddContentEngineService(_ => new ContentEngineOptions
-    {
-        SiteTitle = "My Little Content Engine",
-        SiteDescription = "An Inflexible Content Engine for .NET",
-        ContentRootPath = "Content",
-    })
+{
+    SiteTitle = "My Little Content Engine",
+    SiteDescription = "An Inflexible Content Engine for .NET",
+    ContentRootPath = "Content",
+})
     .WithMarkdownContentService(_ => new MarkdownContentOptions<BlogFrontMatter>()
     {
         // configures individual sections of the blog. PageUrl should match the configured razor pages route,

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,7 +17,7 @@ public static class MonorailServiceExtensions
         {
             services.AddTransient(optionFactory);
         }
-        
+
         services.AddSingleton<CssClassCollector>();
         services.AddTransient<MonorailCssService>();
 

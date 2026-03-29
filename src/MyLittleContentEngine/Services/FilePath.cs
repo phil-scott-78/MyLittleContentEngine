@@ -99,21 +99,21 @@ public readonly struct FilePath : IEquatable<FilePath>
     public bool Equals(FilePath other)
     {
         // Use case-insensitive comparison on Windows, case-sensitive on Unix
-        var comparison = OperatingSystem.IsWindows() 
-            ? StringComparison.OrdinalIgnoreCase 
+        var comparison = OperatingSystem.IsWindows()
+            ? StringComparison.OrdinalIgnoreCase
             : StringComparison.Ordinal;
-            
+
         return string.Equals(_value, other._value, comparison);
     }
 
     public override int GetHashCode()
     {
         if (_value == null) return 0;
-        
-        var comparison = OperatingSystem.IsWindows() 
-            ? StringComparer.OrdinalIgnoreCase 
+
+        var comparison = OperatingSystem.IsWindows()
+            ? StringComparer.OrdinalIgnoreCase
             : StringComparer.Ordinal;
-            
+
         return comparison.GetHashCode(_value);
     }
 

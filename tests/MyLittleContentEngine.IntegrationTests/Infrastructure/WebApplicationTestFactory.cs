@@ -16,7 +16,7 @@ public class WebApplicationTestFactory<TProgram> : WebApplicationFactory<TProgra
         });
 
         builder.UseEnvironment("Testing");
-        
+
         // Reduce logging noise in tests
         builder.ConfigureLogging(logging =>
         {

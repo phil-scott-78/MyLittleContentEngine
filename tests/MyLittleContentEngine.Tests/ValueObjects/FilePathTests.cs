@@ -27,7 +27,6 @@ public class FilePathTests
         path.Value.ShouldBe(expected);
     }
 
-
     [Fact]
     public void ToUrlPath_ConvertsToUrlPath()
     {

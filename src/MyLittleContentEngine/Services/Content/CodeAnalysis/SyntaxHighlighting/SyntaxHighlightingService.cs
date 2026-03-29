@@ -106,7 +106,7 @@ internal class SyntaxHighlightingService : ISyntaxHighlightingService
                     Language.CSharp,
                     "Solution path not configured");
             }
-            
+
             var solutionDir = _fileSystem.Path.GetDirectoryName(solutionPath);
             if (string.IsNullOrEmpty(solutionDir))
             {
@@ -140,7 +140,6 @@ internal class SyntaxHighlightingService : ISyntaxHighlightingService
             return HighlightedCode.CreateFailure(string.Empty, Language.CSharp, ex.Message);
         }
     }
-
 
     private static Language DetectLanguageFromExtension(string extension)
     {

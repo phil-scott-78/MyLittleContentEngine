@@ -379,8 +379,6 @@ internal class OutputGenerationService(
         }
     }
 
-
-
     /// <summary>
     /// Copies content from a source path to a target path, respecting glob patterns for ignored paths.
     /// Handles both single file and directory copying.

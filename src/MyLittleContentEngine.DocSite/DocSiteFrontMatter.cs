@@ -16,13 +16,13 @@ public class DocSiteFrontMatter : IFrontMatter
     public bool IsDraft { get; init; } = false;
 
     public string[] Tags { get; init; } = [];
-    
+
     public int Order { get; init; } = int.MaxValue;
-    
+
     public string? RedirectUrl { get; init; }
 
     public string? Section { get; init; }
-    
+
     // probably should make this optional
     public Metadata AsMetadata()
     {

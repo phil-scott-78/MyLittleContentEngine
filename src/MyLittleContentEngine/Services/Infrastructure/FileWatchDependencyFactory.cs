@@ -31,7 +31,7 @@ internal sealed class FileWatchDependencyFactory<T> : IDisposable where T : clas
         IContentEngineFileWatcher fileWatcher,
         Func<IServiceProvider, T> serviceFactory,
         IServiceProvider serviceProvider,
-        ILogger<FileWatchDependencyFactory<T>> logger )
+        ILogger<FileWatchDependencyFactory<T>> logger)
     {
         _serviceFactory = serviceFactory;
         _serviceProvider = serviceProvider;
@@ -39,7 +39,7 @@ internal sealed class FileWatchDependencyFactory<T> : IDisposable where T : clas
 
         // Subscribe to file changes for invalidation
         fileWatcher.SubscribeToChanges(InvalidateInstance);
-        
+
         _logger.LogTrace("FileWatchDependencyFactory<{ServiceType}> initialized with file-watch invalidation",
             typeof(T).Name);
     }
@@ -82,7 +82,7 @@ internal sealed class FileWatchDependencyFactory<T> : IDisposable where T : clas
     private void CreateNewInstance()
     {
         _logger.LogTrace("Creating new {ServiceType} instance", typeof(T).Name);
-        
+
         // The factory function handles creating the instance without circular dependencies
         _instance = _serviceFactory(_serviceProvider);
     }

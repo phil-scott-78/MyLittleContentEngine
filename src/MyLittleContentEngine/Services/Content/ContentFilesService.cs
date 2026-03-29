@@ -1,5 +1,5 @@
-using Microsoft.Extensions.Logging;
 using System.Collections.Immutable;
+using Microsoft.Extensions.Logging;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Infrastructure;
 
@@ -51,7 +51,7 @@ internal class ContentFilesService<TFrontMatter>
             var (files, absPath) = _fileSystemUtilities.GetFilesInDirectory(
                 absoluteContentPath,
                 _markdownContentOptions.PostFilePattern, !_markdownContentOptions.ExcludeSubfolders);
-            
+
             // Convert FilePath[] back to string[] for now to maintain compatibility
             return (files.Select(f => f.Value).ToArray(), absPath.Value);
         }
@@ -122,7 +122,7 @@ internal class ContentFilesService<TFrontMatter>
         ArgumentException.ThrowIfNullOrEmpty(contentUrl);
 
         var relativePath = contentUrl.Replace('/', Path.DirectorySeparatorChar).TrimStart(Path.DirectorySeparatorChar);
-        return  $"{relativePath}.html";
+        return $"{relativePath}.html";
     }
 
     /// <summary>
@@ -152,7 +152,7 @@ internal class ContentFilesService<TFrontMatter>
             var targetPath = _markdownContentOptions.BasePageUrl.IsEmpty
                 ? new FilePath(string.Empty)
                 : _filePathOps.FromUrlPath(_markdownContentOptions.BasePageUrl.RemoveLeadingSlash());
-            
+
             return new[]
             {
                 new ContentToCopy(_markdownContentOptions.ContentPath, targetPath, [".md"])

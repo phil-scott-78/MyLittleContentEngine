@@ -1,4 +1,4 @@
-﻿namespace MyLittleContentEngine.Services.Content.CodeAnalysis.Extensions;
+namespace MyLittleContentEngine.Services.Content.CodeAnalysis.Extensions;
 
 /// <summary>
 /// Utility class for text formatting operations.

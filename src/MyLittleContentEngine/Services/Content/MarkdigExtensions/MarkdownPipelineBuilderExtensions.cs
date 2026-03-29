@@ -1,4 +1,4 @@
-﻿using Markdig;
+using Markdig;
 using Markdig.Extensions.Alerts;
 using Markdig.Parsers.Inlines;
 using Markdig.Renderers;
@@ -62,7 +62,7 @@ internal static class MarkdownPipelineBuilderExtensions
             }
 
             pipeline.InlineParsers.InsertBefore<LinkInlineParser>(new AlertInlineParser());
-            
+
         }
 
         public void Setup(MarkdownPipeline pipeline, IMarkdownRenderer renderer)

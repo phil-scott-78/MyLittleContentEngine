@@ -1,7 +1,6 @@
-﻿using MyLittleContentEngine.Models;
+using MyLittleContentEngine.Models;
 
 namespace MultipleContentSourceExample;
-
 
 public class DocsFrontMatter : IFrontMatter
 {

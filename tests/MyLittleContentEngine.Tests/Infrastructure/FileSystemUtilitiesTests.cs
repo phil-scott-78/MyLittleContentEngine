@@ -1,7 +1,7 @@
-using Testably.Abstractions.Testing;
 using MyLittleContentEngine.Services;
 using MyLittleContentEngine.Services.Infrastructure;
 using Shouldly;
+using Testably.Abstractions.Testing;
 
 namespace MyLittleContentEngine.Tests.Infrastructure;
 
@@ -136,14 +136,13 @@ public class FileSystemUtilitiesTests
         result.Value.ShouldBe("https://example.com/path/to/page");
     }
 
-
     [Fact]
     public void ValidateDirectoryPath_NonExistingDirectory_ThrowsDirectoryNotFoundException()
     {
         var fileSystem = new MockFileSystem();
         var pathUtilities = CreateFileSystemUtilities(fileSystem);
 
-        Should.Throw<DirectoryNotFoundException>(() => 
+        Should.Throw<DirectoryNotFoundException>(() =>
             pathUtilities.ValidateDirectoryPath(new FilePath("/nonexistent")));
     }
 
@@ -160,7 +159,6 @@ public class FileSystemUtilitiesTests
         result.Value.ShouldBe("index");
     }
 
-    
     [Fact]
     public void GetFilesInDirectory_NonRecursive_OnlyReturnsTopLevelFiles()
     {
@@ -178,7 +176,7 @@ public class FileSystemUtilitiesTests
         files.ShouldContain(s => s.Value.Contains("file2.md"));
         files.ShouldNotContain(s => s.Value.Contains("file3.md"));
     }
-    
+
     [Fact]
     public void GetFilesInDirectory_Recursive_OnlyReturnsAllFiles()
     {
@@ -196,7 +194,7 @@ public class FileSystemUtilitiesTests
         files.ShouldContain(s => s.Value.Contains("file2.md"));
         files.ShouldContain(s => s.Value.Contains("file3.md"));
     }
-    
+
     [Fact]
     public void FilePathToUrlPath_ComplexPath_HandlesCorrectly()
     {

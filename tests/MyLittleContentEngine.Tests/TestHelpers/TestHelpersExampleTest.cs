@@ -13,11 +13,11 @@ public class TestHelpersExampleTest
     {
         // Arrange
         var builder = ContentEngineTestBuilder.WithSampleContent();
-        
+
         // Act
         var contentService = await builder.BuildContentServiceAsync();
         var pages = await contentService.GetPagesToGenerateAsync();
-        
+
         // Assert
         pages.ShouldNotBeEmpty();
         pages.Count.ShouldBe(3); // From WithSampleContent
@@ -31,10 +31,10 @@ public class TestHelpersExampleTest
             ("Home", "/", 1),
             ("About", "/about", 2)
         );
-        
+
         // Act
         var pages = await mockService.Object.GetPagesToGenerateAsync();
-        
+
         // Assert
         pages.Count.ShouldBe(2);
         pages[0].Metadata!.Title.ShouldBe("Home");
@@ -48,12 +48,12 @@ public class TestHelpersExampleTest
         var allSamples = MarkdownTestData.SampleFiles;
         var publishedOnly = MarkdownTestData.PublishedFiles;
         var draftsOnly = MarkdownTestData.DraftFiles;
-        
+
         // Assert
         allSamples.Count.ShouldBe(7);
         publishedOnly.Count().ShouldBe(6); // All except the draft
         draftsOnly.Count().ShouldBe(1); // Just the draft
-        
+
         // Verify content variety
         allSamples.ShouldContain(f => f.content.Contains("isDraft: true"));
         allSamples.ShouldContain(f => f.content.Contains("tags:"));
@@ -66,15 +66,15 @@ public class TestHelpersExampleTest
         // Arrange & Act
         var simplePage = ServiceMockFactory.PageBuilder.Create("Test Page", "/test", 5);
         var richPage = ServiceMockFactory.PageBuilder.CreateRich(
-            "Rich Page", 
-            "/rich", 
-            10, 
+            "Rich Page",
+            "/rich",
+            10,
             ["tag1", "tag2"]);
-        
+
         // Assert
         simplePage.Metadata!.Title.ShouldBe("Test Page");
         simplePage.Metadata.Order.ShouldBe(5);
-        
+
         richPage.Metadata!.Title.ShouldBe("Rich Page");
         richPage.Metadata.Order.ShouldBe(10);
     }
@@ -89,7 +89,7 @@ public class TestHelpersExampleTest
             "# Custom Content\n\nThis is custom.",
             ["custom", "test"]
         );
-        
+
         // Assert
         customPost.ShouldContain("title: Custom Title");
         customPost.ShouldContain("order: 42");

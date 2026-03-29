@@ -1,4 +1,4 @@
-﻿namespace MyLittleContentEngine.Models;
+namespace MyLittleContentEngine.Models;
 /// <summary>
 /// Represents a content tag in MyLittleContentEngine with both display and URL-friendly versions of the tag name.
 /// </summary>

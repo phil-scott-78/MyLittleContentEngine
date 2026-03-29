@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 
 namespace MyLittleContentEngine.MonorailCss;
 
@@ -10,18 +10,18 @@ public static class ColorPaletteGenerator
     [
         0.013, 0.032, 0.062, 0.114, 0.191, 0.237, 0.245, 0.213, 0.177, 0.141, 0.092
     ];
-    
+
     private static readonly double[] LightnessLevels =
     [
         97.10, 93.60, 88.50, 80.80, 70.40, 63.70, 57.70, 50.50, 44.40, 39.60, 25.80
     ];
-    
+
     // Keys for the palette
     private static readonly string[] PaletteKeys =
     [
         "50", "100", "200", "300", "400", "500", "600", "700", "800", "900", "950"
     ];
-    
+
     /// <summary>
     /// Generates a primary and accent color palette based on a hue value in degrees (0-360)
     /// </summary>
@@ -29,11 +29,11 @@ public static class ColorPaletteGenerator
     {
         // Normalize the hue to 0-360 range
         hue = (hue % 360 + 360) % 360;
-        
+
         // Generate a primary palette (with the exact hue)
         return GeneratePaletteFromHue(hue);
     }
-    
+
     /// <summary>
     /// Generates a palette from a specific hue value
     /// </summary>

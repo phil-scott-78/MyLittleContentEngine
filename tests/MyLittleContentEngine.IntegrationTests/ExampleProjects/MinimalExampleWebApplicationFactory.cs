@@ -12,12 +12,12 @@ public class MinimalExampleWebApplicationFactory : WebApplicationFactory<Minimal
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
-        
+
         // Set the content root to the minimal example project directory
-        var exampleProjectPath = Path.Combine(CurrentFilePath.GetUnitTestProjectRoot(), "..", "..",  "examples", "MinimalExample");
-        
+        var exampleProjectPath = Path.Combine(CurrentFilePath.GetUnitTestProjectRoot(), "..", "..", "examples", "MinimalExample");
+
         builder.UseContentRoot(exampleProjectPath);
-        
+
         // Override content path configuration
         builder.ConfigureServices(services =>
         {
@@ -30,14 +30,14 @@ public class MinimalExampleWebApplicationFactory : WebApplicationFactory<Minimal
                 {
                     var originalFactory = (Func<IServiceProvider, ContentEngineOptions>)engineOptionsDescriptor.ImplementationFactory!;
                     var originalOptions = originalFactory(serviceProvider);
-                    
+
                     return originalOptions with
                     {
                         ContentRootPath = Path.Combine(exampleProjectPath, "Content")
                     };
                 });
             }
-            
+
             // Find and replace ContentEngineOptions
             var contentOptionsDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(MarkdownContentOptions<BlogFrontMatter>));
             if (contentOptionsDescriptor != null)
@@ -47,7 +47,7 @@ public class MinimalExampleWebApplicationFactory : WebApplicationFactory<Minimal
                 {
                     var originalFactory = (Func<IServiceProvider, MarkdownContentOptions<BlogFrontMatter>>)contentOptionsDescriptor.ImplementationFactory!;
                     var originalOptions = originalFactory(serviceProvider);
-                    
+
                     return originalOptions with
                     {
                         ContentPath = Path.Combine(exampleProjectPath, "Content")
@@ -55,7 +55,7 @@ public class MinimalExampleWebApplicationFactory : WebApplicationFactory<Minimal
                 });
             }
         });
-        
+
         // Reduce logging noise in tests
         builder.ConfigureLogging(logging =>
         {

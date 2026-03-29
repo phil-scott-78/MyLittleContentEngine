@@ -1,4 +1,4 @@
-﻿using MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
+using MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
 using Shouldly;
 
 namespace MyLittleContentEngine.Tests.Content;

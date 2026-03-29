@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using System.ServiceModel.Syndication;
 using System.Text;
 using System.Xml;
@@ -57,7 +57,7 @@ internal class SitemapRssService
             // Construct the full URL: combine base URL with page URL
             var pageUrl = new UrlPath(url).EnsureLeadingSlash().Value;
             var fullUrl = baseUrl + pageUrl;
-            
+
             var urlElement = new XElement(ns + "url",
                 new XElement(ns + "loc", fullUrl));
 
@@ -139,12 +139,12 @@ internal class SitemapRssService
         // Construct the full URL: combine base URL with page URL
         var pageUrl = new UrlPath(url).EnsureLeadingSlash().Value;
         var fullUrl = baseUrl + pageUrl;
-        
+
         return new SyndicationItem(
-            metadata.Title, 
+            metadata.Title,
             metadata.Description ?? string.Empty,
-            new Uri(fullUrl), 
-            url, 
+            new Uri(fullUrl),
+            url,
             metadata.LastMod.HasValue
                 ? new DateTimeOffset(metadata.LastMod.Value)
                 : DateTimeOffset.UtcNow);

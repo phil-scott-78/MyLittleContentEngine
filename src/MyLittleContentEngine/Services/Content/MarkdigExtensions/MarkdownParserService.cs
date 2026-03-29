@@ -1,4 +1,4 @@
-﻿using System.IO.Abstractions;
+using System.IO.Abstractions;
 using Markdig;
 using Markdig.Extensions.Yaml;
 using Markdig.Renderers;

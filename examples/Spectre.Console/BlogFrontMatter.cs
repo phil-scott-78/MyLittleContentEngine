@@ -18,7 +18,7 @@ public class BlogFrontMatter : IFrontMatter
     public string? Section { get; init; }
     public string? Uid { get; init; } = null;
     public string? Repository { get; init; }
-    
+
     public Metadata AsMetadata()
     {
         return new Metadata()

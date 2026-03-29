@@ -1,4 +1,4 @@
-﻿using System.Reflection.Metadata;
+using System.Reflection.Metadata;
 using MyLittleContentEngine.MonorailCss;
 
 [assembly: MetadataUpdateHandler(typeof(CssClassCollector))]
@@ -16,7 +16,7 @@ public class CssClassCollector
     // but that's not a big deal. The classes will be removed on the next build.
     private static readonly HashSet<string> Classes = [];
     private static readonly ReaderWriterLockSlim ProcessingLock = new(LockRecursionPolicy.SupportsRecursion);
-    
+
     private static void OnUpdate()
     {
         ProcessingLock.EnterWriteLock();
@@ -41,12 +41,12 @@ public class CssClassCollector
             Classes.Add(cls);
         }
     }
-    
+
     public void BeginProcessing()
     {
         ProcessingLock.EnterWriteLock();
     }
-    
+
     public void EndProcessing()
     {
         ProcessingLock.ExitWriteLock();

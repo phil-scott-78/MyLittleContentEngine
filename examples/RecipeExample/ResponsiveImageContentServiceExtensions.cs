@@ -1,13 +1,13 @@
 using System.IO.Abstractions;
-using Testably.Abstractions;
 using MyLittleContentEngine;
 using MyLittleContentEngine.Services.Content;
+using Testably.Abstractions;
 
 namespace RecipeExample;
 
 public static class ResponsiveImageContentServiceExtensions
 {
-    public static IConfiguredContentEngineServiceCollection AddResponsiveImageContentService(this IConfiguredContentEngineServiceCollection  services)
+    public static IConfiguredContentEngineServiceCollection AddResponsiveImageContentService(this IConfiguredContentEngineServiceCollection services)
     {
         services.AddSingleton<IFileSystem, RealFileSystem>();
         services.AddSingleton<IResponsiveImageContentService, ResponsiveImageContentService>();

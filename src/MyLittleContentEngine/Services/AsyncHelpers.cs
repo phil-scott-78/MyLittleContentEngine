@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace MyLittleContentEngine.Services;
@@ -165,9 +165,9 @@ public sealed class AsyncLazy<T>
     /// </summary>
     public void Start()
     {
-// ReSharper disable UnusedVariable
+        // ReSharper disable UnusedVariable
         var unused = Task;
-// ReSharper restore UnusedVariable
+        // ReSharper restore UnusedVariable
     }
 
     internal enum LazyState

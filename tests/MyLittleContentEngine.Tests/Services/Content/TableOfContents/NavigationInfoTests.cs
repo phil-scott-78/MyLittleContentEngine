@@ -1,8 +1,8 @@
 using System.Collections.Immutable;
+using Moq;
 using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Content.TableOfContents;
 using MyLittleContentEngine.Tests.TestHelpers;
-using Moq;
 using Shouldly;
 
 namespace MyLittleContentEngine.Tests.Services.Content.TableOfContents;
@@ -33,30 +33,30 @@ public class NavigationInfoTests
         navigationInfo.SectionName.ShouldBe("CLI");
         navigationInfo.SectionPath.ShouldBe("cli");
         navigationInfo.PageTitle.ShouldBe("Configuration");
-        
+
         // Check breadcrumbs (should skip the duplicate "cli" from hierarchy)
         navigationInfo.Breadcrumbs.Count.ShouldBe(4);
         navigationInfo.Breadcrumbs[0].Name.ShouldBe("Home");
         navigationInfo.Breadcrumbs[0].Href.ShouldBe("/");
         navigationInfo.Breadcrumbs[0].IsCurrent.ShouldBeFalse();
-        
+
         navigationInfo.Breadcrumbs[1].Name.ShouldBe("CLI");
         navigationInfo.Breadcrumbs[1].Href.ShouldBeNull();  // No actual page at /cli, so href should be null
         navigationInfo.Breadcrumbs[1].IsCurrent.ShouldBeFalse();
-        
+
         navigationInfo.Breadcrumbs[2].Name.ShouldBe("Advanced");
         navigationInfo.Breadcrumbs[2].Href.ShouldBeNull();  // No actual page at /cli/advanced
         navigationInfo.Breadcrumbs[2].IsCurrent.ShouldBeFalse();
-        
+
         navigationInfo.Breadcrumbs[3].Name.ShouldBe("Configuration");
         navigationInfo.Breadcrumbs[3].Href.ShouldBeNull();
         navigationInfo.Breadcrumbs[3].IsCurrent.ShouldBeTrue();
-        
+
         // Check next/previous navigation
         navigationInfo.PreviousPage.ShouldNotBeNull();
         navigationInfo.PreviousPage.Name.ShouldBe("Getting Started");
         navigationInfo.PreviousPage.Href.ShouldBe("/cli/getting-started");
-        
+
         navigationInfo.NextPage.ShouldNotBeNull();
         navigationInfo.NextPage.Name.ShouldBe("Troubleshooting");
         navigationInfo.NextPage.Href.ShouldBe("/cli/troubleshooting");
@@ -105,13 +105,13 @@ public class NavigationInfoTests
         navigationInfo.SectionName.ShouldBe("Home");
         navigationInfo.SectionPath.ShouldBe("");
         navigationInfo.PageTitle.ShouldBe("Welcome");
-        
+
         // Root page should have Welcome (actual home page title) and itself in breadcrumbs
         navigationInfo.Breadcrumbs.Count.ShouldBe(2);
         navigationInfo.Breadcrumbs[0].Name.ShouldBe("Welcome");  // Uses actual home page title
         navigationInfo.Breadcrumbs[0].Href.ShouldBe("/");
         navigationInfo.Breadcrumbs[0].IsCurrent.ShouldBeFalse();
-        
+
         navigationInfo.Breadcrumbs[1].Name.ShouldBe("Welcome");
         navigationInfo.Breadcrumbs[1].Href.ShouldBeNull();
         navigationInfo.Breadcrumbs[1].IsCurrent.ShouldBeTrue();
@@ -138,7 +138,7 @@ public class NavigationInfoTests
         apiInfo.ShouldNotBeNull();
         apiInfo.SectionName.ShouldBe("API");
     }
-    
+
     [Fact]
     public async Task GetNavigationInfoAsync_FormatsFaqAbbreviation_Correctly()
     {
@@ -160,7 +160,7 @@ public class NavigationInfoTests
         faqInfo.ShouldNotBeNull();
         faqInfo.SectionName.ShouldBe("FAQ");
     }
-    
+
     [Fact]
     public async Task GetNavigationInfoAsync_SkipsDuplicateSectionInHierarchy()
     {
@@ -170,9 +170,9 @@ public class NavigationInfoTests
         mockContentService.Setup(x => x.GetContentTocEntriesAsync()).ReturnsAsync(
             ImmutableList.Create(
                 // Hierarchy parts include "Cli" as first element (from folder structure)
-                new ContentTocItem("Working with Multiple Command Hierarchies", 
-                    "/cli/how-to/working-with-multiple-command-hierarchies", 
-                    1, 
+                new ContentTocItem("Working with Multiple Command Hierarchies",
+                    "/cli/how-to/working-with-multiple-command-hierarchies",
+                    1,
                     ["Cli", "How-To", "working-with-multiple-command-hierarchies"])
             )
         );
@@ -185,16 +185,16 @@ public class NavigationInfoTests
         // Assert - Should not have duplicate "CLI" in breadcrumbs
         navigationInfo.ShouldNotBeNull();
         navigationInfo.Breadcrumbs.Count.ShouldBe(4);
-        
+
         navigationInfo.Breadcrumbs[0].Name.ShouldBe("Home");
         navigationInfo.Breadcrumbs[1].Name.ShouldBe("CLI"); // Section breadcrumb
         navigationInfo.Breadcrumbs[2].Name.ShouldBe("How To"); // Formatted from "How-To"
         navigationInfo.Breadcrumbs[3].Name.ShouldBe("Working with Multiple Command Hierarchies");
-        
+
         // The URL for "How To" should be null since there's no page there
         navigationInfo.Breadcrumbs[2].Href.ShouldBeNull();
     }
-    
+
     [Fact]
     public async Task GetNavigationInfoAsync_SkipsSectionBreadcrumb_WhenOnSectionIndexPage()
     {
@@ -216,16 +216,16 @@ public class NavigationInfoTests
         // Assert - Should not have duplicate "Console Documentation" in breadcrumbs
         navigationInfo.ShouldNotBeNull();
         navigationInfo.Breadcrumbs.Count.ShouldBe(2); // Home and current page only
-        
+
         navigationInfo.Breadcrumbs[0].Name.ShouldBe("Home");
         navigationInfo.Breadcrumbs[0].Href.ShouldBe("/");
         navigationInfo.Breadcrumbs[0].IsCurrent.ShouldBeFalse();
-        
+
         navigationInfo.Breadcrumbs[1].Name.ShouldBe("Console Documentation"); // Current page
         navigationInfo.Breadcrumbs[1].Href.ShouldBeNull();
         navigationInfo.Breadcrumbs[1].IsCurrent.ShouldBeTrue();
     }
-    
+
     [Fact]
     public async Task GetNavigationInfoAsync_HandlesFirstAndLastPages_Correctly()
     {
@@ -244,16 +244,16 @@ public class NavigationInfoTests
 
         // Act - First page
         var firstPageInfo = await tableOfContentService.GetNavigationInfoAsync("/docs/intro");
-        
+
         // Assert - First page has no previous
         firstPageInfo.ShouldNotBeNull();
         firstPageInfo.PreviousPage.ShouldBeNull();
         firstPageInfo.NextPage.ShouldNotBeNull();
         firstPageInfo.NextPage.Name.ShouldBe("Getting Started");
-        
+
         // Act - Last page
         var lastPageInfo = await tableOfContentService.GetNavigationInfoAsync("/docs/advanced");
-        
+
         // Assert - Last page has no next
         lastPageInfo.ShouldNotBeNull();
         lastPageInfo.PreviousPage.ShouldNotBeNull();

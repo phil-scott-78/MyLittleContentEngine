@@ -105,7 +105,7 @@ Final content.
         var result = MarkdownOutlineGenerator.GenerateOutline(document);
 
         result.Length.ShouldBe(2);
-        
+
         // First main section
         result[0].Title.ShouldBe("Main Section");
         result[0].Id.ShouldBe("main-section");
@@ -148,27 +148,27 @@ Content.
         var result = MarkdownOutlineGenerator.GenerateOutline(document);
 
         result.ShouldHaveSingleItem();
-        
+
         var current = result[0];
         current.Title.ShouldBe("Level 1");
         current.Id.ShouldBe("level-1");
-        
+
         current = current.Children[0];
         current.Title.ShouldBe("Level 2");
         current.Id.ShouldBe("level-2");
-        
+
         current = current.Children[0];
         current.Title.ShouldBe("Level 3");
         current.Id.ShouldBe("level-3");
-        
+
         current = current.Children[0];
         current.Title.ShouldBe("Level 4");
         current.Id.ShouldBe("level-4");
-        
+
         current = current.Children[0];
         current.Title.ShouldBe("Level 5");
         current.Id.ShouldBe("level-5");
-        
+
         current = current.Children[0];
         current.Title.ShouldBe("Level 6");
         current.Id.ShouldBe("level-6");
@@ -198,11 +198,11 @@ Content.
         result.ShouldHaveSingleItem();
         result[0].Title.ShouldBe("Level 1");
         result[0].Children.Length.ShouldBe(2);
-        
+
         result[0].Children[0].Title.ShouldBe("Level 3 (skipped level 2)");
         result[0].Children[0].Children.ShouldHaveSingleItem();
         result[0].Children[0].Children[0].Title.ShouldBe("Level 5 (skipped level 4)");
-        
+
         result[0].Children[1].Title.ShouldBe("Level 3 (back to level 3)");
         result[0].Children[1].Children.ShouldBeEmpty();
     }
@@ -276,18 +276,18 @@ Advanced features information.
         var result = MarkdownOutlineGenerator.GenerateOutline(document);
 
         result.Length.ShouldBe(2);
-        
+
         // Getting Started section
         var gettingStarted = result[0];
         gettingStarted.Title.ShouldBe("Getting Started");
         gettingStarted.Children.Length.ShouldBe(2);
-        
+
         var installation = gettingStarted.Children[0];
         installation.Title.ShouldBe("Installation");
         installation.Children.Length.ShouldBe(2);
         installation.Children[0].Title.ShouldBe("Prerequisites");
         installation.Children[1].Title.ShouldBe("Download");
-        
+
         var configuration = gettingStarted.Children[1];
         configuration.Title.ShouldBe("Configuration");
         configuration.Children.Length.ShouldBe(2);
@@ -296,7 +296,7 @@ Advanced features information.
         configuration.Children[1].Children.Length.ShouldBe(2);
         configuration.Children[1].Children[0].Title.ShouldBe("Database Configuration");
         configuration.Children[1].Children[1].Title.ShouldBe("Cache Configuration");
-        
+
         // User Guide section
         var userGuide = result[1];
         userGuide.Title.ShouldBe("User Guide");

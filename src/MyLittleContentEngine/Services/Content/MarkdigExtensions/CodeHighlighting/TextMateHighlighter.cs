@@ -183,7 +183,6 @@ internal class TextMateHighlighter : ITextMateHighlighter
             var sb = new StringBuilder();
             sb.Append("<pre><code>");
 
-
             var lines = text.SplitNewLines();
             IStateStack? ruleStack = null; // IRawStack can be null initially
 

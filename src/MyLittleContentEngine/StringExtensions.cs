@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Text;
 
 namespace MyLittleContentEngine;
@@ -212,8 +212,8 @@ internal static class StringExtensions
         prefix = start > 0 ? word[..start].ToString() : string.Empty;
         suffix = end < word.Length - 1 ? word[(end + 1)..].ToString() : string.Empty;
 
-        return start <= end 
-            ? word.Slice(start, end - start + 1) 
+        return start <= end
+            ? word.Slice(start, end - start + 1)
             : ReadOnlySpan<char>.Empty;
     }
 

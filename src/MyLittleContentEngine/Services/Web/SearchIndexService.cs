@@ -1,8 +1,8 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.RegularExpressions;
+using Microsoft.Extensions.Logging;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content;
-using Microsoft.Extensions.Logging;
 using MyLittleContentEngine.Services.Infrastructure;
 
 namespace MyLittleContentEngine.Services.Web;
@@ -31,7 +31,6 @@ public partial class SearchIndexService
 
         fileWatcher.SubscribeToChanges(() => _searchIndexCache = string.Empty);
     }
-
 
     /// <summary>
     /// Generates a search index JSON document
@@ -200,7 +199,6 @@ public partial class SearchIndexService
 
         return headings;
     }
-
 
     // Generated regex patterns for improved performance
     [GeneratedRegex(@"<title[^>]*>([^<]+)</title>", RegexOptions.IgnoreCase)]

@@ -1,4 +1,4 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using MyLittleContentEngine.Models;
@@ -61,13 +61,13 @@ public class TableOfContentServiceTests
         public int SearchPriority { get; } = 0;
         public string DefaultSection => "Console"; // Service default is Console
 
-        public Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync() => 
+        public Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync() =>
             Task.FromResult(ImmutableList.Create(
                 new PageToGenerate("/service-default", "/service-default", new Metadata { Title = "Service Default Item", Order = 1 }),
                 new PageToGenerate("/override-item", "/override-item", new Metadata { Title = "Override Item", Order = 2, Section = "Web" })
             ));
 
-        public Task<ImmutableList<ContentTocItem>> GetContentTocEntriesAsync() => 
+        public Task<ImmutableList<ContentTocItem>> GetContentTocEntriesAsync() =>
             Task.FromResult(ImmutableList.Create(
                 new ContentTocItem("Service Default Item", "/service-default", 1, ["service-default"]), // Uses service default section
                 new ContentTocItem("Override Item", "/override-item", 2, ["override-item"], "Web") // Overrides to Web section
@@ -96,7 +96,7 @@ public class TableOfContentServiceTests
         public Task<ImmutableList<ContentToCopy>> GetContentToCopyAsync() => Task.FromResult(ImmutableList<ContentToCopy>.Empty);
         public Task<ImmutableList<CrossReference>> GetCrossReferencesAsync() => Task.FromResult(ImmutableList<CrossReference>.Empty);
     }
-    
+
     // Test-specific concrete implementations of IContentService
     private class TestContentService : IContentService
     {
@@ -307,7 +307,6 @@ public class TableOfContentServiceTests
         public Task<ImmutableList<CrossReference>> GetCrossReferencesAsync() => Task.FromResult(ImmutableList<CrossReference>.Empty);
     }
 
-
     [Fact]
     public async Task GetNavigationTocAsync_WithMultipleContentServices_CombinesAllPages()
     {
@@ -347,7 +346,7 @@ public class TableOfContentServiceTests
         webResult.Any(e => e.Name == "Web Guide").ShouldBeTrue();
         webResult.Any(e => e.Name == "Console Home").ShouldBeFalse();
 
-        consoleResult.Count.ShouldBe(2);  
+        consoleResult.Count.ShouldBe(2);
         consoleResult.Any(e => e.Name == "Console Home").ShouldBeTrue();
         consoleResult.Any(e => e.Name == "Console Guide").ShouldBeTrue();
         consoleResult.Any(e => e.Name == "Web Home").ShouldBeFalse();
@@ -367,11 +366,11 @@ public class TableOfContentServiceTests
         // Act
         var webResult = await service.GetNavigationTocAsync("/current", "Web");
         var consoleResult = await service.GetNavigationTocAsync("/current", "Console");
-        
+
         // Assert
         webResult.Count.ShouldBe(1);
         webResult.Any(e => e.Name == "Override Item").ShouldBeTrue();
-        
+
         consoleResult.Count.ShouldBe(1);
         consoleResult.Any(e => e.Name == "Service Default Item").ShouldBeTrue();
     }
@@ -604,7 +603,7 @@ public class TableOfContentServiceTests
             new("first", "first", new Metadata { Title = "First", Order = 1 }),
             new("last", "last", new Metadata { Title = "Last" }) // Default Order is int.MaxValue
         };
-        
+
         var customContentService = new TestContentServiceWithSpecificPages(pages.ToImmutableList());
         var contentServices = new List<IContentService> { customContentService };
         var service = ServiceMockFactory.CreateTableOfContentService(contentServices.ToArray());

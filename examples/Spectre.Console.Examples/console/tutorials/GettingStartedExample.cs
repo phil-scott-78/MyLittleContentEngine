@@ -45,7 +45,7 @@ public class GettingStartedExample : IExample
     public void ShowDataTable()
     {
         AnsiConsole.MarkupLine("[bold yellow]Step 2: Creating a Data Table[/]");
-        
+
         var table = new Table()
             .AddColumn("[yellow]Name[/]")
             .AddColumn("[cyan]Language[/]")
@@ -66,16 +66,16 @@ public class GettingStartedExample : IExample
     public void ShowTextStyling()
     {
         AnsiConsole.MarkupLine("[bold yellow]Step 3: Text Styling with Colors and Styles[/]");
-        
+
         // Basic colors
         AnsiConsole.MarkupLine("[red]Red text[/] [green]Green text[/] [blue]Blue text[/]");
-        
+
         // Text decorations
         AnsiConsole.MarkupLine("[bold]Bold[/] [italic]Italic[/] [underline]Underlined[/] [strikethrough]Strikethrough[/]");
-        
+
         // Combined styling
         AnsiConsole.MarkupLine("[bold red on yellow]Bold red text on yellow background[/]");
-        
+
         // Using Style objects
         AnsiConsole.Write("Style object example: ", new Style(Color.Purple, Color.Grey15, Decoration.Bold));
         AnsiConsole.WriteLine("Styled with objects!");
@@ -88,7 +88,7 @@ public class GettingStartedExample : IExample
     public void ShowProgressBar()
     {
         AnsiConsole.MarkupLine("[bold yellow]Step 4: Progress Bar for Long-Running Tasks[/]");
-        
+
         AnsiConsole.Progress()
             .Start(ctx =>
             {
@@ -102,7 +102,7 @@ public class GettingStartedExample : IExample
                     task1.Increment(2);
                     task2.Increment(1.5);
                     task3.Increment(0.5);
-                    
+
                     Thread.Sleep(50);
                 }
             });

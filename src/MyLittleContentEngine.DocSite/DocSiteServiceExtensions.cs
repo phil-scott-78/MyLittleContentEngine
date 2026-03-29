@@ -81,7 +81,7 @@ public static class DocSiteServiceExtensions
                     Theme = defaultSettings.Theme
                         .AddFontFamily("display", options.DisplayFontFamily ?? "-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, Adwaita Sans, Cantarell, Ubuntu, roboto, noto, helvetica, arial, sans-serif;")
                         .AddFontFamily("sans", options.BodyFontFamily ?? "-apple-system, BlinkMacSystemFont, avenir next, avenir, segoe ui, helvetica neue, Adwaita Sans, Cantarell, Ubuntu, roboto, noto, helvetica, arial, sans-serif;"),
-                    CustomUtilities =  [
+                    CustomUtilities = [
                         new UtilityDefinition()
                         {
                             Pattern = "scrollbar-thin",

@@ -89,7 +89,7 @@ internal class SymbolExtractionService : ISymbolExtractionService
                     symbolInfo.TextSpan,
                     symbolInfo.SourceText,
                     bodyOnly);
-                
+
                 return TextFormatter.NormalizeIndents(backupFragment);
 
             }

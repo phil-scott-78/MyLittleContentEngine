@@ -1,4 +1,4 @@
-﻿namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.Tabs;
+namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.Tabs;
 
 /// <summary>
 /// Options for customizing the CSS classes used in the tabbed code block renderer

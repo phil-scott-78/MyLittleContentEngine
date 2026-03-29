@@ -11,14 +11,14 @@ public class DocsWebApplicationFactory : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
-        
+
         // Set the content root to the docs project directory
         var docsProjectPath = Path.GetFullPath(Path.Combine(
-            Directory.GetCurrentDirectory(), 
+            Directory.GetCurrentDirectory(),
             "..", "..", "..", "..", "..", "docs", "MyLittleContentEngine.Docs"));
-        
+
         builder.UseContentRoot(docsProjectPath);
-        
+
         // Override the DocSite configuration to use the correct content path
         builder.ConfigureServices(services =>
         {
@@ -44,7 +44,7 @@ public class DocsWebApplicationFactory : WebApplicationFactory<Program>
                 });
             }
         });
-        
+
         // Reduce logging noise in tests
         builder.ConfigureLogging(logging =>
         {

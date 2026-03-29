@@ -153,7 +153,7 @@ internal class RazorPageContentService : IContentService
 
                 // Load metadata synchronously for cache initialization
                 // Using GetAwaiter().GetResult() is acceptable here as this runs once during lazy initialization
-                var metadata =  TryLoadMetadata(component);
+                var metadata = TryLoadMetadata(component);
 
                 components.Add(new ComponentWithMetadata(component, routes, metadata));
             }

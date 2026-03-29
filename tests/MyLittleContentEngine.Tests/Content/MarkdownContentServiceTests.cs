@@ -54,7 +54,7 @@ public class MarkdownContentServiceTests
               </head>
             </html>
             """;
-        
+
         html.ShouldBe(expectedHtml);
     }
 
@@ -97,9 +97,9 @@ public class MarkdownContentServiceTests
         // Arrange
         var redirectPage = new MarkdownContentPage<TestFrontMatter>
         {
-            FrontMatter = new TestFrontMatter 
-            { 
-                Title = "Redirect Page", 
+            FrontMatter = new TestFrontMatter
+            {
+                Title = "Redirect Page",
                 RedirectUrl = "another-page",
                 Order = 1
             },
@@ -110,9 +110,9 @@ public class MarkdownContentServiceTests
 
         var normalPage = new MarkdownContentPage<TestFrontMatter>
         {
-            FrontMatter = new TestFrontMatter 
-            { 
-                Title = "Normal Page", 
+            FrontMatter = new TestFrontMatter
+            {
+                Title = "Normal Page",
                 RedirectUrl = null,
                 Order = 2
             },

@@ -1,4 +1,4 @@
-﻿using MyLittleContentEngine.Services.Infrastructure;
+using MyLittleContentEngine.Services.Infrastructure;
 
 namespace MyLittleContentEngine.Services.Content;
 
@@ -20,7 +20,6 @@ internal static class LinkRewriter
         path.StartsWith("tel:", StringComparison.OrdinalIgnoreCase) ||
         path.StartsWith("ftp:", StringComparison.OrdinalIgnoreCase) ||
         path.StartsWith("xref:", StringComparison.OrdinalIgnoreCase);
-
 
     /// <summary>
     /// Determines if the given path is an anchor link

@@ -1,10 +1,10 @@
-﻿using System.Collections.Immutable;
-using Testably.Abstractions.Testing;
+using System.Collections.Immutable;
 using Microsoft.AspNetCore.Components;
 using Microsoft.Extensions.Logging.Abstractions;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services.Content;
 using Shouldly;
+using Testably.Abstractions.Testing;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -21,7 +21,7 @@ public class RazorPageContentServiceTests
         var options = new ContentEngineOptions
         {
             SiteTitle = "Test Site",
-            SiteDescription = "Test Description", 
+            SiteDescription = "Test Description",
             IndexPageHtml = "index.html",
             FrontMatterDeserializer = new DeserializerBuilder()
                 .WithNamingConvention(CamelCaseNamingConvention.Instance)
@@ -40,7 +40,7 @@ public class RazorPageContentServiceTests
 
         // Assert
         result.ShouldNotBeEmpty();
-        
+
         // Verify we get some pages (the exact count depends on the test assembly's components)
         var pages = result.ToList();
         pages.ShouldAllBe(page => !page.Url.IsEmpty && !page.OutputFile.IsEmpty && page.Metadata == null);
@@ -63,7 +63,7 @@ public class RazorPageContentServiceTests
         _fileSystem.Directory.CreateDirectory("/project/Components");
         _fileSystem.Directory.CreateDirectory("/project/Components/Pages");
         _fileSystem.File.WriteAllText("/project/TestProject.csproj", "<Project />");
-        
+
         // Create a Razor component and its sidecar metadata file in the same directory
         _fileSystem.File.WriteAllText("/project/Components/Pages/TestComponent.razor", "@page \"/test\"");
         _fileSystem.File.WriteAllText("/project/Components/Pages/TestComponent.razor.metadata.yml", yamlContent);
@@ -73,7 +73,7 @@ public class RazorPageContentServiceTests
 
         // Assert
         result.ShouldNotBeEmpty();
-        
+
         // Note: Since we're testing against the actual assembly components,
         // we can't guarantee a specific component will have metadata loaded
         // This test mainly verifies the service doesn't crash when sidecar files exist
@@ -129,7 +129,7 @@ public class RazorPageContentServiceTests
         _fileSystem.Directory.CreateDirectory("/project/Components");
         _fileSystem.Directory.CreateDirectory("/project/Components/Pages");
         _fileSystem.File.WriteAllText("/project/TestProject.csproj", "<Project />");
-        
+
         // Create a Razor component and its sidecar metadata file in the same directory
         _fileSystem.File.WriteAllText("/project/Components/Pages/TestComponent.razor", "@page \"/test\"");
         _fileSystem.File.WriteAllText("/project/Components/Pages/TestComponent.razor.metadata.yml", yamlContent);
@@ -192,7 +192,7 @@ public class RazorPageContentServiceTests
 
         // Assert
         var pages = result.ToList();
-        
+
         // Verify no parameterized routes are included
         pages.ShouldAllBe(page => !page.Url.Value.Contains("{") && !page.Url.Value.Contains("}"));
     }
@@ -205,10 +205,10 @@ public class RazorPageContentServiceTests
 
         // Assert
         var pages = result.ToList();
-        
+
         // Should find the IntegrationTestComponent defined in this test assembly
         pages.ShouldContain(p => p.Url == "/integration-test");
-        
+
         // Verify we get pages from multiple assemblies (at least the test assembly)
         pages.ShouldNotBeEmpty();
     }

@@ -1,7 +1,7 @@
-﻿using MyLittleContentEngine;
-using MyLittleContentEngine.MonorailCss;
 using MultipleContentSourceExample;
 using MultipleContentSourceExample.Components;
+using MyLittleContentEngine;
+using MyLittleContentEngine.MonorailCss;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,11 +10,11 @@ builder.Services.AddRazorComponents();
 // configures site wide settings
 // hot reload note - these will not be reflected until the application restarts
 builder.Services.AddContentEngineService(_ => new ContentEngineOptions
-    {
-        SiteTitle = "My Little Content Engine",
-        SiteDescription = "An Inflexible Content Engine for .NET",
-        ContentRootPath = "Content",
-    })
+{
+    SiteTitle = "My Little Content Engine",
+    SiteDescription = "An Inflexible Content Engine for .NET",
+    ContentRootPath = "Content",
+})
     .WithMarkdownContentService(_ => new MarkdownContentOptions<ContentFrontMatter>()
     {
         ContentPath = "Content",

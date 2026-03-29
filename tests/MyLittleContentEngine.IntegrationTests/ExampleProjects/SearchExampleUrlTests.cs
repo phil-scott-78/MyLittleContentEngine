@@ -22,7 +22,7 @@ public class SearchExampleUrlTests : IClassFixture<SearchExampleWebApplicationFa
     public static IEnumerable<object[]> GetSearchExampleUrls()
     {
         yield return ["/", "Random Content Site"];
-        
+
         // this should work, but the search service uses the HttpClient to request to the current app for a url 
         // which fails under a test load
         yield return ["/search-index.json", "/random"];

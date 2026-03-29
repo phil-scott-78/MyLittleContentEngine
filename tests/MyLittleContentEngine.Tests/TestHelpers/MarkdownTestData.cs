@@ -247,9 +247,9 @@ public static class MarkdownTestData
     /// <param name="isDraft">Whether the post is a draft.</param>
     /// <returns>Complete markdown with front matter.</returns>
     public static string CreatePost(
-        string title, 
-        int order, 
-        string content, 
+        string title,
+        int order,
+        string content,
         string[]? tags = null,
         bool isDraft = false)
     {

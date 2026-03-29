@@ -1,7 +1,5 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
 using Markdig;
-using MyLittleContentEngine.Services.Content.MarkdigExtensions;
-using MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
 using Markdig.Extensions.AutoIdentifiers;
 using Mdazor;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,6 +7,8 @@ using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services;
 using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
+using MyLittleContentEngine.Services.Content.MarkdigExtensions;
+using MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
 using YamlDotNet.Serialization;
 using YamlDotNet.Serialization.NamingConventions;
 
@@ -45,7 +45,6 @@ public record ContentEngineOptions
     /// </remarks>
     public required string SiteDescription { get; init; }
 
-
     /// <summary>
     /// Url to use as the canonical base URL for the site, specifically for sitemaps, RSS feeds, and Open Graph metadata.
     /// </summary>
@@ -62,7 +61,6 @@ public record ContentEngineOptions
     /// Gets or sets the path to the content root directory. Defaults to "Content".
     /// </summary>
     public FilePath ContentRootPath { get; init; } = new FilePath("Content");
-
 
     /// <summary>
     /// Gets or sets the collection of pages that will be generated as static HTML files.

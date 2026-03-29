@@ -155,7 +155,7 @@ public class TestFrontMatter : IFrontMatter
     public DateTime? PublishDate { get; set; }
     public string? RedirectUrl { get; init; }
     public string? Section { get; init; }
-    
+
     public Metadata AsMetadata()
     {
         return new Metadata

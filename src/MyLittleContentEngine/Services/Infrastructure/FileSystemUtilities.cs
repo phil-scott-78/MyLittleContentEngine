@@ -47,11 +47,11 @@ internal class FileSystemUtilities(IFileSystem fileSystem, FilePathOperations fi
 
         // For full URLs (with scheme), handle them differently than relative paths
         var baseValue = baseUrl.Value;
-        
+
         // Remove trailing slash from base and leading slash from relative
         baseValue = baseValue.TrimEnd('/');
         relativeValue = relativeValue.Trim('/');  // Trim both leading and trailing slashes
-        
+
         // Combine with a single slash
         return new UrlPath($"{baseValue}/{relativeValue}");
     }

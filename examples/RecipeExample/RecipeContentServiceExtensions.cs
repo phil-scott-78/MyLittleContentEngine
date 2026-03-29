@@ -16,7 +16,6 @@ public static class RecipeContentServiceExtensions
         services.AddSingleton<IContentOptions>(sp => sp.GetRequiredService<RecipeContentOptions>());
         services.AddFileWatched<IRecipeContentService, RecipeContentService>();
         services.AddSingleton<IContentService>(provider => provider.GetRequiredService<IRecipeContentService>());
-        
 
         return services;
     }

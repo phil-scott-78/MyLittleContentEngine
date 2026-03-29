@@ -1,4 +1,4 @@
-﻿using MyLittleContentEngine.Models;
+using MyLittleContentEngine.Models;
 
 namespace Spectre.Console;
 
@@ -14,7 +14,7 @@ public class BaseSpectreConsoleFrontMatter : IFrontMatter
     public string? RedirectUrl { get; init; }
     public string? Section { get; init; }
     public int Order { get; init; } = int.MaxValue;
-    
+
     public Metadata AsMetadata()
     {
         return new Metadata()

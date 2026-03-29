@@ -12,13 +12,13 @@ public class UserInterfaceExampleWebApplicationFactory : WebApplicationFactory<U
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
-        
+
         // Set the content root to the example project directory
-        var exampleProjectPath = Path.Combine(CurrentFilePath.GetUnitTestProjectRoot(), 
-            "..", "..",  "examples", "UserInterfaceExample");
-        
+        var exampleProjectPath = Path.Combine(CurrentFilePath.GetUnitTestProjectRoot(),
+            "..", "..", "examples", "UserInterfaceExample");
+
         builder.UseContentRoot(exampleProjectPath);
-        
+
         // Override content path configuration
         builder.ConfigureServices(services =>
         {
@@ -31,14 +31,14 @@ public class UserInterfaceExampleWebApplicationFactory : WebApplicationFactory<U
                 {
                     var originalFactory = (Func<IServiceProvider, ContentEngineOptions>)engineOptionsDescriptor.ImplementationFactory!;
                     var originalOptions = originalFactory(serviceProvider);
-                    
+
                     return originalOptions with
                     {
                         ContentRootPath = Path.Combine(exampleProjectPath, "Content")
                     };
                 });
             }
-            
+
             // Find and replace ContentEngineContentOptions
             var contentOptionsDescriptor = services.FirstOrDefault(d => d.ServiceType == typeof(MarkdownContentOptions<DocsFrontMatter>));
             if (contentOptionsDescriptor != null)
@@ -48,7 +48,7 @@ public class UserInterfaceExampleWebApplicationFactory : WebApplicationFactory<U
                 {
                     var originalFactory = (Func<IServiceProvider, MarkdownContentOptions<DocsFrontMatter>>)contentOptionsDescriptor.ImplementationFactory!;
                     var originalOptions = originalFactory(serviceProvider);
-                    
+
                     return originalOptions with
                     {
                         ContentPath = Path.Combine(exampleProjectPath, "Content")
@@ -56,7 +56,7 @@ public class UserInterfaceExampleWebApplicationFactory : WebApplicationFactory<U
                 });
             }
         });
-        
+
         // Reduce logging noise in tests
         builder.ConfigureLogging(logging =>
         {

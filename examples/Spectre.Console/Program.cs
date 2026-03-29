@@ -1,9 +1,9 @@
-﻿using MonorailCss.Theme;
-using Spectre.Console;
-using Spectre.Console.Components;
+using MonorailCss.Theme;
 using MyLittleContentEngine;
 using MyLittleContentEngine.MonorailCss;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
+using Spectre.Console;
+using Spectre.Console.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,7 +31,7 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
     ContentPath = "Content/cli",
     BasePageUrl = "/cli",
     TableOfContentsSectionKey = "cli"
-    
+
 })
 // Blog service
 .WithMarkdownContentService(_ => new MarkdownContentOptions<BlogFrontMatter>()

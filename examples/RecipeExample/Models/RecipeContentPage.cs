@@ -5,7 +5,7 @@ namespace RecipeExample.Models;
 public class RecipeContentPage
 {
     public RecipeContentPage(
-        Recipe recipe, 
+        Recipe recipe,
         RecipeFrontMatter frontMatter,
         string fileName,
         string url,
@@ -46,7 +46,7 @@ public class RecipeContentPage
     /// <summary>
     /// Gets the display name for the recipe, preferring title from front matter, then filename
     /// </summary>
-    public string DisplayName => 
+    public string DisplayName =>
         !string.IsNullOrWhiteSpace(FrontMatter.Title) ? FrontMatter.Title :
         !string.IsNullOrWhiteSpace(FileName) ? FileName.Replace("-", " ").Replace("_", " ") :
         "Unknown Recipe";

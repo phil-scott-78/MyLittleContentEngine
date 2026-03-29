@@ -1,4 +1,4 @@
-﻿namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
+namespace MyLittleContentEngine.Services.Content.MarkdigExtensions.CodeHighlighting;
 
 /// <summary>
 /// Options for customizing the CSS classes used in the code highlight renderer

@@ -1,4 +1,4 @@
-﻿using MyLittleContentEngine.Models;
+using MyLittleContentEngine.Models;
 
 namespace MyLittleContentEngine.BlogSite;
 
@@ -7,7 +7,7 @@ namespace MyLittleContentEngine.BlogSite;
 /// </summary>
 public class BlogSiteFrontMatter : IFrontMatter
 {
-    
+
     public string Title { get; init; } = "Empty title";
 
     public string Author { get; init; } = "";
@@ -27,7 +27,7 @@ public class BlogSiteFrontMatter : IFrontMatter
     public string? RedirectUrl { get; init; }
 
     public string? Section { get; init; }
-    
+
     public Metadata AsMetadata()
     {
         return new Metadata()

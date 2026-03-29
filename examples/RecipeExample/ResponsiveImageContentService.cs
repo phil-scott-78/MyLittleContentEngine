@@ -19,7 +19,7 @@ public interface IResponsiveImageContentService : IContentService
 internal class ResponsiveImageContentService : IResponsiveImageContentService
 {
     public int SearchPriority => 5;
-    
+
     private readonly RecipeContentOptions _options;
     private readonly IFileSystem _fileSystem;
 
@@ -63,14 +63,14 @@ internal class ResponsiveImageContentService : IResponsiveImageContentService
         // Calculate height maintaining aspect ratio
         var aspectRatio = (double)originalWidth / originalHeight;
         var calculatedHeight = (int)(maxWidth / aspectRatio);
-        
+
         return (width: maxWidth, height: calculatedHeight);
     }
 
     public async Task<byte[]?> ProcessImageAsync(string filename, string size)
     {
         var sourcePath = _fileSystem.Path.Combine(_options.RecipePath, $"{filename}.webp");
-        
+
         if (!_fileSystem.File.Exists(sourcePath))
         {
             return null;
@@ -80,9 +80,9 @@ internal class ResponsiveImageContentService : IResponsiveImageContentService
         {
             await using var sourceStream = _fileSystem.File.OpenRead(sourcePath);
             using var image = await Image.LoadAsync(sourceStream);
-            
+
             var dimensions = GetImageDimensions(size, image.Width, image.Height);
-            
+
             if (dimensions is { width: > 0, height: > 0 })
             {
                 image.Mutate(x => x.Resize(new ResizeOptions
@@ -101,12 +101,12 @@ internal class ResponsiveImageContentService : IResponsiveImageContentService
                 Method = WebpEncodingMethod.Level4,
                 Quality = size == "lqip" ? 20 : 75,
             };
-            
+
             if (size == "lqip")
             {
                 image.Mutate(x => x.GaussianBlur(2f));
             }
-            
+
             await image.SaveAsWebpAsync(memoryStream, encoder);
             return memoryStream.ToArray();
         }
@@ -119,23 +119,23 @@ internal class ResponsiveImageContentService : IResponsiveImageContentService
     public Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync()
     {
         var pages = new List<PageToGenerate>();
-        
+
         if (!_fileSystem.Directory.Exists(_options.RecipePath))
         {
             return Task.FromResult(pages.ToImmutableList());
         }
 
         var imageFiles = _fileSystem.Directory.GetFiles(_options.RecipePath, "*.webp");
-        
+
         foreach (var imagePath in imageFiles)
         {
             var filename = _fileSystem.Path.GetFileNameWithoutExtension(imagePath);
-            
+
             foreach (var size in AllSizes)
             {
                 var url = $"/images/{filename}-{size}.webp";
                 var outputPath = $"images/{filename}-{size}.webp";
-                
+
                 pages.Add(new PageToGenerate(url, outputPath, new Metadata(), true));
             }
         }
@@ -166,7 +166,7 @@ internal class ResponsiveImageContentService : IResponsiveImageContentService
     public async Task<(int width, int height)?> GetOriginalImageDimensionsAsync(string filename)
     {
         var sourcePath = _fileSystem.Path.Combine(_options.RecipePath, $"{filename}.webp");
-        
+
         if (!_fileSystem.File.Exists(sourcePath))
         {
             return null;

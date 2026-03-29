@@ -54,7 +54,7 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
 
         // Create temp folder for build artifacts
         _tempBuildPath = Path.Combine(
-            Path.GetTempPath(), 
+            Path.GetTempPath(),
             $"MyLittleContentEngine_Build_{Guid.NewGuid():N}"
         );
         Directory.CreateDirectory(_tempBuildPath);
@@ -93,7 +93,7 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
             _logger.LogWarning("Workspace failed: {Diagnostic}", args.Diagnostic);
 
         });
-        
+
         try
         {
             var solution = await workspace.OpenSolutionAsync(solutionPath);
@@ -346,7 +346,7 @@ internal class SolutionWorkspaceService : ISolutionWorkspaceService
                 _logger.LogTrace("Solution file changed but not the configured solution, ignoring: {Path}", path);
             }
         });
-        
+
         _fileWatcher.AddPathWatch(solutionDir, "*.slnx", (path, changeType) =>
         {
             _logger.LogTrace("Solution file watcher triggered: {ChangeType} for {Path}", changeType, path);

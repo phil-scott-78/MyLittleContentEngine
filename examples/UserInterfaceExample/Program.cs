@@ -1,7 +1,7 @@
-﻿using UserInterfaceExample;
-using UserInterfaceExample.Components;
 using MyLittleContentEngine;
 using MyLittleContentEngine.MonorailCss;
+using UserInterfaceExample;
+using UserInterfaceExample.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,11 +10,11 @@ builder.Services.AddRazorComponents();
 // configures site wide settings
 // hot reload note - these will not be reflected until the application restarts
 builder.Services.AddContentEngineService(_ => new ContentEngineOptions
-    {
-        SiteTitle = "Daily Life Hub",
-        SiteDescription = "Your everyday life, simplified",
-        ContentRootPath = "Content",
-    })
+{
+    SiteTitle = "Daily Life Hub",
+    SiteDescription = "Your everyday life, simplified",
+    ContentRootPath = "Content",
+})
     .WithMarkdownContentService(_ => new MarkdownContentOptions<DocsFrontMatter>()
     {
         ContentPath = "Content",

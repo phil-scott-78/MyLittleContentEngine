@@ -4,10 +4,10 @@ using System.IO.Abstractions;
 using System.Text.RegularExpressions;
 using CooklangSharp;
 using MyLittleContentEngine.Models;
+using MyLittleContentEngine.Services;
 using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Content.TableOfContents;
 using MyLittleContentEngine.Services.Infrastructure;
-using MyLittleContentEngine.Services;
 using RecipeExample.Models;
 using YamlDotNet.Serialization;
 
@@ -40,12 +40,11 @@ internal class RecipeContentService : IDisposable, IRecipeContentService
             .IgnoreUnmatchedProperties()
             .Build();
 
-        fileWatcher.AddPathWatch(options.ContentPath, "*.cook", (_, _) => { } );
+        fileWatcher.AddPathWatch(options.ContentPath, "*.cook", (_, _) => { });
         _recipeCache = new AsyncLazy<ConcurrentDictionary<string, RecipeContentPage>>(
             async () => await ProcessRecipeFiles(),
             AsyncLazyFlags.RetryOnFailure);
     }
-
 
     private async Task<ConcurrentDictionary<string, RecipeContentPage>> ProcessRecipeFiles()
     {
@@ -68,10 +67,10 @@ internal class RecipeContentService : IDisposable, IRecipeContentService
 
                 // Parse front matter and content
                 var (frontMatter, recipeContent) = ParseFrontMatter(content);
-                
+
                 // Parse the recipe content with CookLang
                 var parseResult = CooklangParser.Parse(recipeContent);
-                
+
                 if (parseResult.Recipe != null)
                 {
                     var recipePage = new RecipeContentPage(
@@ -80,10 +79,10 @@ internal class RecipeContentService : IDisposable, IRecipeContentService
                         fileName,
                         url,
                         content);
-                        
-                    recipes.TryAdd(url, recipePage);    
+
+                    recipes.TryAdd(url, recipePage);
                 }
-                
+
             }
             catch (Exception)
             {
@@ -100,7 +99,7 @@ internal class RecipeContentService : IDisposable, IRecipeContentService
         var recipeContent = content;
 
         // Match YAML front matter pattern: ---\n...\n---
-        var frontMatterMatch = Regex.Match(content, @"^---\s*\r?\n(.*?)\r?\n---\s*\r?\n(.*)", 
+        var frontMatterMatch = Regex.Match(content, @"^---\s*\r?\n(.*?)\r?\n---\s*\r?\n(.*)",
             RegexOptions.Singleline | RegexOptions.Multiline);
 
         if (frontMatterMatch.Success)
@@ -144,20 +143,17 @@ internal class RecipeContentService : IDisposable, IRecipeContentService
         {
 
             var relativePath = url.Replace('/', Path.DirectorySeparatorChar);
-            
-            
+
             var outputFile = _fileSystem.Path.Combine(_options.BasePageUrl, $"{relativePath}.html").TrimStart(Path.DirectorySeparatorChar);
-            
+
             pages.Add(new PageToGenerate(url, outputFile, new Metadata()
-            { 
-                Title = recipePage.DisplayName 
+            {
+                Title = recipePage.DisplayName
             }));
         }
 
         return pages.ToImmutableList();
     }
-
-
 
     async Task<ImmutableList<ContentTocItem>> IContentService.GetContentTocEntriesAsync()
     {

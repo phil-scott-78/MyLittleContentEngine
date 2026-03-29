@@ -15,11 +15,11 @@ public class FileWatchDependencyIntegrationTests
     {
         // Arrange
         var services = new ServiceCollection();
-        
+
         // Register core dependencies first
         services.AddLogging();
         services.AddSingleton<IContentEngineFileWatcher, TestContentEngineFileWatcher>();
-        
+
         // Create configured content engine collection
         var configuredServices = new ConfiguredContentEngineServiceCollection(services);
 
@@ -36,7 +36,7 @@ public class FileWatchDependencyIntegrationTests
         // Verify service can be resolved through the factory
         var service1 = serviceProvider.GetRequiredService<CacheableExpensiveService>();
         var service2 = serviceProvider.GetRequiredService<CacheableExpensiveService>();
-        
+
         // Should be same instance (singleton behavior through factory)
         service1.ShouldBeSameAs(service2);
         service1.ShouldNotBeNull();
@@ -49,7 +49,7 @@ public class FileWatchDependencyIntegrationTests
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddSingleton<IContentEngineFileWatcher, TestContentEngineFileWatcher>();
-        
+
         var configuredServices = new ConfiguredContentEngineServiceCollection(services);
 
         // Act - Register service with interface/implementation types
@@ -64,7 +64,7 @@ public class FileWatchDependencyIntegrationTests
         // Verify interface can be resolved through implementation factory
         var service1 = serviceProvider.GetRequiredService<ITestService>();
         var service2 = serviceProvider.GetRequiredService<ITestService>();
-        
+
         // Should be same instance (singleton behavior through factory)
         service1.ShouldBeSameAs(service2);
         service1.ShouldNotBeNull();
@@ -79,7 +79,7 @@ public class FileWatchDependencyIntegrationTests
         services.AddLogging();
         var fileWatcher = new TestContentEngineFileWatcher();
         services.AddSingleton<IContentEngineFileWatcher>(fileWatcher);
-        
+
         var configuredServices = new ConfiguredContentEngineServiceCollection(services);
         configuredServices.AddFileWatched<CacheableExpensiveService>();
 
@@ -109,7 +109,7 @@ public class FileWatchDependencyIntegrationTests
         services.AddLogging();
         var fileWatcher = new TestContentEngineFileWatcher();
         services.AddSingleton<IContentEngineFileWatcher>(fileWatcher);
-        
+
         var configuredServices = new ConfiguredContentEngineServiceCollection(services);
         configuredServices.AddFileWatched<CacheableExpensiveService>();
 
@@ -118,10 +118,10 @@ public class FileWatchDependencyIntegrationTests
 
         // Act - Get initial instance through factory
         var service1 = factory.GetInstance();
-        
+
         // Trigger file change (should invalidate the cached instance in the factory)
         fileWatcher.TriggerChange();
-        
+
         // Get instance after file change through factory
         var service2 = factory.GetInstance();
 
@@ -137,7 +137,7 @@ public class FileWatchDependencyIntegrationTests
         services.AddLogging();
         var fileWatcher = new TestContentEngineFileWatcher();
         services.AddSingleton<IContentEngineFileWatcher>(fileWatcher);
-        
+
         var configuredServices = new ConfiguredContentEngineServiceCollection(services);
         configuredServices.AddFileWatched<CacheableExpensiveService>();
 
@@ -147,10 +147,10 @@ public class FileWatchDependencyIntegrationTests
         // Act
         var instance1 = factory.GetInstance();
         var instanceId1 = instance1.InstanceId;
-        
+
         // Trigger file watcher change
         fileWatcher.TriggerChange();
-        
+
         var instance2 = factory.GetInstance();
         var instanceId2 = instance2.InstanceId;
 
@@ -167,7 +167,7 @@ public class FileWatchDependencyIntegrationTests
         services.AddLogging();
         var fileWatcher = new TestContentEngineFileWatcher();
         services.AddSingleton<IContentEngineFileWatcher>(fileWatcher);
-        
+
         var configuredServices = new ConfiguredContentEngineServiceCollection(services);
         configuredServices.AddFileWatched<CacheableExpensiveService>();
         configuredServices.AddFileWatched<ITestService, TestServiceImplementation>();
@@ -177,20 +177,20 @@ public class FileWatchDependencyIntegrationTests
         // Act
         var factory1 = serviceProvider.GetRequiredService<FileWatchDependencyFactory<CacheableExpensiveService>>();
         var factory2 = serviceProvider.GetRequiredService<FileWatchDependencyFactory<TestServiceImplementation>>();
-        
+
         var service1A = serviceProvider.GetRequiredService<CacheableExpensiveService>();
         var service1B = serviceProvider.GetRequiredService<CacheableExpensiveService>();
-        
+
         var service2A = serviceProvider.GetRequiredService<ITestService>();
         var service2B = serviceProvider.GetRequiredService<ITestService>();
 
         // Assert - Each service type should have independent factories
         factory1.ShouldNotBeSameAs(factory2);
-        
+
         // Same type should return same instance
         service1A.ShouldBeSameAs(service1B);
         service2A.ShouldBeSameAs(service2B);
-        
+
         // Different types should be different instances
         service1A.ShouldNotBeSameAs(service2A);
     }

@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Spectre.Console;
 using Spectre.Console.Examples;
 
@@ -6,7 +6,7 @@ if (args.Length == 0)
 {
     AnsiConsole.MarkupLine("[red]Usage: dotnet run <example-name>[/]");
     AnsiConsole.MarkupLine("[yellow]Available examples:[/]");
-    
+
     var exampleTypes = GetExampleTypes();
     foreach (var type in exampleTypes)
     {

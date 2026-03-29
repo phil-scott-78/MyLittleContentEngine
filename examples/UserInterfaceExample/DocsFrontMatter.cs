@@ -12,7 +12,7 @@ public class DocsFrontMatter : IFrontMatter
     public string? Uid { get; init; } = null;
     public string? RedirectUrl { get; init; }
     public string? Section { get; init; }
-    
+
     public Metadata AsMetadata()
     {
         return new Metadata()

@@ -13,7 +13,7 @@ public class InteractivePromptAndDashboardTutorialExample : IExample
         AnsiConsole.WriteLine();
 
         var demoMode = args.Contains("--demo") || args.Contains("-d");
-        
+
         if (demoMode)
         {
             ShowDemoMode();
@@ -28,38 +28,38 @@ public class InteractivePromptAndDashboardTutorialExample : IExample
     {
         AnsiConsole.MarkupLine("[yellow]Running in demo mode (non-interactive)[/]");
         AnsiConsole.WriteLine();
-        
+
         // Step 3: Status spinner during tasks
         ShowStatusSpinner();
         AnsiConsole.WriteLine();
-        
+
         // Step 4: Live display with dynamic updates
         ShowLiveDisplay();
         AnsiConsole.WriteLine();
-        
+
         ShowDemoPrompts();
         ShowDemoMultiSelection();
         ShowDemoDashboard();
     }
-    
+
     private void ShowInteractiveMode()
     {
         // Step 1: Basic prompts and user input
         ShowBasicPrompts();
         AnsiConsole.WriteLine();
-        
+
         // Step 2: Multi-selection menu
         ShowMultiSelectionMenu();
         AnsiConsole.WriteLine();
-        
+
         // Step 3: Status spinner during tasks
         ShowStatusSpinner();
         AnsiConsole.WriteLine();
-        
+
         // Step 4: Live display with dynamic updates
         ShowLiveDisplay();
         AnsiConsole.WriteLine();
-        
+
         // Step 5: Complete dashboard combining all features
         ShowCompleteDashboard();
     }
@@ -71,15 +71,15 @@ public class InteractivePromptAndDashboardTutorialExample : IExample
     public void ShowBasicPrompts()
     {
         AnsiConsole.MarkupLine("[bold yellow]Step 1: Basic Prompts and User Input[/]");
-        
+
         // Text input prompt
         var name = AnsiConsole.Ask<string>("What's your [green]name[/]?");
         AnsiConsole.MarkupLine($"Hello, [cyan]{name}[/]!");
-        
+
         // Numeric input with validation
         var age = AnsiConsole.Ask<int>("How [blue]old[/] are you?");
         AnsiConsole.MarkupLine($"You are [yellow]{age}[/] years old.");
-        
+
         // Confirmation prompt
         var confirmed = AnsiConsole.Confirm("Do you want to continue?");
         if (confirmed)
@@ -99,18 +99,18 @@ public class InteractivePromptAndDashboardTutorialExample : IExample
     public void ShowMultiSelectionMenu()
     {
         AnsiConsole.MarkupLine("[bold yellow]Step 2: Multi-Selection Menu[/]");
-        
+
         var selectedFeatures = AnsiConsole.Prompt(
             new MultiSelectionPrompt<string>()
                 .Title("Which [green]features[/] would you like to enable?")
                 .NotRequired() // Allow no selection
                 .PageSize(10)
                 .MoreChoicesText("[grey](Move up and down to reveal more features)[/]")
-                .InstructionsText("[grey](Press [blue]<space>[/] to toggle a feature, " + 
+                .InstructionsText("[grey](Press [blue]<space>[/] to toggle a feature, " +
                                  "[green]<enter>[/] to accept)[/]")
                 .AddChoices(new[] {
                     "Dashboard Widgets",
-                    "Real-time Updates", 
+                    "Real-time Updates",
                     "Data Export",
                     "User Analytics",
                     "Custom Themes",
@@ -139,22 +139,22 @@ public class InteractivePromptAndDashboardTutorialExample : IExample
     public void ShowStatusSpinner()
     {
         AnsiConsole.MarkupLine("[bold yellow]Step 3: Status Spinner During Tasks[/]");
-        
+
         AnsiConsole.Status()
             .Start("Initializing dashboard...", ctx =>
             {
                 Thread.Sleep(1000);
-                
+
                 ctx.Status = "Loading user data...";
                 ctx.Spinner(Spinner.Known.Star);
                 ctx.SpinnerStyle(Style.Parse("green"));
                 Thread.Sleep(1500);
-                
+
                 ctx.Status = "Connecting to services...";
                 ctx.Spinner(Spinner.Known.Dots);
                 ctx.SpinnerStyle(Style.Parse("blue"));
                 Thread.Sleep(1200);
-                
+
                 ctx.Status = "Finalizing setup...";
                 ctx.Spinner(Spinner.Known.Clock);
                 ctx.SpinnerStyle(Style.Parse("yellow"));
@@ -171,7 +171,7 @@ public class InteractivePromptAndDashboardTutorialExample : IExample
     public void ShowLiveDisplay()
     {
         AnsiConsole.MarkupLine("[bold yellow]Step 4: Live Display with Dynamic Updates[/]");
-        
+
         var random = new Random();
 
         AnsiConsole.Live(CreateStatusTable(0, 0, 0))
@@ -182,12 +182,12 @@ public class InteractivePromptAndDashboardTutorialExample : IExample
                     var users = random.Next(50, 200);
                     var requests = random.Next(100, 500);
                     var errors = random.Next(0, 10);
-                    
+
                     ctx.UpdateTarget(CreateStatusTable(users, requests, errors));
                     Thread.Sleep(200);
                 }
             });
-        
+
         AnsiConsole.MarkupLine("[green]✓[/] Live display demo completed!");
     }
 
@@ -198,9 +198,9 @@ public class InteractivePromptAndDashboardTutorialExample : IExample
     public void ShowCompleteDashboard()
     {
         AnsiConsole.MarkupLine("[bold yellow]Step 5: Complete Interactive Dashboard[/]");
-        
+
         var keepRunning = true;
-        
+
         while (keepRunning)
         {
             var choice = AnsiConsole.Prompt(
@@ -209,7 +209,7 @@ public class InteractivePromptAndDashboardTutorialExample : IExample
                     .PageSize(10)
                     .AddChoices(new[] {
                         "View System Status",
-                        "Check User Activity", 
+                        "Check User Activity",
                         "Generate Report",
                         "System Settings",
                         "Exit Dashboard"
@@ -220,19 +220,19 @@ public class InteractivePromptAndDashboardTutorialExample : IExample
                 case "View System Status":
                     ShowSystemStatus();
                     break;
-                    
+
                 case "Check User Activity":
                     ShowUserActivity();
                     break;
-                    
+
                 case "Generate Report":
                     GenerateReport();
                     break;
-                    
+
                 case "System Settings":
                     ShowSettings();
                     break;
-                    
+
                 case "Exit Dashboard":
                     if (AnsiConsole.Confirm("Are you sure you want to exit?"))
                     {
@@ -241,7 +241,7 @@ public class InteractivePromptAndDashboardTutorialExample : IExample
                     }
                     break;
             }
-            
+
             if (keepRunning)
             {
                 AnsiConsole.WriteLine();
@@ -270,7 +270,7 @@ public class InteractivePromptAndDashboardTutorialExample : IExample
     private static void ShowSystemStatus()
     {
         AnsiConsole.MarkupLine("[bold blue]System Status Overview[/]");
-        
+
         var statusTable = new Table()
             .AddColumn("[yellow]Component[/]")
             .AddColumn("[cyan]Status[/]")
@@ -287,7 +287,7 @@ public class InteractivePromptAndDashboardTutorialExample : IExample
     private static void ShowUserActivity()
     {
         AnsiConsole.MarkupLine("[bold blue]User Activity Monitor[/]");
-        
+
         var activityChart = new BarChart()
             .Width(60)
             .Label("[green bold underline]Hourly Activity[/]")
@@ -306,7 +306,7 @@ public class InteractivePromptAndDashboardTutorialExample : IExample
     private static void GenerateReport()
     {
         AnsiConsole.MarkupLine("[bold blue]Generating System Report[/]");
-        
+
         AnsiConsole.Progress()
             .Start(ctx =>
             {
@@ -338,7 +338,7 @@ public class InteractivePromptAndDashboardTutorialExample : IExample
     private static void ShowSettings()
     {
         AnsiConsole.MarkupLine("[bold blue]System Settings[/]");
-        
+
         var theme = AnsiConsole.Prompt(
             new SelectionPrompt<string>()
                 .Title("Choose dashboard [green]theme[/]:")
@@ -346,7 +346,7 @@ public class InteractivePromptAndDashboardTutorialExample : IExample
 
         var autoRefresh = AnsiConsole.Confirm("Enable auto-refresh?");
         var refreshInterval = 30;
-        
+
         if (autoRefresh)
         {
             refreshInterval = AnsiConsole.Ask("Refresh interval (seconds):", 30);

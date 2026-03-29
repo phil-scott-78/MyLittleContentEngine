@@ -1,10 +1,9 @@
-﻿using MonorailCss.Theme;
+using MonorailCss.Theme;
 using MyLittleContentEngine.BlogSite;
 using MyLittleContentEngine.BlogSite.Components;
 using MyLittleContentEngine.MonorailCss;
 
 var builder = WebApplication.CreateBuilder(args);
-
 
 builder.Services.AddBlogSite(_ => new BlogSiteOptions()
 {
@@ -57,7 +56,6 @@ builder.Services.AddBlogSite(_ => new BlogSiteOptions()
     AuthorBio = "I'm <strong>Calvin</strong>, a gum performance analyst and recreational mandibularist based in New York City. I’m the founde of ChewLab, where we develop equipment, training protocols, and apparel that help everyday people reach elite levels of chewing efficiency.",
     SocialMediaImageUrlFactory = page => $"social-images/{page.Url.Replace("/", "-")}.png"
 });
-
 
 var app = builder.Build();
 app.UseBlogSite();

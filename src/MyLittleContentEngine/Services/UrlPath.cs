@@ -108,10 +108,10 @@ public readonly struct UrlPath : IEquatable<UrlPath>
     {
         if (IsEmpty)
             return Root;
-        
+
         if (_value == "/")
             return this;
-        
+
         return IsAbsolute ? this : new UrlPath($"/{_value}");
     }
 
@@ -122,11 +122,11 @@ public readonly struct UrlPath : IEquatable<UrlPath>
     {
         if (IsEmpty || IsRelative)
             return this;
-        
+
         // Special case: "/" becomes "/" (can't remove the only slash)
         if (_value == "/")
             return this;
-        
+
         return new UrlPath(_value.TrimStart('/'));
     }
 
@@ -137,10 +137,10 @@ public readonly struct UrlPath : IEquatable<UrlPath>
     {
         if (IsEmpty)
             return Root;
-        
+
         if (_value == "/")
             return this;
-        
+
         return _value.EndsWith('/') ? this : new UrlPath($"{_value}/");
     }
 
@@ -151,11 +151,11 @@ public readonly struct UrlPath : IEquatable<UrlPath>
     {
         if (IsEmpty || !_value.EndsWith('/'))
             return this;
-        
+
         // Special case: "/" becomes "" (for use in RequestPath which doesn't accept "/")
         if (_value == "/")
             return Empty;
-        
+
         var trimmed = _value.TrimEnd('/');
         return string.IsNullOrEmpty(trimmed) ? Empty : new UrlPath(trimmed);
     }
@@ -242,13 +242,13 @@ public readonly struct UrlPath : IEquatable<UrlPath>
             {
                 var scheme = schemeParts[0];
                 var rest = schemeParts[1];
-                
+
                 // Remove duplicate slashes only in the path part
                 while (rest.Contains("//"))
                 {
                     rest = rest.Replace("//", "/");
                 }
-                
+
                 path = $"{scheme}://{rest}";
             }
         }
