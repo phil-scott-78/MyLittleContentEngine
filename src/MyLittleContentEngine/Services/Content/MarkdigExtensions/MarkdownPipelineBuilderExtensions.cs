@@ -1,6 +1,5 @@
 ﻿using Markdig;
 using Markdig.Extensions.Alerts;
-using Markdig.Helpers;
 using Markdig.Parsers.Inlines;
 using Markdig.Renderers;
 using Markdig.Renderers.Html;
@@ -54,9 +53,6 @@ internal static class MarkdownPipelineBuilderExtensions
 
     private class CustomAlertsExtension : IMarkdownExtension
     {
-        
-        public Action<HtmlRenderer, StringSlice>? RenderKind { get; set; }
-
         public void Setup(MarkdownPipelineBuilder pipeline)
         {
             var existing = pipeline.InlineParsers.Find<Markdig.Extensions.Alerts.AlertInlineParser>();
@@ -76,7 +72,7 @@ internal static class MarkdownPipelineBuilderExtensions
             {
                 renderer.ObjectRenderers.InsertBefore<QuoteBlockRenderer>(new AlertBlockRenderer()
                 {
-                    RenderKind = RenderKind ?? AlertBlockRenderer.DefaultRenderKind
+                    RenderKind = AlertBlockRenderer.DefaultRenderKind
                 });
             }
         }

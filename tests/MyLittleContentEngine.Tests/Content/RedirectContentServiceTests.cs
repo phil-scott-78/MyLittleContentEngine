@@ -139,11 +139,11 @@ public class RedirectContentServiceTests
 
         var oldPage = result.FirstOrDefault(p => p.Url.Value == "/old-page");
         oldPage.ShouldNotBeNull();
-        oldPage!.OutputFile.Value.ShouldBe("old-page.html");
+        oldPage.OutputFile.Value.ShouldBe("old-page.html");
 
         var archived = result.FirstOrDefault(p => p.Url.Value == "/archived");
         archived.ShouldNotBeNull();
-        archived!.OutputFile.Value.ShouldBe("archived.html");
+        archived.OutputFile.Value.ShouldBe("archived.html");
     }
 
     [Fact]
@@ -180,11 +180,11 @@ public class RedirectContentServiceTests
 
         var docsPage = result.FirstOrDefault(p => p.Url.Value == "/docs/old-guide");
         docsPage.ShouldNotBeNull();
-        docsPage!.OutputFile.Value.ShouldBe("docs/old-guide.html");
+        docsPage.OutputFile.Value.ShouldBe("docs/old-guide.html");
 
         var apiPage = result.FirstOrDefault(p => p.Url.Value == "/api/v1/users");
         apiPage.ShouldNotBeNull();
-        apiPage!.OutputFile.Value.ShouldBe("api/v1/users.html");
+        apiPage.OutputFile.Value.ShouldBe("api/v1/users.html");
     }
 
     [Fact]

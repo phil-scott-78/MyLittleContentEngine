@@ -6,6 +6,7 @@
     <Description>A powerful content engine for building static sites with Blazor and ASP.NET Core</Description>
     <PackageTags>blazor;static-site;content-engine;markdown;asp-net-core</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <NoWarn>RCS1194,</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="MyLittleContentEngine.Tests" />
