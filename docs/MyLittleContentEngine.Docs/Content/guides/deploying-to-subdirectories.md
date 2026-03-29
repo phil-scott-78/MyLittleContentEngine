@@ -37,7 +37,7 @@ The middleware processes HTML responses and rewrites URLs in the following eleme
 
 ### Example Transformation
 
-With `BaseUrl = "/my-app"`, the middleware transforms:
+With `BaseUrl = "/my-app/"`, the middleware transforms:
 
 ```html
 <!-- Before -->
@@ -64,10 +64,10 @@ to specify different BaseUrl values for different deployment environments withou
 
 ```bash
 # For subdirectory deployment
-dotnet run -- build "/my-app"
+dotnet run -- build "/my-app/"
 
 # For custom output directory
-dotnet run -- build "/my-app" "custom-output"
+dotnet run -- build "/my-app/" "custom-output"
 
 # For root deployment
 dotnet run -- build "/"
@@ -118,8 +118,8 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 
 ### BaseUrl Guidelines
 
-- **Include leading slash**: Use `/my-app`, not `my-app`
-- **No trailing slash**: Use `/my-app`, not `/my-app/`
+- **Include leading slash**: Use `/my-app/`, not `my-app/`
+- **Include trailing slash**: Use `/my-app/`, not `/my-app`
 - **Root deployment**: Use `/` for root directory deployment
 - **Command line takes precedence**: Command line arguments override environment variables
   </Step>
@@ -237,7 +237,7 @@ When a cross-reference cannot be resolved, the middleware:
 1. **Use command line arguments** for BaseUrl to support multiple deployment targets
 2. **Pass args to Run methods** - BlogSite/DocSite automatically handle BaseUrl when you pass `args` to `RunBlogSiteAsync(args)` or `RunDocSiteAsync(args)`
 3. **Use root-relative URLs** in your content (`/page` not `page`)
-4. **Test locally** with different BaseUrl values using: `dotnet run -- build "/test-path"`
+4. **Test locally** with different BaseUrl values using: `dotnet run -- build "/test-path/"`
 5. **Monitor for unresolved xrefs** using browser developer tools to check for error attributes
 6. **Use LinkService** in Blazor components for consistent URL generation
 

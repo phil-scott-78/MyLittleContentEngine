@@ -1,6 +1,6 @@
 ---
-title: "Linking Documents and Media"
-description: "Master BaseUrl configuration and automatic link rewriting for consistent links across deployment scenarios"
+title: "Link Types and Syntax"
+description: "Reference for relative, absolute, cross-reference, and external links in MyLittleContentEngine"
 uid: "docs.guides.linking-documents-and-media"
 order: 2010
 ---
@@ -37,7 +37,8 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
 ```
 
 > [!TIP]
-> For detailed deployment configuration including middleware setup, CI/CD examples, and troubleshooting, see the [Deploying to Subdirectories](xref:docs.guides.deploying-to-subdirectories) guide.
+> BaseUrl is configured via command-line arguments at build time, not in `Program.cs`. See
+> [Deploying to Subdirectories](xref:docs.guides.deploying-to-subdirectories) for the full setup.
 
 ## Link Types and Best Practices
 
@@ -99,10 +100,7 @@ For referencing external resources:
 
 ## Automatic Link Processing
 
-MyLittleContentEngine automatically processes links in your content to ensure they work correctly across different deployment scenarios. All root-relative URLs (starting with `/`) are automatically adjusted based on your site's configuration.
-
-> [!TIP]
-> For detailed information about BaseUrl configuration, middleware setup, and deployment scenarios, see the [Deploying to Subdirectories](xref:docs.guides.deploying-to-subdirectories) guide.
+MyLittleContentEngine automatically processes links in your content to ensure they work correctly across different deployment scenarios. All root-relative URLs (starting with `/`) are automatically adjusted based on your site's configured BaseUrl.
 
 ## Static Files in `ContentRootPath`
 
@@ -127,12 +125,9 @@ processed:
 
 During development, verify that your links work correctly:
 
-1. **Run locally**: Use `dotnet run` to test in development
+1. **Run locally**: Use `dotnet watch` to test in development
 2. **Check all link types**: Verify relative, absolute, and cross-reference links work
-3. **Test static generation**: Use `dotnet run -- build` to test static output
-
-> [!TIP]
-> For comprehensive testing in deployment scenarios, including BaseUrl configuration and subdirectory deployment, see the [Deploying to Subdirectories](xref:docs.guides.deploying-to-subdirectories) guide.
+3. **Test static generation**: Use `dotnet run -- build "/"` to test static output locally
 
 ## Best Practices
 
@@ -150,13 +145,3 @@ During development, verify that your links work correctly:
 
 5. **Leverage automatic processing**: Let MyLittleContentEngine handle URL rewriting automatically
 
-## Summary
-
-MyLittleContentEngine provides flexible linking options to connect your content effectively:
-
-- **Multiple link types** support different use cases (relative, absolute, cross-reference, external)
-- **Automatic processing** ensures links work across deployment scenarios
-- **Static file integration** handles images, documents, and other assets seamlessly
-- **Cross-reference system** maintains links to API documentation and internal content
-
-Use the appropriate link type for your content, and let MyLittleContentEngine handle the technical details of URL processing and deployment compatibility.

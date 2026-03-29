@@ -117,3 +117,14 @@ Test the functionality by:
   </Step>
 
 </Steps>
+
+## What Success Looks Like
+
+After running `dotnet watch`, your site will have a three-column layout:
+
+- **Left column**: Sidebar navigation generated automatically from your content files and their front matter `title` values
+- **Center column**: Your page content
+- **Right column**: A page outline listing the headings on the current page as anchor links
+
+Navigate between pages and notice the sidebar highlights the current page. Add more content pages and watch the
+sidebar populate without any manual configuration — it reads your content structure automatically.

@@ -23,66 +23,28 @@ Before customizing styling, ensure you have MonorailCSS configured in your appli
 dotnet add package MyLittleContentEngine.MonorailCss
 ```
 
-Then register the MonorailCSS services in your `Program.cs` file:
+Register the services and middleware in your `Program.cs`:
 
 ```csharp
-// Program.cs
 builder.Services.AddMonorailCss();
 
-// rest of services configuration
 var app = builder.Build();
 app.UseMonorailCss();
 ```
 
-### MonorailCSS Services
+Then link the generated stylesheet in your layout using `LinkService`, which ensures the path is correct across
+all deployment environments:
 
-MonorailCSS registers several services in the dependency injection container:
+```razor
+@inject LinkService LinkService
 
-```csharp
-builder.Services.AddMonorailCss();
+<link rel="stylesheet" href="@LinkService.GetLink("styles.css")" />
 ```
 
-- **`MonorailCssService`** - Core service that generates CSS stylesheets from collected classes
-- **`CssClassCollector`** - Thread-safe service that maintains a collection of CSS classes found in HTML responses
-
-These services work together to provide automatic CSS class discovery, color generation, and stylesheet compilation.
-
-### MonorailCSS Middleware
-
-The `CssClassCollectorMiddleware` automatically scans HTML responses to discover CSS classes being used:
-
-```csharp
-// Middleware is registered automatically when you call UseMonorailCss()
-app.UseMonorailCss();
-```
-
-The middleware:
-
-- Intercepts HTML responses using a regex pattern to find `class="..."` attributes
-- Extracts individual CSS classes from the class attribute values
-- Stores discovered classes in the `CssClassCollector` for CSS generation
-
-This automatic discovery ensures that only the CSS classes actually used in your application are included in the
-generated stylesheet.
-
-### Style.css Generation
-
-MonorailCSS generates a complete CSS stylesheet at runtime through the `/styles.css` endpoint:
-
-1. **Class Collection**: The middleware collects CSS classes from rendered HTML
-2. **Color Generation**: Color palettes are generated from your configured hue values using OKLCH color space
-3. **Component Styles**: Built-in styles for code blocks, tabs, alerts, and other content engine components
-4. **CSS Compilation**: The `MonorailCssService` combines all elements into a complete stylesheet
-
-The generated CSS includes:
-
-- **Utility classes** for discovered CSS classes (spacing, colors, typography, etc.)
-- **Component styles** for syntax highlighting, tabbed code blocks, and markdown alerts
-- **Dark mode variants** using the `dark:` prefix
-- **Custom styles** defined in your `MonorailCssOptions.CustomCssFrameworkSettings`
-
-For static site generation, the CSS endpoint is automatically processed last to ensure all CSS classes have been
-discovered before generating the final stylesheet.
+> [!NOTE]
+> MonorailCSS works by scanning your rendered HTML at runtime to discover which CSS classes are in use, then
+> generating only those styles. This keeps the stylesheet lean without a separate build step. For more detail,
+> see [Monorail CSS Configuration](xref:docs.reference.monorail-css-configuration).
 
 ## Understanding MonorailCSS Colors
 
@@ -223,10 +185,8 @@ You can make this more dynamic by adding a small script in the `<head>` section 
 preference:
 
 ```html
-
 <script>
-    // this is actually duplicated in scripts.js, but we need it here to ensure the
-    // theme is set before the page loads to avoid flash of unstyled content
+    // Placed in <head> to run before the page renders, preventing a flash of unstyled content (FOUC).
     const isDarkMode = localStorage.theme === "dark" || (!("theme" in localStorage) && window.matchMedia("(prefers-color-scheme: dark)").matches);
     document.documentElement.classList.toggle("dark", isDarkMode);
     document.documentElement.dataset.theme = isDarkMode ? "dark" : "light";
@@ -332,15 +292,7 @@ builder.Services.AddMonorailCss(_ => new MonorailCssOptions
 
 ## Troubleshooting
 
-* **No Styling Applied:** Ensure you're using the LinkService for resolving the CSS file properly
-
-  ```razor
-  @inject LinkService LinkService
-  // ...
-  <link rel="stylesheet" href="@LinkService.GetLink("styles.css")" />
-  ```
+* **No Styling Applied:** Ensure you've added the `<link>` tag using `LinkService.GetLink("styles.css")` as shown
+  in the Prerequisites section above.
 
 * **Theme not switching:** Ensure your button has the `data-theme-toggle` attribute and the JavaScript is loaded.
-
-
-

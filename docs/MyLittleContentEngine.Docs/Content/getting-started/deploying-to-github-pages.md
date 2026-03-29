@@ -11,10 +11,6 @@ This tutorial covers:
 - Configuring base URLs for subdirectory deployment
 - Handling static assets and routing correctly
 - Custom domain configuration
-- Troubleshooting common deployment issues
-
-## Page Contents
-- [Prerequisites](#prerequisites) - Requirements for GitHub Pages deployment
 
 ## Prerequisites
 
@@ -219,16 +215,6 @@ dotnet run -- build
 ```
 </Step>
 <Step stepNumber="4">
-## Set Up GitHub Pages
-
-### Enable GitHub Pages
-
-1. Go to your repository **Settings**
-2. Navigate to **Pages** in the sidebar
-3. Under **Source**, select **GitHub Actions**
-4. Save the settings
-</Step>
-<Step stepNumber="5">
 
 ## Test Your Deployment
 
@@ -258,7 +244,7 @@ Once the workflow completes:
 4. Test that images and other assets load
 
 </Step>
-<Step stepNumber="6">
+<Step stepNumber="5">
 ## Custom Domain (Optional)
 
 To use a custom domain:
@@ -294,5 +280,29 @@ Modify your workflow to use your custom domain:
 
 
 
-Your MyLittleContentEngine site is now automatically deployed to GitHub Pages! Every time you push to the main branch,
-your site will be rebuilt and deployed automatically.
+## What Success Looks Like
+
+After pushing to `main`, navigate to the **Actions** tab in your repository and watch the workflow run. Once the
+deploy job completes (typically 1–2 minutes), your site will be live at
+`https://username.github.io/repository-name/`.
+
+Verify that:
+- Pages load correctly with styling applied
+- Navigation links work between pages
+- Images and other assets load
+
+Every time you push to the `main` branch from this point forward, your site rebuilds and deploys automatically.
+
+## Troubleshooting
+
+**Site loads but assets are missing (CSS, JS, images)**
+: Check that the repository name in your build command (`build "/your-repository-name/"`) exactly matches your
+GitHub repository name, including case.
+
+**404 on all pages after deployment**
+: Ensure the `.nojekyll` file step is present in your workflow. Without it, GitHub Pages' Jekyll processing
+interferes with the generated HTML.
+
+**Workflow runs but site isn't updating**
+: The deploy job only runs on pushes to `main`. Check the **Actions** tab to confirm the *deploy* job ran,
+not just the *build* job. The build job runs on all branches for CI validation.

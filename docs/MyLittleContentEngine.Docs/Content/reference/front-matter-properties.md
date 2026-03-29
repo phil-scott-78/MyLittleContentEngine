@@ -8,6 +8,35 @@ order: 4002
 All front matter implementations must implement the `IFrontMatter` interface, which defines the base contract for
 content metadata.
 
+## Quick Reference
+
+### YAML Properties
+
+These are the properties you write in the `---` front matter block of your Markdown files. The YAML key uses
+underscored naming (e.g. `is_draft`, not `isDraft`).
+
+| YAML Key | C# Property | Type | Default | Purpose |
+|----------|-------------|------|---------|---------|
+| `title` | `Title` | `string` | required | Page title — used in navigation, browser tab, RSS |
+| `uid` | `Uid` | `string?` | `null` | Unique ID for cross-referencing with `xref:` |
+| `tags` | `Tags` | `string[]` | `[]` | Tag-based categorization and filtering |
+| `is_draft` | `IsDraft` | `bool` | `false` | When `true`, page is excluded from generation |
+| `redirect_url` | `RedirectUrl` | `string?` | `null` | Redirect this URL to another page |
+
+### Metadata Returned by `AsMetadata()`
+
+Your `IFrontMatter` implementation maps to these standard fields via the `AsMetadata()` method:
+
+| Field | Type | Default | Purpose |
+|-------|------|---------|---------|
+| `Title` | `string` | required | Page headers and HTML `<title>` |
+| `Description` | `string` | `""` | Meta description, RSS summaries |
+| `LastMod` | `DateTime?` | `null` | Sitemaps and RSS `<lastmod>` |
+| `RssItem` | `bool` | `true` | Include this page in the RSS feed |
+| `Order` | `int` | `int.MaxValue` | Sort order in navigation and TOC |
+
+---
+
 ```csharp:xmldocid
 T:MyLittleContentEngine.Models.IFrontMatter
 ```
@@ -229,35 +258,6 @@ You can customize the naming convention by configuring the `FrontMatterDeseriali
 - `CamelCaseNamingConvention` - maps `RedirectUrl` to `redirectUrl`
 - `PascalCaseNamingConvention` - maps `RedirectUrl` to `RedirectUrl`
 - `KebabCaseNamingConvention` - maps `RedirectUrl` to `redirect-url`
-
-## Redirection
-
-All front matter must implement the redirect URL. This field will be examined for a value. If it exists, a special redirection page will be written.
-
-```yml
----
-redirect_url: page-one
----
-```
-
-This will generate:
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta http-equiv="refresh" content="0; URL='page-one'">
-  <title>Redirecting...</title>
-  <meta name="robots" content="noindex">
-</head>
-<body>
-<p>If you are not redirected automatically, <a href="page-one">click here</a>.</p>
-</body>
-</html>
-```
-
-This will cause a redirect.
 
 ## Best Practices
 

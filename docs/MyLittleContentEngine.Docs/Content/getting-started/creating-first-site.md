@@ -151,3 +151,21 @@ Navigate to `https://localhost:5001` (or the URL shown in your terminal) to see 
 While the page is open, try editing the `Content/index.md` file. You should see the changes reflected
 immediately without needing to restart the server. Not just editing, but adding, renaming and deleting files
 should also work seamlessly.
+
+## What Success Looks Like
+
+When `dotnet watch` is running, navigate to the URL shown in your terminal (typically `http://localhost:5131`).
+You'll see:
+
+- A home page listing your blog post(s) with titles and links
+- Clicking a post title takes you to the full post rendered from your Markdown file
+- The page uses basic styling from MonorailCSS
+
+Try editing `Content/index.md` and saving — the browser refreshes automatically within a second or two. Try
+adding a second `.md` file in the `Content/` directory and watch it appear in the post list without a restart.
+
+## Next Steps
+
+- [Connecting to Roslyn](xref:docs.getting-started.connecting-to-roslyn) — embed live, verified code examples from your solution
+- [Using UI Elements](xref:docs.getting-started.using-ui-elements) — add sidebar navigation and page outlines
+- [Deploying to GitHub Pages](xref:docs.getting-started.deploying-to-github-pages) — publish your site automatically

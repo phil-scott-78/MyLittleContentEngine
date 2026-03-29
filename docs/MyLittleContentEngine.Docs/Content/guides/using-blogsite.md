@@ -54,6 +54,19 @@ This package includes all the dependencies you need:
 
 <Step stepNumber="3">
 
+## Configure File Watching for Development
+
+Add the following to your `.csproj` file so content changes trigger live reload during development:
+
+```xml
+<ItemGroup>
+    <Watch Include="Content/**/*.*"/>
+</ItemGroup>
+```
+</Step>
+
+<Step stepNumber="4">
+
 ## Configure the BlogSite
 
 Replace the content of `Program.cs` with the following minimal configuration:
@@ -79,7 +92,7 @@ await app.RunBlogSiteAsync(args);
 This minimal setup provides a complete blog site with default styling and layout.
 </Step>
 
-<Step stepNumber="4">
+<Step stepNumber="5">
 
 ## Create the Content Structure
 
@@ -92,7 +105,7 @@ mkdir -p Content/Blog
 The BlogSite package expects your blog posts to be in the `Content/Blog` directory by default.
 </Step>
 
-<Step stepNumber="5">
+<Step stepNumber="6">
 
 ## Write Your First Blog Post
 
@@ -108,7 +121,7 @@ I like to put my blog posts in a year/month folder structure, but you can use an
 ---
 title: "Welcome to My Blog"
 description: "My first blog post using MyLittleContentEngine"
-published: 2024-01-15
+date: 2024-01-15
 tags: ["blogging", "getting-started"]
 ---
 
@@ -127,7 +140,7 @@ Stay tuned for more content!
 ```
 </Step>
 
-<Step stepNumber="6">
+<Step stepNumber="7">
 
 ## Customize Your Blog
 
@@ -178,7 +191,7 @@ await app.RunBlogSiteAsync(args);
 ```
 </Step>
 
-<Step stepNumber="7">
+<Step stepNumber="8">
 
 ## Add Social Media Integration
 
@@ -225,7 +238,7 @@ builder.Services.AddBlogSite(_ => new BlogSiteOptions
 ```
 </Step>
 
-<Step stepNumber="8">
+<Step stepNumber="9">
 
 ## Add Custom HTML and Fonts
 
@@ -248,19 +261,6 @@ builder.Services.AddBlogSite(_ => new BlogSiteOptions
 ```
 </Step>
 
-<Step stepNumber="9">
-
-## Configure File Watching for Development
-
-Add the following to your `.csproj` file to enable hot reload during development:
-
-```xml
-<ItemGroup>
-    <Watch Include="Content\**\*.*"/>
-</ItemGroup>
-```
-</Step>
-
 <Step stepNumber="10">
 
 ## Test Your Blog Site
@@ -276,6 +276,18 @@ Navigate to `https://localhost:5001` to see your blog in action!
 While the page is open, try editing your blog post. You should see the changes reflected immediately without needing to restart the server.
 </Step>
 </Steps>
+
+## What Success Looks Like
+
+After running `dotnet watch`, navigate to the URL shown in your terminal (typically `http://localhost:5131`).
+You'll see a blog homepage with:
+
+- Your post listed with title, date, and description
+- A sidebar with your site name, author info, and tag list
+- A header with your site title and any navigation links you configured
+
+Click through to the post and you'll see the full Markdown content rendered with your blog layout. Edit your
+post file and save — the browser refreshes automatically without restarting the server.
 
 ## Blog Post Front Matter
 

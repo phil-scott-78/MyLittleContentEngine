@@ -60,6 +60,19 @@ This package includes all the dependencies you need:
 
 <Step stepNumber="3">
 
+## Configure File Watching for Development
+
+Add the following to your `.csproj` file so content changes trigger live reload during development:
+
+```xml
+<ItemGroup>
+    <Watch Include="Content/**/*.*"/>
+</ItemGroup>
+```
+</Step>
+
+<Step stepNumber="4">
+
 ## Configure the DocSite
 
 Replace the content of `Program.cs` with the following minimal configuration:
@@ -85,7 +98,7 @@ await app.RunDocSiteAsync(args);
 This minimal setup provides a complete documentation site with default styling and layout.
 </Step>
 
-<Step stepNumber="4">
+<Step stepNumber="5">
 
 ## Create the Content Structure
 
@@ -98,7 +111,7 @@ mkdir -p Content
 The DocSite package expects your content to be in the `Content` directory by default.
 </Step>
 
-<Step stepNumber="5">
+<Step stepNumber="6">
 
 ## Write Your First Documentation Page
 
@@ -123,7 +136,7 @@ This is the home page of our documentation site. You can write content using Mar
 ```
 </Step>
 
-<Step stepNumber="6">
+<Step stepNumber="7">
 
 ## Customize Your Site
 
@@ -157,7 +170,7 @@ builder.Services.AddDocSite(_ => new DocSiteOptions
 ```
 </Step>
 
-<Step stepNumber="7">
+<Step stepNumber="8">
 
 ## Add Custom Branding (Optional)
 
@@ -193,19 +206,6 @@ builder.Services.AddDocSite(_ => new DocSiteOptions
 ```
 </Step>
 
-<Step stepNumber="8">
-
-## Configure File Watching for Development
-
-Add the following to your `.csproj` file to enable hot reload during development:
-
-```xml
-<ItemGroup>
-    <Watch Include="Content\**\*.*"/>
-</ItemGroup>
-```
-</Step>
-
 <Step stepNumber="9">
 
 ## Test Your Documentation Site
@@ -221,6 +221,22 @@ Navigate to `https://localhost:5001` to see your documentation site in action!
 While the page is open, try editing the `Content/index.md` file. You should see the changes reflected immediately without needing to restart the server.
 </Step>
 </Steps>
+
+## What Success Looks Like
+
+After running `dotnet watch`, navigate to the URL shown in your terminal (typically `http://localhost:5131`).
+You'll see:
+
+- Your documentation home page rendered from `Content/index.md`
+- A sidebar navigation panel (starts empty but builds automatically as you add pages)
+- A clean documentation layout with a dark/light mode toggle
+
+Add a second page at `Content/getting-started.md` with a `title` in the front matter, save it, and watch the
+sidebar navigation update automatically — no configuration required.
+
+> [!NOTE]
+> You're reading documentation built with DocSite right now. The site you see here is generated from the same
+> package, giving you an immediate reference for what's possible.
 
 ## Available Configuration Options
 
