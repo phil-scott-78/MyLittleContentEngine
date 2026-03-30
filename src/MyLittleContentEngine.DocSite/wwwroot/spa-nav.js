@@ -18,8 +18,14 @@
 
     // Inject the skeleton shimmer keyframe once.
     const _s = document.createElement('style');
-    _s.textContent =
-        '@keyframes spa-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}';
+    _s.textContent = [
+        '@keyframes spa-shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}',
+        ':root{view-transition-name:none}',
+        'article{view-transition-name:article-content}',
+        '::view-transition-group(article-content){animation-duration:150ms}',
+        '@media(prefers-reduced-motion:reduce){' +
+            '::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none !important}}'
+    ].join('');
     document.head.appendChild(_s);
 
     // ---------------------------------------------------------------------------
@@ -192,7 +198,10 @@
         if (!link) return;
         const u = new URL(link.href);
         u.searchParams.set('_t', Date.now());
-        link.href = u.toString();
+        const next = link.cloneNode();
+        next.href = u.toString();
+        next.onload = () => link.remove();
+        link.after(next);
     }
 
     // ---------------------------------------------------------------------------
@@ -228,17 +237,29 @@
         pm.mermaidManager?.init();
     }
 
-    /** Commit data to the DOM and finish navigation. */
-    function commit(article, data, url, pushState, outlineEl) {
-        applyNavigationState(data, url, pushState);
-        article.innerHTML = buildArticleHtml(data);
-        reinitContentManagers();
-        rebuildOutline();
+    function scrollToTarget(url) {
         if (url.hash) {
             const t = document.querySelector(url.hash);
             if (t) { t.scrollIntoView(); return; }
         }
         window.scrollTo(0, 0);
+    }
+
+    /** Commit data to the DOM and finish navigation. */
+    function commit(article, data, url, pushState) {
+        const update = () => {
+            applyNavigationState(data, url, pushState);
+            article.innerHTML = buildArticleHtml(data);
+            reinitContentManagers();
+            rebuildOutline();
+            scrollToTarget(url);
+        };
+
+        if (document.startViewTransition) {
+            document.startViewTransition(update);
+        } else {
+            update();
+        }
     }
 
     async function navigate(url, pushState, hint) {
@@ -258,8 +279,10 @@
             .then(d  => { fetchDone = true; fetchData = d; })
             .catch(() => { fetchDone = true; fetchFail = true; });
 
-        // Race the fetch against a short threshold: fast/cached responses skip the skeleton.
-        const SKELETON_DELAY_MS = 40;
+        // Race the fetch against a threshold: fast/cached responses skip the skeleton entirely.
+        // Once a skeleton IS shown, hold it for MIN_SKELETON_MS to avoid a sub-frame flash.
+        const SKELETON_DELAY_MS = 100;
+        const MIN_SKELETON_MS  = 250;
         const outlineEl = document.querySelector('[data-role="page-outline"]');
         await Promise.race([dataPromise, delay(SKELETON_DELAY_MS)]);
 
@@ -267,35 +290,40 @@
 
         if (fetchDone) {
             // Fast path — data arrived before the threshold, commit immediately.
-            commit(article, fetchData, url, pushState, outlineEl);
+            commit(article, fetchData, url, pushState);
         } else {
             // Slow path — show skeleton with the page title while the fetch finishes.
             window.scrollTo(0, 0);
             const _ol = outlineEl?.querySelector('ul');
             if (_ol) _ol.innerHTML = '';
             article.innerHTML = buildSkeletonHtml(hint || '');
+            const skeletonShownAt = performance.now();
 
             await dataPromise;
 
             if (fetchFail) { window.location.href = url.href; _navigating = false; return; }
 
-            article.querySelector('[data-role="skeleton-body"]')?.remove();
+            // Hold the skeleton long enough to feel intentional, not like a flash.
+            const remaining = MIN_SKELETON_MS - (performance.now() - skeletonShownAt);
+            if (remaining > 0) await delay(remaining);
 
-            // Update title in case the hint differed from the real page title
-            const h1 = article.querySelector('h1');
-            if (h1) h1.textContent = fetchData.title;
+            const swapIn = () => {
+                article.querySelector('[data-role="skeleton-body"]')?.remove();
+                const h1 = article.querySelector('h1');
+                if (h1) h1.textContent = fetchData.title;
+                const tmp = document.createElement('div');
+                tmp.innerHTML = buildArticleBodyHtml(fetchData);
+                while (tmp.firstChild) article.appendChild(tmp.firstChild);
+                applyNavigationState(fetchData, url, pushState);
+                reinitContentManagers();
+                rebuildOutline();
+                scrollToTarget(url);
+            };
 
-            const tmp = document.createElement('div');
-            tmp.innerHTML = buildArticleBodyHtml(fetchData);
-            while (tmp.firstChild) article.appendChild(tmp.firstChild);
-
-            applyNavigationState(fetchData, url, pushState);
-            reinitContentManagers();
-            rebuildOutline();
-
-            if (url.hash) {
-                const t = document.querySelector(url.hash);
-                if (t) { t.scrollIntoView(); _navigating = false; return; }
+            if (document.startViewTransition) {
+                document.startViewTransition(swapIn);
+            } else {
+                swapIn();
             }
         }
 
