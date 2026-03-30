@@ -36,6 +36,31 @@ class PageManager {
         this.sidebarToggleManager.init();
         this.searchManager.init();
     }
+
+    onSpaNavigating() {
+        const outlineUl = document.querySelector('[data-role="page-outline"] ul');
+        if (outlineUl) outlineUl.innerHTML = '';
+    }
+
+    onSpaCommit(url) {
+        this.syntaxHighlighter?.init();
+        this.tabManager?.init();
+        this.mermaidManager?.init();
+        this.outlineManager?.init();
+        this.updateActiveNavLink(url.pathname);
+    }
+
+    updateActiveNavLink(pathname) {
+        document.querySelectorAll('[data-current="true"]')
+            .forEach(el => el.setAttribute('data-current', 'false'));
+        const norm = pathname.replace(/\/$/, '') || '/';
+        for (const a of document.querySelectorAll('nav a[href]')) {
+            if ((a.getAttribute('href') || '').replace(/\/$/, '') === norm) {
+                a.setAttribute('data-current', 'true');
+                break;
+            }
+        }
+    }
 }
 
 /**
@@ -90,15 +115,27 @@ class OutlineManager {
         this.sections = [];
         this.isScrolling = false;
         this.scrollTimeout = null;
+        this._scrollAbort = null;
     }
 
     init() {
+        this.reset();
         this.setupOutline();
         if (this.outlineLinks.length > 0) {
             this.setupScrollListener();
             // Initial highlight
             this.updateActiveSection();
         }
+    }
+
+    reset() {
+        if (this._scrollAbort) {
+            this._scrollAbort.abort();
+            this._scrollAbort = null;
+        }
+        this.sectionMap = new Map();
+        this.sections = [];
+        this.outlineLinks = [];
     }
 
     setupOutline() {
@@ -137,10 +174,7 @@ class OutlineManager {
 
     buildOutlineFromContent(contentSelector, outlineContainer) {
         const contentElement = document.querySelector(contentSelector);
-        if (!contentElement) {
-            console.warn(`Content selector "${contentSelector}" not found`);
-            return;
-        }
+        if (!contentElement) return;
 
         // Extract H2 and H3 headings
         const headings = this.extractHeadings(contentElement);
@@ -262,7 +296,7 @@ class OutlineManager {
     }
 
     setupScrollListener() {
-        // Use passive listener for better performance
+        this._scrollAbort = new AbortController();
         window.addEventListener('scroll', () => {
             if (!this.isScrolling) {
                 this.isScrolling = true;
@@ -271,7 +305,7 @@ class OutlineManager {
                     this.isScrolling = false;
                 });
             }
-        }, { passive: true });
+        }, { passive: true, signal: this._scrollAbort.signal });
     }
 
     updateActiveSection() {
@@ -458,6 +492,7 @@ class MermaidManager {
     }
 
     async init() {
+        this.renderedDiagrams = [];
         this.diagrams = this.findMermaidDiagrams();
         if (this.diagrams.length === 0) return;
 
@@ -1502,4 +1537,12 @@ const pageManager = new PageManager();
 
 // Make pageManager globally accessible
 window.pageManager = pageManager;
+
+// SPA lifecycle integration (no-op if spa-engine.js is not loaded)
+document.addEventListener('spa:before-navigate', () => {
+    window.pageManager?.onSpaNavigating();
+});
+document.addEventListener('spa:commit', (e) => {
+    window.pageManager?.onSpaCommit(e.detail.url);
+});
 

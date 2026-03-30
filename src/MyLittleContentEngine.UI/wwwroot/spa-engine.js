@@ -90,6 +90,18 @@
         document.startViewTransition ? document.startViewTransition(fn) : fn();
     }
 
+    function reloadDevStylesheet() {
+        if (location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') return;
+        const link = document.querySelector('link[rel="stylesheet"]');
+        if (!link) return;
+        const u = new URL(link.href);
+        u.searchParams.set('_t', Date.now());
+        const next = link.cloneNode();
+        next.href = u.toString();
+        next.onload = () => link.remove();
+        link.after(next);
+    }
+
     // -----------------------------------------------------------------------
     // Island management
     // -----------------------------------------------------------------------
@@ -160,14 +172,17 @@
             ? `${SITE_TITLE} - ${data.title}`
             : SITE_TITLE;
 
-        if (data.description != null) {
-            const update = (sel) => {
-                const el = document.querySelector(sel);
-                if (el) el.setAttribute('content', data.description);
-            };
-            update('meta[name="description"]');
-            update('meta[property="og:description"]');
-        }
+        const setMeta = (sel, val) => {
+            const el = document.querySelector(sel);
+            if (!el) return;
+            val ? el.setAttribute('content', val) : el.removeAttribute('content');
+        };
+
+        setMeta('meta[name="description"]', data.description);
+        setMeta('meta[property="og:description"]', data.description);
+        setMeta('meta[property="og:title"]', data.title);
+        setMeta('meta[name="twitter:title"]', data.title);
+        setMeta('meta[name="twitter:description"]', data.description);
     }
 
     function scrollToTarget(url) {
@@ -224,6 +239,7 @@
             commitIslands(islands, data);
             fire('spa:commit', { url, slug, data });
             scrollToTarget(url);
+            reloadDevStylesheet();
         };
 
         if (fetchDone && fetchData) {

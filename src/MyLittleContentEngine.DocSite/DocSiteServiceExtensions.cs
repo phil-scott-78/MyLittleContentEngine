@@ -113,8 +113,7 @@ public static class DocSiteServiceExtensions
                         }
                     ]
                 },
-                ExtraStyles = options.ExtraStyles ?? string.Empty,
-                ContentPaths = ["_content/MyLittleContentEngine.DocSite/spa-init.js"]
+                ExtraStyles = options.ExtraStyles ?? string.Empty
             };
         });
 
