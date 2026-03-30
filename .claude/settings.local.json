@@ -15,6 +15,5 @@
       "WebSearch"
     ]
   },
-  "model": "sonnet",
   "enableAllProjectMcpServers": false
 }
