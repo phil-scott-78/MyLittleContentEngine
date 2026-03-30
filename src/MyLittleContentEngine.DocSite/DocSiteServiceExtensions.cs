@@ -1,14 +1,13 @@
 using System.Collections.Immutable;
 using Mdazor;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using MonorailCss.Parser.Custom;
 using MyLittleContentEngine.DocSite.Components;
-using MyLittleContentEngine.DocSite.Services;
+using MyLittleContentEngine.DocSite.Slots;
 using MyLittleContentEngine.MonorailCss;
-using MyLittleContentEngine.Services.Content;
 using MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
+using MyLittleContentEngine.Services.Spa;
 using MyLittleContentEngine.UI.Components;
 
 namespace MyLittleContentEngine.DocSite;
@@ -115,7 +114,7 @@ public static class DocSiteServiceExtensions
                     ]
                 },
                 ExtraStyles = options.ExtraStyles ?? string.Empty,
-                ContentPaths = ["_content/MyLittleContentEngine.DocSite/spa-nav.js"]
+                ContentPaths = ["_content/MyLittleContentEngine.DocSite/spa-init.js"]
             };
         });
 
@@ -149,10 +148,11 @@ public static class DocSiteServiceExtensions
             });
         }
 
-        // Register page data services for SPA navigation
-        services.AddTransient<PageDataService>();
-        services.AddTransient<PageDataContentService>();
-        services.AddTransient<IContentService>(provider => provider.GetRequiredService<PageDataContentService>());
+        // Register SPA slot navigation
+        contentEngineService.WithSpaNavigation<DocSiteFrontMatter>(spa =>
+        {
+            spa.AddIsland<DocSiteArticleSlotRenderer>();
+        });
 
         return services;
     }
@@ -172,21 +172,7 @@ public static class DocSiteServiceExtensions
             .AddAdditionalAssemblies(options.AdditionalRoutingAssemblies);
 
         app.UseMonorailCss();
-
-        app.MapGet("/_page-data/{*slug}", async (string? slug, PageDataService pageDataService) =>
-        {
-            if (string.IsNullOrEmpty(slug))
-                return Results.NotFound();
-
-            if (slug.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
-                slug = slug[..^5];
-
-            var pageData = await pageDataService.GetPageDataAsync(slug);
-            if (pageData == null)
-                return Results.NotFound();
-
-            return Results.Content(PageDataService.Serialize(pageData), "application/json");
-        });
+        app.UseSpaNavigation();
 
         return app;
     }

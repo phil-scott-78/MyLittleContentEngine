@@ -1,0 +1,58 @@
+@page "/{*fileName:nonfile}"
+
+@using MyLittleContentEngine.Models
+@using MyLittleContentEngine.Services.Content
+@using MyLittleContentEngine
+@using Microsoft.AspNetCore.Components.Sections
+@using SpaNavigationExample.Slots.Components
+@inject ContentEngineOptions ContentEngineOptions
+@inject IMarkdownContentService<RecipeFrontMatter> MarkdownContentService
+
+@if (_post is not null && _postContent is not null)
+{
+    <PageTitle>@ContentEngineOptions.SiteTitle - @_post.FrontMatter.Title</PageTitle>
+    <HeadContent>
+        @if (!string.IsNullOrWhiteSpace(_post.FrontMatter.Description))
+        {
+            <meta name="description" content="@_post.FrontMatter.Description" />
+            <meta property="og:description" content="@_post.FrontMatter.Description" />
+        }
+    </HeadContent>
+
+    <RecipeContent Title="@_post.FrontMatter.Title" HtmlContent="@_postContent" />
+
+    @if (_post.FrontMatter.PrepTime > 0 || _post.FrontMatter.CookTime > 0)
+    {
+        <SectionContent SectionName="recipe-info">
+            <RecipeInfoCard PrepTime="@_post.FrontMatter.PrepTime"
+                            CookTime="@_post.FrontMatter.CookTime"
+                            Servings="@_post.FrontMatter.Servings"
+                            Difficulty="@_post.FrontMatter.Difficulty"
+                            Tags="@_post.FrontMatter.Tags" />
+        </SectionContent>
+    }
+}
+else
+{
+    <PageTitle>@ContentEngineOptions.SiteTitle</PageTitle>
+    <div class="flex justify-center items-center h-64">
+        <p class="text-neutral-500">Page not found</p>
+    </div>
+}
+
+@code {
+    private MarkdownContentPage<RecipeFrontMatter>? _post;
+    private string? _postContent;
+
+    [Parameter] public required string FileName { get; init; } = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var fileName = string.IsNullOrWhiteSpace(FileName) ? "index" : FileName;
+        var page = await MarkdownContentService.GetRenderedContentPageByUrlOrDefault(fileName);
+        if (page is null) return;
+
+        _post = page.Value.Page;
+        _postContent = page.Value.HtmlContent;
+    }
+}

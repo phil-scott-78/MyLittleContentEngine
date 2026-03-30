@@ -32,6 +32,7 @@
     <Project Path="examples/SearchExample/SearchExample.csproj" />
     <Project Path="examples/Spectre.Console.Examples/Spectre.Console.Examples.csproj" />
     <Project Path="examples/Spectre.Console/Spectre.Console.csproj" />
+    <Project Path="examples/SpaNavigationExample/SpaNavigationExample.csproj" />
     <Project Path="examples/UserInterfaceExample/UserInterfaceExample.csproj" />
   </Folder>
   <Folder Name="/src/">
