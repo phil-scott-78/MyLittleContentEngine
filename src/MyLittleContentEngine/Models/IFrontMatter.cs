@@ -25,6 +25,9 @@ public interface IFrontMatter
     /// </summary>
     string? Uid { get; init; }
 
+    /// <summary>
+    /// If set, this page redirects to the specified URL instead of rendering content.
+    /// </summary>
     string? RedirectUrl { get; init; }
 
     /// <summary>

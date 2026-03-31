@@ -8,6 +8,9 @@ namespace MyLittleContentEngine.Services.Content.MarkdigExtensions;
 
 // copied and pasted from https://raw.githubusercontent.com/xoofx/markdig/refs/heads/main/src/Markdig/Extensions/Alerts/AlertInlineParser.cs
 
+/// <summary>
+/// Parses GitHub-style alert blocks (e.g. [!NOTE]) within Markdown quote blocks.
+/// </summary>
 public class AlertInlineParser : InlineParser
 {
     /// <summary>

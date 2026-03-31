@@ -8,8 +8,17 @@ using MyLittleContentEngine.Services.Infrastructure;
 
 namespace MyLittleContentEngine.MonorailCss;
 
+/// <summary>
+/// Extension methods for registering and configuring MonorailCSS services.
+/// </summary>
 public static partial class MonorailServiceExtensions
 {
+    /// <summary>
+    /// Registers MonorailCSS services including the CSS class collector and stylesheet generator.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="optionFactory">Optional factory for configuring MonorailCSS options.</param>
+    /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddMonorailCss(this IServiceCollection services,
         Func<IServiceProvider, MonorailCssOptions>? optionFactory = null)
     {
@@ -29,6 +38,12 @@ public static partial class MonorailServiceExtensions
         return services;
     }
 
+    /// <summary>
+    /// Maps the MonorailCSS stylesheet endpoint and scans configured content files for CSS classes.
+    /// </summary>
+    /// <param name="app">The web application.</param>
+    /// <param name="path">The URL path for the stylesheet endpoint. Defaults to "/styles.css".</param>
+    /// <returns>The web application for chaining.</returns>
     public static WebApplication UseMonorailCss(this WebApplication app, string path = "/styles.css")
     {
         // Ensure the MonorailCssService is available

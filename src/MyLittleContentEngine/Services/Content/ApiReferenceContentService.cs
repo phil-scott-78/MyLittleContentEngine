@@ -25,6 +25,14 @@ public class ApiReferenceContentService : IContentService, IDisposable
     private readonly AsyncLazy<ApiReferenceData> _apiDataCache;
     private bool _disposed;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ApiReferenceContentService"/> class.
+    /// </summary>
+    /// <param name="options">API reference content options.</param>
+    /// <param name="symbolService">Symbol extraction service.</param>
+    /// <param name="workspaceService">Solution workspace service.</param>
+    /// <param name="codeAnalysisOptions">Code analysis configuration.</param>
+    /// <param name="logger">Logger instance.</param>
     public ApiReferenceContentService(
         ApiReferenceContentOptions options,
         ISymbolExtractionService symbolService,
@@ -1166,6 +1174,10 @@ public class ApiReferenceContentService : IContentService, IDisposable
             .Replace("{TypeName}", type.Name);
     }
 
+    /// <summary>
+    /// Releases managed resources.
+    /// </summary>
+    /// <param name="disposing">Whether managed resources should be disposed.</param>
     protected virtual void Dispose(bool disposing)
     {
         if (!_disposed)
@@ -1179,6 +1191,7 @@ public class ApiReferenceContentService : IContentService, IDisposable
         }
     }
 
+    /// <inheritdoc />
     public void Dispose()
     {
         Dispose(disposing: true);

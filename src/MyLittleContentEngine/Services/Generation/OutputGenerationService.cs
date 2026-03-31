@@ -16,7 +16,8 @@ namespace MyLittleContentEngine.Services.Generation;
 ///     This enables server-side rendered Blazor applications to be deployed as static websites.
 /// </summary>
 /// <param name="environment">The web hosting environment providing access to web root files</param>
-/// <param name="contentServiceCollection">Collection of content services picroviding pages to generate and content to copy</param>
+/// <param name="contentServiceCollection">Collection of content services providing pages to generate and content to copy</param>
+/// <param name="fileSystem">File system abstraction for I/O operations.</param>
 /// <param name="routeHelper">Service for discovering configured ASP.NET routes.</param>
 /// <param name="options">Configuration options for the static generation process</param>
 /// <param name="outputOptions">Output configuration options including folder path</param>

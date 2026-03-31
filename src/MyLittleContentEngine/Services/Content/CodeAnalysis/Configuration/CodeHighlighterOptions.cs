@@ -12,7 +12,9 @@ namespace MyLittleContentEngine.Services.Content.CodeAnalysis.Configuration;
 /// </remarks>
 public record CodeHighlighterOptions
 {
+    /// <summary>Factory for creating code highlight render options.</summary>
     public Func<CodeHighlightRenderOptions> CodeHighlightRenderOptionsFactory { get; init; } = () => CodeHighlightRenderOptions.Default;
-    public Func<TabbedCodeBlockRenderOptions> TabbedCodeBlockRenderOptionsFactory { get; init; } = () => TabbedCodeBlockRenderOptions.Default;
 
+    /// <summary>Factory for creating tabbed code block render options.</summary>
+    public Func<TabbedCodeBlockRenderOptions> TabbedCodeBlockRenderOptionsFactory { get; init; } = () => TabbedCodeBlockRenderOptions.Default;
 }

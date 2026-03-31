@@ -2,6 +2,9 @@ using System.Collections.Immutable;
 
 namespace MyLittleContentEngine.MonorailCss;
 
+/// <summary>
+/// Generates OKLCH color palettes from hue values for use with MonorailCSS themes.
+/// </summary>
 public static class ColorPaletteGenerator
 {
     // Chroma values following Gaussian distribution (peaks at 500-600 range)

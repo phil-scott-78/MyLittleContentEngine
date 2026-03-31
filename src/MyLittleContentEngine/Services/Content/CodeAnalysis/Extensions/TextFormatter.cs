@@ -5,6 +5,11 @@ namespace MyLittleContentEngine.Services.Content.CodeAnalysis.Extensions;
 /// </summary>
 public static class TextFormatter
 {
+    /// <summary>
+    /// Removes common leading whitespace from all lines in the code block.
+    /// </summary>
+    /// <param name="code">The code text to normalize.</param>
+    /// <returns>The code with common indentation removed.</returns>
     public static string NormalizeIndents(string code)
     {
         if (string.IsNullOrWhiteSpace(code))

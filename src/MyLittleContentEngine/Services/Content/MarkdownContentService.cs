@@ -6,6 +6,10 @@ using MyLittleContentEngine.Services.Content.TableOfContents;
 
 namespace MyLittleContentEngine.Services.Content;
 
+/// <summary>
+/// Content service for managing markdown-based content with typed front matter.
+/// </summary>
+/// <typeparam name="TFrontMatter">The front matter type. Must implement <see cref="IFrontMatter"/>.</typeparam>
 public interface IMarkdownContentService<TFrontMatter> : IContentService where TFrontMatter : class, IFrontMatter, new()
 {
     /// <summary>
@@ -22,6 +26,11 @@ public interface IMarkdownContentService<TFrontMatter> : IContentService where T
     /// <returns>An immutable list containing all parsed and processed content pages.</returns>
     Task<ImmutableList<MarkdownContentPage<TFrontMatter>>> GetAllContentPagesAsync();
 
+    /// <summary>
+    /// Gets a tag and its associated content pages by encoded name, or null if not found.
+    /// </summary>
+    /// <param name="encodedName">The URL-encoded tag name.</param>
+    /// <returns>The tag and its content pages, or null if the tag does not exist.</returns>
     Task<(Tag Tag, ImmutableList<MarkdownContentPage<TFrontMatter>> ContentPages)?> GetTagByEncodedNameOrDefault(
         string encodedName);
 }

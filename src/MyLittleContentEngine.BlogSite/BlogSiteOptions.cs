@@ -149,10 +149,23 @@ public record BlogSiteOptions
     public Action<TextMateLanguageRegistry>? ConfigureTextMate { get; init; }
 }
 
+/// <summary>A social media link with an icon and URL.</summary>
+/// <param name="Icon">The icon render fragment.</param>
+/// <param name="Url">The social media profile URL.</param>
 public record SocialLink(RenderFragment Icon, string Url);
 
+/// <summary>A navigation header link.</summary>
+/// <param name="Title">The link display text.</param>
+/// <param name="Url">The link URL.</param>
 public record HeaderLink(string Title, string Url);
 
+/// <summary>A featured project entry.</summary>
+/// <param name="Title">The project name.</param>
+/// <param name="Description">A brief project description.</param>
+/// <param name="Url">The project URL.</param>
 public record Project(string Title, string Description, string Url);
 
+/// <summary>Hero section content for the home page.</summary>
+/// <param name="Title">The hero heading text.</param>
+/// <param name="Description">The hero description text.</param>
 public record HeroContent(string Title, string Description);

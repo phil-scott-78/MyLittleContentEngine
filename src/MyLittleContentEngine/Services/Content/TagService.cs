@@ -146,7 +146,7 @@ public class TagService<TFrontMatter>
     /// <param name="posts">The collection of posts to search for the tag.</param>
     /// <param name="encodedTagName">The encoded tag name to find.</param>
     /// <returns>The tag if found, otherwise null.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when <see cref="posts" /> is null or encodedTagName is null or empty.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when <paramref name="posts"/> is null or encodedTagName is null or empty.</exception>
     internal Tag? FindTagByEncodedName(IEnumerable<MarkdownContentPage<TFrontMatter>> posts, string encodedTagName)
     {
         ArgumentException.ThrowIfNullOrEmpty(encodedTagName);

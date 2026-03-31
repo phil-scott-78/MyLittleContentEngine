@@ -37,6 +37,11 @@ public class XrefResolver : IXrefResolver, IDisposable
     private readonly AsyncLazy<ImmutableDictionary<string, CrossReference>> _crossReferencesCache;
     private bool _disposed;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="XrefResolver"/> class.
+    /// </summary>
+    /// <param name="serviceProvider">Service provider for resolving content services.</param>
+    /// <param name="logger">Logger instance.</param>
     public XrefResolver(
         IServiceProvider serviceProvider,
         ILogger<XrefResolver> logger)
@@ -152,6 +157,7 @@ public class XrefResolver : IXrefResolver, IDisposable
         }
     }
 
+    /// <inheritdoc />
     public void Dispose()
     {
         if (_disposed) return;

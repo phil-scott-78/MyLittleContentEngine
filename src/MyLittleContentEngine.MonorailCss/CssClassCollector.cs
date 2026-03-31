@@ -5,6 +5,9 @@ using MyLittleContentEngine.MonorailCss;
 
 namespace MyLittleContentEngine.MonorailCss;
 
+/// <summary>
+/// Thread-safe collector for CSS class names discovered during request processing.
+/// </summary>
 public class CssClassCollector
 {
     // At one point we were using MetaDataUpdateHandler, but it was causing issues with the
@@ -33,6 +36,7 @@ public class CssClassCollector
     internal static void ClearCache(Type[]? _) => OnUpdate();
     internal static void UpdateContent(string assemblyName, bool isApplicationProject, string relativePath, byte[] contents) => OnUpdate();
 
+    /// <summary>Registers CSS class names for the given URL.</summary>
     public void AddClasses(string url, IEnumerable<string> classes)
     {
         // This is called from within middleware processing, so we're already holding the write lock
@@ -42,16 +46,19 @@ public class CssClassCollector
         }
     }
 
+    /// <summary>Acquires the write lock for adding classes.</summary>
     public void BeginProcessing()
     {
         ProcessingLock.EnterWriteLock();
     }
 
+    /// <summary>Releases the write lock.</summary>
     public void EndProcessing()
     {
         ProcessingLock.ExitWriteLock();
     }
 
+    /// <summary>Returns a snapshot of all collected CSS class names.</summary>
     public IReadOnlyCollection<string> GetClasses()
     {
         ProcessingLock.EnterReadLock();
@@ -65,6 +72,7 @@ public class CssClassCollector
         }
     }
 
+    /// <summary>Returns whether CSS classes should be collected for the given URL.</summary>
     // Much like the other timing issue, at one point we were using this to determine if we should process the URL
     // then clearing it out on a hot reload. But the timing was off. For now, we'll always just return true.
     public bool ShouldProcess(string url) => true;

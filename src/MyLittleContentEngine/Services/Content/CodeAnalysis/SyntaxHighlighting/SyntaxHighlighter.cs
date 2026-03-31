@@ -6,9 +6,15 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace MyLittleContentEngine.Services.Content.CodeAnalysis.SyntaxHighlighting;
 
+/// <summary>
+/// Supported programming languages for Roslyn-based syntax highlighting.
+/// </summary>
 public enum Language
 {
+    /// <summary>C# language.</summary>
     CSharp,
+
+    /// <summary>Visual Basic language.</summary>
     VisualBasic,
 }
 

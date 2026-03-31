@@ -35,6 +35,11 @@ public partial class BaseUrlRewritingProcessor : IResponseProcessor
         { "form", ["action"] }
     };
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="BaseUrlRewritingProcessor"/> class.
+    /// </summary>
+    /// <param name="outputOptions">Output options containing the base URL configuration.</param>
+    /// <param name="xrefResolver">Cross-reference resolver for xref: URLs.</param>
     public BaseUrlRewritingProcessor(OutputOptions? outputOptions, IXrefResolver xrefResolver)
     {
         _xrefResolver = xrefResolver;

@@ -10,6 +10,9 @@ namespace MyLittleContentEngine.Services.Infrastructure;
 /// </summary>
 public class ResponseProcessingMiddleware(RequestDelegate next)
 {
+    /// <summary>
+    /// Captures the response body and runs all registered processors in order.
+    /// </summary>
     public async Task InvokeAsync(HttpContext context, IEnumerable<IResponseProcessor> processors)
     {
         var originalBodyStream = context.Response.Body;

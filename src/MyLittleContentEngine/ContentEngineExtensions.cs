@@ -23,35 +23,54 @@ using Testably.Abstractions;
 
 namespace MyLittleContentEngine;
 
+/// <summary>
+/// Marker interface for a service collection that has been configured with content engine services.
+/// </summary>
 public interface IConfiguredContentEngineServiceCollection : IServiceCollection;
+
+/// <summary>
+/// Wraps an <see cref="IServiceCollection"/> to indicate content engine services have been registered.
+/// </summary>
 public class ConfiguredContentEngineServiceCollection(
     IServiceCollection configuredContentEngineServiceCollectionImplementation)
     : IConfiguredContentEngineServiceCollection
 {
+    /// <inheritdoc />
     public IEnumerator<ServiceDescriptor> GetEnumerator() => configuredContentEngineServiceCollectionImplementation.GetEnumerator();
 
     IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable)configuredContentEngineServiceCollectionImplementation).GetEnumerator();
 
+    /// <inheritdoc />
     public void Add(ServiceDescriptor item) => configuredContentEngineServiceCollectionImplementation.Add(item);
 
+    /// <inheritdoc />
     public void Clear() => configuredContentEngineServiceCollectionImplementation.Clear();
 
+    /// <inheritdoc />
     public bool Contains(ServiceDescriptor item) => configuredContentEngineServiceCollectionImplementation.Contains(item);
 
+    /// <inheritdoc />
     public void CopyTo(ServiceDescriptor[] array, int arrayIndex) => configuredContentEngineServiceCollectionImplementation.CopyTo(array, arrayIndex);
 
+    /// <inheritdoc />
     public bool Remove(ServiceDescriptor item) => configuredContentEngineServiceCollectionImplementation.Remove(item);
 
+    /// <inheritdoc />
     public int Count => configuredContentEngineServiceCollectionImplementation.Count;
 
+    /// <inheritdoc />
     public bool IsReadOnly => configuredContentEngineServiceCollectionImplementation.IsReadOnly;
 
+    /// <inheritdoc />
     public int IndexOf(ServiceDescriptor item) => configuredContentEngineServiceCollectionImplementation.IndexOf(item);
 
+    /// <inheritdoc />
     public void Insert(int index, ServiceDescriptor item) => configuredContentEngineServiceCollectionImplementation.Insert(index, item);
 
+    /// <inheritdoc />
     public void RemoveAt(int index) => configuredContentEngineServiceCollectionImplementation.RemoveAt(index);
 
+    /// <inheritdoc />
     public ServiceDescriptor this[int index]
     {
         get => configuredContentEngineServiceCollectionImplementation[index];

@@ -9,6 +9,9 @@ using MyLittleContentEngine.Services.Infrastructure;
 
 namespace MyLittleContentEngine.Services.Infrastructure;
 
+/// <summary>
+/// Monitors file system changes and notifies subscribers when content files are modified.
+/// </summary>
 public interface IContentEngineFileWatcher
 {
     /// <summary>
@@ -147,6 +150,7 @@ public sealed class ContentEngineFileWatcher : IDisposable, IContentEngineFileWa
         }
     }
 
+    /// <inheritdoc />
     public void SubscribeToChanges(Action onUpdate)
     {
         UpdateActions.Add(onUpdate);

@@ -77,6 +77,7 @@ public class AlgorithmicColorScheme : IColorScheme
     public Func<int, (int, int, int)> ColorSchemeGenerator { get; init; } =
         primary => (primary + 180, primary + 90, primary - 90);
 
+    /// <inheritdoc />
     public Theme ApplyToTheme(Theme theme)
     {
         var primary = ColorPaletteGenerator.GenerateFromHue(PrimaryHue);
@@ -123,6 +124,7 @@ public class NamedColorScheme : IColorScheme
     /// </summary>
     public required string BaseColorName { get; init; }
 
+    /// <inheritdoc />
     public Theme ApplyToTheme(Theme theme)
     {
         return theme.MapColorPalette(PrimaryColorName, "primary")
@@ -133,8 +135,16 @@ public class NamedColorScheme : IColorScheme
     }
 }
 
+/// <summary>
+/// Generates CSS stylesheets using MonorailCSS with collected utility classes.
+/// </summary>
+/// <param name="options">MonorailCSS configuration options.</param>
+/// <param name="cssClassCollector">Collector containing discovered CSS class names.</param>
 public class MonorailCssService(MonorailCssOptions options, CssClassCollector cssClassCollector)
 {
+    /// <summary>
+    /// Processes collected CSS classes and returns the generated stylesheet.
+    /// </summary>
     public string GetStyleSheet()
     {
         // we are only scanning razor files, not the generated files. if you use

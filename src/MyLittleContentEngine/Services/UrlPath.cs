@@ -264,16 +264,22 @@ public readonly struct UrlPath : IEquatable<UrlPath>
         return path;
     }
 
+    /// <inheritdoc />
     public override string ToString() => Value;
 
+    /// <inheritdoc />
     public override bool Equals(object? obj) => obj is UrlPath other && Equals(other);
 
+    /// <inheritdoc />
     public bool Equals(UrlPath other) => string.Equals(_value, other._value, StringComparison.Ordinal);
 
+    /// <inheritdoc />
     public override int GetHashCode() => _value?.GetHashCode() ?? 0;
 
+    /// <summary>Determines whether two <see cref="UrlPath"/> values are equal.</summary>
     public static bool operator ==(UrlPath left, UrlPath right) => left.Equals(right);
 
+    /// <summary>Determines whether two <see cref="UrlPath"/> values are not equal.</summary>
     public static bool operator !=(UrlPath left, UrlPath right) => !left.Equals(right);
 
     /// <summary>

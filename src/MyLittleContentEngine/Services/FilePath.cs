@@ -92,10 +92,13 @@ public readonly struct FilePath : IEquatable<FilePath>
         return path;
     }
 
+    /// <inheritdoc />
     public override string ToString() => Value;
 
+    /// <inheritdoc />
     public override bool Equals(object? obj) => obj is FilePath other && Equals(other);
 
+    /// <inheritdoc />
     public bool Equals(FilePath other)
     {
         // Use case-insensitive comparison on Windows, case-sensitive on Unix
@@ -106,6 +109,7 @@ public readonly struct FilePath : IEquatable<FilePath>
         return string.Equals(_value, other._value, comparison);
     }
 
+    /// <inheritdoc />
     public override int GetHashCode()
     {
         if (_value == null) return 0;
@@ -117,8 +121,10 @@ public readonly struct FilePath : IEquatable<FilePath>
         return comparison.GetHashCode(_value);
     }
 
+    /// <summary>Determines whether two <see cref="FilePath"/> values are equal.</summary>
     public static bool operator ==(FilePath left, FilePath right) => left.Equals(right);
 
+    /// <summary>Determines whether two <see cref="FilePath"/> values are not equal.</summary>
     public static bool operator !=(FilePath left, FilePath right) => !left.Equals(right);
 
     /// <summary>
