@@ -984,13 +984,6 @@ class SidebarToggleManager {
             }
         });
         
-        // Stop propagation on panel to prevent closing when clicking inside
-        if (this.sidebarPanel) {
-            this.sidebarPanel.addEventListener('click', (e) => {
-                e.stopPropagation();
-            });
-        }
-        
         // Close sidebar on escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this.isSidebarOpen()) {
