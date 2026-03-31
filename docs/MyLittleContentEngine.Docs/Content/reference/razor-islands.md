@@ -28,10 +28,9 @@ app.UseSpaNavigation();
 
 | Service | Lifetime | Purpose |
 |---------|----------|---------|
-| `SpaPageDataService` | Transient | Orchestrates metadata + island renderers into a `SpaPageEnvelope` |
-| `MarkdownSpaMetadataProvider<T>` | Transient | Extracts title/description from front matter |
+| `SpaPageDataService` | Transient | Resolves metadata from `PageToGenerate.Metadata` across all content services and orchestrates island renderers into a `SpaPageEnvelope` |
 | `ComponentRenderer` | Scoped | Wraps Blazor's `HtmlRenderer` for Razor-based renderers |
-| `SpaNavigationContentService<T>` | Transient | `IContentService` that generates `_spa-data/*.json` during static builds |
+| `SpaNavigationContentService` | Transient | `IContentService` that generates `_spa-data/*.json` for all registered content services during static builds |
 
 `UseSpaNavigation()` maps the endpoint that serves the JSON envelope for each page.
 
@@ -74,20 +73,12 @@ parameters keyed by `nameof(Component.Property)`.
 > Components rendered via `RazorIslandRenderer` support `@inject` for DI services but cannot use
 > JavaScript interop, `NavigationManager`, or other browser-dependent APIs.
 
-## ISpaPageMetadataProvider
+## Page Metadata
 
-Provides the `title` and `description` fields for the JSON envelope. The built-in
-`MarkdownSpaMetadataProvider<T>` reads these from front matter. Implement your own for non-markdown
-content sources.
-
-```csharp
-public interface ISpaPageMetadataProvider
-{
-    Task<SpaPageMetadata?> GetMetadataAsync(string url);
-}
-
-public record SpaPageMetadata(string Title, string? Description);
-```
+The `title` and `description` fields in the JSON envelope are resolved automatically from
+`PageToGenerate.Metadata` across all registered `IContentService` instances. Any content service
+that populates `Metadata.Title` on its pages will participate in SPA navigation — no additional
+registration is needed.
 
 ## SpaPageEnvelope
 

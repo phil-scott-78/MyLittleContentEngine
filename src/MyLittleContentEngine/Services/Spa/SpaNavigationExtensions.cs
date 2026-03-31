@@ -39,9 +39,10 @@ public class SpaNavigationBuilder(IServiceCollection services)
 public static class SpaNavigationExtensions
 {
     /// <summary>
-    /// Adds SPA navigation services with a metadata provider and page data endpoint.
+    /// Adds SPA navigation services with page data endpoints.
+    /// JSON routes are generated for all registered <see cref="IContentService"/> instances,
+    /// and metadata is resolved from <see cref="PageToGenerate.Metadata"/>.
     /// Register slot renderers via the <paramref name="configure"/> callback.
-    /// Call this after <see cref="ContentEngineExtensions.WithMarkdownContentService{TFrontMatter}"/>.
     /// </summary>
     /// <typeparam name="TFrontMatter">The front matter type used by the markdown content service.</typeparam>
     /// <param name="services">The configured content engine service collection.</param>
@@ -51,6 +52,31 @@ public static class SpaNavigationExtensions
         this IConfiguredContentEngineServiceCollection services,
         Action<SpaNavigationBuilder>? configure = null)
         where TFrontMatter : class, IFrontMatter, new()
+    {
+        RegisterCoreServices(services, configure);
+        return services;
+    }
+
+    /// <summary>
+    /// Adds SPA navigation services with page data endpoints.
+    /// JSON routes are generated for all registered <see cref="IContentService"/> instances,
+    /// and metadata is resolved from <see cref="PageToGenerate.Metadata"/>.
+    /// Register slot renderers via the <paramref name="configure"/> callback.
+    /// </summary>
+    /// <param name="services">The configured content engine service collection.</param>
+    /// <param name="configure">Optional builder action to add custom slot renderers or change the data path.</param>
+    /// <returns>The service collection for further chaining.</returns>
+    public static IConfiguredContentEngineServiceCollection WithSpaNavigation(
+        this IConfiguredContentEngineServiceCollection services,
+        Action<SpaNavigationBuilder>? configure = null)
+    {
+        RegisterCoreServices(services, configure);
+        return services;
+    }
+
+    private static void RegisterCoreServices(
+        IConfiguredContentEngineServiceCollection services,
+        Action<SpaNavigationBuilder>? configure)
     {
         // Register options (if not already set by the builder).
         if (services.All(d => d.ServiceType != typeof(SpaNavigationOptions)))
@@ -62,21 +88,11 @@ public static class SpaNavigationExtensions
         // Core orchestrator.
         services.AddTransient<SpaPageDataService>();
 
-        // Metadata provider.
-        services.AddTransient<ISpaPageMetadataProvider, MarkdownSpaMetadataProvider<TFrontMatter>>();
-
         // Content service for static generation of _spa-data/*.json files.
-        services.AddTransient<IContentService>(provider =>
-        {
-            var markdownService = provider.GetRequiredService<IMarkdownContentService<TFrontMatter>>();
-            var options = provider.GetRequiredService<SpaNavigationOptions>();
-            return new SpaNavigationContentService<TFrontMatter>(markdownService, options);
-        });
+        services.AddTransient<IContentService, SpaNavigationContentService>();
 
         // Apply user customisations.
         configure?.Invoke(new SpaNavigationBuilder(services));
-
-        return services;
     }
 
     /// <summary>

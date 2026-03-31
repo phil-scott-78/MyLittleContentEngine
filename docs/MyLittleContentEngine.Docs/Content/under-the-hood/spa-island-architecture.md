@@ -68,15 +68,15 @@ sequenceDiagram
     participant Client as spa-engine.js
     participant Endpoint as MapGet endpoint
     participant Service as SpaPageDataService
-    participant Meta as MarkdownSpaMetadataProvider
+    participant Content as IContentService[]
     participant Renderer as ISpaIslandRenderer
     participant Blazor as HtmlRenderer
 
     Client->>Endpoint: GET /_spa-data/pasta-carbonara.json
     Endpoint->>Service: GetPageDataAsync("pasta-carbonara")
     Service->>Service: SpaSlug.ToUrl("pasta-carbonara") → "/pasta-carbonara"
-    Service->>Meta: GetMetadataAsync("/pasta-carbonara")
-    Meta-->>Service: { Title, Description }
+    Service->>Content: Resolve metadata from PageToGenerate.Metadata
+    Content-->>Service: { Title, Description }
     loop Each island renderer
         Service->>Renderer: RenderAsync("/pasta-carbonara")
         Renderer->>Blazor: RenderComponentAsync<T>(parameters)
@@ -97,8 +97,8 @@ transport format between client and server. The `SpaSlug` utility converts betwe
 | URL → slug | `"/pasta-carbonara"` → `"pasta-carbonara"` | `SpaNavigationContentService` (static generation) |
 | Slug → URL | `"pasta-carbonara"` → `"/pasta-carbonara"` | `SpaPageDataService` (before calling renderers) |
 
-Island renderers and metadata providers never see slugs — they receive content URLs. The slug is an
-internal detail of the transport layer.
+Island renderers never see slugs — they receive content URLs. The slug is an internal detail of the
+transport layer.
 
 ### ComponentRenderer and HtmlRenderer
 
@@ -169,8 +169,8 @@ and scroll position. Site-specific hooks handle everything else.
 ## Static Generation
 
 During `dotnet run -- build`, the content engine generates static files. `SpaNavigationContentService`
-participates in this process by registering a `/_spa-data/{slug}.json` page for every non-draft markdown
-page. The generation pipeline fetches these URLs from the running Blazor app (just like it fetches HTML
+participates in this process by registering a `/_spa-data/{slug}.json` page for every HTML page across
+all registered content services. The generation pipeline fetches these URLs from the running Blazor app (just like it fetches HTML
 pages), producing static JSON files alongside the HTML output.
 
 The result is a fully static site where both HTML pages and SPA data files are pre-generated. No server
