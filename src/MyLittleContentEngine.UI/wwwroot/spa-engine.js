@@ -59,6 +59,19 @@
     document.head.appendChild(_style);
 
     // -----------------------------------------------------------------------
+    // Accessibility — ARIA live region for page-change announcements
+    // -----------------------------------------------------------------------
+
+    const _announcer = document.createElement('div');
+    _announcer.setAttribute('role', 'status');
+    _announcer.setAttribute('aria-live', 'polite');
+    _announcer.setAttribute('aria-atomic', 'true');
+    _announcer.style.cssText =
+        'position:absolute;width:1px;height:1px;padding:0;margin:-1px;' +
+        'overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0';
+    document.body.appendChild(_announcer);
+
+    // -----------------------------------------------------------------------
     // Utilities
     // -----------------------------------------------------------------------
 
@@ -145,11 +158,27 @@
     }
 
     function commitIslands(islands, data) {
-        for (const [name, html] of Object.entries(data.islands || {})) {
-            if (islands[name]) {
-                islands[name].el.innerHTML = html;
-            }
+        const provided = data.islands || {};
+        for (const [name, island] of Object.entries(islands)) {
+            island.el.innerHTML = provided[name] ?? '';
         }
+    }
+
+    function announceNavigation(title, islands) {
+        // Screen reader announcement.
+        _announcer.textContent = '';
+        // Brief delay so the live region registers a change even for repeated titles.
+        requestAnimationFrame(() => {
+            _announcer.textContent = title ? `Navigated to ${title}` : 'Page updated';
+        });
+
+        // Move focus to the first content island so keyboard users land in context.
+        // Find a heading inside, or fall back to the island element itself.
+        const first = islands[Object.keys(islands)[0]];
+        if (!first) return;
+        const target = first.el.querySelector('h1, h2, h3') || first.el;
+        if (!target.hasAttribute('tabindex')) target.setAttribute('tabindex', '-1');
+        target.focus({ preventScroll: true });
     }
 
     function defaultSkeleton() {
@@ -167,7 +196,7 @@
     // Meta & scroll
     // -----------------------------------------------------------------------
 
-    function applyMeta(data) {
+    function applyMeta(data, url) {
         document.title = data.title
             ? `${SITE_TITLE} - ${data.title}`
             : SITE_TITLE;
@@ -181,8 +210,12 @@
         setMeta('meta[name="description"]', data.description);
         setMeta('meta[property="og:description"]', data.description);
         setMeta('meta[property="og:title"]', data.title);
+        setMeta('meta[property="og:url"]', url.href);
         setMeta('meta[name="twitter:title"]', data.title);
         setMeta('meta[name="twitter:description"]', data.description);
+
+        const canon = document.querySelector('link[rel="canonical"]');
+        if (canon) canon.href = url.href;
     }
 
     function scrollToTarget(url) {
@@ -194,15 +227,41 @@
     }
 
     // -----------------------------------------------------------------------
+    // Prefetch cache
+    // -----------------------------------------------------------------------
+
+    const _prefetchCache = new Map();
+    const PREFETCH_LIMIT = 20;
+
+    function prefetch(slug) {
+        if (_prefetchCache.has(slug)) return;
+        if (_prefetchCache.size >= PREFETCH_LIMIT) {
+            _prefetchCache.delete(_prefetchCache.keys().next().value);
+        }
+        const promise = fetch(`${BASE_PATH}${DATA_PATH}/${slug}.json`)
+            .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+            .catch(() => null);
+        _prefetchCache.set(slug, promise);
+    }
+
+    // -----------------------------------------------------------------------
     // Navigation
     // -----------------------------------------------------------------------
 
-    let _navigating = false;
+    let _activeNav = null;   // AbortController for the in-flight navigation
     let _currentPathname = location.pathname;
 
-    async function navigate(url, pushState) {
-        if (_navigating) return;
-        _navigating = true;
+    async function navigate(url, pushState, restoreScrollY) {
+        // Cancel any in-flight navigation — the latest click wins.
+        if (_activeNav) _activeNav.abort();
+        const ctrl = new AbortController();
+        _activeNav = ctrl;
+
+        // Snapshot scroll position into the current history entry before leaving.
+        if (pushState) {
+            const cur = history.state || {};
+            history.replaceState({ ...cur, scrollY: window.scrollY }, '');
+        }
 
         const slug = getSlug(url);
         const islands = discoverIslands();
@@ -210,39 +269,46 @@
         // No islands found — fall back to a full page load.
         if (Object.keys(islands).length === 0) {
             location.href = url.href;
-            _navigating = false;
             return;
         }
 
         fire('spa:before-navigate', { url, slug });
 
-        let fetchDone = false, fetchData = null, fetchFail = false;
+        let fetchData = null, fetchFail = false;
 
-        const dataPromise = fetch(`${BASE_PATH}${DATA_PATH}/${slug}.json`)
-            .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-            .then(d => { fetchDone = true; fetchData = d; })
-            .catch(() => { fetchDone = true; fetchFail = true; });
+        // Use prefetched data if available, otherwise fetch fresh.
+        const cached = _prefetchCache.get(slug);
+        _prefetchCache.delete(slug);
+
+        const dataPromise = (
+            cached
+                ? cached.then(d => { if (!d) throw new Error('prefetch-miss'); return d; })
+                : fetch(`${BASE_PATH}${DATA_PATH}/${slug}.json`, { signal: ctrl.signal })
+                    .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+        ).then(d => { fetchData = d; })
+         .catch(e => { if (e.name !== 'AbortError') fetchFail = true; });
 
         // Race the fetch against a threshold: fast/cached responses skip the skeleton.
         await Promise.race([dataPromise, delay(SKELETON_DELAY)]);
+        if (ctrl.signal.aborted) return;
 
         if (fetchFail) {
             location.href = url.href;
-            _navigating = false;
             return;
         }
 
         const doCommit = (data) => {
             _currentPathname = url.pathname;
             if (pushState) history.pushState({ title: data.title }, data.title, url.href);
-            applyMeta(data);
+            applyMeta(data, url);
             commitIslands(islands, data);
+            announceNavigation(data.title, islands);
             fire('spa:commit', { url, slug, data });
-            scrollToTarget(url);
+            restoreScrollY != null ? window.scrollTo(0, restoreScrollY) : scrollToTarget(url);
             reloadDevStylesheet();
         };
 
-        if (fetchDone && fetchData) {
+        if (fetchData) {
             // Fast path — data arrived before the threshold.
             maybeTransition(() => doCommit(fetchData));
         } else {
@@ -252,21 +318,20 @@
             const skeletonShownAt = performance.now();
 
             await dataPromise;
+            if (ctrl.signal.aborted) return;
 
             if (fetchFail) {
                 location.href = url.href;
-                _navigating = false;
                 return;
             }
 
             // Hold the skeleton long enough to feel intentional.
             const remaining = MIN_SKELETON_MS - (performance.now() - skeletonShownAt);
             if (remaining > 0) await delay(remaining);
+            if (ctrl.signal.aborted) return;
 
             maybeTransition(() => doCommit(fetchData));
         }
-
-        _navigating = false;
     }
 
     // -----------------------------------------------------------------------
@@ -281,11 +346,20 @@
         navigate(new URL(anchor.href), true);
     });
 
-    window.addEventListener('popstate', () => {
+    // Prefetch on hover and keyboard focus for near-instant navigation.
+    function maybePrefetch(e) {
+        const anchor = e.target.closest('a');
+        if (!anchor || !isSpaLink(anchor)) return;
+        prefetch(getSlug(new URL(anchor.href)));
+    }
+    document.addEventListener('pointerover', maybePrefetch);
+    document.addEventListener('focusin', maybePrefetch);
+
+    window.addEventListener('popstate', (e) => {
         const url = new URL(location.href);
         // Hash-only history entries share the same pathname — let the browser handle scrolling.
         if (url.pathname === _currentPathname) return;
-        navigate(url, false);
+        navigate(url, false, e.state?.scrollY);
     });
 
 })();
