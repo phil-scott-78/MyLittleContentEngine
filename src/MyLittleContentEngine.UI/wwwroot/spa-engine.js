@@ -31,11 +31,11 @@
     'use strict';
 
     // -----------------------------------------------------------------------
-    // Configuration (from data attributes on <html> or sensible defaults)
+    // Configuration (from data attributes or sensible defaults)
     // -----------------------------------------------------------------------
 
     const _root = document.documentElement;
-    const BASE_PATH = (_root.dataset.basePath || '').replace(/\/$/, '');
+    const BASE_PATH = (document.body.dataset.baseUrl || '').replace(/\/$/, '');
     const DATA_PATH = _root.dataset.spaDataPath || '/_spa-data';
     const SKELETON_DELAY = parseInt(_root.dataset.spaSkeletonDelay || '100', 10);
     const MIN_SKELETON_MS = parseInt(_root.dataset.spaMinSkeleton || '250', 10);

@@ -151,7 +151,7 @@ The SPA engine reads configuration from `data-*` attributes on the `<html>` elem
 
 | Attribute | Default | Purpose |
 |-----------|---------|---------|
-| `data-base-path` | `""` | Base URL prefix for subdirectory deployments |
+| `data-base-url` (on `<body>`) | `""` | Base URL prefix for subdirectory deployments (set automatically by `BaseUrlRewritingMiddleware`) |
 | `data-spa-data-path` | `"/_spa-data"` | URL prefix for page data JSON files |
 | `data-spa-skeleton-delay` | `"100"` | Milliseconds before showing the skeleton (fast fetches skip it) |
 | `data-spa-min-skeleton` | `"250"` | Minimum milliseconds to show the skeleton once visible |
