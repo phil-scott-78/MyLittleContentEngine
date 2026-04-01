@@ -200,12 +200,6 @@ internal class LinkVerificationService(ILogger<LinkVerificationService> logger)
             link = new Uri(new Uri("http://localhost"), link).AbsolutePath;
         }
 
-        // Remove trailing slash (except for root path) so /docs/ and /docs match consistently
-        if (link.Length > 1 && link.EndsWith('/'))
-        {
-            link = link.TrimEnd('/');
-        }
-
         return link;
     }
 

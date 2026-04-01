@@ -385,4 +385,47 @@ public class LinkVerificationServiceTests
         // Assert
         result.ShouldBeEmpty();
     }
+
+    [Fact]
+    public async Task ValidateLinksAsync_TrailingSlash_WhenPageIsFileStyle_ReturnsBrokenLink()
+    {
+        // Arrange - /page/ should NOT match when only /page exists (file-style output)
+        var html = """<a href="/page/">Link</a>""";
+        var validPages = ImmutableHashSet.Create("/page");
+
+        // Act
+        var result = await _service.ValidateLinksAsync(html, new UrlPath("/test"), validPages, UrlPath.Empty);
+
+        // Assert
+        result.Count.ShouldBe(1);
+        result[0].BrokenUrl.ShouldBe("/page/");
+    }
+
+    [Fact]
+    public async Task ValidateLinksAsync_TrailingSlash_WhenPageIsDirectoryStyle_ReturnsEmpty()
+    {
+        // Arrange - /page/ should match when /page/ is in valid set (directory-style output with index.html)
+        var html = """<a href="/page/">Link</a>""";
+        var validPages = ImmutableHashSet.Create("/page/", "/page");
+
+        // Act
+        var result = await _service.ValidateLinksAsync(html, new UrlPath("/test"), validPages, UrlPath.Empty);
+
+        // Assert
+        result.ShouldBeEmpty();
+    }
+
+    [Fact]
+    public async Task ValidateLinksAsync_NoTrailingSlash_WhenPageIsDirectoryStyle_ReturnsEmpty()
+    {
+        // Arrange - /page should match when both /page/ and /page are in valid set
+        var html = """<a href="/page">Link</a>""";
+        var validPages = ImmutableHashSet.Create("/page/", "/page");
+
+        // Act
+        var result = await _service.ValidateLinksAsync(html, new UrlPath("/test"), validPages, UrlPath.Empty);
+
+        // Assert
+        result.ShouldBeEmpty();
+    }
 }

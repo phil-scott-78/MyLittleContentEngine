@@ -576,11 +576,6 @@ internal class OutputGenerationService(
                 validPaths.Add(normalizedUrl.TrimEnd('/'));
             }
 
-            // Also add URL with trailing slash added
-            if (!normalizedUrl.EndsWith('/'))
-            {
-                validPaths.Add(normalizedUrl + "/");
-            }
         }
 
         // Add all static files (scripts, CSS, images, fonts, etc.)
