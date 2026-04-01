@@ -101,6 +101,17 @@ internal class LinkVerificationService(ILogger<LinkVerificationService> logger)
             return;
         }
 
+        // Resolve relative links against the source page URL
+        // Pages are output as directory-style (page/index.html), so the effective
+        // base directory for relative resolution is sourcePage + "/"
+        if (!link.StartsWith('/'))
+        {
+            var sourceDir = sourcePage.Value.EndsWith('/')
+                ? sourcePage.Value
+                : sourcePage.Value + "/";
+            link = new Uri(new Uri("http://localhost" + sourceDir), link).AbsolutePath;
+        }
+
         // Normalize the link (strip query strings, anchors, BaseUrl prefix)
         var normalizedLink = NormalizeLink(link, baseUrl);
 
@@ -181,6 +192,18 @@ internal class LinkVerificationService(ILogger<LinkVerificationService> logger)
         if (!link.StartsWith('/'))
         {
             link = "/" + link;
+        }
+
+        // Resolve . and .. path segments (e.g., /a/b/../c → /a/c, /a/./b → /a/b)
+        if (link.Contains("/."))
+        {
+            link = new Uri(new Uri("http://localhost"), link).AbsolutePath;
+        }
+
+        // Remove trailing slash (except for root path) so /docs/ and /docs match consistently
+        if (link.Length > 1 && link.EndsWith('/'))
+        {
+            link = link.TrimEnd('/');
         }
 
         return link;
