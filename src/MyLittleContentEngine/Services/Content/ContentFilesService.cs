@@ -52,6 +52,19 @@ internal class ContentFilesService<TFrontMatter>
                 absoluteContentPath,
                 _markdownContentOptions.PostFilePattern, !_markdownContentOptions.ExcludeSubfolders);
 
+            // Filter out files in excluded subfolders (used by localization to prevent
+            // the default locale from discovering files in non-default locale subfolders)
+            if (_markdownContentOptions.ExcludedSubfolders.Count > 0)
+            {
+                files = files.Where(f =>
+                {
+                    var relativePath = Path.GetRelativePath(absoluteContentPath, f).Replace('\\', '/');
+                    var firstSegment = relativePath.Split('/')[0];
+                    return !_markdownContentOptions.ExcludedSubfolders
+                        .Any(excluded => string.Equals(firstSegment, excluded, StringComparison.OrdinalIgnoreCase));
+                }).ToArray();
+            }
+
             // Convert FilePath[] back to string[] for now to maintain compatibility
             return (files.Select(f => f.Value).ToArray(), absPath.Value);
         }

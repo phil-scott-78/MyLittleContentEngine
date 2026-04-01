@@ -64,4 +64,21 @@ public interface ITableOfContentService
     /// <param name="currentUrl">The URL to get navigation information for.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the navigation information, or null if the URL is not found.</returns>
     Task<NavigationInfo?> GetNavigationInfoAsync(string currentUrl);
+
+    /// <summary>
+    /// Gets the navigation table of contents filtered by locale.
+    /// When locale is null, returns entries from all locales (backward compatible).
+    /// </summary>
+    /// <param name="currentUrl">The URL of the currently active page.</param>
+    /// <param name="locale">The locale to filter by, or null for all locales.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains a filtered list of root <see cref="NavigationTreeItem"/> objects.</returns>
+    Task<ImmutableList<NavigationTreeItem>> GetNavigationTocForLocaleAsync(string currentUrl, string? locale);
+
+    /// <summary>
+    /// Gets navigation information for a specific URL filtered by locale.
+    /// </summary>
+    /// <param name="currentUrl">The URL to get navigation information for.</param>
+    /// <param name="locale">The locale to filter by, or null for all locales.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains the navigation information, or null if the URL is not found.</returns>
+    Task<NavigationInfo?> GetNavigationInfoForLocaleAsync(string currentUrl, string? locale);
 }

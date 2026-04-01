@@ -89,4 +89,73 @@ public class SitemapRssServiceTests
             return Task.FromResult(ImmutableList<CrossReference>.Empty);
         }
     }
+
+    [Fact]
+    public async Task GenerateSitemap_WithLocalization_IncludesHreflangLinks()
+    {
+        var localization = new LocalizationOptions
+        {
+            DefaultLocale = "en",
+            Locales = ImmutableDictionary<string, LocaleInfo>.Empty
+                .Add("en", new LocaleInfo("English"))
+                .Add("fr", new LocaleInfo("Français", HtmlLang: "fr-FR"))
+        };
+
+        var options = new ContentEngineOptions
+        {
+            SiteTitle = "Test Site",
+            SiteDescription = "Test Description",
+            CanonicalBaseUrl = "https://example.com",
+            Localization = localization
+        };
+
+        var enService = new MockLocalizedContentService(
+            ("/getting-started", "Getting Started"));
+        var frService = new MockLocalizedContentService(
+            ("fr/getting-started", "Premiers pas"));
+
+        var service = new SitemapRssService(options, [enService, frService]);
+        var sitemap = await service.GenerateSitemap();
+
+        // Should contain hreflang alternate links
+        sitemap.ShouldContain("hreflang");
+        sitemap.ShouldContain("fr-FR"); // Uses HtmlLang from LocaleInfo
+        sitemap.ShouldContain("https://example.com/getting-started");
+        sitemap.ShouldContain("https://example.com/fr/getting-started");
+    }
+
+    [Fact]
+    public async Task GenerateSitemap_WithoutLocalization_NoHreflangLinks()
+    {
+        var options = new ContentEngineOptions
+        {
+            SiteTitle = "Test Site",
+            SiteDescription = "Test Description",
+            CanonicalBaseUrl = "https://example.com"
+        };
+
+        var mockContentService = new MockContentService();
+        var service = new SitemapRssService(options, [mockContentService]);
+        var sitemap = await service.GenerateSitemap();
+
+        sitemap.ShouldNotContain("hreflang");
+    }
+
+    private class MockLocalizedContentService(params (string url, string title)[] pages) : IContentService
+    {
+        public int SearchPriority => 1;
+
+        public Task<ImmutableList<PageToGenerate>> GetPagesToGenerateAsync()
+        {
+            return Task.FromResult(pages.Select(p => new PageToGenerate(
+                p.url, p.url, new Metadata { Title = p.title })).ToImmutableList());
+        }
+
+        public Task<ImmutableList<ContentTocItem>> GetContentTocEntriesAsync() =>
+            Task.FromResult(ImmutableList<ContentTocItem>.Empty);
+        public Task<ImmutableList<ContentToCopy>> GetContentToCopyAsync() =>
+            Task.FromResult(ImmutableList<ContentToCopy>.Empty);
+        public Task<ImmutableList<CrossReference>> GetCrossReferencesAsync() =>
+            Task.FromResult(ImmutableList<CrossReference>.Empty);
+    }
 }

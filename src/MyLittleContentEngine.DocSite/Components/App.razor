@@ -2,11 +2,13 @@
 @using Microsoft.AspNetCore.Hosting
 @using Microsoft.Extensions.Hosting
 @using MyLittleContentEngine
+@using MyLittleContentEngine.Services.Content
 @inject IWebHostEnvironment WebHostEnvironment
 @inject DocSiteOptions DocSiteOptions
+@inject ILocalizedContentService<DocSiteFrontMatter> LocalizedContentService
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="@_htmlLang" dir="@_htmlDir">
 
 <head>
     <meta charset="utf-8"/>
@@ -43,6 +45,18 @@
 
 @code{
     static readonly string Version = DateTime.Now.Ticks.ToString();
+
+    private string _htmlLang = "en";
+    private string _htmlDir = "ltr";
+
+    protected override void OnInitialized()
+    {
+        var defaultLocale = LocalizedContentService.DefaultLocale;
+        var localeInfo = LocalizedContentService.GetLocaleInfo(defaultLocale);
+
+        _htmlLang = localeInfo?.HtmlLang ?? defaultLocale;
+        _htmlDir = localeInfo?.Direction ?? "ltr";
+    }
 
     string GetVersioned(string url) => WebHostEnvironment.IsDevelopment()
         ? url

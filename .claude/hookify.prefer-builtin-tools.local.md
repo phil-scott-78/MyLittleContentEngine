@@ -2,7 +2,7 @@
 name: prefer-builtin-tools
 enabled: true
 event: bash
-pattern: \b(find|grep|rg|dir|ls|cat|sed|awk|echo)\b
+pattern: \b(find|grep|rg|dir|ls|sed|awk|echo)\b
 action: block
 ---
 
@@ -14,7 +14,6 @@ You're attempting to use a Bash command that has a dedicated built-in tool:
 |--------------|-------------|
 | `find`, `ls`, `dir` | **Glob** tool for file pattern matching |
 | `grep`, `rg` | **Grep** tool for content searching |
-| `cat` | **Read** tool for reading files |
 | `sed`, `awk` | **Edit** tool for file modifications |
 | `echo` | Direct text output in your response |
 
@@ -24,4 +23,4 @@ You're attempting to use a Bash command that has a dedicated built-in tool:
 - They handle permissions and access correctly
 - Results are easier to parse and use
 
-**Action:** Use the appropriate built-in tool instead.
+**Action:** Use the appropriate built-in tool instead. 

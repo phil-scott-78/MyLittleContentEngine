@@ -47,6 +47,10 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
 {
     /// <inheritdoc />
     public int SearchPriority => 10; // High priority for markdown content
+
+    /// <inheritdoc />
+    public string Locale { get; }
+
     private readonly AsyncLazy<ConcurrentDictionary<string, MarkdownContentPage<TFrontMatter>>> _contentCache;
     private readonly MarkdownContentProcessor<TFrontMatter> _contentProcessor;
     private readonly TagService<TFrontMatter> _tagService;
@@ -76,6 +80,7 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
         _contentFilesService = contentFilesService;
         _contentProcessor = contentProcessor;
         _markdownParserService = markdownParserService;
+        Locale = markdownContentOptions.Locale;
 
         // Set up the Post cache - AsyncLazy handles thread-safe initialization
         _contentCache = new AsyncLazy<ConcurrentDictionary<string, MarkdownContentPage<TFrontMatter>>>(
@@ -181,7 +186,8 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
                     p.Url,
                     p.Metadata.Order,
                     CreateHierarchyParts(p.Url),
-                    section);
+                    section,
+                    string.IsNullOrEmpty(Locale) ? null : Locale);
             })
             .ToImmutableList();
     }

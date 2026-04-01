@@ -96,19 +96,27 @@ internal class TableOfContentService : ITableOfContentService
     }
 
     private async Task<ImmutableList<NavigationTreeItem>> GetTableOfContentEntries(string currentUrl,
-        ICollection<IContentService> services, string? section = null)
+        ICollection<IContentService> services, string? section = null, string? locale = null)
     {
         // Collect all pages (Title, Url, Order)
-        var pageTitlesWithOrder = await GetPageTitlesWithOrderAsync(services, section);
+        var pageTitlesWithOrder = await GetPageTitlesWithOrderAsync(services, section, locale);
 
         // Build the tree of URL segments
         var root = new TreeNode { Segment = "" };
 
         foreach (var (pageTitle, url, order, hierarchyParts) in pageTitlesWithOrder)
         {
-            // Use the provided hierarchy parts instead of parsing the URL
+            // When building locale-filtered TOC, strip the locale prefix from hierarchy parts
+            // so localized pages have the same flat structure as default locale pages
+            var effectiveParts = hierarchyParts;
+            if (locale != null && effectiveParts.Length > 0
+                && string.Equals(effectiveParts[0], locale, StringComparison.OrdinalIgnoreCase))
+            {
+                effectiveParts = effectiveParts[1..];
+            }
+
             var currentNode = root;
-            foreach (var segment in hierarchyParts)
+            foreach (var segment in effectiveParts)
             {
                 if (!currentNode.Children.TryGetValue(segment, out var next))
                 {
@@ -120,7 +128,7 @@ internal class TableOfContentService : ITableOfContentService
             }
 
             // Mark the final node in this path as a page
-            var lastSegment = hierarchyParts.Length > 0 ? hierarchyParts[^1] : string.Empty;
+            var lastSegment = effectiveParts.Length > 0 ? effectiveParts[^1] : string.Empty;
             currentNode.HasPage = true;
             currentNode.Title = pageTitle;
             currentNode.Order = order;
@@ -160,7 +168,7 @@ internal class TableOfContentService : ITableOfContentService
     }
 
     private static async Task<List<PageWithOrder>> GetPageTitlesWithOrderAsync(ICollection<IContentService> services,
-        string? section = null)
+        string? section = null, string? locale = null)
     {
         var pageTitlesWithOrder = new List<PageWithOrder>();
 
@@ -168,11 +176,19 @@ internal class TableOfContentService : ITableOfContentService
         {
             var tocEntries = await contentService.GetContentTocEntriesAsync();
 
-            // Filter by section if specified
+            // Filter by section and locale if specified
             var filteredEntries = tocEntries.Where(tocEntry =>
             {
                 var effectiveSection = tocEntry.Section ?? contentService.DefaultSection;
-                return section == null || effectiveSection.Equals(section, StringComparison.OrdinalIgnoreCase);
+                var sectionMatch = section == null || effectiveSection.Equals(section, StringComparison.OrdinalIgnoreCase);
+
+                // Locale filtering: when locale is specified, only include entries that match
+                // (null locale on the entry means unlocalized content, which passes all locale filters)
+                var localeMatch = locale == null
+                    || tocEntry.Locale == null
+                    || string.Equals(tocEntry.Locale, locale, StringComparison.OrdinalIgnoreCase);
+
+                return sectionMatch && localeMatch;
             });
 
             var pageWithOrders = filteredEntries.Select(tocEntry => new PageWithOrder(tocEntry.Title, tocEntry.Url, tocEntry.Order, tocEntry.HierarchyParts));
@@ -224,10 +240,28 @@ internal class TableOfContentService : ITableOfContentService
         return sections.OrderBy(s => s, StringComparer.OrdinalIgnoreCase).ToImmutableList();
     }
 
-    public async Task<NavigationInfo?> GetNavigationInfoAsync(string currentUrl)
+    public async Task<ImmutableList<NavigationTreeItem>> GetNavigationTocForLocaleAsync(string currentUrl, string? locale)
     {
         var services = _contentServices.Values;
+        return await GetTableOfContentEntries(currentUrl, services, section: null, locale: locale);
+    }
 
+    public async Task<NavigationInfo?> GetNavigationInfoForLocaleAsync(string currentUrl, string? locale)
+    {
+        var services = _contentServices.Values;
+        return await GetNavigationInfoInternal(currentUrl, services, locale);
+    }
+
+    public Task<NavigationInfo?> GetNavigationInfoAsync(string currentUrl)
+    {
+        return GetNavigationInfoInternal(currentUrl, _contentServices.Values, locale: null);
+    }
+
+    private async Task<NavigationInfo?> GetNavigationInfoInternal(
+        string currentUrl,
+        ICollection<IContentService> services,
+        string? locale)
+    {
         // Find the page matching the current URL
         PageWithOrder? foundPage = null;
         string? effectiveSection = null;
@@ -253,8 +287,8 @@ internal class TableOfContentService : ITableOfContentService
         // Build breadcrumb trail
         var breadcrumbs = await BuildBreadcrumbsAsync(foundPage, effectiveSection ?? "", services);
 
-        // Get all pages for next/previous navigation
-        var allPages = await GetPageTitlesWithOrderAsync(services, effectiveSection);
+        // Get all pages for next/previous navigation (locale-filtered)
+        var allPages = await GetPageTitlesWithOrderAsync(services, effectiveSection, locale);
 
         // Find previous and next pages
         var (previousPage, nextPage) = NextPreviousNavigationCalculator.Calculate(allPages, foundPage);

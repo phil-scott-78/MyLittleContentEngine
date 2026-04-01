@@ -25,6 +25,7 @@
   <Folder Name="/examples/">
     <File Path="examples/Directory.Build.props" />
     <Project Path="examples/BlogExample/BlogExample.csproj" />
+    <Project Path="examples/LocalizationExample/LocalizationExample.csproj" />
     <Project Path="examples/MinimalExample/MinimalExample.csproj" />
     <Project Path="examples/MultipleContentSourceExample/MultipleContentSourceExample.csproj" />
     <Project Path="examples/RecipeExample/RecipeExample.csproj" />

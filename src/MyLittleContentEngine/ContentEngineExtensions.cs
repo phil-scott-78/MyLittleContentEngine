@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Immutable;
 using System.IO.Abstractions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
@@ -251,6 +252,126 @@ public static class ContentEngineExtensions
             provider.GetRequiredService<FileWatchDependencyFactory<TImplementation>>().GetInstance());
 
         return services;
+    }
+
+    /// <summary>
+    /// Registers markdown content services with locale-aware coordination.
+    /// Always registers <see cref="ILocalizedContentService{TFrontMatter}"/> which acts as
+    /// a pass-through for single-locale sites and provides full i18n support when
+    /// <see cref="LocalizationOptions"/> is configured on <see cref="ContentEngineOptions"/>.
+    /// </summary>
+    /// <typeparam name="TFrontMatter">The front matter type.</typeparam>
+    /// <param name="services">The configured service collection.</param>
+    /// <param name="configureOptions">Factory for the default locale's content options.</param>
+    /// <returns>The updated service collection for method chaining.</returns>
+    public static IConfiguredContentEngineServiceCollection WithLocalizedMarkdownContent<TFrontMatter>(
+        this IConfiguredContentEngineServiceCollection services,
+        Func<IServiceProvider, MarkdownContentOptions<TFrontMatter>> configureOptions)
+        where TFrontMatter : class, IFrontMatter, new()
+    {
+        // Wrap the options factory to inject locale metadata for the default locale
+        services.WithMarkdownContentService(sp =>
+        {
+            var baseOptions = configureOptions(sp);
+            var engineOptions = sp.GetRequiredService<ContentEngineOptions>();
+            var localization = engineOptions.Localization;
+            var defaultLocale = localization?.DefaultLocale ?? "en";
+
+            // Exclude non-default locale subfolders from the default locale's content discovery
+            var excludedSubfolders = localization?.Locales.Keys
+                .Where(l => !string.Equals(l, defaultLocale, StringComparison.OrdinalIgnoreCase))
+                .ToImmutableList() ?? [];
+
+            return baseOptions with { Locale = defaultLocale, ExcludedSubfolders = excludedSubfolders };
+        });
+
+        // Register the localized content coordination service
+        services.AddSingleton<ILocalizedContentService<TFrontMatter>>(sp =>
+        {
+            var engineOptions = sp.GetRequiredService<ContentEngineOptions>();
+            var baseOptions = configureOptions(sp);
+            var defaultService = sp.GetRequiredService<IMarkdownContentService<TFrontMatter>>();
+
+            // Use configured localization, or synthesize a single-locale default
+            var localization = engineOptions.Localization ?? new LocalizationOptions
+            {
+                DefaultLocale = "en",
+                Locales = ImmutableDictionary<string, LocaleInfo>.Empty
+                    .Add("en", new LocaleInfo("English"))
+            };
+
+            var localeServices = new Dictionary<string, IMarkdownContentService<TFrontMatter>>(StringComparer.OrdinalIgnoreCase)
+            {
+                [localization.DefaultLocale] = defaultService
+            };
+
+            // Create per-locale content services for non-default locales
+            foreach (var locale in localization.Locales.Keys)
+            {
+                if (string.Equals(locale, localization.DefaultLocale, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                var localeOptions = baseOptions with
+                {
+                    ContentPath = new FilePath(Path.Combine(baseOptions.ContentPath.Value, locale)),
+                    BasePageUrl = new UrlPath(locale),
+                    Locale = locale,
+                };
+
+                var service = CreateLocaleContentService(sp, localeOptions);
+                localeServices[locale] = service;
+            }
+
+            return new LocalizedContentService<TFrontMatter>(localeServices, localization);
+        });
+
+        // Register non-default locale services as IContentService for TOC and generation
+        services.AddTransient<IContentService>(sp =>
+        {
+            var localizedService = sp.GetRequiredService<ILocalizedContentService<TFrontMatter>>();
+            var engineOptions = sp.GetRequiredService<ContentEngineOptions>();
+            var localization = engineOptions.Localization;
+
+            // Single-locale: nothing extra to register
+            if (localization == null || localization.Locales.Count <= 1)
+                return new NoOpContentService();
+
+            return new LocaleCompositeContentService<TFrontMatter>(localizedService, localization);
+        });
+
+        return services;
+    }
+
+    /// <summary>
+    /// Creates a complete MarkdownContentService for a specific locale by manually
+    /// constructing the internal service chain with locale-specific options.
+    /// </summary>
+    private static MarkdownContentService<TFrontMatter> CreateLocaleContentService<TFrontMatter>(
+        IServiceProvider sp,
+        MarkdownContentOptions<TFrontMatter> localeOptions)
+        where TFrontMatter : class, IFrontMatter, new()
+    {
+        var fileSystemUtilities = sp.GetRequiredService<FileSystemUtilities>();
+        var filePathOps = sp.GetRequiredService<FilePathOperations>();
+        var markdownParser = sp.GetRequiredService<MarkdownParserService>();
+        var fileSystem = sp.GetRequiredService<IFileSystem>();
+        var fileWatcher = sp.GetRequiredService<IContentEngineFileWatcher>();
+
+        var tagService = new TagService<TFrontMatter>(
+            localeOptions,
+            sp.GetRequiredService<ILogger<TagService<TFrontMatter>>>());
+
+        var contentFilesService = new ContentFilesService<TFrontMatter>(
+            localeOptions, fileSystemUtilities, filePathOps,
+            sp.GetRequiredService<ILogger<ContentFilesService<TFrontMatter>>>());
+
+        var processor = new MarkdownContentProcessor<TFrontMatter>(
+            localeOptions, markdownParser, tagService, contentFilesService,
+            fileSystem, fileWatcher,
+            sp.GetRequiredService<ILogger<MarkdownContentProcessor<TFrontMatter>>>());
+
+        return new MarkdownContentService<TFrontMatter>(
+            localeOptions, tagService, contentFilesService, markdownParser, processor);
     }
 
     /// <summary>

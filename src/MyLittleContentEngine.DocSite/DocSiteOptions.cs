@@ -106,6 +106,12 @@ public record DocSiteOptions
     public string? SocialImageUrl { get; init; }
 
     /// <summary>
+    /// Optional localization configuration for multi-language documentation.
+    /// When set, enables folder-based locale routing (e.g., Content/fr/ for French).
+    /// </summary>
+    public LocalizationOptions? Localization { get; init; }
+
+    /// <summary>
     /// Optional callback to configure custom TextMate language grammars for syntax highlighting.
     /// </summary>
     /// <remarks>

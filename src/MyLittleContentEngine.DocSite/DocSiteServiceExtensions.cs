@@ -49,12 +49,14 @@ public static class DocSiteServiceExtensions
                     SiteDescription = options.Description,
                     ContentRootPath = options.ContentRootPath,
                     CanonicalBaseUrl = options.CanonicalBaseUrl,
-                    ConfigureTextMate = options.ConfigureTextMate
+                    ConfigureTextMate = options.ConfigureTextMate,
+                    Localization = options.Localization,
                 };
             })
-            .WithMarkdownContentService(sp =>
+            .WithLocalizedMarkdownContent(sp =>
             {
-                // Configure content service
+                // Configure content service -- always uses WithLocalizedMarkdownContent
+                // which acts as a pass-through for single-locale sites
 
                 var options = sp.GetRequiredService<DocSiteOptions>();
 

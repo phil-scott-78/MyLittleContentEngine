@@ -31,7 +31,7 @@ internal class SitemapRssService
     }
 
     /// <summary>
-    /// Generates a sitemap.xml file.
+    /// Generates a sitemap.xml file with optional hreflang alternate links for multi-locale sites.
     /// </summary>
     /// <returns>The XML string representation of the sitemap.</returns>
     public async Task<string> GenerateSitemap()
@@ -40,7 +40,16 @@ internal class SitemapRssService
 
         // Create the sitemap root element
         XNamespace ns = "https://www.sitemaps.org/schemas/sitemap/0.9";
+        XNamespace xhtml = "http://www.w3.org/1999/xhtml";
+
         var root = new XElement(ns + "urlset");
+
+        // Add xhtml namespace if localization is configured
+        var localization = _options.Localization;
+        if (localization != null && localization.Locales.Count > 1)
+        {
+            root.Add(new XAttribute(XNamespace.Xmlns + "xhtml", xhtml.NamespaceName));
+        }
 
         // Collect all pages from content services
         var pagesToGenerate = ImmutableList<PageToGenerate>.Empty;
@@ -50,6 +59,9 @@ internal class SitemapRssService
             var pages = await content.GetPagesToGenerateAsync();
             pagesToGenerate = pagesToGenerate.AddRange(pages);
         }
+
+        // Build a lookup of content-relative URL → locale URLs for hreflang
+        var localeUrlMap = BuildLocaleUrlMap(pagesToGenerate, localization);
 
         // Add each page to the sitemap
         foreach (var (url, _, metadata, _) in pagesToGenerate)
@@ -62,12 +74,31 @@ internal class SitemapRssService
                 new XElement(ns + "loc", fullUrl));
 
             // Add lastmod if available
-            if (metadata == null) continue;
-
-            if (metadata.LastMod != null)
+            if (metadata?.LastMod != null)
             {
                 urlElement.Add(new XElement(ns + "lastmod",
                     metadata.LastMod.Value.ToString("yyyy-MM-dd")));
+            }
+
+            // Add hreflang alternate links if multi-locale
+            if (localization != null && localization.Locales.Count > 1)
+            {
+                var contentRelativeUrl = StripLocalePrefix(url, localization);
+
+                if (localeUrlMap.TryGetValue(contentRelativeUrl, out var alternates))
+                {
+                    foreach (var (locale, localeUrl) in alternates)
+                    {
+                        var hreflang = localization.Locales.TryGetValue(locale, out var info)
+                            ? info.HtmlLang ?? locale
+                            : locale;
+
+                        urlElement.Add(new XElement(xhtml + "link",
+                            new XAttribute("rel", "alternate"),
+                            new XAttribute("hreflang", hreflang),
+                            new XAttribute("href", baseUrl + new UrlPath(localeUrl).EnsureLeadingSlash().Value)));
+                    }
+                }
             }
 
             root.Add(urlElement);
@@ -148,6 +179,74 @@ internal class SitemapRssService
             metadata.LastMod.HasValue
                 ? new DateTimeOffset(metadata.LastMod.Value)
                 : DateTimeOffset.UtcNow);
+    }
+
+    /// <summary>
+    /// Builds a map from content-relative URL → list of (locale, full URL) pairs.
+    /// Used to generate hreflang alternate links in the sitemap.
+    /// </summary>
+    private static Dictionary<string, List<(string Locale, string Url)>> BuildLocaleUrlMap(
+        ImmutableList<PageToGenerate> pages,
+        LocalizationOptions? localization)
+    {
+        var map = new Dictionary<string, List<(string, string)>>(StringComparer.OrdinalIgnoreCase);
+
+        if (localization == null || localization.Locales.Count <= 1)
+            return map;
+
+        foreach (var page in pages)
+        {
+            var contentRelativeUrl = StripLocalePrefix(page.Url, localization);
+            var locale = DetectLocaleFromUrl(page.Url, localization);
+
+            if (!map.TryGetValue(contentRelativeUrl, out var list))
+            {
+                list = [];
+                map[contentRelativeUrl] = list;
+            }
+
+            list.Add((locale, page.Url));
+        }
+
+        return map;
+    }
+
+    /// <summary>
+    /// Strips the locale prefix from a URL to get the content-relative path.
+    /// </summary>
+    private static string StripLocalePrefix(string url, LocalizationOptions localization)
+    {
+        var trimmed = url.TrimStart('/');
+        var firstSlash = trimmed.IndexOf('/');
+        var firstSegment = firstSlash >= 0 ? trimmed[..firstSlash] : trimmed;
+
+        if (!string.IsNullOrEmpty(firstSegment)
+            && localization.Locales.ContainsKey(firstSegment)
+            && !string.Equals(firstSegment, localization.DefaultLocale, StringComparison.OrdinalIgnoreCase))
+        {
+            return firstSlash >= 0 ? trimmed[(firstSlash + 1)..] : "";
+        }
+
+        return trimmed;
+    }
+
+    /// <summary>
+    /// Detects the locale from a URL based on its prefix.
+    /// </summary>
+    private static string DetectLocaleFromUrl(string url, LocalizationOptions localization)
+    {
+        var trimmed = url.TrimStart('/');
+        var firstSlash = trimmed.IndexOf('/');
+        var firstSegment = firstSlash >= 0 ? trimmed[..firstSlash] : trimmed;
+
+        if (!string.IsNullOrEmpty(firstSegment)
+            && localization.Locales.ContainsKey(firstSegment)
+            && !string.Equals(firstSegment, localization.DefaultLocale, StringComparison.OrdinalIgnoreCase))
+        {
+            return firstSegment;
+        }
+
+        return localization.DefaultLocale;
     }
 
     private string GetBaseUrl()

@@ -21,6 +21,13 @@ public interface IContentService
     /// Individual content items can override this via their metadata. Empty string means no section (global content).
     /// </summary>
     string DefaultSection => "";
+
+    /// <summary>
+    /// Gets the locale code for content from this service (e.g., "en", "fr").
+    /// Empty string means no locale (single-language mode). Used for locale-aware TOC filtering
+    /// and content resolution.
+    /// </summary>
+    string Locale => "";
     /// <summary>
     /// Gets the collection of pages that should be generated for this content.
     /// </summary>

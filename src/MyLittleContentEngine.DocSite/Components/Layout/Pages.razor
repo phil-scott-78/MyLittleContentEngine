@@ -6,7 +6,7 @@
 @using Microsoft.AspNetCore.Components.Sections
 @using MyLittleContentEngine.Services.Content.TableOfContents
 @inject ContentEngineOptions ContentEngineOptions
-@inject IMarkdownContentService<DocSiteFrontMatter> MarkdownContentService
+@inject ILocalizedContentService<DocSiteFrontMatter> LocalizedContentService
 @inject ITableOfContentService TableOfContentService
 @inject DocSiteOptions DocSiteOptions
 
@@ -28,7 +28,17 @@
             <meta property="og:image" content="@(DocSiteOptions.CanonicalBaseUrl?.TrimEnd('/')  + '/' + DocSiteOptions.SocialImageUrl.TrimStart('/'))" />
             <meta name="twitter:image" content="@(DocSiteOptions.CanonicalBaseUrl?.TrimEnd('/')  + '/' + DocSiteOptions.SocialImageUrl.TrimStart('/'))" />
         }
+        @foreach (var alt in _alternateLanguages)
+        {
+            <link rel="alternate" hreflang="@alt.Locale" href="@(DocSiteOptions.CanonicalBaseUrl?.TrimEnd('/') + alt.Url)" />
+        }
     </HeadContent>
+
+    @if (_isFallback)
+    {
+        <FallbackNotice RequestedLocale="@_requestedLocale" DefaultLocale="@LocalizedContentService.DefaultLocale" />
+    }
+
     <DocSiteArticle Title="@_post.FrontMatter.Title"
                     HtmlContent="@_postContent"
                     PreviousPageName="@_previousPage?.Name"
@@ -57,6 +67,9 @@ else
     private NavigationTreeItem? _previousPage;
     private NavigationTreeItem? _nextPage;
     private Type? _homeComponentType;
+    private bool _isFallback;
+    private string? _requestedLocale;
+    private ImmutableList<AlternateLanguagePage> _alternateLanguages = [];
 
     [MemberNotNull(nameof(_postContent))]
     [MemberNotNull(nameof(_outline))]
@@ -73,19 +86,18 @@ else
             fileName = "index";
         }
 
-        var page = await MarkdownContentService.GetRenderedContentPageByUrlOrDefault(fileName);
-        
+        var result = await LocalizedContentService.GetContentByUrl(fileName);
+
         // If no index page found and we're on root, try to render Index component.
-        // This allows the user to have a custom page rather than markdown for their home page of the site.
-        if (page == null && fileName.Equals("index", StringComparison.OrdinalIgnoreCase))
+        if (result == null && fileName.Equals("index", StringComparison.OrdinalIgnoreCase))
         {
             try
             {
-                var homeType = Type.GetType("Index") ?? 
+                var homeType = Type.GetType("Index") ??
                               AppDomain.CurrentDomain.GetAssemblies()
                                   .SelectMany(a => a.GetTypes())
                                   .FirstOrDefault(t => t.Name == "Index" && typeof(IComponent).IsAssignableFrom(t));
-                
+
                 if (homeType != null)
                 {
                     _homeComponentType = homeType;
@@ -97,24 +109,31 @@ else
                 // Fall through to show not found
             }
         }
-        
-        if (page == null)
+
+        if (result == null)
         {
             IsLoaded = false;
             return;
         }
 
-        _outline = page.Value.Page.Outline;
-        _post = page.Value.Page;
-        _postContent = page.Value.HtmlContent;
+        _outline = result.Page.Outline;
+        _post = result.Page;
+        _postContent = result.HtmlContent;
+        _isFallback = result.IsFallback;
+        _requestedLocale = result.RequestedLocale;
 
-        var nextPrevious = await TableOfContentService.GetNavigationInfoAsync(page.Value.Page.Url);
+        // Get locale-filtered navigation
+        var locale = LocalizedContentService.GetLocaleFromUrl(fileName);
+        var nextPrevious = await TableOfContentService.GetNavigationInfoForLocaleAsync(result.Page.Url, locale);
         if (nextPrevious != null)
         {
             _nextPage = nextPrevious.NextPage;
-            _previousPage = nextPrevious.PreviousPage;    
+            _previousPage = nextPrevious.PreviousPage;
         }
-        
+
+        // Get alternate language links
+        _alternateLanguages = await LocalizedContentService.GetAlternateLanguages(fileName);
+
         IsLoaded = true;
     }
 }

@@ -187,6 +187,12 @@ public record ContentEngineOptions
     public Action<TextMateLanguageRegistry>? ConfigureTextMate { get; init; }
 
     /// <summary>
+    /// Gets or sets optional localization configuration for multi-language content support.
+    /// When null, the engine operates in single-language mode with no behavior change.
+    /// </summary>
+    public LocalizationOptions? Localization { get; init; }
+
+    /// <summary>
     /// Gets or sets the function that builds the Markdown pipeline used for parsing and rendering markdown content.
     /// </summary>
     /// <remarks>

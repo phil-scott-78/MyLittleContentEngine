@@ -1,8 +1,10 @@
 @using System.Collections.Immutable
+@using MyLittleContentEngine.Services.Content
 @using MyLittleContentEngine.Services.Content.TableOfContents
 @using Microsoft.AspNetCore.Components.Sections
 @inherits LayoutComponentBase
 @inject ITableOfContentService TableOfContentService
+@inject ILocalizedContentService<DocSiteFrontMatter> LocalizedContentService
 @inject NavigationManager NavigationManager
 @inject DocSiteOptions DocSiteOptions
 
@@ -105,6 +107,10 @@
                         </div>
 
                         <div class="flex items-center gap-x-2">
+                            @if (_alternateLanguages.Count > 1)
+                            {
+                                <LanguageSwitcher AlternateLanguages="@_langSwitcherItems" />
+                            }
                             <!-- sun icon -->
                             <button aria-label="Toggle Dark Mode"
                                     class="hover:bg-base-200 dark:hover:bg-base-800 rounded-md p-1" data-theme-toggle>
@@ -172,6 +178,8 @@
 
 @code{
     private ImmutableList<NavigationTreeItem>? _toc;
+    private ImmutableList<AlternateLanguagePage> _alternateLanguages = [];
+    private IReadOnlyList<LanguageSwitcher.AlternateLanguageItem> _langSwitcherItems = [];
 
     [Parameter] public RenderFragment? SidebarChildContent { get; set; }
 
@@ -195,7 +203,15 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _toc = await TableOfContentService.GetNavigationTocAsync(NavigationManager.ToAbsoluteUri(NavigationManager.Uri).AbsolutePath);
+        var currentPath = NavigationManager.ToAbsoluteUri(NavigationManager.Uri).AbsolutePath;
+        var locale = LocalizedContentService.GetLocaleFromUrl(currentPath);
+
+        _toc = await TableOfContentService.GetNavigationTocForLocaleAsync(currentPath, locale);
+        _alternateLanguages = await LocalizedContentService.GetAlternateLanguages(currentPath);
+        _langSwitcherItems = _alternateLanguages
+            .Select(a => new LanguageSwitcher.AlternateLanguageItem(a.Locale, a.DisplayName, a.Url, a.IsCurrentLocale))
+            .ToList();
+
         await base.OnInitializedAsync();
     }
 }

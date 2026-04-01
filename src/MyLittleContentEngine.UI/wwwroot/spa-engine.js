@@ -86,6 +86,7 @@
     function isSpaLink(anchor) {
         if (!anchor.href) return false;
         if ((anchor.getAttribute('href') || '').startsWith('#')) return false;
+        if (anchor.hasAttribute('data-spa-reload')) return false;
         try {
             const url = new URL(anchor.href);
             if (url.origin !== location.origin) return false;

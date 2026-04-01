@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using MyLittleContentEngine.Models;
 using MyLittleContentEngine.Services;
 
@@ -96,6 +97,18 @@ public record MarkdownContentOptions<TFrontMatter> : IContentOptions
     /// Gets or sets the default section key for Table of Content rendering.
     /// </summary>
     public string TableOfContentsSectionKey { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets the locale code for this content source (e.g., "en", "fr").
+    /// Empty string means unlocalized. Set automatically by <c>WithLocalizedMarkdownContent</c>.
+    /// </summary>
+    public string Locale { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Gets subfolder names to exclude from content discovery. Used by <c>WithLocalizedMarkdownContent</c>
+    /// to prevent the default locale from discovering files in non-default locale subfolders.
+    /// </summary>
+    public ImmutableList<string> ExcludedSubfolders { get; init; } = [];
 
     /// <summary>
     /// Gets or sets a function to create content URLs from file paths.
