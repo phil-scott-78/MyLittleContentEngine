@@ -54,7 +54,7 @@ builder.Services.AddBlogSite(_ => new BlogSiteOptions()
     ],
     AuthorName = "Calvin",
     AuthorBio = "I'm <strong>Calvin</strong>, a gum performance analyst and recreational mandibularist based in New York City. I’m the founde of ChewLab, where we develop equipment, training protocols, and apparel that help everyday people reach elite levels of chewing efficiency.",
-    SocialMediaImageUrlFactory = page => $"social-images/{page.Url.Replace("/", "-")}.png"
+    SocialMediaImageUrlFactory = page => $"social-images/{page.Url.Trim('/').Replace("/", "-")}.png"
 });
 
 var app = builder.Build();

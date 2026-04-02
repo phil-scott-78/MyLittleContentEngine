@@ -8,10 +8,10 @@
 <head>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    
+
     @if (BlogOptions.EnableRss)
     {
-        <link type="application/rss+xml" rel="alternate" title="@Options.SiteTitle" href="rss.xml" />
+        <link type="application/rss+xml" rel="alternate" title="@Options.SiteTitle" href="/rss.xml" />
     }
     <link rel="stylesheet" href="@GetVersioned("/styles.css")">
     <script src="@GetVersioned("/_content/MyLittleContentEngine.UI/scripts.js")" defer></script>
@@ -20,7 +20,7 @@
     {
         @((MarkupString)BlogOptions.AdditionalHtmlHeadContent)
     }
-    
+
     <meta name="description" content="@Options.SiteDescription">
 
     <script>
@@ -41,8 +41,8 @@
 
 @code{
     static readonly string Version = DateTime.Now.Ticks.ToString();
-    
+
     string GetVersioned(string url) => WebHostEnvironment.IsDevelopment()
-            ? url 
+            ? url
             : QueryHelpers.AddQueryString(url, "v", Version);
 }

@@ -122,7 +122,7 @@ internal class ContentFilesService<TFrontMatter>
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(contentUrl);
 
-        return FileSystemUtilities.CombineUrl(_markdownContentOptions.BasePageUrl, contentUrl);
+        return FileSystemUtilities.CombineUrl(_markdownContentOptions.BasePageUrl, contentUrl).EnsureTrailingSlash();
     }
 
     /// <summary>
@@ -135,7 +135,7 @@ internal class ContentFilesService<TFrontMatter>
         ArgumentException.ThrowIfNullOrEmpty(contentUrl);
 
         var relativePath = contentUrl.Replace('/', Path.DirectorySeparatorChar).TrimStart(Path.DirectorySeparatorChar);
-        return $"{relativePath}.html";
+        return Path.Combine(relativePath, "index.html");
     }
 
     /// <summary>

@@ -32,18 +32,18 @@
     <!-- Article Header -->
     <header class="mb-8 pb-8 border-b border-base-200 dark:border-base-700">
         <Breadcrumbs Items="@_navigationInfo.Breadcrumbs" />
-        
+
         <h1 class="text-4xl lg:text-5xl font-extrabold text-base-900 dark:text-base-100 mb-4 text-pretty">
             @_navigationInfo.PageTitle
         </h1>
-        
+
         @if (!string.IsNullOrEmpty(_description))
         {
             <p class="text-xl text-base-600 dark:text-base-400 text-pretty">
                 @_description
             </p>
         }
-        
+
         @if (_tags != null && _tags.Any())
         {
             <div class="flex flex-wrap gap-2 mt-4">
@@ -65,7 +65,7 @@
                 @((MarkupString)_postContent)
             </main>
         </div>
-        
+
         <!-- Outline Navigation (Desktop) -->
         @if (_outline is { Length: > 0 })
         {
@@ -99,20 +99,20 @@
     private bool _isCliSection;
     private string? _description;
     private IEnumerable<string>? _tags;
-    
+
     // Style classes based on section
-    private string ButtonColorClass => _isCliSection 
-        ? "bg-tertiary-one-600 dark:bg-tertiary-one-500" 
+    private string ButtonColorClass => _isCliSection
+        ? "bg-tertiary-one-600 dark:bg-tertiary-one-500"
         : "bg-primary-600 dark:bg-primary-500";
-    
-    private string ButtonHoverClass => _isCliSection 
-        ? "hover:bg-tertiary-one-700 dark:hover:bg-tertiary-one-600" 
+
+    private string ButtonHoverClass => _isCliSection
+        ? "hover:bg-tertiary-one-700 dark:hover:bg-tertiary-one-600"
         : "hover:bg-primary-700 dark:hover:bg-primary-600";
-    
-    private string TagColorClass => _isCliSection 
-        ? "bg-tertiary-one-100 dark:bg-tertiary-one-900 text-tertiary-one-800 dark:text-tertiary-one-200" 
+
+    private string TagColorClass => _isCliSection
+        ? "bg-tertiary-one-100 dark:bg-tertiary-one-900 text-tertiary-one-800 dark:text-tertiary-one-200"
         : "bg-primary-100 dark:bg-primary-900 text-primary-800 dark:text-primary-200";
-    
+
     [Parameter] public required string FileName { get; init; } = string.Empty;
 
     protected override async Task OnInitializedAsync()
@@ -121,7 +121,7 @@
         var uri = NavigationManager.Uri;
         _isCliSection = uri.Contains("/cli", StringComparison.OrdinalIgnoreCase);
 
-        var fileName = FileName;
+        var fileName = FileName?.TrimEnd('/') ?? string.Empty;
         if (string.IsNullOrWhiteSpace(fileName))
         {
             fileName = "index";
@@ -135,7 +135,7 @@
         {
             await LoadConsoleContent(fileName);
         }
-        
+
         // Get navigation info from the TableOfContentService
         if (_postContent != null)
         {
@@ -151,13 +151,12 @@
         if (cliService == null) return;
 
         var allPages = await cliService.GetAllContentPagesAsync();
-        var page = allPages.FirstOrDefault(p => 
-            p.Url.Equals($"/cli/{fileName}", StringComparison.OrdinalIgnoreCase) ||
-            p.Url.Equals($"cli/{fileName}", StringComparison.OrdinalIgnoreCase));
+        var page = allPages.FirstOrDefault(p =>
+            p.Url.Trim('/').Equals($"cli/{fileName}", StringComparison.OrdinalIgnoreCase));
 
         if (page != null)
         {
-            var renderedPage = await cliService.GetRenderedContentPageByUrlOrDefault(page.Url.TrimStart('/'));
+            var renderedPage = await cliService.GetRenderedContentPageByUrlOrDefault(page.Url.Trim('/'));
             if (renderedPage != null)
             {
                 _postContent = renderedPage.Value.HtmlContent;
@@ -174,13 +173,12 @@
         if (consoleService == null) return;
 
         var allPages = await consoleService.GetAllContentPagesAsync();
-        var page = allPages.FirstOrDefault(p => 
-            p.Url.Equals($"/console/{fileName}", StringComparison.OrdinalIgnoreCase) ||
-            p.Url.Equals($"console/{fileName}", StringComparison.OrdinalIgnoreCase));
+        var page = allPages.FirstOrDefault(p =>
+            p.Url.Trim('/').Equals($"console/{fileName}", StringComparison.OrdinalIgnoreCase));
 
         if (page != null)
         {
-            var renderedPage = await consoleService.GetRenderedContentPageByUrlOrDefault(page.Url.TrimStart('/'));
+            var renderedPage = await consoleService.GetRenderedContentPageByUrlOrDefault(page.Url.Trim('/'));
             if (renderedPage != null)
             {
                 _postContent = renderedPage.Value.HtmlContent;

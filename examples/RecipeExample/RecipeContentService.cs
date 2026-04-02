@@ -124,7 +124,7 @@ internal class RecipeContentService : IDisposable, IRecipeContentService
     public async Task<RecipeContentPage?> GetRecipeByUrlOrDefault(string url)
     {
         var data = await _recipeCache;
-        return data.GetValueOrDefault(url);
+        return data.GetValueOrDefault(url.TrimEnd('/'));
     }
 
     public async Task<ImmutableList<RecipeContentPage>> GetAllRecipesAsync()
@@ -144,7 +144,7 @@ internal class RecipeContentService : IDisposable, IRecipeContentService
 
             var relativePath = url.Replace('/', Path.DirectorySeparatorChar);
 
-            var outputFile = _fileSystem.Path.Combine(_options.BasePageUrl, $"{relativePath}.html").TrimStart(Path.DirectorySeparatorChar);
+            var outputFile = _fileSystem.Path.Combine(_options.BasePageUrl, relativePath.Trim(Path.DirectorySeparatorChar), "index.html").TrimStart(Path.DirectorySeparatorChar);
 
             pages.Add(new PageToGenerate(url, outputFile, new Metadata()
             {

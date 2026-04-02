@@ -89,6 +89,9 @@ public partial class BaseUrlRewritingProcessor : IResponseProcessor
         // Then apply BaseUrl rewriting to all URL attributes
         RewriteUrlAttributes(document);
 
+        // Ensure content page links have trailing slashes for directory-style URLs
+        EnsureTrailingSlashOnContentLinks(document);
+
         // Return the modified HTML
         return document.ToHtml();
     }
@@ -164,6 +167,7 @@ public partial class BaseUrlRewritingProcessor : IResponseProcessor
 
         await ResolveXrefsAsync(document);
         RewriteUrlAttributes(document);
+        EnsureTrailingSlashOnContentLinks(document);
 
         return document.Body?.InnerHtml ?? htmlFragment;
     }
@@ -382,6 +386,52 @@ public partial class BaseUrlRewritingProcessor : IResponseProcessor
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Ensures that content page links (no file extension) have trailing slashes
+    /// for directory-style URL consistency. Only processes href attributes on
+    /// anchor and link elements.
+    /// </summary>
+    private static void EnsureTrailingSlashOnContentLinks(IDocument document)
+    {
+        var elements = document.QuerySelectorAll("a[href], link[href]");
+        foreach (var element in elements)
+        {
+            var href = element.GetAttribute("href");
+            if (string.IsNullOrEmpty(href)) continue;
+
+            var normalized = EnsureTrailingSlash(href);
+            if (normalized != href)
+            {
+                element.SetAttribute("href", normalized);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Adds a trailing slash to a root-relative URL if the path has no file extension.
+    /// Preserves query strings and fragments.
+    /// </summary>
+    internal static string EnsureTrailingSlash(string url)
+    {
+        // Only process root-relative URLs
+        if (!url.StartsWith('/') || url.StartsWith("//")) return url;
+
+        // Separate path from query/fragment
+        var queryIndex = url.IndexOfAny(['?', '#']);
+        var path = queryIndex >= 0 ? url[..queryIndex] : url;
+        var rest = queryIndex >= 0 ? url[queryIndex..] : "";
+
+        // Skip if already has trailing slash
+        if (path.EndsWith('/')) return url;
+
+        // Skip if the last segment has a file extension (e.g., .html, .css, .js)
+        var lastSlash = path.LastIndexOf('/');
+        var lastSegment = lastSlash >= 0 ? path[(lastSlash + 1)..] : path;
+        if (lastSegment.Contains('.')) return url;
+
+        return path + "/" + rest;
     }
 
     private string RewriteSrcsetValue(string srcsetValue)

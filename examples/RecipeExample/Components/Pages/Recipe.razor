@@ -7,7 +7,7 @@
 @if (_recipe == null)
 {
     <div class="min-h-screen flex items-center justify-center">
-        <div class="text-base-600 text-lg">Loading recipe...</div>
+        <div class="text-base-600 text-lg">Loading recipe @FileName ...</div>
     </div>
 }
 else
@@ -28,7 +28,7 @@ else
                         <InfoPillWithIcon Label="Rest Time" Value="@_recipe.FrontMatter.RestTime" IconPath="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </div>
                 </div>
-                
+
             </div>
 
             <!-- Front Matter Row -->
@@ -140,15 +140,15 @@ else
 
 @code {
     [Parameter] public string FileName { get; set; } = string.Empty;
-    
+
     private RecipeContentPage? _recipe;
-    
+
     protected override async Task OnInitializedAsync()
     {
         var url = $"/recipes/{FileName}";
         _recipe = await RecipeService.GetRecipeByUrlOrDefault(url);
     }
-    
+
     private string HighlightSecondWord(string title)
     {
         var words = title.Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -166,11 +166,11 @@ else
             {
                 result.Append(words[i]);
             }
-            
+
             if (i < words.Length - 1)
                 result.Append(" ");
         }
-        
+
         return result.ToString();
     }
 

@@ -12,15 +12,18 @@ internal static class NavigationUrlComparer
 
     private static string NormalizeForNavigation(string url)
     {
-        if (url == "/") return "/index";
         if (!url.StartsWith('/'))
         {
             url = $"/{url}";
         }
 
-        if (url.EndsWith('/'))
+        url = url.TrimEnd('/');
+        if (url.Length == 0) url = "/";
+
+        // Treat /index as equivalent to root /
+        if (url.Equals("/index", StringComparison.OrdinalIgnoreCase))
         {
-            url += "index";
+            url = "/";
         }
 
         return url.ToLowerInvariant();

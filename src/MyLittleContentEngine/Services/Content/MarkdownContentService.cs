@@ -115,8 +115,9 @@ internal class MarkdownContentService<TFrontMatter> : IDisposable, IMarkdownCont
 
         // Use the parser service to render Markdown to HTML
         // Use the page's Url as the base URL for link rewriting
-        var lastSlash = page.Url.LastIndexOf('/');
-        var pageUrl = lastSlash == -1 ? page.Url : page.Url[..lastSlash];
+        var normalizedUrl = page.Url.TrimEnd('/');
+        var lastSlash = normalizedUrl.LastIndexOf('/');
+        var pageUrl = lastSlash == -1 ? normalizedUrl : normalizedUrl[..lastSlash];
 
         var html = _markdownParserService.RenderMarkdownToHtml(page.MarkdownContent, pageUrl);
         return (page, html);

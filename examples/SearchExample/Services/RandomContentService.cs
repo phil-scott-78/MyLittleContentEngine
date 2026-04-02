@@ -38,7 +38,7 @@ public class RandomContentService : IContentService
             var url = "/random" + urlRootedPath;
 
             _content.Add(urlRootedPath.Trim('/'), GetContentForUrl(urlRootedPath, title));
-            _items.Add(new PageToGenerate(url, url + ".html", new Metadata
+            _items.Add(new PageToGenerate(url, url.TrimStart('/') + "/index.html", new Metadata
             {
                 Title = title,
             }));

@@ -247,8 +247,8 @@ internal class MarkdownContentProcessor<TFrontMatter>
             // Generate tag pages - one for each unique tag
             foreach (var tag in allTags)
             {
-                var outputFile = _fileSystem.Path.Combine(_markdownContentOptions.Tags.TagsPageUrl, $"{tag.EncodedName}.html");
-                var pageUrl = $"{_markdownContentOptions.Tags.TagsPageUrl}/{tag.EncodedName}";
+                var outputFile = _fileSystem.Path.Combine(_markdownContentOptions.Tags.TagsPageUrl, tag.EncodedName, "index.html");
+                var pageUrl = $"{_markdownContentOptions.Tags.TagsPageUrl}/{tag.EncodedName}/";
 
                 pageToGenerates = pageToGenerates.Add(new PageToGenerate(pageUrl, outputFile));
             }

@@ -22,9 +22,9 @@ public class MultipleContentSourceExampleUrlTests : IClassFixture<MultipleConten
     public static IEnumerable<object[]> GetMultipleContentSourceExampleUrls()
     {
         yield return ["/", "My Little Content Engine"];
-        yield return ["/about", "About"];
-        yield return ["/blog/best-pizza-toppings", "pizza"];
-        yield return ["/services", "Services"];
-        yield return ["/Portfolio", "Portfolio"];
+        yield return ["/about/", "About"];
+        yield return ["/blog/best-pizza-toppings/", "pizza"];
+        yield return ["/services/", "Services"];
+        yield return ["/Portfolio/", "Portfolio"];
     }
 }

@@ -38,7 +38,7 @@ public class BaseUrlRewritingProcessorTests
         var result = await ((IResponseProcessor)processor).ProcessAsync(htmlContent, context);
 
         // Assert
-        result.ShouldContain("""<a href="/myapp/api/system/string">String Documentation</a>""");
+        result.ShouldContain("""<a href="/myapp/api/system/string/">String Documentation</a>""");
     }
 
     [Fact]
@@ -108,8 +108,8 @@ public class BaseUrlRewritingProcessorTests
         var result = await ((IResponseProcessor)processor).ProcessAsync(htmlContent, context);
 
         // Assert
-        result.ShouldContain("""<a href="/myapp/api/system/string">String Documentation</a>""");
-        result.ShouldContain("""<a href="/myapp/docs/guide">Regular Link</a>""");
+        result.ShouldContain("""<a href="/myapp/api/system/string/">String Documentation</a>""");
+        result.ShouldContain("""<a href="/myapp/docs/guide/">Regular Link</a>""");
     }
 
     [Fact]
@@ -147,7 +147,7 @@ public class BaseUrlRewritingProcessorTests
         result.ShouldNotContain("""<a href="xref:System.String">""");
         result.ShouldContain(""""data-xref-uid="System.String"""");
         result.ShouldContain(""""data-xref-error="Reference not found"""");
-        result.ShouldContain("""<a href="/myapp/docs/guide">Regular Link</a>""");
+        result.ShouldContain("""<a href="/myapp/docs/guide/">Regular Link</a>""");
     }
 
     [Fact]
@@ -179,7 +179,7 @@ public class BaseUrlRewritingProcessorTests
         var result = await ((IResponseProcessor)processor).ProcessAsync(htmlContent, context);
 
         // Assert
-        result.ShouldContain("""<a href="/myapp/docs/guides/linking">Linking Documents and Media</a>""");
+        result.ShouldContain("""<a href="/myapp/docs/guides/linking/">Linking Documents and Media</a>""");
         result.ShouldNotContain("<xref:");
     }
 
@@ -245,7 +245,7 @@ public class BaseUrlRewritingProcessorTests
         var result = await ((IResponseProcessor)processor).ProcessAsync(htmlContent, context);
 
         // Assert
-        result.ShouldContain("""<a href="/myapp/docs/guides/linking">Linking Documents and Media</a>""");
+        result.ShouldContain("""<a href="/myapp/docs/guides/linking/">Linking Documents and Media</a>""");
         result.ShouldNotContain("xref:docs.guides.linking-documents-and-media");
     }
 
@@ -280,7 +280,7 @@ public class BaseUrlRewritingProcessorTests
         // Assert
         // Should not be processed by our new pattern because href and content don't match
         // It should be processed by the existing XrefPattern instead
-        result.ShouldContain("""<a href="/myapp/docs/guides/linking">Different Content</a>""");
+        result.ShouldContain("""<a href="/myapp/docs/guides/linking/">Different Content</a>""");
         result.ShouldNotContain("xref:docs.guides.linking-documents-and-media");
     }
 
