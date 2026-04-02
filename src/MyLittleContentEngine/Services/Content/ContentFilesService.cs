@@ -120,8 +120,6 @@ internal class ContentFilesService<TFrontMatter>
     /// <returns>A full navigation URL.</returns>
     internal string CreateNavigationUrl(string contentUrl)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(contentUrl);
-
         return FileSystemUtilities.CombineUrl(_markdownContentOptions.BasePageUrl, contentUrl).EnsureTrailingSlash();
     }
 
