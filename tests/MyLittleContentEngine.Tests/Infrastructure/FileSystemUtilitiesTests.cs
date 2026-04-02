@@ -147,7 +147,7 @@ public class FileSystemUtilitiesTests
     }
 
     [Fact]
-    public void FilePathToUrlPath_FileInRootDirectory_ReturnsJustFilename()
+    public void FilePathToUrlPath_IndexFileInRootDirectory_ReturnsEmpty()
     {
         var fileSystem = new MockFileSystem();
         var pathUtilities = CreateFileSystemUtilities(fileSystem);
@@ -156,7 +156,7 @@ public class FileSystemUtilitiesTests
 
         var result = pathUtilities.FilePathToUrlPath(filePath, baseContentPath);
 
-        result.Value.ShouldBe("index");
+        result.IsEmpty.ShouldBeTrue();
     }
 
     [Fact]

@@ -23,6 +23,12 @@ internal class FileSystemUtilities(IFileSystem fileSystem, FilePathOperations fi
         var directoryPath = _filePathOps.GetDirectory(relativePath);
         var fileNameWithoutExtension = _filePathOps.GetFileNameWithoutExtension(relativePath).Slugify();
 
+        // index.md represents the directory itself, not a page called "index"
+        if (fileNameWithoutExtension.Equals("index", StringComparison.OrdinalIgnoreCase))
+        {
+            return directoryPath.IsEmpty ? UrlPath.Empty : directoryPath.ToUrlPath();
+        }
+
         var result = _filePathOps.Combine(directoryPath, fileNameWithoutExtension);
         return result.ToUrlPath();
     }
