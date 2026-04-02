@@ -73,6 +73,11 @@ internal class RazorPageContentService : IContentService
                     outputFile = "index";
                 }
 
+                if (outputFile.EndsWith(Path.DirectorySeparatorChar))
+                {
+                    outputFile += "index";
+                }
+
                 outputFile = $"{outputFile}.html";
                 var pageToGenerate = new PageToGenerate(route, outputFile, componentWithMetadata.Metadata);
 

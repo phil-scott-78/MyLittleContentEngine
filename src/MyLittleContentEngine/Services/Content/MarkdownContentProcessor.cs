@@ -227,7 +227,6 @@ internal class MarkdownContentProcessor<TFrontMatter>
 
             if (allPosts.Count == 0)
             {
-                _logger.LogWarning("No posts available to generate pages from");
                 return pageToGenerates;
             }
 
