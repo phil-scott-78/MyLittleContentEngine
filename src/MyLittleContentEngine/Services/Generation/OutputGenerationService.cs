@@ -557,6 +557,12 @@ internal class OutputGenerationService(
                 validPaths.Add(normalizedUrl + ".html");
             }
 
+            // Add trailing-slash variation for directory-style URLs
+            if (!normalizedUrl.EndsWith('/') && !Path.HasExtension(normalizedUrl))
+            {
+                validPaths.Add(normalizedUrl + "/");
+            }
+
             // Add version without .html extension for pages that have it
             // This allows both /about.html and /about to be valid
             if (normalizedUrl.EndsWith(".html", StringComparison.OrdinalIgnoreCase))

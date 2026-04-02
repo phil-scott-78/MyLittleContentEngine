@@ -141,10 +141,8 @@ internal class RecipeContentService : IDisposable, IRecipeContentService
         // Add individual recipe pages
         foreach (var (url, recipePage) in data)
         {
-
-            var relativePath = url.Replace('/', Path.DirectorySeparatorChar);
-
-            var outputFile = _fileSystem.Path.Combine(_options.BasePageUrl, relativePath.Trim(Path.DirectorySeparatorChar), "index.html").TrimStart(Path.DirectorySeparatorChar);
+            var relativePath = url.TrimStart('/').Replace('/', Path.DirectorySeparatorChar);
+            var outputFile = _fileSystem.Path.Combine(relativePath, "index.html");
 
             pages.Add(new PageToGenerate(url, outputFile, new Metadata()
             {
