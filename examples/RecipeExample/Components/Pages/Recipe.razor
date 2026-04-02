@@ -139,7 +139,8 @@ else
 }
 
 @code {
-    [Parameter] public string FileName { get; set; } = string.Empty;
+    private string _fileName = string.Empty;
+    [Parameter] public string FileName { get => _fileName; set => _fileName = value?.TrimEnd('/') ?? string.Empty; }
 
     private RecipeContentPage? _recipe;
 
