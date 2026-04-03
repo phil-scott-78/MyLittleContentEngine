@@ -18,6 +18,7 @@ builder.Services.AddContentEngineService(_ => new ContentEngineOptions
     ContentRootPath = "Content",
     CanonicalBaseUrl = "https://phil-scott-78.github.io/MyLittleContentEngine/",
 })
+.WithFlatFileRedirects()
 // Console documentation service
 .WithMarkdownContentService(_ => new MarkdownContentOptions<SpectreConsoleFrontMatter>()
 {

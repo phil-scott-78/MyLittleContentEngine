@@ -406,6 +406,21 @@ public static class ContentEngineExtensions
     }
 
     /// <summary>
+    /// Adds a <see cref="Services.Content.FlatFileRedirectContentService"/> that generates
+    /// <c>filename.html</c> redirect files for pages using folder-based output.
+    /// This provides backward compatibility for sites that migrated from flat-file to
+    /// folder-based URL output (e.g., <c>about.html</c> redirects to <c>about/</c>).
+    /// </summary>
+    /// <param name="services">The configured service collection.</param>
+    /// <returns>The updated service collection for method chaining.</returns>
+    public static IConfiguredContentEngineServiceCollection WithFlatFileRedirects(
+        this IConfiguredContentEngineServiceCollection services)
+    {
+        services.AddTransient<IContentService, FlatFileRedirectContentService>();
+        return services;
+    }
+
+    /// <summary>
     /// Adds an ApiReferenceContentService to the application's service collection for generating API documentation.
     /// </summary>
     /// <param name="services">The application's service collection.</param>
